@@ -72,6 +72,50 @@ export const grade = (g, score = null, size = '') =>
     score === null || score === undefined ? '' : `<span class="grade-score">${score}</span>`
   }</span>`
 
+/**
+ * The comparison chip. Every published number carries one, rendered server-side
+ * against the default cohort and re-rendered client-side when the reader switches
+ * cohorts. data-* carries what the swap needs so the client never recomputes a
+ * value — only which cohort it reads.
+ */
+export const cmp = (vm, key, { fmt = 'points', invert = false } = {}) => {
+  const mine = vm.own?.[key]
+  if (mine == null || !vm.cohorts?.length) return ''
+  const active = vm.cohorts[0]
+  const other = active.metrics[key]
+  if (other == null) return ''
+  const d = mine - other
+  const good = invert ? d < 0 : d > 0
+  return `<span class="cmp${Math.abs(d) < 0.05 ? ' cmp-level' : good ? ' cmp-up' : ' cmp-down'}" data-metric="${esc(key)}" data-fmt="${esc(fmt)}"${invert ? ' data-invert="1"' : ''}>${fmtDelta(d, fmt)} <span class="cmp-vs">vs ${esc(active.short)}</span></span>`
+}
+
+export const fmtDelta = (d, fmt) => {
+  const sign = d > 0 ? '+' : d < 0 ? '−' : '±'
+  const a = Math.abs(d)
+  if (fmt === 'usd') return `${sign}$${Math.round(a).toLocaleString('en-US')}`
+  if (fmt === 'pct') return `${sign}${a.toFixed(1)} pts`
+  if (fmt === 'ratio') return `${sign}${a.toFixed(1)}`
+  return `${sign}${a.toFixed(1)}`
+}
+
+/** The page-level cohort switch. Changes every comparison at once. */
+export const cohortSwitch = (vm) =>
+  !vm.cohorts?.length
+    ? ''
+    : `<div class="cohort-bar" role="group" aria-label="Compare every figure against">
+  <span class="picker-label">Compare everything against</span>
+  ${vm.cohorts
+    .map(
+      (c, i) =>
+        `<button type="button" class="chip chip-cohort" data-cohort="${esc(c.key)}" aria-pressed="${i === 0}"${c.note ? ` title="${esc(c.note)}"` : ''}>${esc(c.label)}<span class="chip-n">${num(c.n)}</span></button>`
+    )
+    .join('\n  ')}
+  <script type="application/json" data-cohorts>${JSON.stringify(
+    vm.cohorts.map((c) => ({ key: c.key, short: c.short, label: c.label, n: c.n, metrics: c.metrics }))
+  ).replace(/</g, '\\u003c')}</script>
+  <script type="application/json" data-own>${JSON.stringify(vm.own).replace(/</g, '\\u003c')}</script>
+</div>`
+
 export const section = (id, heading, inner, lede = '') =>
   `<section id="${id}">
   <h2>${esc(heading)}</h2>${lede ? `\n  <p class="lede">${lede}</p>` : ''}

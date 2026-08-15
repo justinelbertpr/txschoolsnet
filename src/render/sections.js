@@ -5,7 +5,7 @@
 // Order here IS the page order. Adding a section is one function plus one entry
 // in SECTIONS at the bottom.
 
-import { esc, grade, legend, num, ordinal, pct, section, signed, statGrid, table, usd } from './shell.js'
+import { cmp, cohortSwitch, esc, grade, legend, num, ordinal, pct, section, signed, statGrid, table, usd } from './shell.js'
 import { trajectoryChart, scoreBars, stackedShare, comparisonChart, groupedBars } from './charts.js'
 import { RACE, EXPERIENCE, STAAR_LEVELS, GRADUATION, COMPLETION, CCMR } from './labels.js'
 
@@ -67,6 +67,7 @@ export function verdict(vm) {
   </div>
   ${alert}
   ${vm.notRated ? '<p class="note">TEA did not issue an overall rating for this campus. Scores below are the figures TEA published; the letter grades are the state\'s where it issued them.</p>' : ''}
+  ${cohortSwitch(vm)}
 </section>`
 }
 
@@ -160,15 +161,15 @@ export function domains(vm) {
         label: d.label,
         score: d.score,
         grade: d.grade,
-        markers: vm.domainCompare
-          ? [
-              { key: 'peer', label: 'Similar student population', short: 'similar', value: vm.domainCompare.peer[d.domain] ?? null },
-              { key: 'state', label: 'Texas average', short: 'state', value: vm.domainCompare.state[d.domain] ?? null },
-            ]
-          : [],
+        markers: (vm.cohorts ?? []).slice(0, 2).map((c, i) => ({
+          key: i === 0 ? 'peer' : 'state',
+          label: c.label,
+          short: c.short,
+          value: c.metrics[`domain:${d.domain}`] ?? null,
+        })),
       }))
     )}
-  ${vm.domainCompare ? legend([{ key: 'entity', label: vm.name }, { key: 'peer', label: `Similar ${vm.level === 'district' ? 'districts' : 'schools'} (${num(vm.peerN)})` }, { key: 'state', label: 'Texas average' }]) : ''}
+  ${vm.cohorts?.length ? legend([{ key: 'entity', label: vm.name }, ...vm.cohorts.slice(0, 2).map((c, i) => ({ key: i === 0 ? 'peer' : 'state', label: `${c.label} (${num(c.n)})` }))]) : ''}
   ${table({
       caption: 'Domain scores',
       head: ['Domain', { label: 'Score', num: true }, 'Grade', { label: 'Points to next grade', num: true }],
@@ -194,27 +195,31 @@ export function outcomes(vm) {
           key: `l${i}`,
           label,
           values: vm.staar.levels[i],
-          compare: vm.staar.peer ? vm.staar.subjects.map((_, gi) => vm.staar.peer[gi]?.[i] ?? null) : null,
+          compare: vm.cohorts?.length
+            ? vm.staar.subjects.map((subj) => vm.cohorts[0].metrics[`staar:${subj}:${i}`] ?? null)
+            : null,
         })),
       })}
-  ${legend([...STAAR_LEVELS.map((label, i) => ({ key: `l${i}`, label })), vm.staar.peer ? { key: 'peer', label: `Tick: similar ${vm.level === 'district' ? 'districts' : 'schools'} (${num(vm.peerN)})` } : null].filter(Boolean))}
+  ${legend([...STAAR_LEVELS.map((label, i) => ({ key: `l${i}`, label })), vm.cohorts?.length ? { key: 'peer', label: `Tick: ${vm.cohorts[0].label} (${num(vm.cohorts[0].n)})` } : null].filter(Boolean))}
   <p class="note">Percentage of tests at or above each level. Masters is a subset of Meets, which is a subset of Approaches. The tick on each bar marks the average for ${vm.level === 'district' ? 'districts' : 'schools'} serving a similar share of economically disadvantaged students — a comparison TEA does not publish.</p>`
     : ''
 
   const grad = vm.graduation?.length
     ? `<h3>${vm.isAlt ? 'Completion' : 'Graduation'}</h3>
-  ${statGrid(vm.graduation.map((g) => [g.label.replace(/ (Graduation|Completion) Rate/, ''), pct(g.value)]))}`
+  ${statGrid(vm.graduation.map((g, i) => [g.label.replace(/ (Graduation|Completion) Rate/, ''), pct(g.value) + cmp(vm, `grad:${i}`, { fmt: 'pct', invert: g.label === 'Dropout Rate' })]))}`
     : ''
 
   const ccmr = vm.ccmr?.length
     ? `<h3>College, career and military readiness</h3>
   ${table({
         caption: 'CCMR criteria',
-        head: ['Criterion', { label: 'This ' + (vm.level === 'district' ? 'district' : 'school'), num: true }, { label: vm.level === 'district' ? 'State' : 'District', num: true }],
-        rows: vm.ccmr.map(
-          (c) =>
-            `<tr><th scope="row" class="wrap">${esc(c.label)}</th><td class="num">${c.value ?? '—'}</td><td class="num">${c.compare ?? '—'}</td></tr>`
-        ),
+        head: ['Criterion', { label: 'This ' + (vm.level === 'district' ? 'district' : 'school'), num: true }, { label: vm.cohorts?.[0]?.short ?? 'Cohort', num: true }, { label: 'Gap', num: true }],
+        rows: vm.ccmr.map((c, i) => {
+          const other = vm.cohorts?.[0]?.metrics[`ccmr:${i}`] ?? null
+          const mine = vm.own?.[`ccmr:${i}`] ?? null
+          const gap = mine != null && other != null ? mine - other : null
+          return `<tr><th scope="row" class="wrap">${esc(c.label)}</th><td class="num">${c.value ?? '—'}</td><td class="num">${other == null ? '—' : other.toFixed(1) + '%'}</td><td class="num">${gap == null ? '—' : `<span class="${gap >= 0 ? 'cmp-up' : 'cmp-down'}">${gap >= 0 ? '+' : '−'}${Math.abs(gap).toFixed(1)}</span>`}</td></tr>`
+        }),
       })}`
     : ''
 
@@ -231,11 +236,11 @@ export function students(vm) {
     `Who this ${vm.level === 'district' ? 'district' : 'school'} serves`,
     `${statGrid([
       ['Students', num(vm.profile.total)],
-      ['Economically disadvantaged', pct(vm.profile.ecoDisPct)],
-      ['English learners', pct(vm.profile.engLrnPct)],
-      ['Special education', pct(vm.profile.specEdPct)],
-      ['Attendance', pct(vm.profile.attendance)],
-      ['Chronically absent', pct(vm.profile.absenteeism)],
+      ['Economically disadvantaged', pct(vm.profile.ecoDisPct) + cmp(vm, 'ecoDis', { fmt: 'pct' })],
+      ['English learners', pct(vm.profile.engLrnPct) + cmp(vm, 'engLrn', { fmt: 'pct' })],
+      ['Special education', pct(vm.profile.specEdPct) + cmp(vm, 'specEd', { fmt: 'pct' })],
+      ['Attendance', pct(vm.profile.attendance) + cmp(vm, 'attendance', { fmt: 'pct' })],
+      ['Chronically absent', pct(vm.profile.absenteeism) + cmp(vm, 'absenteeism', { fmt: 'pct', invert: true })],
     ])}
   ${race.length ? `<h3>Student demographics</h3>${stackedShare(race)}${legend(race.map((r, i) => ({ key: String(i % 7), label: `${r.label} ${r.value}%` })))}` : ''}`,
     'Placed after the results deliberately: this is context for reading them, not an explanation of them.'
@@ -284,7 +289,7 @@ export function teachers(vm) {
     'teachers',
     'Teachers',
     `${statGrid([
-      ['Average salary', usd(vm.profile.avgSalary)],
+      ['Average salary', usd(vm.profile.avgSalary) + cmp(vm, 'avgSalary', { fmt: 'usd' })],
       vm.profile.teachers ? ['Teachers', num(vm.profile.teachers)] : null,
       vm.profile.stuPerStaff ? ['Students per staff member', num(vm.profile.stuPerStaff, 1)] : null,
     ])}
@@ -312,6 +317,53 @@ export function campuses(vm) {
   )
 }
 
+/* -------------------------------------------------------------- standouts -- */
+
+const ordSuffix = (i) => { const s = ['th','st','nd','rd'], v = i % 100; return s[(v - 20) % 10] || s[v] || s[0] }
+
+/** A sentence someone can paste into a newsletter and have it hold up. */
+export const claimSentence = (vm, r) => {
+  const unit = vm.level === 'district' ? 'districts' : 'schools'
+  const scope =
+    r.cohort === 'state' ? `Texas ${unit}`
+    : r.cohort === 'peer' ? `${unit} serving a similar share of economically disadvantaged students`
+    : `${unit} in ${r.cohortLabel}`
+  const tie = r.tied > 0 ? `, tied with ${r.tied} other${r.tied === 1 ? '' : 's'}` : ''
+  const dir = r.lowerIsBetter ? 'lowest' : 'highest'
+  return `${vm.name} ranks ${r.rank}${ordSuffix(r.rank)} of ${r.of} ${scope} for ${r.label} (${dir}, 2025-26)${tie}. Source: txschools.net`
+}
+
+export function standouts(vm) {
+  if (!vm.standouts?.length) return null
+
+  const rows = vm.standouts
+    .map((r) => {
+      const claim = claimSentence(vm, r)
+      return `<li class="standout">
+      <div class="standout-rank"><span class="standout-n">${r.rank}</span><span class="standout-of">of ${num(r.of)}</span></div>
+      <div class="standout-body">
+        <p class="standout-metric">${esc(r.label)}${r.lowerIsBetter ? ' <span class="standout-dir">(lowest is best)</span>' : ''}</p>
+        <p class="standout-scope">${esc(r.cohortLabel)}${r.tied > 0 ? ` &middot; tied with ${r.tied}` : ''}</p>
+      </div>
+      <button type="button" class="copy" data-claim="${esc(claim)}" aria-label="Copy this statement">Copy</button>
+    </li>`
+    })
+    .join('\n    ')
+
+  return section(
+    'standouts',
+    'Where this ' + (vm.level === 'district' ? 'district' : 'school') + ' ranks best',
+    `<ul class="standouts">
+    ${rows}
+  </ul>
+  <p class="note"><strong>These are selected high placements, not a summary.</strong> Every figure above
+  this section is the full picture, including where this ${vm.level} ranks poorly. Each statement below
+  states its cohort and its denominator so it can be checked — a rank without an n is a boast, not a
+  fact. Ties are shown because a shared ceiling is not a sole first place.</p>`,
+    `Out of ${num(vm.ranks.length)} rankings computed across every published metric and every comparison group, these are the placements that stand out. Press Copy for a citable sentence.`
+  )
+}
+
 /* ----------------------------------------------------------------- source -- */
 
 export function source(vm) {
@@ -328,4 +380,4 @@ export function source(vm) {
 }
 
 /** Page order. */
-export const SECTIONS = [verdict, trajectory, domains, outcomes, students, spending, teachers, campuses, source]
+export const SECTIONS = [verdict, trajectory, domains, outcomes, students, spending, teachers, standouts, campuses, source]

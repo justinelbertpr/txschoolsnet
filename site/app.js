@@ -189,7 +189,77 @@ function initBars() {
   document.querySelectorAll('.chart-bars, .chart-grouped, .chart-stack').forEach((c) => io.observe(c))
 }
 
+/* ------------------------------------------------- page-wide cohort switch -- */
+
+function initCohorts() {
+  const bar = document.querySelector('.cohort-bar')
+  if (!bar) return
+  const cohorts = JSON.parse(bar.querySelector('[data-cohorts]').textContent)
+  const own = JSON.parse(bar.querySelector('[data-own]').textContent)
+
+  const fmtDelta = (d, fmt) => {
+    const sign = d > 0 ? '+' : d < 0 ? '−' : '±'
+    const a = Math.abs(d)
+    if (fmt === 'usd') return `${sign}$${Math.round(a).toLocaleString('en-US')}`
+    if (fmt === 'pct') return `${sign}${a.toFixed(1)} pts`
+    return `${sign}${a.toFixed(1)}`
+  }
+
+  const apply = (key) => {
+    const c = cohorts.find((x) => x.key === key)
+    if (!c) return
+    document.querySelectorAll('.cmp').forEach((el) => {
+      const metric = el.dataset.metric
+      const mine = own[metric]
+      const other = c.metrics[metric]
+      if (mine == null || other == null) { el.hidden = true; return }
+      el.hidden = false
+      const d = mine - other
+      const good = el.dataset.invert ? d < 0 : d > 0
+      el.className = `cmp ${Math.abs(d) < 0.05 ? 'cmp-level' : good ? 'cmp-up' : 'cmp-down'}`
+      el.innerHTML = `${fmtDelta(d, el.dataset.fmt)} <span class="cmp-vs">vs ${c.short}</span>`
+      if (!REDUCED) {
+        el.animate([{ opacity: 0, transform: 'translateY(-3px)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: 'ease-out' })
+      }
+    })
+  }
+
+  bar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.chip-cohort')
+    if (!btn || btn.getAttribute('aria-pressed') === 'true') return
+    bar.querySelectorAll('.chip-cohort').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)))
+    apply(btn.dataset.cohort)
+  })
+}
+
+/* ------------------------------------------------------ copy a claim ------- */
+
+function initCopy() {
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.copy')
+    if (!btn) return
+    const text = btn.dataset.claim
+    try {
+      await navigator.clipboard.writeText(text)
+      const was = btn.textContent
+      btn.textContent = 'Copied'
+      btn.classList.add('done')
+      setTimeout(() => { btn.textContent = was; btn.classList.remove('done') }, 1600)
+    } catch {
+      // Clipboard can be blocked; select the text so the reader can copy it manually
+      // rather than leaving the button silently doing nothing.
+      const r = document.createRange()
+      r.selectNodeContents(btn.closest('.standout').querySelector('.standout-body'))
+      getSelection().removeAllRanges()
+      getSelection().addRange(r)
+      btn.textContent = 'Select & copy'
+    }
+  })
+}
+
 /* ------------------------------------------------------------------ init -- */
 
 document.querySelectorAll('[data-chart="trajectory"]').forEach(initTrajectory)
 initBars()
+initCohorts()
+initCopy()
