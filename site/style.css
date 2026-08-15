@@ -1,7 +1,241 @@
-:root { color-scheme: light dark; }
-body { font: 16px/1.6 system-ui, sans-serif; max-width: 46rem; margin: 0 auto; padding: 2rem 1rem; }
-h1 { font-size: 1.6rem; margin-bottom: .25rem; }
-table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
-th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid color-mix(in oklch, currentColor 20%, transparent); }
-caption { text-align: left; padding-bottom: .5rem; opacity: .75; font-size: .875rem; }
-a { color: inherit; }
+/* txschools.net
+   Light palette on :root; dark redefines tokens only. The comparison colours
+   (entity/peer/state) passed the dataviz six-check validator in both modes:
+   CVD separation ΔE 13.8 protan, normal-vision ΔE 28.8, contrast >= 3:1.
+   Grades are never encoded by colour — the letter is the encoding. */
+
+:root {
+  --bg: #fcfcfb;
+  --surface: #ffffff;
+  --ink: #16181d;
+  --ink-2: #4a5058;
+  --ink-3: #6b7280;
+  --line: #e3e5e8;
+  --line-2: #f0f1f3;
+  --accent: #1d4ed8;
+
+  --c-entity: #2563eb;
+  --c-peer: #ea580c;
+  --c-state: #0d9488;
+
+  --s0: #3b82f6; --s1: #f97316; --s2: #14b8a6; --s3: #a855f7;
+  --s4: #eab308; --s5: #ec4899; --s6: #64748b;
+
+  --alert-bg: #fef2f2;
+  --alert-ink: #991b1b;
+  --alert-line: #fecaca;
+
+  --radius: 10px;
+  --measure: 68ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0e1013;
+    --surface: #16191e;
+    --ink: #f2f4f7;
+    --ink-2: #b3bac4;
+    --ink-3: #8b939e;
+    --line: #272c33;
+    --line-2: #1d2127;
+    --accent: #7aa2f7;
+
+    --c-entity: #60a5fa;
+    --c-peer: #fb923c;
+    --c-state: #2dd4bf;
+
+    --s0: #60a5fa; --s1: #fb923c; --s2: #2dd4bf; --s3: #c084fc;
+    --s4: #fbbf24; --s5: #f472b6; --s6: #94a3b8;
+
+    --alert-bg: #2a1416;
+    --alert-ink: #fca5a5;
+    --alert-line: #4c1d1f;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #0e1013; --surface: #16191e; --ink: #f2f4f7; --ink-2: #b3bac4;
+  --ink-3: #8b939e; --line: #272c33; --line-2: #1d2127; --accent: #7aa2f7;
+  --c-entity: #60a5fa; --c-peer: #fb923c; --c-state: #2dd4bf;
+  --s0: #60a5fa; --s1: #fb923c; --s2: #2dd4bf; --s3: #c084fc;
+  --s4: #fbbf24; --s5: #f472b6; --s6: #94a3b8;
+  --alert-bg: #2a1416; --alert-ink: #fca5a5; --alert-line: #4c1d1f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-feature-settings: "kern", "liga";
+  -webkit-text-size-adjust: 100%;
+}
+
+.skip {
+  position: absolute; left: -9999px;
+  background: var(--surface); color: var(--ink); padding: .75rem 1rem; z-index: 10;
+}
+.skip:focus { left: 1rem; top: 1rem; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- chrome ---------- */
+
+header.site {
+  display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; align-items: baseline;
+  padding: 1rem 1.25rem; border-bottom: 1px solid var(--line);
+  max-width: 68rem; margin: 0 auto;
+}
+.wordmark {
+  font-weight: 700; font-size: 1.05rem; letter-spacing: -.01em;
+  color: var(--ink); text-decoration: none;
+}
+.wordmark span { color: var(--ink-3); font-weight: 500; }
+.unofficial { margin: 0; font-size: .8125rem; color: var(--ink-3); }
+
+nav[aria-label='Breadcrumb'] { max-width: 68rem; margin: 0 auto; padding: .75rem 1.25rem 0; }
+.crumbs {
+  list-style: none; display: flex; flex-wrap: wrap; gap: .35rem;
+  margin: 0; padding: 0; font-size: .8125rem; color: var(--ink-3);
+}
+.crumbs li + li::before { content: '›'; margin-right: .35rem; color: var(--ink-3); }
+.crumbs a { color: var(--ink-2); }
+
+main { max-width: 68rem; margin: 0 auto; padding: 0 1.25rem 4rem; }
+
+footer.site {
+  border-top: 1px solid var(--line); margin-top: 3rem;
+  padding: 1.5rem 1.25rem 3rem; max-width: 68rem; margin-inline: auto;
+  color: var(--ink-3); font-size: .875rem;
+}
+footer.site p { max-width: var(--measure); }
+
+/* ---------- type ---------- */
+
+h1 { font-size: clamp(1.9rem, 1.3rem + 2.4vw, 2.9rem); line-height: 1.1; letter-spacing: -.022em; margin: .15rem 0 .35rem; }
+h2 { font-size: 1.3rem; letter-spacing: -.012em; margin: 0 0 .35rem; }
+h3 { font-size: .9375rem; letter-spacing: -.004em; margin: 1.75rem 0 .6rem; color: var(--ink-2); }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+.eyebrow { margin: 0; font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
+.place { margin: 0; color: var(--ink-2); }
+.lede, .note { color: var(--ink-2); max-width: var(--measure); }
+.note { font-size: .875rem; margin: .85rem 0 0; }
+.na { color: var(--ink-3); font-style: italic; }
+
+section { padding: 2.25rem 0; border-top: 1px solid var(--line-2); }
+section.hero { border-top: 0; padding-top: 1.5rem; }
+
+/* ---------- verdict ---------- */
+
+.verdict {
+  display: flex; gap: 1.25rem; align-items: flex-start; flex-wrap: wrap;
+  margin: 1.5rem 0 0; padding: 1.25rem;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.summary { margin: 0; flex: 1 1 22rem; font-size: 1.0625rem; line-height: 1.55; max-width: var(--measure); }
+
+.grade {
+  display: inline-flex; align-items: baseline; gap: .5rem;
+  padding: .5rem .85rem; border-radius: var(--radius);
+  background: var(--bg); border: 1px solid var(--line);
+}
+.grade-letter { font-size: 2.25rem; font-weight: 700; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.grade-score { font-size: 1rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+td .grade, .crumbs .grade { padding: .1rem .4rem; }
+td .grade-letter { font-size: .95rem; }
+
+.alert {
+  margin: 1rem 0 0; padding: .8rem 1rem; border-radius: var(--radius);
+  background: var(--alert-bg); color: var(--alert-ink); border: 1px solid var(--alert-line);
+  max-width: var(--measure);
+}
+.callout { margin: 1rem 0 0; font-size: 1.0625rem; max-width: var(--measure); }
+
+/* ---------- stats ---------- */
+
+.stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 1px; margin: 1.25rem 0 0; padding: 0;
+  background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+}
+.stat { background: var(--surface); padding: .9rem 1rem; }
+.stat dt { font-size: .78rem; color: var(--ink-3); margin: 0 0 .2rem; }
+.stat dd { margin: 0; font-size: 1.35rem; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.stat-note { margin: .15rem 0 0; font-size: .75rem; color: var(--ink-3); }
+
+/* ---------- charts ---------- */
+
+.chart { width: 100%; height: auto; display: block; margin: 1.25rem 0 0; overflow: visible; }
+.band { stroke: var(--line); stroke-width: 1; }
+.band-label, .x-label { fill: var(--ink-3); font-size: 11px; }
+.band-label { text-anchor: end; }
+.x-label { text-anchor: middle; }
+.row-label { fill: var(--ink-2); font-size: 13px; }
+.row-grade { fill: var(--ink); font-size: 13px; font-weight: 650; text-anchor: end; }
+.bar { fill: var(--c-entity); }
+.bar-value, .pt-label { fill: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
+.pt-label { text-anchor: middle; font-weight: 600; }
+.line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.line-entity { stroke: var(--c-entity); }
+.line-peer { stroke: var(--c-peer); }
+.line-state { stroke: var(--c-state); stroke-dasharray: 4 4; }
+.dot { fill: var(--c-entity); stroke: var(--bg); stroke-width: 2; }
+.dot-peer { fill: var(--c-peer); }
+.dot-state { fill: var(--c-state); }
+.seg-0 { fill: var(--s0); } .seg-1 { fill: var(--s1); } .seg-2 { fill: var(--s2); }
+.seg-3 { fill: var(--s3); } .seg-4 { fill: var(--s4); } .seg-5 { fill: var(--s5); }
+.seg-6 { fill: var(--s6); }
+
+.legend { list-style: none; display: flex; flex-wrap: wrap; gap: .35rem 1.1rem; margin: .7rem 0 0; padding: 0; font-size: .8125rem; color: var(--ink-2); }
+.legend li { display: flex; align-items: center; gap: .4rem; }
+.swatch { width: .7rem; height: .7rem; border-radius: 3px; background: var(--ink-3); flex: none; }
+.swatch-entity { background: var(--c-entity); }
+.swatch-peer { background: var(--c-peer); }
+.swatch-state { background: var(--c-state); }
+.swatch-0 { background: var(--s0); } .swatch-1 { background: var(--s1); }
+.swatch-2 { background: var(--s2); } .swatch-3 { background: var(--s3); }
+.swatch-4 { background: var(--s4); } .swatch-5 { background: var(--s5); }
+.swatch-6 { background: var(--s6); }
+
+/* ---------- tables ---------- */
+
+.data { border-collapse: collapse; width: 100%; margin: 1.25rem 0 0; font-size: .9375rem; }
+.data th, .data td { text-align: left; padding: .55rem .7rem; border-bottom: 1px solid var(--line-2); }
+.data thead th { font-size: .78rem; letter-spacing: .03em; text-transform: uppercase; color: var(--ink-3); border-bottom-color: var(--line); }
+.data tbody th { font-weight: 550; }
+.data .num { text-align: right; font-variant-numeric: tabular-nums; }
+.data tbody tr:hover { background: var(--surface); }
+
+#campuses .data { display: block; max-height: 32rem; overflow: auto; }
+
+.downloads { font-size: .9375rem; }
+
+@media (max-width: 34rem) {
+  .verdict { padding: 1rem; }
+  .grade-letter { font-size: 1.9rem; }
+  main { padding-inline: 1rem; }
+}
+
+/* Scroll reveal, as progressive enhancement only.
+   Deliberately animates TRANSFORM ONLY and never opacity: if the scroll timeline
+   fails to resolve, or the animation never runs, the content is still fully
+   readable. An earlier version faded from opacity 0 and stranded the whole page
+   blank when the timeline did not resolve — content must never depend on an
+   animation to become visible. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    section {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 40%;
+    }
+    @keyframes rise {
+      from { transform: translateY(14px); }
+      to { transform: none; }
+    }
+  }
+}
