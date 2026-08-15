@@ -5,7 +5,7 @@
 // Order here IS the page order. Adding a section is one function plus one entry
 // in SECTIONS at the bottom.
 
-import { cmp, cohortSwitch, esc, grade, legend, num, ordinal, pct, section, signed, statGrid, table, usd } from './shell.js'
+import { cmp, esc, grade, legend, num, ordinal, pct, section, signed, statGrid, table, usd } from './shell.js'
 import { trajectoryChart, scoreBars, stackedShare, comparisonChart, groupedBars } from './charts.js'
 import { RACE, EXPERIENCE, STAAR_LEVELS, GRADUATION, COMPLETION, CCMR } from './labels.js'
 
@@ -21,6 +21,18 @@ const plural = (n, one, many = `${one}s`) => `${num(n)} ${n === 1 ? one : many}`
 const unit = (vm) => (vm.level === 'district' ? 'district' : 'campus')
 
 /* ---------------------------------------------------------------- verdict -- */
+
+/**
+ * The hero is a section like any other, so the rail's index has to be able to
+ * name it. It is the one section with no <h2> — its heading is the <h1>, which
+ * is the entity's name and would read as a strange first entry in a list titled
+ * "On this page". So it declares the label it wants instead. src/render/page.js
+ * reads data-rail-label where a section offers one and the <h2> otherwise; that
+ * keeps the index derived from what rendered rather than from a list kept in
+ * step by hand.
+ */
+export const HERO_ID = 'overview'
+export const HERO_LABEL = 'Overview'
 
 export function verdict(vm) {
   const latest = vm.history[0]
@@ -74,7 +86,7 @@ export function verdict(vm) {
         }</p>`
       : ''
 
-  return `<section class="hero">
+  return `<section class="hero" id="${HERO_ID}" data-rail-label="${esc(HERO_LABEL)}">
   <p class="eyebrow">${kind} &middot; ${vm.isCharter ? 'Charter' : 'Traditional'}${vm.isAlt ? ' &middot; Alternative Education Accountability' : ''}</p>
   <h1>${esc(vm.name)}</h1>
   <p class="place">${esc(vm.county)} County &middot; ${esc(vm.regionName)}${vm.enrollment ? ` &middot; ${plural(vm.enrollment, 'student')}` : ''}</p>
@@ -84,7 +96,6 @@ export function verdict(vm) {
   </div>
   ${alert}
   ${vm.notRated ? `<p class="note">TEA did not issue an overall rating for this ${unit(vm)}. Scores below are the figures TEA published; the letter grades are the state's where it issued them.</p>` : ''}
-  ${cohortSwitch(vm)}
 </section>`
 }
 

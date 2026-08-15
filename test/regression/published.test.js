@@ -208,7 +208,15 @@ describe('published page (site/district/cayuga-isd-001902.html)', () => {
   })
 
   it('reads without JavaScript: the rows are in the HTML, not fetched', () => {
-    expect(cayuga.html).not.toMatch(/payload-[a-f0-9]{8}\.json/)
+    // The rail names the payload once, in data-pin-source, so the district pinner
+    // can LAZY-load it on first use. That is the one legitimate reference; the
+    // assertion's point is that the page's own figures are not fetched, so strip
+    // that single tag and require the payload to appear nowhere else.
+    const withoutPinSource = cayuga.html.replace(
+      /<script type="application\/json" data-pin-source>[\s\S]*?<\/script>/,
+      ''
+    )
+    expect(withoutPinSource).not.toMatch(/payload-[a-f0-9]{8}\.json/)
     expect(cayuga.html).toContain('<td class="num">89</td>')
   })
 

@@ -11,7 +11,7 @@
 
 import { describe, it, expect } from 'vitest'
 import {
-  SECTIONS, claimSentence, verdict, trajectory, domains, outcomes,
+  SECTIONS, HERO_ID, HERO_LABEL, claimSentence, verdict, trajectory, domains, outcomes,
   students, spending, teachers, campuses, standouts, source,
 } from '../../src/render/sections.js'
 
@@ -164,6 +164,47 @@ describe('verdict', () => {
 
   it('escapes the entity name', () => {
     expect(verdict(empty({ name: 'A <b>B</b> ISD' }))).toContain('A &lt;b&gt;B&lt;/b&gt; ISD')
+  })
+
+  /* The cohort switch moved to the rail. What is asserted here is that it left
+     the hero and that nothing it was sitting next to left with it — the verdict
+     and the intervention alert are the reasons the hero exists. */
+
+  it('no longer carries the cohort switch, which the rail now owns', () => {
+    const html = verdict(empty({ cohorts: COHORTS, own: { ecoDis: 88 } }))
+    expect(html).not.toContain('cohort-bar')
+    expect(html).not.toContain('chip-cohort')
+    expect(html).not.toContain('data-cohorts')
+    expect(html).not.toContain('data-own')
+  })
+
+  it('keeps the verdict card and the intervention alert', () => {
+    const html = verdict(empty({ cohorts: COHORTS, multYear: 3, history: [{ year: '2025-26', rating: 'F', score: 55 }] }))
+    expect(html).toContain('<div class="verdict">')
+    expect(html).toContain('class="alert"')
+    expect(html).toContain('state intervention')
+  })
+
+  // The hero is the one section whose heading is an <h1>, so the rail cannot
+  // read a label off it. It declares one instead, and an id to link to; without
+  // both, "On this page" would start at the second section.
+  it('carries an id and a rail label, so the section index can point at it', () => {
+    const html = verdict(empty())
+    expect(html).toContain(`id="${HERO_ID}"`)
+    expect(html).toContain(`data-rail-label="${HERO_LABEL}"`)
+    expect(HERO_LABEL).not.toBe('Dallas ISD')
+  })
+
+  it('gives every section that renders an id, so no rail link is a dead anchor', () => {
+    const full = empty({
+      history: [{ year: '2025-26', rating: 'B', score: 88 }],
+      domains: [{ domain: 'achievement', label: 'Student Achievement', score: 88, grade: 'B', toNextGrade: 2 }],
+      profile: { total: 100, ecoDisPct: 60, engLrnPct: 5, specEdPct: 5, attendance: 95, absenteeism: 10, avgSalary: 60_000 },
+      campuses: [{ slug: 'a-1', name: 'A', rating: 'B', score: 80, enrollment: 100, campusType: 'High School' }],
+    })
+    for (const html of SECTIONS.map((fn) => fn(full)).filter(Boolean)) {
+      expect(html.match(/<section\b[^>]*\sid="[^"]+"/), html.slice(0, 80)).not.toBeNull()
+    }
   })
 })
 

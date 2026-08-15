@@ -9,11 +9,47 @@ export const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 
-export function shell({ title, description, canonical, crumbs = [], sections }) {
+/**
+ * `rail` and `sticky` are HTML strings or null, and they are the *inner* markup:
+ * the shell owns the wrappers (.layout, aside.rail, .col, .stickybar) so every
+ * page that has a rail has the same frame around it. A page that passes no rail
+ * — the hubs, /about, /download, /404 — gets the single-column document it
+ * always got, byte for byte: .layout, .rail and .col are emitted only when a
+ * rail exists, so there is no empty grid wrapper to style around.
+ *
+ * The sticky bar ships `hidden` and is a duplicate of what the hero already
+ * says, so a reader with JavaScript off loses nothing by never seeing it.
+ */
+export function shell({ title, description, canonical, crumbs = [], sections, rail = null, sticky = null }) {
   const body = sections.filter(Boolean).join('\n')
   const trail = crumbs
     .map((c) => `<li><a href="${esc(c.href)}">${esc(c.label)}</a></li>`)
     .join('')
+
+  const crumbNav = crumbs.length
+    ? `<nav aria-label="Breadcrumb"><ol class="crumbs">${trail}<li aria-current="page">${esc(crumbs.at(-1)?.current ?? '')}</li></ol></nav>`
+    : ''
+
+  const main = `<main id="main">
+${body}
+</main>`
+
+  const stickyBar = sticky ? `<div class="stickybar" hidden>${sticky}</div>\n` : ''
+
+  const frame = rail
+    ? `<div class="layout">
+<aside class="rail" id="rail" aria-label="Page tools">
+${rail}
+</aside>
+<div class="col">
+${stickyBar}${crumbNav}
+
+${main}
+</div>
+</div>`
+    : `${crumbNav}
+
+${main}`
 
   return `<!doctype html>
 <html lang="en">
@@ -31,11 +67,7 @@ export function shell({ title, description, canonical, crumbs = [], sections }) 
   <p class="unofficial">Unofficial &middot; not affiliated with the Texas Education Agency &middot; <a href="/about">what this is</a></p>
 </header>
 
-${crumbs.length ? `<nav aria-label="Breadcrumb"><ol class="crumbs">${trail}<li aria-current="page">${esc(crumbs.at(-1)?.current ?? '')}</li></ol></nav>` : ''}
-
-<main id="main">
-${body}
-</main>
+${frame}
 
 <footer class="site">
   <p><strong>txschools.net</strong> is an independent, unofficial presentation of data the Texas
@@ -98,12 +130,20 @@ export const fmtDelta = (d, fmt) => {
   return `${sign}${a.toFixed(1)}`
 }
 
-/** The page-level cohort switch. Changes every comparison at once. */
+/**
+ * The page-level cohort switch. Changes every comparison at once.
+ *
+ * It now lives in the rail rather than the hero, under a "Compare against"
+ * heading, so the visible `.picker-label` that used to introduce it here would
+ * be the same sentence twice in a 15rem column. The heading names the group for
+ * a sighted reader and the role/aria-label below names it for a screen reader.
+ * Everything the client reads by selector — .cohort-bar, .chip-cohort, and both
+ * JSON script tags — is unchanged, because site/app.js finds them that way.
+ */
 export const cohortSwitch = (vm) =>
   !vm.cohorts?.length
     ? ''
     : `<div class="cohort-bar" role="group" aria-label="Compare every figure against">
-  <span class="picker-label">Compare everything against</span>
   ${vm.cohorts
     .map(
       (c, i) =>

@@ -187,7 +187,16 @@ describe('renderEntity (src/render/page.js)', () => {
 
   it('inlines the history rather than linking a data file', () => {
     expect(html).toContain('2024-25')
-    expect(html).not.toMatch(/payload-[a-f0-9]{8}\.json/)
+    // The rail's district pinner is the one place a page may name the payload:
+    // it is the source the client lazy-loads to search 1,199 districts, and
+    // inlining that list would cost more than the page it sits on. Nothing the
+    // reader reads comes from it, which is what this assertion protects — so
+    // remove that one script tag and the payload must appear nowhere else.
+    const withoutPinSource = html.replace(
+      /<script type="application\/json" data-pin-source>[\s\S]*?<\/script>/,
+      ''
+    )
+    expect(withoutPinSource).not.toMatch(/payload-[a-f0-9]{8}\.json/)
   })
 
   it('declares a canonical URL on the slug-and-id scheme', () => {
