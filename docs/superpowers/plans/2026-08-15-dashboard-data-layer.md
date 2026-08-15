@@ -549,7 +549,24 @@ git commit -m "Inline domain, finance and intervention detail into entity pages"
 
 - [ ] **Step 1: Add to the payload**
 
-Add `regions` and `counties` from `build/lookups.json`, and three entity columns: `districtId` (so a campus can be traced to its district), `multYear`, and `campusType`. Nothing else — `domains` and `finance` stay out by design.
+**Scope changed by design §6a.** The rankings tool lets a reader order every district by per-pupil
+spend or by any domain score, which requires those values resident in the browser. The original
+routing — finance and domains on prerendered pages only — cannot serve that.
+
+Add:
+
+- `regions` and `counties` from `build/lookups.json`
+- entity columns `districtId` (tracing a campus to its district), `multYear`, `campusType`
+- **the most recent year only** of each domain score: five numeric columns
+- **the most recent year only** of finance: `spendEntity`, `spendPeer`, `spendState`, `revenueEntity`
+
+What stays out: the full three-year domain history and eight-year finance history. Those are inlined
+on entity pages, because ranking needs one year across all entities while the detail view needs all
+years for one entity. Carrying every year for every entity would multiply the payload to serve a view
+that reads one row.
+
+A finance series nulled by the misalignment fix must arrive as `null`, never `0` — three districts are
+affected and a zero would rank them as the lowest spenders in Texas.
 
 - [ ] **Step 2: Extend the tests**
 
@@ -559,7 +576,12 @@ Assert the lookups are present and non-empty, that the new columns match the ent
 
 Run: `npm run site`
 
-**Record the new raw and gzipped payload size and compare against the 1.27 MB / 0.23 MB baseline.** This number decides Phase B's loading design: under roughly 0.5 MB gzipped the frontend loads one payload on the dashboard route; materially above and it splits per view.
+**Record the new raw and gzipped payload size and compare against the 1.27 MB / 0.23 MB baseline.**
+This number decides Phase B's loading design: under roughly 0.5 MB gzipped the frontend loads one
+payload on the dashboard route; materially above and it splits per view.
+
+The nine added numeric columns over 10,230 entities are expected to add roughly 300–400 KB raw and
+far less gzipped, but that is an estimate and the measurement governs.
 
 - [ ] **Step 4: Commit**
 
