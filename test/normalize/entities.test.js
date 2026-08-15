@@ -49,6 +49,14 @@ describe('toEntity', () => {
     expect(toEntity(charterCampus, 'campus').isAlt).toBe(true)
   })
 
+  it('trims entity_type and alt_standards before comparing, so they never disagree with entityType', () => {
+    const untrimmed = { ...district, entity_type: ' Charter ', alt_standards: ' Yes ' }
+    const e = toEntity(untrimmed, 'district')
+    expect(e.isCharter).toBe(true)
+    expect(e.isAlt).toBe(true)
+    expect(e.entityType).toBe('Charter')
+  })
+
   it('keeps ids, region and county as zero-padded strings', () => {
     const e = toEntity(district, 'district')
     expect(e.id).toBe('001902')
