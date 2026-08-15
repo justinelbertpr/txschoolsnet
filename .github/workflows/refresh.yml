@@ -56,6 +56,11 @@ jobs:
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # Required when the token can see more than one Cloudflare account:
+          # `versions upload` otherwise fails non-interactively with
+          # "More than one account available". Kept in secrets rather than
+          # wrangler.jsonc because this repository is public.
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: versions upload --tag ci-${{ github.run_number }}
 
       - name: Smoke-test the preview before cutover
@@ -72,4 +77,5 @@ jobs:
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: versions deploy --yes
