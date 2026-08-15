@@ -165,7 +165,7 @@ flattering one.
 
 ## 6. Dashboard views
 
-1. **Statewide shift** — 100% stacked area of grade mix across six years, methodology break marked.
+1. **Statewide shift** — 100% stacked area of grade mix across the five academic years, methodology break marked.
 2. **Grade flow** — transition matrix between any two selected years; separates real movement from
    churn at grade boundaries.
 3. **Movers** — every entity ranked by score delta, sparkline per row, searchable and filterable.

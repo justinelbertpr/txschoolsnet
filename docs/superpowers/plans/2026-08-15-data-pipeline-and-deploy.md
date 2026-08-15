@@ -1619,6 +1619,9 @@ export const entityPath = (e) => `${e.level}/${e.id}.html`
 
 export function renderEntity(e, history) {
   const name = escapeHtml(e.name ?? e.id)
+  // Derived, never hardcoded: TEA publishes six year labels but five academic
+  // years, so a literal "six years" would contradict the table below it.
+  const yearsPhrase = history.length === 1 ? '1 year of history' : `${history.length} years of history`
   const sector = e.isCharter ? 'Charter' : 'Traditional'
   const kind = e.level === 'district' ? 'District' : 'Campus'
   const rows = history
@@ -1630,7 +1633,7 @@ export function renderEntity(e, history) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${name} — Texas accountability ratings</title>
-<meta name="description" content="${kind} accountability ratings for ${name}, ${sector.toLowerCase()}, six years of history.">
+<meta name="description" content="${kind} accountability ratings for ${name}, ${sector.toLowerCase()}, ${yearsPhrase}.">
 <link rel="canonical" href="${SITE_ORIGIN}/${e.level}/${e.id}">
 <link rel="stylesheet" href="/style.css">
 <main>
