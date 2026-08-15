@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toRatings, parseYear } from '../../src/normalize/ratings.js'
+import { toRatings, parseYear, preferredRatings } from '../../src/normalize/ratings.js'
 
 describe('parseYear', () => {
   it('splits the What If label into year plus method', () => {
@@ -53,5 +53,48 @@ describe('toRatings', () => {
   it('keeps Data Integrity Issues as a distinct rating', () => {
     const di = { id: 'x', academic_year: ['2025-26'], overall_rating: ['Data Integrity Issues'], score: [null] }
     expect(toRatings([di])[0].rating).toBe('Data Integrity Issues')
+  })
+})
+
+describe('preferredRatings', () => {
+  // Real Cayuga ISD (001902) values: A/94 under the original methodology,
+  // B/87 for the same year re-scored under the post-2023 rules.
+  const cayugaOriginal = { id: '001902', year: '2021-22', method: 'original', rating: 'A', score: 94 }
+  const cayugaWhatIf = { id: '001902', year: '2021-22', method: 'what_if', rating: 'B', score: 87 }
+  const cayugaCurrent = { id: '001902', year: '2025-26', method: 'current', rating: 'B', score: 89 }
+
+  it('prefers what_if over original for the same entity-year', () => {
+    const result = preferredRatings([cayugaOriginal, cayugaWhatIf])
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({ rating: 'B', score: 87 })
+  })
+
+  it('keeps a current row as-is for a year with only one method', () => {
+    expect(preferredRatings([cayugaCurrent])).toEqual([cayugaCurrent])
+  })
+
+  it('emits exactly one row per id|year pair', () => {
+    const rows = preferredRatings([cayugaOriginal, cayugaWhatIf, cayugaCurrent])
+    const keys = rows.map((r) => `${r.id}|${r.year}`)
+    expect(new Set(keys).size).toBe(keys.length)
+    expect(keys.sort()).toEqual(['001902|2021-22', '001902|2025-26'])
+  })
+
+  it('is independent of input order', () => {
+    const forward = preferredRatings([cayugaOriginal, cayugaWhatIf])
+    const backward = preferredRatings([cayugaWhatIf, cayugaOriginal])
+    expect(backward).toEqual(forward)
+  })
+
+  it('does not let an unrecognized method win over a known one', () => {
+    const mystery = { id: '001902', year: '2021-22', method: 'mystery', rating: 'Z', score: 1 }
+    expect(preferredRatings([mystery, cayugaWhatIf])).toEqual([cayugaWhatIf])
+    expect(preferredRatings([cayugaWhatIf, mystery])).toEqual([cayugaWhatIf])
+  })
+
+  it('keeps an unrecognized method row when it is the only row for that entity-year', () => {
+    const mystery = { id: '001902', year: '2021-22', method: 'mystery', rating: 'Z', score: 1 }
+    expect(() => preferredRatings([mystery])).not.toThrow()
+    expect(preferredRatings([mystery])).toEqual([mystery])
   })
 })
