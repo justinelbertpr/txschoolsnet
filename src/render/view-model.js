@@ -57,8 +57,37 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
   const rank = sameLevel.findIndex((r) => r.id === entity.id) + 1
   const inRegion = sameLevel.filter((r) => byId.get(r.id)?.regionId === entity.regionId)
 
-  const stateByYear = seriesByYear(ratings, (id) => byId.get(id)?.level === entity.level)
+  const sameLevelId = (id) => byId.get(id)?.level === entity.level
+  const stateByYear = seriesByYear(ratings, sameLevelId)
   const peerByYear = band.n > 1 ? seriesByYear(ratings, (id) => band.ids.has(id)) : null
+
+  // Comparison groups the reader can switch between. Each is a real cohort with a
+  // stated n, so a line never appears without the reader knowing what it averages.
+  const cohort = (label, key, pred) => {
+    const ids = entities.filter((e) => e.level === entity.level && e.id !== entity.id && pred(e)).map((e) => e.id)
+    if (ids.length < 2) return null
+    const set = new Set(ids)
+    return { key, label, n: ids.length, byYear: seriesByYear(ratings, (id) => set.has(id)) }
+  }
+
+  const enrol = entity.enrollment
+  const comparisons = [
+    { key: 'state', label: 'Texas average', n: entities.filter((e) => e.level === entity.level).length, byYear: stateByYear },
+    band.n > 1
+      ? {
+          key: 'peer',
+          label: 'Similar student population',
+          n: band.n,
+          byYear: peerByYear,
+          note: `Within 10 points of this ${entity.level}'s economically disadvantaged share`,
+        }
+      : null,
+    cohort(`${str(raw?.region) ?? 'Region ' + entity.regionId}`, 'region', (e) => e.regionId === entity.regionId),
+    cohort(`${entity.county} County`, 'county', (e) => e.countyId === entity.countyId),
+    enrol
+      ? cohort('Similar size', 'size', (e) => e.enrollment != null && e.enrollment >= enrol * 0.6 && e.enrollment <= enrol * 1.6)
+      : null,
+  ].filter(Boolean)
 
   const original = allRatings.find((r) => r.id === entity.id && r.method === 'original')
   const prof = profile.find((p) => p.id === entity.id) ?? null
@@ -89,6 +118,7 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
     peerByYear,
     peerAvg: peerByYear?.[latestYear] ?? null,
     peerN: band.n,
+    comparisons,
     rank,
     rankOf: sameLevel.length,
     regionRank: inRegion.findIndex((r) => r.id === entity.id) + 1,

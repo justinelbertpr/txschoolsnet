@@ -43,6 +43,7 @@ ${body}
   The official source is <a href="https://txschools.gov">txschools.gov</a>.
   <a href="/about">How this site works and what it adds</a>.</p>
 </footer>
+<script type="module" src="/app.js"></script>
 </body>
 </html>
 `

@@ -90,19 +90,47 @@ export function trajectory(vm) {
       : ''
   }`
 
+  // Two comparisons are on by default so the page is complete without JavaScript.
+  // The picker below is progressive enhancement: it swaps which cohorts are drawn.
+  const defaults = ['peer', 'state']
+  const picker = vm.comparisons?.length
+    ? `<div class="picker" role="group" aria-label="Choose comparisons">
+    <span class="picker-label">Compare against</span>
+    ${vm.comparisons
+      .map(
+        (c) =>
+          `<button type="button" class="chip" data-cmp="${esc(c.key)}" aria-pressed="${defaults.includes(c.key)}"${
+            c.note ? ` title="${esc(c.note)}"` : ''
+          }><span class="chip-dot chip-dot-${esc(c.key)}"></span>${esc(c.label)}<span class="chip-n">${num(c.n)}</span></button>`
+      )
+      .join('\n    ')}
+  </div>`
+    : ''
+
+  const payload = vm.comparisons?.length
+    ? `<script type="application/json" data-trajectory>${JSON.stringify({
+        years,
+        entity: { label: vm.name, values: mine },
+        comparisons: vm.comparisons.map((c) => ({
+          key: c.key,
+          label: c.label,
+          n: c.n,
+          values: years.map((y) => c.byYear[y] ?? null),
+        })),
+        defaults,
+      }).replace(/</g, '\\u003c')}</script>`
+    : ''
+
   return section(
     'trajectory',
     `${vm.history.length} years of ratings`,
-    `${trajectoryChart({ years, series: [
+    `${picker}
+  ${trajectoryChart({ years, series: [
       { key: 'entity', values: mine, label: vm.name },
       peer ? { key: 'peer', values: peer, label: 'Districts like this one' } : null,
       state ? { key: 'state', values: state, label: 'Texas average' } : null,
     ].filter(Boolean) })}
-  ${legend([
-      { key: 'entity', label: vm.name },
-      peer ? { key: 'peer', label: `Similar ${vm.level === 'district' ? 'districts' : 'campuses'} (${num(vm.peerN)})` } : null,
-      state ? { key: 'state', label: 'Texas average' } : null,
-    ].filter(Boolean))}
+  ${payload}
   <p class="note">${note}</p>
   ${table({
       caption: 'Rating history with comparisons',

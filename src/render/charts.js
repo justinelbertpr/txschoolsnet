@@ -81,8 +81,16 @@ export function trajectoryChart({ years, series, w = 640, h = 240 }) {
     .map((yr, i) => `<text x="${x(i).toFixed(1)}" y="${h - 8}" class="x-label">${esc(yr)}</text>`)
     .join('')
 
-  return `<svg viewBox="0 0 ${w} ${h}" class="chart chart-traj" role="img" aria-label="Accountability score by year, compared with similar entities and the state">
-  ${bands}${lines}${dots}${xlabels}
+  // Geometry travels with the element so the enhancement layer can redraw on the
+  // identical scale rather than re-deriving it and drifting.
+  return `<svg viewBox="0 0 ${w} ${h}" class="chart chart-traj" role="img"
+  aria-label="Accountability score by year, compared with similar entities and the state"
+  data-chart="trajectory" data-w="${w}" data-h="${h}"
+  data-pad="${pad.t},${pad.r},${pad.b},${pad.l}" data-lo="${lo}" data-hi="${hi}">
+  <g class="bands">${bands}</g>
+  <g class="lines">${lines}</g>
+  <g class="dots">${dots}</g>
+  <g class="xlabels">${xlabels}</g>
 </svg>`
 }
 
