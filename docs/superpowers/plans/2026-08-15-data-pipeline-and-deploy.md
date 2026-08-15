@@ -795,7 +795,38 @@ export function toRatings(records) {
     )
   )
 }
+
+/**
+ * Precedence for picking ONE rating per entity-year for a trend line.
+ *
+ * `what_if` wins over `original` because it re-scores 2021-22 under the
+ * post-2023 rules, making it comparable with every later year. Taking
+ * `original` instead reintroduces the methodology break and produces a
+ * phantom collapse between 2021-22 and 2022-23 that no school caused.
+ */
+export const METHOD_PRECEDENCE = ['current', 'what_if', 'original']
+
+/** True for the single row that represents an entity-year on the default trend line. */
+export const isDefaultMethod = (row, rowsForSameYear) => {
+  const best = METHOD_PRECEDENCE.find((m) => rowsForSameYear.some((r) => r.method === m))
+  return row.method === best
+}
+
+/** Reduce a rating set to one row per entity-year, using METHOD_PRECEDENCE. */
+export function preferredRatings(rows) {
+  const best = new Map()
+  for (const row of rows) {
+    const key = `${row.id}|${row.year}`
+    const held = best.get(key)
+    if (!held || METHOD_PRECEDENCE.indexOf(row.method) < METHOD_PRECEDENCE.indexOf(held.method)) {
+      best.set(key, row)
+    }
+  }
+  return [...best.values()]
+}
 ```
+
+**Why this is here and not open-coded downstream.** Tasks 11, 12 and 13 each need one rating per entity-year. Reimplementing the rule in three places means a future edit to one copy makes the dashboard chart and the entity pages disagree about 2021-22 — silently, and in the most contested year in the dataset. It lives in one module, with the reasoning attached.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -907,6 +938,7 @@ Shared by the export and by the §8 regression tests. Null handling is the whole
 // test/lib/stats.test.js
 import { describe, it, expect } from 'vitest'
 import { mean, weightedMean, median } from '../../src/lib/stats.js'
+import { preferredRatings } from '../../src/normalize/ratings.js'
 
 describe('mean', () => {
   it('averages numbers', () => {
@@ -1198,23 +1230,24 @@ These are the site's published claims, executable. Spec §8 records them; this m
 import { describe, it, expect, beforeAll } from 'vitest'
 import { readFile } from 'node:fs/promises'
 import { mean, weightedMean, median } from '../../src/lib/stats.js'
+import { preferredRatings } from '../../src/normalize/ratings.js'
 
 const read = async (t) =>
   (await readFile(`build/${t}.ndjson`, 'utf8')).trim().split('\n').map((l) => JSON.parse(l))
 
-let entities, ratings, profile, districts, byId
+let entities, ratings, profile, districts, byId, preferred
 
 beforeAll(async () => {
   ;[entities, ratings, profile] = await Promise.all([read('entities'), read('ratings'), read('profile')])
   districts = entities.filter((e) => e.level === 'district')
   byId = new Map(entities.map((e) => [e.id, e]))
+  preferred = preferredRatings(ratings)
 })
 
-/** Mean score across districts of one sector for one year, current-methodology view. */
+/** Mean score across districts of one sector for one year, default-methodology view. */
 const districtMean = (year, isCharter) => {
-  const wanted = year === '2021-22' ? 'what_if' : 'current'
-  const scores = ratings
-    .filter((r) => r.year === year && r.method === wanted)
+  const scores = preferred
+    .filter((r) => r.year === year)
     .filter((r) => byId.get(r.id)?.level === 'district' && byId.get(r.id)?.isCharter === isCharter)
     .map((r) => r.score)
   return mean(scores)
@@ -1239,10 +1272,9 @@ describe('spec §8 — unweighted district means', () => {
 
 describe('spec §8 — enrollment weighting reverses the ordering', () => {
   const weighted = (year, isCharter) => {
-    const wanted = year === '2021-22' ? 'what_if' : 'current'
     return weightedMean(
-      ratings
-        .filter((r) => r.year === year && r.method === wanted)
+      preferred
+        .filter((r) => r.year === year)
         .filter((r) => byId.get(r.id)?.level === 'district' && byId.get(r.id)?.isCharter === isCharter)
         .map((r) => ({ v: r.score, w: byId.get(r.id).enrollment }))
     )
@@ -1387,6 +1419,7 @@ Expected: FAIL — cannot resolve `../src/export.js`
 import { createHash } from 'node:crypto'
 import { gzipSync } from 'node:zlib'
 import { readFile, mkdir, writeFile } from 'node:fs/promises'
+import { preferredRatings } from './normalize/ratings.js'
 
 export const contentHash = (text) => createHash('sha256').update(text).digest('hex').slice(0, 8)
 
@@ -1400,9 +1433,8 @@ export function buildPayload(entities, ratings, profile) {
   const cols = Object.fromEntries(COLUMNS.map((c) => [c, entities.map((e) => e[c] ?? null)]))
   cols.ecoDisPct = entities.map((e) => ecoDis.get(e.id) ?? null)
 
-  // Default view: current methodology, with 2021-22 represented by its What If re-scoring.
-  const isDefault = (r) => (r.year === '2021-22' ? r.method === 'what_if' : r.method === 'current')
-  const defaults = ratings.filter(isDefault)
+  // One row per entity-year, chosen by METHOD_PRECEDENCE (see ratings.js).
+  const defaults = preferredRatings(ratings)
 
   const years = [...new Set(defaults.map((r) => r.year))].sort().reverse()
   const index = new Map(entities.map((e, i) => [e.id, i]))
@@ -1564,6 +1596,7 @@ Set `SITE_ORIGIN` to the domain you settle on; it appears in canonical URLs and 
 // src/prerender.js
 import { readFile, mkdir, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
+import { preferredRatings } from './normalize/ratings.js'
 
 export const SITE_ORIGIN = 'https://txschools.net'
 
@@ -1618,9 +1651,8 @@ export async function prerender() {
   const started = Date.now()
   const [entities, ratings] = await Promise.all([read('entities'), read('ratings')])
 
-  const isDefault = (r) => (r.year === '2021-22' ? r.method === 'what_if' : r.method === 'current')
   const history = new Map()
-  for (const r of ratings.filter(isDefault)) {
+  for (const r of preferredRatings(ratings)) {
     if (!history.has(r.id)) history.set(r.id, [])
     history.get(r.id).push(r)
   }
