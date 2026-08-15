@@ -84,6 +84,63 @@ describe('design §8 — charters serve higher-poverty populations', () => {
   })
 })
 
+describe('design §8 — the steepest gains are in the highest-poverty schools', () => {
+  // The site's central editorial thesis (§1, §8): "the steepest gains are
+  // in the highest-poverty schools." Computed the same way the design
+  // computed it — matched campuses sorted by ecoDisPct into ten equal
+  // groups — so a future TEA release that weakens or inverts this gets
+  // caught here instead of shipping unnoticed.
+  const gain = (c) => c.s2 - c.s1
+  let deciles
+
+  beforeAll(() => {
+    const campuses = entities.filter((e) => e.level === 'campus')
+    const ecoDis = new Map(profile.map((p) => [p.id, p.ecoDisPct]))
+
+    const scoreByYear = (year) => {
+      const m = new Map()
+      for (const r of preferred) if (r.year === year) m.set(r.id, r.score)
+      return m
+    }
+    const trough = scoreByYear('2023-24')
+    const current = scoreByYear('2025-26')
+
+    const matched = campuses
+      .map((c) => ({ isCharter: c.isCharter, ecoDisPct: ecoDis.get(c.id), s1: trough.get(c.id), s2: current.get(c.id) }))
+      .filter((c) => typeof c.ecoDisPct === 'number' && typeof c.s1 === 'number' && typeof c.s2 === 'number')
+      .sort((a, b) => a.ecoDisPct - b.ecoDisPct)
+
+    const n = matched.length
+    deciles = Array.from({ length: 10 }, (_, i) =>
+      matched.slice(Math.floor((i * n) / 10), Math.floor(((i + 1) * n) / 10)))
+  })
+
+  it('has a sane matched cohort (both years plus a numeric ecoDisPct)', () => {
+    const n = deciles.reduce((sum, d) => sum + d.length, 0)
+    expect(n).toBeGreaterThan(8000)
+    expect(deciles.every((d) => d.length > 0)).toBe(true)
+  })
+
+  it('bottom (highest-poverty) decile gains more than the top (lowest-poverty) decile', () => {
+    // Ascending by ecoDisPct: deciles[0] is the lowest-poverty (wealthiest)
+    // tenth, deciles[9] the highest-poverty (poorest, "bottom") tenth.
+    const bottomGain = mean(deciles[9].map(gain))
+    const topGain = mean(deciles[0].map(gain))
+    expect(bottomGain).toBeGreaterThan(4.0)
+    expect(topGain).toBeLessThan(1.5)
+    expect(bottomGain - topGain).toBeGreaterThanOrEqual(3)
+  })
+
+  it('traditional campuses lead charter campuses in at least 6 of the 10 deciles', () => {
+    const leads = deciles.filter((d) => {
+      const trad = mean(d.filter((c) => !c.isCharter).map(gain))
+      const charter = mean(d.filter((c) => c.isCharter).map(gain))
+      return trad !== null && charter !== null && trad > charter
+    }).length
+    expect(leads).toBeGreaterThanOrEqual(6)
+  })
+})
+
 describe('data shape', () => {
   it('has 1,199 districts and 9,031 campuses', () => {
     expect(districts).toHaveLength(1199)
