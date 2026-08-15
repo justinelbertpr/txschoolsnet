@@ -1,0 +1,21 @@
+{
+  "name": "txschoolsnet",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "fetch": "node src/fetch.js",
+    "build": "node src/build.js",
+    "export": "node src/export.js",
+    "prerender": "node src/prerender.js",
+    "site": "npm run build && npm run export && npm run prerender",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.10",
+    "wrangler": "^4.34.0"
+  }
+}
