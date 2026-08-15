@@ -32,6 +32,14 @@ describe('wrangler.jsonc', () => {
     expect(config.preview_urls).toBe(true)
   })
 
+  // This assertion was lost once already: it lived on a branch whose commit was
+  // never pushed before the PR squash-merged and the branch was deleted. Losing
+  // it means the site silently deploys to nothing but a preview URL.
+  it('binds the apex domain only, so www cannot compete as duplicate content', () => {
+    expect(config.routes).toHaveLength(1)
+    expect(config.routes[0]).toEqual({ pattern: 'txschools.net', custom_domain: true })
+  })
+
   it('pins a compatibility date', () => {
     expect(config.compatibility_date).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })

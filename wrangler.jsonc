@@ -14,6 +14,18 @@
     "html_handling": "auto-trailing-slash"
   },
 
+  // txschools.net is already a zone in this Cloudflare account, so custom_domain
+  // needs only the pattern — no zone id, no DNS records, no certificate work.
+  // Apex only: a Worker attached to txschools.net does NOT receive requests for
+  // www.txschools.net, and binding both would serve identical content at two
+  // hostnames, competing with itself in search. www belongs in a Redirect Rule.
+  "routes": [
+    {
+      "pattern": "txschools.net",
+      "custom_domain": true
+    }
+  ],
+
   "workers_dev": false,
   // preview_urls defaults to the value of workers_dev. Set explicitly: the CI
   // smoke test between `versions upload` and `versions deploy` needs a target.
