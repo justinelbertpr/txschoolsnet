@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { assertIntegrity, toNdjson, latestSnapshot, dropOrphans } from '../src/build.js'
+import { assertIntegrity, toNdjson, latestSnapshot, dropOrphans, assertOrphanIdSet, KNOWN_ORPHAN_IDS } from '../src/build.js'
 
 describe('assertIntegrity', () => {
   const entities = [{ id: 'a' }, { id: 'b' }]
@@ -72,5 +72,42 @@ describe('dropOrphans', () => {
     const result = dropOrphans([{ id: 'a' }, { id: 'b' }], known)
     expect(result.rows).toEqual([{ id: 'a' }, { id: 'b' }])
     expect(result.dropped).toBe(0)
+  })
+
+  it('reports the distinct set of dropped ids, not just a count', () => {
+    const known = new Set(['a'])
+    // 'ghost' dropped twice (e.g. two year-label rows for the same orphan
+    // campus) must appear once in droppedIds, even though dropped counts both.
+    const result = dropOrphans([{ id: 'a' }, { id: 'ghost' }, { id: 'ghost' }], known)
+    expect(result.dropped).toBe(2)
+    expect(result.droppedIds).toEqual(['ghost'])
+  })
+})
+
+describe('assertOrphanIdSet', () => {
+  // Requirement 3: the guard must track *which* ids were dropped, not how
+  // many rows that produced — a row count tied to today's year-label count
+  // (4 known orphan ids x 6 labels = 24) breaks the moment TEA adds a 7th
+  // label, even though the orphan ids themselves haven't changed.
+  it('passes when the dropped ids are exactly the known four, regardless of row count', () => {
+    // Same four ids, but as if TEA had published a 7th year label (28 rows
+    // instead of 24) — the id set is unchanged, so this must not throw.
+    const sevenLabelsWorthOfRows = KNOWN_ORPHAN_IDS.flatMap((id) => Array(7).fill({ id }))
+    expect(() =>
+      assertOrphanIdSet('ratings', [...new Set(sevenLabelsWorthOfRows.map((r) => r.id))], KNOWN_ORPHAN_IDS)
+    ).not.toThrow()
+  })
+
+  it('throws naming an unknown orphan id', () => {
+    expect(() =>
+      assertOrphanIdSet('ratings', [...KNOWN_ORPHAN_IDS, '999999999'], KNOWN_ORPHAN_IDS)
+    ).toThrow(/unexpected orphan ids: 999999999/)
+  })
+
+  it('throws naming a missing orphan id', () => {
+    const threeOfFour = KNOWN_ORPHAN_IDS.slice(0, 3)
+    expect(() => assertOrphanIdSet('ratings', threeOfFour, KNOWN_ORPHAN_IDS)).toThrow(
+      new RegExp(`expected orphan ids no longer dropped: ${KNOWN_ORPHAN_IDS[3]}`)
+    )
   })
 })
