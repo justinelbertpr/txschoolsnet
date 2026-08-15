@@ -1,10 +1,11 @@
 # Claude Code loop state
 .loop-state/
 
-# Raw TEA snapshots — large, regenerable via `fetch`, archived separately
-data/raw/
+# NOTE: data/raw/ is deliberately NOT ignored. The dated TEA snapshots (~4.5 MB/year
+# gzipped) are committed as the site's provenance chain — every published claim traces
+# back to the exact bytes TEA served on a given date.
 
-# Built database artifacts
+# Built artifacts — regenerable from data/raw/ by the build step
 *.duckdb
 *.duckdb.wal
 *.sqlite

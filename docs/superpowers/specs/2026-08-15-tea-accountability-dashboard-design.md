@@ -46,23 +46,74 @@ The fetcher must handle both cases.
 
 ## 3. Architecture
 
-Four stages, each independently runnable and independently testable.
+Five stages, each independently runnable and independently testable, all executed by one
+GitHub Actions job.
 
 ```
-fetch.py    → data/raw/<ISO-date>/*.json     verbatim snapshot, dated
-build.py    → data/tea.duckdb                normalized tidy tables
-export.py   → dashboard/payload.json         slim precomputed payload (~2.5 MB)
-publish.py  → self-contained HTML artifact   shareable private URL
+fetch      14 TEA files  → data/raw/<YYYY-MM>/*.json.gz   verbatim, committed to git
+build      raw snapshot  → build/tea.duckdb                normalized tidy tables
+export     duckdb        → site/data/payload-<hash>.json   ~2.5 MB, dashboard route only
+prerender  duckdb        → site/district/<id>.html + campus/<id>.html   10,230 pages
+deploy     site/         → Cloudflare Workers Static Assets  via wrangler
 ```
 
-**Why dated raw snapshots.** TEA overwrites these files in place on each release. Dating the
-snapshot directory turns the pipeline into its own longitudinal archive, so a run in August
-2027 yields 2026-27 data without depending on TEA preserving history. `fetch.py` is idempotent
-within a date and never mutates a prior snapshot.
+### No server-side database
 
-**Why DuckDB.** The full dataset fits in memory, but the normalized `groups` table reaches
-~180k rows and the analysis is heavily aggregate-and-join. DuckDB gives real SQL over the
-whole thing with zero server, and the file is portable for ad-hoc querying outside the app.
+The dataset is smaller than the payload it would serve. All ~430,000 rows are small scalars,
+totalling roughly 1.5 MB as Parquet or 3.3 MB as gzipped JSON — less than the ~2.5 MB dashboard
+payload itself.
+
+A database earns its place when the query set cannot be enumerated in advance over data too
+large to move. Neither holds here: zero user-generated writes, one batch rebuild per year, and a
+fully enumerable query set (six views × a fixed cross-product of global toggles, plus 10,230
+detail pages). The dashboard's cross-filtering must recompute within a frame, so the payload has
+to be resident in the browser regardless — and once it is, a server-side store answers nothing
+the client does not already hold.
+
+D1 was evaluated and rejected on specifics: the free tier's 100,000 rows-written/day cannot
+absorb a ~430,000-row rebuild (~1.3M written rows with indexes), so it costs $5/month to run
+once a year; it bills per row *scanned* in the request path; and imports block the database for
+their duration, making the annual refresh an outage. R2 + Parquet + DuckDB-WASM was rejected as
+a net loss at this size — the WASM bundle alone exceeds the data.
+
+**DuckDB stays as a build-time tool.** It is the analysis engine that produces the payload and
+the prerendered pages, and a portable artifact for ad-hoc querying. It is never served.
+
+### Hosting: Cloudflare Workers Static Assets
+
+An assets-only Worker with **no `main` entrypoint**. Static asset requests are free and
+unlimited with no storage cost, and with no script there are zero billable invocations — a
+traffic spike costs the same as a quiet day. Total: $0/month on the Workers Free plan.
+
+- **File budget:** ~10,230 entity pages + ~200 shell/CSS/JS/sitemap/data files ≈ 10,430 against
+  the Free plan's 20,000-files-per-version limit. Per-entity data is inlined into each HTML page
+  rather than shipped as a second per-entity JSON file, which would roughly double the count and
+  breach the cap. CI fails the build above 18,000 files. The escape hatch is the Paid plan's
+  100,000-file limit, which requires Wrangler ≥ 4.34.0 — so Wrangler is pinned to that floor now,
+  before the guard ever trips.
+- **Payload routing:** the ~2.5 MB payload is fetched **only on the dashboard route**. Search
+  traffic landing on `/district/109901` downloads kilobytes, not megabytes, because that page's
+  data is already inlined.
+- **Caching:** `/data/*` gets `max-age=31536000, immutable` via `_headers`, safe because payload
+  filenames are content-hashed. HTML keeps the default `max-age=0, must-revalidate` + ETag so an
+  annual rebuild propagates on next request.
+- **Config:** `wrangler.jsonc` with `workers_dev: false` **and `preview_urls: true` set
+  explicitly** — `preview_urls` otherwise defaults to the value of `workers_dev`, which would
+  silently remove the target the pre-cutover smoke test depends on.
+
+### Ingest runs in CI, not in a Worker
+
+A Worker isolate caps at 128 MB against 52.5 MB of raw JSON that expands several-fold when
+parsed, and free-tier cron CPU is 10 ms. GitHub Actions on a public repo is free with a 6-hour
+job ceiling. Trigger is `workflow_dispatch` only, with a calendar reminder for the August TEA
+release; scheduled workflows in public repos are auto-disabled after 60 days of no *repository*
+activity, so a cron for an annual job cannot keep itself alive and is not attempted.
+
+**Why dated raw snapshots are committed.** TEA overwrites these files in place on each release.
+Committing each dated snapshot (~4.5 MB/year gzipped, ~27 MB over six years) turns the repo into
+the site's own longitudinal archive and its provenance chain: every published claim traces to the
+exact bytes TEA served on a given date. Published as per-year files, never one cumulative
+archive, to stay under the 25 MiB per-file asset limit.
 
 ## 4. Data model
 
@@ -192,10 +243,48 @@ assert no numeric column silently absorbed a sentinel like `*` or `.`.
 future TEA release changes them, the tests fail and the site's claims get re-validated before
 publication rather than after.
 
-## 11. Out of scope
+### Deploy gates
 
-- Live data refresh. The pipeline is run manually; the artifact is rebuilt and republished.
+The pipeline runs once a year. Anything that depends on a human remembering a procedure across a
+twelve-month gap is not a control. Every guard below is automated and blocking:
+
+- Fail if any of the 14 source fetches returns non-200 or a trivially small body.
+- Fail if entity count drops below 10,000, or if payload size moves more than ~30% year over year.
+  A partial TEA publication is the most likely real-world failure and it would otherwise replace
+  every page on the site with a plausible-looking subset.
+- Fail if `wrangler.jsonc` contains a `main` key. Adding one silently converts an unmetered site
+  into a metered one; it is the single config change that breaks the $0 guarantee.
+- Fail if the built file count exceeds 18,000.
+- After `wrangler versions upload`, fetch three canary URLs against the preview URL — `/`,
+  `/district/109901`, and the content-hashed payload — asserting 200 and expected byte length.
+  Only then `wrangler versions deploy`. This runs in CI, not by hand.
+
+### Monitoring
+
+An assets-only Worker emits no invocation logs, so `observability` config on it is inert and is
+not used. Production signal comes from the post-deploy canary assertions above plus an external
+uptime check on the same three URLs. Cloudflare Web Analytics covers traffic; it is a client-side
+beacon and deliberately not relied on for error detection.
+
+## 11. Measure before building
+
+Three load-bearing numbers in this design are estimates, and all three are answerable in one
+afternoon of ingest work. They are measured first, before the dashboard is built, because each
+one can invalidate a decision above:
+
+- **Real payload size** from real TEA files. The ~2.5 MB figure is estimated. If it lands closer
+  to 8 MB, the payload needs splitting per view.
+- **Prerender wall-clock** for 10,230 pages, and **wrangler upload time** for ~10,430 files. If
+  upload is slow enough to be painful, the file-count strategy changes.
+- **Actual served `Content-Encoding`** on the real domain in Chrome and Safari, which settles
+  whether any compression configuration is needed at all.
+
+## 12. Out of scope
+
+- Live data refresh. The pipeline runs on demand; there is no streaming or scheduled ingest.
 - Campus-level geographic mapping of all 9,031 points. Districts map cleanly; campus mapping is a
   later addition if wanted.
 - Multi-state comparison. Texas only.
 - Statistical modeling beyond descriptive comparison and simple regression. No causal claims.
+- Per-entity OG images and per-year page variants. Both are attractive and both would breach the
+  Free-plan file cap; revisit together with the Paid-plan upgrade if wanted.
