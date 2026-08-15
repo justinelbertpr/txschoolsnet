@@ -155,7 +155,20 @@ export function domains(vm) {
   return section(
     'domains',
     'Where the score comes from',
-    `${scoreBars(vm.domains.map((d) => ({ label: d.label, score: d.score, grade: d.grade })))}
+    `${scoreBars(
+      vm.domains.map((d) => ({
+        label: d.label,
+        score: d.score,
+        grade: d.grade,
+        markers: vm.domainCompare
+          ? [
+              { key: 'peer', label: 'Similar student population', short: 'similar', value: vm.domainCompare.peer[d.domain] ?? null },
+              { key: 'state', label: 'Texas average', short: 'state', value: vm.domainCompare.state[d.domain] ?? null },
+            ]
+          : [],
+      }))
+    )}
+  ${vm.domainCompare ? legend([{ key: 'entity', label: vm.name }, { key: 'peer', label: `Similar ${vm.level === 'district' ? 'districts' : 'schools'} (${num(vm.peerN)})` }, { key: 'state', label: 'Texas average' }]) : ''}
   ${table({
       caption: 'Domain scores',
       head: ['Domain', { label: 'Score', num: true }, 'Grade', { label: 'Points to next grade', num: true }],
@@ -177,10 +190,15 @@ export function outcomes(vm) {
     ? `<h3>STAAR performance</h3>
   ${groupedBars({
         groups: vm.staar.subjects,
-        series: STAAR_LEVELS.map((label, i) => ({ key: `l${i}`, label, values: vm.staar.levels[i] })),
+        series: STAAR_LEVELS.map((label, i) => ({
+          key: `l${i}`,
+          label,
+          values: vm.staar.levels[i],
+          compare: vm.staar.peer ? vm.staar.subjects.map((_, gi) => vm.staar.peer[gi]?.[i] ?? null) : null,
+        })),
       })}
-  ${legend(STAAR_LEVELS.map((label, i) => ({ key: `l${i}`, label })))}
-  <p class="note">Percentage of tests at or above each level. Masters is a subset of Meets, which is a subset of Approaches.</p>`
+  ${legend([...STAAR_LEVELS.map((label, i) => ({ key: `l${i}`, label })), vm.staar.peer ? { key: 'peer', label: `Tick: similar ${vm.level === 'district' ? 'districts' : 'schools'} (${num(vm.peerN)})` } : null].filter(Boolean))}
+  <p class="note">Percentage of tests at or above each level. Masters is a subset of Meets, which is a subset of Approaches. The tick on each bar marks the average for ${vm.level === 'district' ? 'districts' : 'schools'} serving a similar share of economically disadvantaged students — a comparison TEA does not publish.</p>`
     : ''
 
   const grad = vm.graduation?.length

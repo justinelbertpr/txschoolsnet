@@ -103,6 +103,44 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
   const ach = achievement?.find((a) => a.id === entity.id) ?? null
   const gradLabels = entity.isAlt ? COMPLETION : GRADUATION
 
+  // Cohort averages for the domain and STAAR comparisons. TEA publishes neither —
+  // it will tell you a school's reading score, never how that score sits against
+  // schools serving comparable students. That gap is most of this page's reason
+  // to exist, so it is computed here rather than left to the reader.
+  const cohortIds = { peer: band.ids, state: new Set(entities.filter((e) => e.level === entity.level).map((e) => e.id)) }
+
+  const domainAvg = (ids) => {
+    const acc = {}
+    for (const d of domains) {
+      if (d.year !== latestYear || d.score == null || !ids.has(d.id)) continue
+      ;(acc[d.domain] ??= []).push(d.score)
+    }
+    return Object.fromEntries(Object.entries(acc).map(([k, xs]) => [k, Math.round(mean(xs) * 10) / 10]))
+  }
+
+  const numPct = (v) => {
+    const n = Number(String(v ?? '').replace('%', ''))
+    return Number.isFinite(n) ? n : null
+  }
+
+  /** Mean of each subject x level cell across a cohort, aligned on subject NAME. */
+  const staarAvg = (ids) => {
+    if (!ach?.subject?.length) return null
+    const acc = ach.subject.map(() => [[], [], []])
+    for (const a of achievement ?? []) {
+      if (!ids.has(a.id) || !a.subject?.length) continue
+      a.subject.forEach((subj, i) => {
+        const at = ach.subject.indexOf(subj)
+        if (at === -1) return
+        ;[a.approach, a.meet, a.master].forEach((lvl, li) => {
+          const v = numPct(lvl?.[i])
+          if (v !== null) acc[at][li].push(v)
+        })
+      })
+    }
+    return acc.map((levels) => levels.map((xs) => (xs.length ? Math.round(mean(xs) * 10) / 10 : null)))
+  }
+
   return {
     ...entity,
     slug: entitySlug(entity),
@@ -133,9 +171,16 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
     raceShare: raw?.Enrollment ?? null,
     staffYears: raw?.Staff_Years ?? null,
 
+    domainCompare: band.n > 1 ? { peer: domainAvg(cohortIds.peer), state: domainAvg(cohortIds.state) } : null,
+
     staar:
       ach?.subject?.length && ach?.approach?.length
-        ? { subjects: ach.subject, levels: [ach.approach, ach.meet, ach.master] }
+        ? {
+            subjects: ach.subject,
+            levels: [ach.approach, ach.meet, ach.master].map((lvl) => lvl.map(numPct)),
+            peer: band.n > 1 ? staarAvg(cohortIds.peer) : null,
+            state: staarAvg(cohortIds.state),
+          }
         : null,
     graduation:
       ach?.grad_rate_col2?.length

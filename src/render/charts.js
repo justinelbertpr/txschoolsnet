@@ -116,9 +116,16 @@ export function groupedBars({ groups, series, w = 640, gap = 10 }) {
           if (v === null || v === undefined)
             return `<text x="${labelW}" y="${yy + barH - 2}" class="na-sm">—</text>`
           const len = (v / 100) * barW
+          const cmp = s.compare?.[gi]
+          const tick =
+            cmp == null
+              ? ''
+              : `<line x1="${(labelW + (cmp / 100) * barW).toFixed(1)}" x2="${(labelW + (cmp / 100) * barW).toFixed(1)}" y1="${yy - 2}" y2="${yy + barH + 2}" class="mark mark-peer"><title>Similar schools: ${cmp}%</title></line>`
+          const gap = cmp == null ? '' : ` <tspan class="delta">${v >= cmp ? '+' : '−'}${Math.abs(v - cmp).toFixed(0)}</tspan>`
           return (
             `<rect x="${labelW}" y="${yy}" width="${len.toFixed(1)}" height="${barH}" rx="3.5" class="gb gb-${esc(s.key)}"><title>${esc(g)} · ${esc(s.label)}: ${v}%</title></rect>` +
-            `<text x="${(labelW + len + 7).toFixed(1)}" y="${yy + barH - 2}" class="bar-value">${v}%</text>`
+            tick +
+            `<text x="${(labelW + Math.max(len, cmp == null ? len : (cmp / 100) * barW) + 7).toFixed(1)}" y="${yy + barH - 2}" class="bar-value">${v}%${gap}</text>`
           )
         })
         .join('')
@@ -130,9 +137,9 @@ export function groupedBars({ groups, series, w = 640, gap = 10 }) {
 }
 
 /** Horizontal bars on a fixed 0-100 scale, so every bar is comparable to every other. */
-export function scoreBars(rows, { w = 640, rowH = 34 } = {}) {
+export function scoreBars(rows, { w = 640, rowH = 40 } = {}) {
   const labelW = 190
-  const barW = w - labelW - 58
+  const barW = w - labelW - 76
   const h = rows.length * rowH + 8
 
   const body = rows
@@ -141,13 +148,35 @@ export function scoreBars(rows, { w = 640, rowH = 34 } = {}) {
       const len = r.score === null ? 0 : (r.score / 100) * barW
       const bar =
         r.score === null
-          ? `<text x="${labelW}" y="${cy + 15}" class="na">Not reported</text>`
-          : `<rect x="${labelW}" y="${cy + 5}" width="${len.toFixed(1)}" height="14" rx="4" class="bar"/>` +
-            `<text x="${(labelW + len + 8).toFixed(1)}" y="${cy + 16}" class="bar-value">${r.score}</text>`
+          ? `<text x="${labelW}" y="${cy + 17}" class="na">Not reported</text>`
+          : `<rect x="${labelW}" y="${cy + 6}" width="${len.toFixed(1)}" height="15" rx="4" class="bar"/>` +
+            `<text x="${(labelW + len + 8).toFixed(1)}" y="${cy + 18}" class="bar-value">${r.score}</text>`
+
+      // A cohort tick sits ON the bar track, so "ahead of" and "behind" read
+      // positionally rather than needing the reader to compare two numbers.
+      const marks = (r.markers ?? [])
+        .filter((m) => m.value != null)
+        .map((m) => {
+          const mx = labelW + (m.value / 100) * barW
+          return (
+            `<line x1="${mx.toFixed(1)}" x2="${mx.toFixed(1)}" y1="${cy + 2}" y2="${cy + 25}" class="mark mark-${esc(m.key)}"><title>${esc(m.label)}: ${m.value}</title></line>`
+          )
+        })
+        .join('')
+
+      const delta =
+        r.score != null && r.markers?.[0]?.value != null
+          ? `<text x="0" y="${cy + 31}" class="row-sub">${
+              r.score >= r.markers[0].value ? '+' : '−'
+            }${Math.abs(r.score - r.markers[0].value).toFixed(1)} vs ${esc(r.markers[0].short ?? r.markers[0].label)}</text>`
+          : ''
+
       return (
-        `<text x="0" y="${cy + 16}" class="row-label">${esc(r.label)}</text>` +
+        `<text x="0" y="${cy + 17}" class="row-label">${esc(r.label)}</text>` +
+        delta +
         bar +
-        (r.grade ? `<text x="${w - 14}" y="${cy + 16}" class="row-grade">${esc(r.grade)}</text>` : '')
+        marks +
+        (r.grade ? `<text x="${w - 14}" y="${cy + 17}" class="row-grade">${esc(r.grade)}</text>` : '')
       )
     })
     .join('')
