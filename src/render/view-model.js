@@ -21,6 +21,8 @@ const mean = (xs) => {
 
 /**
  * The like-for-like comparison group: same level, eco-dis within ±10 points.
+ * buildViewModel hands this the rated pool, not the full entity list, so the
+ * band obeys the one cohort rule stated below along with everything else.
  * The state average alone systematically flatters wealthy entities and punishes
  * poor ones — this project's own poverty-gradient finding says so — so both are
  * shown and neither is presented as the whole answer.
@@ -45,27 +47,95 @@ const seriesByYear = (rows, keep) => {
   return Object.fromEntries(Object.entries(acc).map(([y, xs]) => [y, Math.round(mean(xs) * 10) / 10]))
 }
 
+/**
+ * ONE definition of a cohort, used for every n this file publishes.
+ *
+ *   A cohort is every entity OF THE SAME LEVEL that TEA gave an overall score
+ *   for the current year, narrowed by what the cohort is about (region, county,
+ *   peer band, or nothing at all for the state) — the entity itself included,
+ *   when it was rated.
+ *
+ * Three properties follow, and all three are the reason for the rule:
+ *
+ *   Including the entity is what a placement means. "12th of 378" says 378 is
+ *   the population it was placed inside, not the 377 other schools.
+ *
+ *   Requiring a current-year score is what keeps the denominator honest. An
+ *   entity TEA did not rate this year is not in the running, and counting it
+ *   inflates the n of a contest it never entered. It also matches the rule
+ *   stated on the about page: Not Rated is excluded from averages rather than
+ *   counted as zero.
+ *
+ *   Membership is fixed by the current year, so a trajectory line is one set of
+ *   schools followed backwards through time rather than a set that changes
+ *   shape every year and moves the average by composition alone.
+ *
+ * Everything downstream reads this one pool: the trajectory picker, the peer
+ * band, the state and peer series, the headline rank denominators, and the
+ * entity list handed to metrics.js:buildCohorts, which drives the "compare
+ * everything against" switch and every per-metric rank. One cohort therefore
+ * cannot appear twice on a page with two different sizes.
+ *
+ * Per-metric ranks still carry their own n (rankAll counts entities holding
+ * that metric, which not every cohort member reports) and each states it in
+ * place, so a smaller denominator there is labelled rather than silently
+ * different.
+ */
+const ratedPool = ({ entity, entities, ratings, latestYear }) => {
+  const score = new Map()
+  for (const r of ratings) {
+    if (r.year !== latestYear) continue
+    if (typeof r.score === 'number' && Number.isFinite(r.score)) score.set(r.id, r.score)
+  }
+  return { score, pool: entities.filter((e) => e.level === entity.level && score.has(e.id)) }
+}
+
+/**
+ * Competition rank within a cohort: one plus the number of entities scoring
+ * strictly better, plus how many OTHERS hold the identical score. Mirrors
+ * metrics.js:rankAll deliberately — an array position would hand two entities
+ * on the same score different placements purely by sort order, and the page
+ * presents the result as a sole placement.
+ */
+const placement = ({ entity, pool, score }) => {
+  const mine = score.get(entity.id)
+  const of = pool.length
+  if (mine == null) return { rank: null, of, tied: null }
+  let better = 0
+  let tied = 0
+  for (const e of pool) {
+    if (e.id === entity.id) continue
+    const s = score.get(e.id)
+    if (s > mine) better += 1
+    else if (s === mine) tied += 1
+  }
+  return { rank: better + 1, of, tied }
+}
+
 export function buildViewModel({ entity, entities, ratings, allRatings, domains, finance, profile, raw, achievement, snapshotDate, latestYear }) {
   const ecoDis = new Map(profile.map((p) => [p.id, p.ecoDisPct]))
-  const byId = new Map(entities.map((e) => [e.id, e]))
-  const band = peerBand({ entity, entities, ecoDis })
+
+  // The cohort pool: same level, rated this year. Every n below comes from it.
+  const { score: latestScore, pool } = ratedPool({ entity, entities, ratings, latestYear })
+  const poolIds = new Set(pool.map((e) => e.id))
+  const band = peerBand({ entity, entities: pool, ecoDis })
 
   const history = ratings.filter((r) => r.id === entity.id).sort((a, b) => b.year.localeCompare(a.year))
 
-  const sameLevel = ratings
-    .filter((r) => r.year === latestYear && byId.get(r.id)?.level === entity.level && r.score !== null)
-    .sort((a, b) => b.score - a.score)
-  const rank = sameLevel.findIndex((r) => r.id === entity.id) + 1
-  const inRegion = sameLevel.filter((r) => byId.get(r.id)?.regionId === entity.regionId)
+  const state = placement({ entity, pool, score: latestScore })
+  const region = placement({
+    entity,
+    pool: pool.filter((e) => e.regionId === entity.regionId),
+    score: latestScore,
+  })
 
-  const sameLevelId = (id) => byId.get(id)?.level === entity.level
-  const stateByYear = seriesByYear(ratings, sameLevelId)
+  const stateByYear = seriesByYear(ratings, (id) => poolIds.has(id))
   const peerByYear = band.n > 1 ? seriesByYear(ratings, (id) => band.ids.has(id)) : null
 
   // Comparison groups the reader can switch between. Each is a real cohort with a
   // stated n, so a line never appears without the reader knowing what it averages.
   const cohort = (label, key, pred) => {
-    const ids = entities.filter((e) => e.level === entity.level && e.id !== entity.id && pred(e)).map((e) => e.id)
+    const ids = pool.filter(pred).map((e) => e.id)
     if (ids.length < 2) return null
     const set = new Set(ids)
     return { key, label, n: ids.length, byYear: seriesByYear(ratings, (id) => set.has(id)) }
@@ -73,7 +143,7 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
 
   const enrol = entity.enrollment
   const comparisons = [
-    { key: 'state', label: 'Texas average', n: entities.filter((e) => e.level === entity.level).length, byYear: stateByYear },
+    { key: 'state', label: 'Texas average', n: pool.length, byYear: stateByYear },
     band.n > 1
       ? {
           key: 'peer',
@@ -113,9 +183,11 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
   // without its context, because the context is computed for all of them at once.
   const bundles = sourceBundles({ entities, ratings, domains, profile, finance, achievement, latestYear })
   const specs = metricSpecs({ subjects: ach?.subject ?? [], isAlt: entity.isAlt })
+  // `pool`, not `entities`: the cohort switch counts the same population the
+  // trajectory picker and the headline rank do. See the cohort rule above.
   const { cohorts, ids: cohortIds } = buildCohorts({
     entity,
-    entities,
+    entities: pool,
     bundles,
     specs,
     band,
@@ -141,10 +213,14 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
     peerAvg: peerByYear?.[latestYear] ?? null,
     peerN: band.n,
     comparisons,
-    rank,
-    rankOf: sameLevel.length,
-    regionRank: inRegion.findIndex((r) => r.id === entity.id) + 1,
-    regionRankOf: inRegion.length,
+    // Competition rank, with the number of others sharing the same score, so a
+    // shared ceiling is never presented as a sole placement.
+    rank: state.rank,
+    rankOf: state.of,
+    rankTied: state.tied,
+    regionRank: region.rank,
+    regionRankOf: region.of,
+    regionRankTied: region.tied,
     originalScore: original?.score ?? null,
     originalRating: original?.rating ?? null,
 

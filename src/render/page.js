@@ -23,7 +23,7 @@ export function renderEntity(vm) {
     title: `${vm.name} — ratings, student outcomes and spending`,
     description:
       `${vm.name}: rated ${latest?.rating ?? 'not rated'}${latest?.score != null ? ` (${latest.score})` : ''} for ${latest?.year ?? ''}${compare}. ` +
-      `${vm.history?.length ?? 0} years of ratings, domain scores, STAAR results, demographics and per-student spending compared with peer ${kind === 'district' ? 'districts' : 'schools'}.`,
+      `${vm.history?.length ?? 0} ${vm.history?.length === 1 ? 'year' : 'years'} of ratings, domain scores, STAAR results, demographics and per-student spending compared with peer ${kind === 'district' ? 'districts' : 'schools'}.`,
     canonical: `${SITE_ORIGIN}/${vm.level}/${vm.slug}`,
     crumbs,
     sections: SECTIONS.map((s) => s(vm)),

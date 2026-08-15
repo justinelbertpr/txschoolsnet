@@ -1,3 +1,29 @@
+// Fails the build before Cloudflare does.
+//
+// The Free plan caps a Worker version at 20,000 assets. The guard sits at 18,000
+// so a breach is caught with room to fix it rather than at deploy time.
+//
+// What the site actually generates (see the FILE BUDGET note in src/prerender.js):
+//
+//     entity pages                          10,230   one per district and campus
+//     county pages                             253
+//     letter pages                              26
+//     region pages                              20
+//     per-district CSV + JSON                2,398   1,199 districts x 2 formats
+//     bulk CSVs                                  3
+//     home, about, download                      3
+//     sitemap.xml, _redirects, _headers          3
+//     404.html, style.css, app.js                3
+//     dashboard payload                          1
+//     ------------------------------------------
+//                                           12,940   5,060 under the guard
+//
+// The line that matters is the per-entity one. Campus CSV and JSON are NOT
+// generated: 10,230 entities x 2 formats is 20,460 files on its own, past the
+// hard cap before a single page is counted. If a future change starts writing
+// per-campus data files, this guard is what stops it — read the note in
+// src/prerender.js before raising the limit rather than after.
+
 import { readdir } from 'node:fs/promises'
 
 const LIMIT = 18_000 // Free plan caps at 20,000 assets per Worker version
@@ -10,9 +36,31 @@ async function count(dir) {
   return n
 }
 
+/** Per-directory, so a breach names the thing that grew instead of just a total. */
+async function breakdown(dir) {
+  const out = []
+  let loose = 0
+  for (const e of await readdir(dir, { withFileTypes: true })) {
+    if (e.isDirectory()) out.push([`${e.name}/`, await count(`${dir}/${e.name}`)])
+    else loose += 1
+  }
+  out.push(['(top level)', loose])
+  return out.sort((a, b) => b[1] - a[1])
+}
+
 const n = await count('site')
-console.log(`site/ contains ${n} files (limit ${LIMIT})`)
+
+console.log(`site/ contains ${n.toLocaleString('en-US')} files (limit ${LIMIT.toLocaleString('en-US')})`)
+for (const [name, c] of await breakdown('site')) {
+  console.log(`  ${name.padEnd(14)}${c.toLocaleString('en-US').padStart(7)}`)
+}
+
 if (n > LIMIT) {
-  console.error(`FAIL: ${n} files exceeds ${LIMIT}. See the design doc §3 — the Paid plan raises this to 100,000.`)
+  console.error(
+    `\nFAIL: ${n.toLocaleString('en-US')} files exceeds ${LIMIT.toLocaleString('en-US')}.\n` +
+      `The Free plan's hard cap is 20,000 and the Paid plan raises it to 100,000 (design §3).\n` +
+      `Before raising this number, read the FILE BUDGET note at the top of src/prerender.js —\n` +
+      `the usual cause is per-entity data files, which do not fit at any ratio for campuses.`
+  )
   process.exit(1)
 }

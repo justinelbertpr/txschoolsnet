@@ -9,6 +9,17 @@ import { cmp, cohortSwitch, esc, grade, legend, num, ordinal, pct, section, sign
 import { trajectoryChart, scoreBars, stackedShare, comparisonChart, groupedBars } from './charts.js'
 import { RACE, EXPERIENCE, STAAR_LEVELS, GRADUATION, COMPLETION, CCMR } from './labels.js'
 
+/* ------------------------------------------------------------------ words -- */
+
+// Counts reach the page as prose, so the noun has to agree with the number. One
+// year is a year, one student is a student. 179 pages read "1 years of ratings"
+// and 61 read "1 students" before this existed.
+const plural = (n, one, many = `${one}s`) => `${num(n)} ${n === 1 ? one : many}`
+
+// TEA's own noun for the two levels. Used wherever a sentence names the thing the
+// page is about, so a district page never calls itself a campus.
+const unit = (vm) => (vm.level === 'district' ? 'district' : 'campus')
+
 /* ---------------------------------------------------------------- verdict -- */
 
 export function verdict(vm) {
@@ -47,7 +58,13 @@ export function verdict(vm) {
     sentences.push(s)
   }
   if (vm.rank && vm.rankOf) {
-    sentences.push(`Ranks ${ordinal(vm.rank)} of ${num(vm.rankOf)} Texas ${vm.level === 'district' ? 'districts' : 'campuses'}, and ${ordinal(vm.regionRank)} of ${num(vm.regionRankOf)} in ${esc(vm.regionName)}.`)
+    // A correct competition rank that does not disclose its ties still reads as a
+    // sole placement. Say how many share it.
+    const share = (n) => (n > 0 ? ` (shared with ${num(n)} other${n === 1 ? '' : 's'})` : '')
+    const unit = vm.level === 'district' ? 'districts' : 'campuses'
+    sentences.push(
+      `Ranks ${ordinal(vm.rank)} of ${num(vm.rankOf)} Texas ${unit}${share(vm.rankTied)}, and ${ordinal(vm.regionRank)} of ${num(vm.regionRankOf)} in ${esc(vm.regionName)}${share(vm.regionRankTied)}.`
+    )
   }
 
   const alert =
@@ -60,13 +77,13 @@ export function verdict(vm) {
   return `<section class="hero">
   <p class="eyebrow">${kind} &middot; ${vm.isCharter ? 'Charter' : 'Traditional'}${vm.isAlt ? ' &middot; Alternative Education Accountability' : ''}</p>
   <h1>${esc(vm.name)}</h1>
-  <p class="place">${esc(vm.county)} County &middot; ${esc(vm.regionName)}${vm.enrollment ? ` &middot; ${num(vm.enrollment)} students` : ''}</p>
+  <p class="place">${esc(vm.county)} County &middot; ${esc(vm.regionName)}${vm.enrollment ? ` &middot; ${plural(vm.enrollment, 'student')}` : ''}</p>
   <div class="verdict">
     ${grade(latest?.rating, latest?.score, 'lg')}
     <p class="summary">${sentences.join(' ')}</p>
   </div>
   ${alert}
-  ${vm.notRated ? '<p class="note">TEA did not issue an overall rating for this campus. Scores below are the figures TEA published; the letter grades are the state\'s where it issued them.</p>' : ''}
+  ${vm.notRated ? `<p class="note">TEA did not issue an overall rating for this ${unit(vm)}. Scores below are the figures TEA published; the letter grades are the state's where it issued them.</p>` : ''}
   ${cohortSwitch(vm)}
 </section>`
 }
@@ -85,19 +102,30 @@ export function trajectory(vm) {
     return `<tr><th scope="row">${esc(h.year)}</th><td>${grade(h.rating)}</td><td class="num">${h.score ?? '—'}</td><td class="num">${p == null ? '—' : p.toFixed(1)}</td><td class="num">${vm.stateByYear?.[h.year]?.toFixed(1) ?? '—'}</td></tr>`
   })
 
-  const note = `2021-22 is shown under the refreshed methodology TEA adopted in 2023, so it is comparable with later years.${
-    vm.originalScore != null
-      ? ` Under the original scoring it was rated <strong>${esc(vm.originalRating ?? '')}</strong> with <strong>${vm.originalScore}</strong> that year.`
-      : ''
-  }`
+  // The rescoring footnote explains one row. Entities whose history starts after
+  // 2021-22 have no such row, and 657 pages carried the explanation anyway —
+  // annotating a year that is not on the page.
+  const has2122 = vm.history.some((h) => h.year === '2021-22')
+  const note = !has2122
+    ? ''
+    : `2021-22 is shown under the refreshed methodology TEA adopted in 2023, so it is comparable with later years.${
+        vm.originalScore != null
+          ? ` Under the original scoring it was rated <strong>${esc(vm.originalRating ?? '')}</strong> with <strong>${vm.originalScore}</strong> that year.`
+          : ''
+      }`
+
+  // A chip whose series is empty invites the reader to switch to a cohort that
+  // draws nothing. Offer only cohorts that have at least one value in the years
+  // this page actually shows — and default only to those that survive.
+  const comparisons = (vm.comparisons ?? []).filter((c) => years.some((y) => c.byYear?.[y] != null))
 
   // Two comparisons are on by default so the page is complete without JavaScript.
   // The picker below is progressive enhancement: it swaps which cohorts are drawn.
-  const defaults = ['peer', 'state']
-  const picker = vm.comparisons?.length
+  const defaults = ['peer', 'state'].filter((k) => comparisons.some((c) => c.key === k))
+  const picker = comparisons.length
     ? `<div class="picker" role="group" aria-label="Choose comparisons">
     <span class="picker-label">Compare against</span>
-    ${vm.comparisons
+    ${comparisons
       .map(
         (c) =>
           `<button type="button" class="chip" data-cmp="${esc(c.key)}" aria-pressed="${defaults.includes(c.key)}"${
@@ -108,11 +136,11 @@ export function trajectory(vm) {
   </div>`
     : ''
 
-  const payload = vm.comparisons?.length
+  const payload = comparisons.length
     ? `<script type="application/json" data-trajectory>${JSON.stringify({
         years,
         entity: { label: vm.name, values: mine },
-        comparisons: vm.comparisons.map((c) => ({
+        comparisons: comparisons.map((c) => ({
           key: c.key,
           label: c.label,
           n: c.n,
@@ -124,15 +152,18 @@ export function trajectory(vm) {
 
   return section(
     'trajectory',
-    `${vm.history.length} years of ratings`,
+    `${plural(vm.history.length, 'year')} of ratings`,
     `${picker}
   ${trajectoryChart({ years, series: [
       { key: 'entity', values: mine, label: vm.name },
-      peer ? { key: 'peer', values: peer, label: 'Districts like this one' } : null,
+      // This is the line's accessible name. It was fixed at 'Districts like this
+      // one' on 8,857 campus pages — the only string in the legend not switched
+      // on the level of the page it appears on.
+      peer ? { key: 'peer', values: peer, label: vm.level === 'district' ? 'Districts like this one' : 'Schools like this one' } : null,
       state ? { key: 'state', values: state, label: 'Texas average' } : null,
     ].filter(Boolean) })}
   ${payload}
-  <p class="note">${note}</p>
+  ${note ? `<p class="note">${note}</p>` : ''}
   ${table({
       caption: 'Rating history with comparisons',
       head: ['Year', 'Rating', { label: 'Score', num: true }, { label: 'Similar', num: true }, { label: 'State', num: true }],
@@ -145,13 +176,25 @@ export function trajectory(vm) {
 
 export function domains(vm) {
   if (!vm.domains?.length) return null
+
+  // src/normalize/domains.js derives the letter from the score using TEA's own
+  // bands, and says in terms that a consumer holding entity metadata must not
+  // publish that letter for a Not Rated entity: the state withheld it as an
+  // administrative decision (mostly alternative-education campuses) that the
+  // score alone cannot see. The score below is TEA's. The letter would be ours,
+  // so it is not shown, and neither is anything that reads as one — "points to
+  // next grade" has no referent without a current grade.
+  const derivedGrades = !vm.notRated
+
   const rows = vm.domains.map(
     (d) =>
       `<tr><th scope="row">${esc(d.label)}</th><td class="num">${d.score ?? '—'}</td><td>${
-        d.grade ? grade(d.grade) : '<span class="na">Not rated</span>'
-      }</td><td class="num">${d.toNextGrade == null ? '—' : `${d.toNextGrade}`}</td></tr>`
+        derivedGrades && d.grade ? grade(d.grade) : '<span class="na">Not rated</span>'
+      }</td><td class="num">${!derivedGrades || d.toNextGrade == null ? '—' : `${d.toNextGrade}`}</td></tr>`
   )
-  const closest = vm.domains.filter((d) => d.toNextGrade != null).sort((a, b) => a.toNextGrade - b.toNextGrade)[0]
+  const closest = !derivedGrades
+    ? null
+    : vm.domains.filter((d) => d.toNextGrade != null).sort((a, b) => a.toNextGrade - b.toNextGrade)[0]
 
   return section(
     'domains',
@@ -160,7 +203,7 @@ export function domains(vm) {
       vm.domains.map((d) => ({
         label: d.label,
         score: d.score,
-        grade: d.grade,
+        grade: derivedGrades ? d.grade : null,
         markers: (vm.cohorts ?? []).slice(0, 2).map((c, i) => ({
           key: i === 0 ? 'peer' : 'state',
           label: c.label,
@@ -175,7 +218,14 @@ export function domains(vm) {
       head: ['Domain', { label: 'Score', num: true }, 'Grade', { label: 'Points to next grade', num: true }],
       rows,
     })}
-  ${closest ? `<p class="callout">Closest to moving up: <strong>${esc(closest.label)}</strong>, ${closest.toNextGrade} ${closest.toNextGrade === 1 ? 'point' : 'points'} below ${esc(nextLetter(closest.grade))}.</p>` : ''}`,
+  ${closest ? `<p class="callout">Closest to moving up: <strong>${esc(closest.label)}</strong>, ${closest.toNextGrade} ${closest.toNextGrade === 1 ? 'point' : 'points'} below ${esc(nextLetter(closest.grade))}.</p>` : ''}
+  ${
+    derivedGrades
+      ? ''
+      : `<p class="note">The scores above are the ones TEA published. TEA did not issue letter grades for
+  this ${unit(vm)}, so none are shown: the A&ndash;F thresholds marked on the chart are the state's, but
+  applying them here would produce a grade the state chose to withhold.</p>`
+  }`,
     'Texas builds the overall rating from three domains, and a school takes the better of its two School Progress measures. The 60, 70, 80 and 90 rules mark the letter-grade thresholds.'
   )
 }
@@ -329,8 +379,9 @@ export const claimSentence = (vm, r) => {
     : r.cohort === 'peer' ? `${unit} serving a similar share of economically disadvantaged students`
     : `${unit} in ${r.cohortLabel}`
   const tie = r.tied > 0 ? `, tied with ${r.tied} other${r.tied === 1 ? '' : 's'}` : ''
+  const reporting = ' that report this measure'
   const dir = r.lowerIsBetter ? 'lowest' : 'highest'
-  return `${vm.name} ranks ${r.rank}${ordSuffix(r.rank)} of ${r.of} ${scope} for ${r.label} (${dir}, 2025-26)${tie}. Source: txschools.net`
+  return `${vm.name} ranks ${r.rank}${ordSuffix(r.rank)} of ${r.of} ${scope}${reporting} for ${r.label} (${dir}, 2025-26)${tie}. Source: txschools.net`
 }
 
 export function standouts(vm) {
@@ -343,7 +394,7 @@ export function standouts(vm) {
       <div class="standout-rank"><span class="standout-n">${r.rank}</span><span class="standout-of">of ${num(r.of)}</span></div>
       <div class="standout-body">
         <p class="standout-metric">${esc(r.label)}${r.lowerIsBetter ? ' <span class="standout-dir">(lowest is best)</span>' : ''}</p>
-        <p class="standout-scope">${esc(r.cohortLabel)}${r.tied > 0 ? ` &middot; tied with ${r.tied}` : ''}</p>
+        <p class="standout-scope">${esc(r.cohortLabel)} &middot; of the ${num(r.of)} that report this measure${r.tied > 0 ? ` &middot; tied with ${num(r.tied)}` : ''}</p>
       </div>
       <button type="button" class="copy" data-claim="${esc(claim)}" aria-label="Copy this statement">Copy</button>
     </li>`
@@ -373,11 +424,31 @@ export function source(vm) {
     `<p>Every figure on this page comes from data the Texas Education Agency publishes at
      <a href="https://txschools.gov/?view=${vm.level}&amp;id=${esc(vm.id)}&amp;lng=en" rel="nofollow">txschools.gov</a>,
      fetched ${esc(vm.snapshotDate)} and archived with a checksum so each number stays traceable to the bytes TEA served.</p>
-  <p class="downloads"><a href="/data/entity/${esc(vm.id)}.csv" download>Download this ${vm.level} as CSV</a> &middot;
-     <a href="/data/entity/${esc(vm.id)}.json" download>JSON</a> &middot;
-     <a href="/download">the whole dataset</a></p>`
+  ${downloadLinks(vm)}`
   )
 }
+
+/**
+ * Per-entity files are pre-generated for districts only. 10,230 entities in two
+ * formats is 20,460 assets and a Workers version is capped at 20,000, so the
+ * 9,031 campus files are never written (see the note at the top of
+ * src/prerender.js). _redirects cannot rescue them either — a splat there is
+ * followed whether or not an asset matches, which took out all 2,398 real
+ * district files when it was tried. So the link has to be honest at the source:
+ * a campus page links what exists rather than a file that 404s.
+ */
+const downloadLinks = (vm) =>
+  vm.level === 'district'
+    ? `<p class="downloads"><a href="/data/entity/${esc(vm.id)}.csv" download>Download this district as CSV</a> &middot;
+     <a href="/data/entity/${esc(vm.id)}.json" download>JSON</a> &middot;
+     <a href="/download">the whole dataset</a></p>`
+    : `<p class="downloads"><a href="/download">Download the full dataset</a>${
+        vm.districtSlug ? ` &middot; <a href="/district/${esc(vm.districtSlug)}#source">this campus's district</a>` : ''
+      }</p>
+  <p class="note">Single-file records are pre-built for districts only, so there is no per-campus CSV to
+     link here &mdash; 10,230 entities in two formats would exceed the 20,000-asset limit this site is
+     published under. This campus is a row in the bulk files on the download page, keyed by its TEA id
+     <code>${esc(vm.id)}</code>.</p>`
 
 /** Page order. */
 export const SECTIONS = [verdict, trajectory, domains, outcomes, students, spending, teachers, standouts, campuses, source]

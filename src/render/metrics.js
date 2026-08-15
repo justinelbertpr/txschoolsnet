@@ -23,13 +23,37 @@ const mean = (xs) => {
 }
 
 /**
+ * Accountability populations. TEA judges alternative-education campuses against
+ * a different bar and relabels the same array COMPLETION rather than GRADUATION
+ * (see labels.js) — 30 districts and 416 campuses in this snapshot. Averaging a
+ * comprehensive high school's four-year graduation rate with an AEA campus's
+ * four-year completion rate is not one metric with two names; it is two metrics.
+ * In the 2026-08 snapshot the two populations differ by ~35 points on the
+ * four-year rate and ~10 points on dropout, so pooling them is not a rounding
+ * error — it flatters every standard campus and buries every AEA campus.
+ *
+ * A metric that carries a `population` is only ever averaged and ranked against
+ * cohort members in that same population; members of the other population are
+ * read as null, which drops them from the mean AND from the rank denominator.
+ */
+const AEA = 'aea'
+const STANDARD = 'standard'
+const POPULATION_LABEL = {
+  [AEA]: 'alternative-education accountability only',
+  [STANDARD]: 'standard accountability only',
+}
+const populationOf = (bundle) => (bundle?.isAlt ? AEA : STANDARD)
+
+/**
  * Metric declarations. `key` is stable and used by the client to swap cohorts;
  * `get` pulls the value from the per-entity source bundle; `fmt` says how a
  * delta should read, since a percentage point and a dollar are not the same
- * kind of difference.
+ * kind of difference. `population`, where present, is the comparison population
+ * the key is confined to.
  */
 export function metricSpecs({ subjects = [], isAlt = false } = {}) {
   const gradLabels = isAlt ? COMPLETION : GRADUATION
+  const gradPopulation = isAlt ? AEA : STANDARD
   const specs = [
     { key: 'score', label: 'Overall score', fmt: 'points', get: (s) => s.score },
 
@@ -54,11 +78,18 @@ export function metricSpecs({ subjects = [], isAlt = false } = {}) {
       }))
     ),
 
+    // The key stays `grad:i` under both standards so one page template can render
+    // either, but the extractor is confined to the calling entity's population:
+    // a graduation figure only ever meets other graduation figures, a completion
+    // figure only other completion figures. Index 3 (dropout) is confined too —
+    // it is the same relabelled array, judged against the same different bar.
     ...[0, 1, 2, 3].map((i) => ({
       key: `grad:${i}`,
       label: gradLabels[i],
       fmt: 'pct',
-      get: (s) => s.grad?.[i] ?? null,
+      population: gradPopulation,
+      populationLabel: POPULATION_LABEL[gradPopulation],
+      get: (s) => (populationOf(s) === gradPopulation ? s.grad?.[i] ?? null : null),
     })),
 
     ...Array.from({ length: 12 }, (_, i) => ({
@@ -91,7 +122,9 @@ export function sourceBundles({ entities, ratings, domains, profile, finance, ac
   const byId = new Map()
   const put = (id, patch) => byId.set(id, Object.assign(byId.get(id) ?? {}, patch))
 
-  for (const e of entities) put(e.id, { id: e.id, level: e.level, regionId: e.regionId })
+  // isAlt rides on the bundle because it decides which population a member's
+  // graduation/completion figure belongs to — see metricSpecs.
+  for (const e of entities) put(e.id, { id: e.id, level: e.level, regionId: e.regionId, isAlt: !!e.isAlt })
   for (const r of ratings) if (r.year === latestYear) put(r.id, { score: r.score })
   for (const p of profile) put(p.id, { profile: p })
 
@@ -165,6 +198,11 @@ export function buildCohorts({ entity, entities, bundles, specs, band, regionNam
     { key: 'state', label: 'Texas average', short: 'state', ids: sameLevel.map((e) => e.id) },
   ].filter(Boolean)
 
+  // `n` is the number of entities IN the cohort, not the number that reported any
+  // one metric — most cohort members report no graduation rate at all, and for a
+  // population-confined metric the members of the other accountability population
+  // contribute nothing either. The denominator that gets published is rankAll's
+  // `of`, which counts only the members that actually carried a value.
   const ids = Object.fromEntries(defs.map((d) => [d.key, d.ids]))
   return {
     cohorts: defs.map((d) => ({ ...d, n: d.ids.length, metrics: cohortMetrics(specs, bundles, d.ids), ids: undefined })),
@@ -211,12 +249,20 @@ export function rankAll({ entity, cohorts, bundles, specs, cohortIds }) {
       // corrected in public, and this site's whole premise is claims that hold up.
       const tied = values.filter((v) => v === mine).length - 1
 
+      // A population-confined metric names its population in the cohort label,
+      // because the cohort the reader was told about ("Texas average", n=2,119)
+      // is not the group this figure was measured against (325 AEA campuses).
+      // sections.js renders cohortLabel verbatim as the scope line under every
+      // standout and inside every copyable claim sentence, so the disclosure
+      // travels with the claim rather than sitting in a footnote.
       out.push({
         metric: s.key,
         label: s.label,
         fmt: s.fmt,
+        population: s.population ?? null,
+        populationLabel: s.populationLabel ?? null,
         cohort: c.key,
-        cohortLabel: c.label,
+        cohortLabel: s.population ? `${c.label} (${s.populationLabel})` : c.label,
         cohortShort: c.short,
         rank,
         of: values.length,
