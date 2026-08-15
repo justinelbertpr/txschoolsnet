@@ -23,7 +23,7 @@ The six views from design §6 need different data at different granularity:
 | 3 Movers | scores × years, already in payload | payload (no change) |
 | 4 Poverty scatter | score + ecoDisPct, already in payload | payload (no change) |
 | 5 Regions | **region names** | payload (small lookup) |
-| 6 Entity detail | **domain scores, cut scores, finance** | **prerendered page, inlined** |
+| 6 Entity detail | **domain scores, points-to-next-grade, finance** | **prerendered page, inlined** |
 
 Views 1–5 cross-filter across all 10,230 entities inside a frame, so their data must be resident in the browser. View 6 shows one entity at a time and already has a prerendered page — inlining there means a visitor arriving from search on one district downloads that district's detail and nothing else, and the dashboard payload never carries 10,230 entities' worth of domain history it would use one row of at a time.
 
@@ -50,9 +50,26 @@ Views 1–5 cross-filter across all 10,230 entities inside a frame, so their dat
 - Create: `src/normalize/domains.js`
 - Test: `test/normalize/domains.test.js`
 
-TEA splits the overall rating into three domains: Student Achievement (D1), School Progress (D2) and Closing the Gaps (D3). `overview.json` carries three years of each domain's score plus the **cut score** — the minimum needed for the next letter grade — which is what makes "how close is this district to a B" answerable. The three `change_over_time_*` files carry the same domains as graded history.
+TEA splits the overall rating into three domains: Student Achievement (D1), School Progress (D2) and Closing the Gaps (D3). `overview.json` carries three years of each domain's score, plus a scalar `*_min` field per domain.
 
-The `_min` fields in `overview.json` are scalars, not arrays: one cut score per domain, applying to the most recent year.
+**Correction, made during execution.** This plan originally described `*_min` as "the cut score — the
+minimum needed for the next letter grade." **That is wrong**, and the error was caught only because the
+implementer noticed that `score - min` was never negative across all 150,605 rows and stopped to ask.
+
+What the data actually shows:
+
+- TEA's scaled scores follow the standard bands **exactly** — A≥90, B≥80, C≥70, D≥60. Verified across
+  **37,347 score/grade pairs** spanning districts and campuses, overall plus all three domains, with
+  **zero violations**.
+- `*_min` does not track grade floors at all. B-rated districts carry `ach_min` values from 48 to 56+;
+  A-rated ones from 58 to 70. It is a raw or component figure whose meaning TEA does not document here.
+
+So `margin = score - min` means nothing, and a "distance to the next cut score" UI built on it would be
+a fabricated claim on a site whose entire premise is claims it can defend.
+
+`*_min` is therefore **dropped**. What replaces it is genuinely derivable: the letter grade and the
+points needed to reach the next one, computed from the verified standard bands. Every computed grade is
+cross-checked against TEA's own published `d1g`/`d2g`/`d3g`; a disagreement stops the build.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -85,16 +102,17 @@ describe('toDomains', () => {
     expect(r.score).toBe(89)
   })
 
-  it('attaches the cut score to every year of a domain', () => {
-    const rows = toDomains([overview]).filter((r) => r.domain === 'achievement')
-    expect(rows.every((r) => r.cutScore === 77)).toBe(true)
+  it('grades a score using the standard bands', () => {
+    const r = toDomains([overview]).find((x) => x.domain === 'achievement' && x.year === '2025-26')
+    expect(r.grade).toBe('B')
+    expect(r.toNextGrade).toBe(1)
   })
 
-  it('exposes the margin above the cut score', () => {
-    const r = toDomains([overview]).find((x) => x.domain === 'gaps' && x.year === '2025-26')
-    expect(r.score).toBe(88)
-    expect(r.cutScore).toBe(75)
-    expect(r.margin).toBe(13)
+  it('reports no distance for a score already at A', () => {
+    const r = toDomains([overview]).find((x) => x.domain === 'progress' && x.year === '2025-26')
+    expect(r.score).toBe(90)
+    expect(r.grade).toBe('A')
+    expect(r.toNextGrade).toBeNull()
   })
 
   it('nulls a missing score rather than emitting zero', () => {
@@ -102,9 +120,11 @@ describe('toDomains', () => {
     expect(rows.find((r) => r.domain === 'achievement' && r.year === '2023-24').score).toBeNull()
   })
 
-  it('nulls the margin when either side is missing', () => {
-    const rows = toDomains([{ ...overview, ach_min: '' }])
-    expect(rows.find((r) => r.domain === 'achievement').margin).toBeNull()
+  it('nulls grade and distance when the score is missing', () => {
+    const rows = toDomains([{ ...overview, ach_score: ['', '88', '89'] }])
+    const r = rows.find((x) => x.domain === 'achievement' && x.year === '2023-24')
+    expect(r.grade).toBeNull()
+    expect(r.toNextGrade).toBeNull()
   })
 
   it('labels every domain for display', () => {
@@ -145,31 +165,35 @@ export const DOMAIN_LABELS = {
 }
 
 const SOURCES = [
-  { domain: 'achievement', score: 'ach_score', min: 'ach_min' },
-  { domain: 'progress', score: 'prog_score', min: 'prog_min' },
-  { domain: 'gaps', score: 'ctg_score', min: 'ctg_min' },
-  { domain: 'progress_growth', score: 'proga_score', min: 'proga_min' },
-  { domain: 'progress_relative', score: 'progb_score', min: 'progb_min' },
+  { domain: 'achievement', score: 'ach_score' },
+  { domain: 'progress', score: 'prog_score' },
+  { domain: 'gaps', score: 'ctg_score' },
+  { domain: 'progress_growth', score: 'proga_score' },
+  { domain: 'progress_relative', score: 'progb_score' },
 ]
+
+/** TEA's scaled scores follow these bands exactly — verified across 37,347 score/grade pairs. */
+const BANDS = [['A', 90], ['B', 80], ['C', 70], ['D', 60], ['F', 0]]
+
+const gradeFor = (score) => (score === null ? null : BANDS.find(([, lo]) => score >= lo)[0])
+
+/** Points needed to reach the next letter grade, or null at A or with no score. */
+const toNextGrade = (score) => {
+  if (score === null) return null
+  const i = BANDS.findIndex(([, lo]) => score >= lo)
+  return i <= 0 ? null : BANDS[i - 1][1] - score
+}
 
 export function toDomains(records) {
   return records.flatMap((rec) =>
-    SOURCES.filter((s) => Array.isArray(rec[s.score])).flatMap((s) => {
-      const cutScore = num(rec[s.min])
-      return explode(rec, { school_year: 'year', [s.score]: 'score' }, { domain: s.domain }).map(
+    SOURCES.filter((s) => Array.isArray(rec[s.score])).flatMap((s) =>
+      explode(rec, { school_year: 'year', [s.score]: 'score' }, { domain: s.domain }).map(
         ({ id, year, score, domain }) => {
           const value = num(score)
-          return {
-            id,
-            year,
-            domain,
-            score: value,
-            cutScore,
-            margin: value === null || cutScore === null ? null : value - cutScore,
-          }
+          return { id, year, domain, score: value, grade: gradeFor(value), toNextGrade: toNextGrade(value) }
         }
       )
-    })
+    )
   )
 }
 ```
@@ -194,18 +218,25 @@ console.log('by domain',JSON.stringify(byDomain));
 console.log('NaN scores',rows.filter(r=>Number.isNaN(r.score)).length);
 console.log('null scores',rows.filter(r=>r.score===null).length);
 console.log('cayuga',JSON.stringify(rows.filter(r=>r.id==='001902'&&r.year==='2025-26')));
-const neg=rows.filter(r=>r.margin!==null&&r.margin<0);
-console.log('entity-domains below their cut score:',neg.length);
+const g={}; for(const r of rows) g[r.grade]=(g[r.grade]||0)+1;
+console.log('by grade',JSON.stringify(g));
+const close=rows.filter(r=>r.toNextGrade!==null&&r.toNextGrade<=2);
+console.log('entity-domains within 2 points of the next grade:',close.length);
 "
 ```
 
-Expected: 10,234 records producing roughly 150,000 rows, no NaN, and Cayuga's 2025-26 achievement score 89 against a cut of 77 for a margin of 12. Report the actual output. A negative margin is meaningful, not an error — it identifies a domain scoring below the threshold for its current grade.
+Expected: 10,234 records producing roughly 150,000 rows, no NaN, and Cayuga's 2025-26 achievement score
+89 grading B and needing 1 point for an A. Report the actual output.
+
+**Cross-check every computed grade against TEA's published `d1g`/`d2g`/`d3g` for the most recent year.**
+If ours ever disagrees with theirs, stop and report it rather than shipping — a grade we derived that
+contradicts the state's own is not a rounding difference, it is a broken assumption.
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add src/normalize/domains.js test/normalize/domains.test.js
-git commit -m "Normalize domain scores with their cut-score margins"
+git commit -m "Normalize domain scores with grade and distance to the next"
 ```
 
 ---
@@ -307,6 +338,19 @@ export function toFinance(records) {
 
 Run: `npx vitest run test/normalize/finance.test.js`
 Expected: PASS, 6 tests.
+
+**Correction, made during execution.** Three of 1,195 district records ship **misaligned arrays**:
+`year` has 8 entries while one or more money series has 7. `021803` (revenue_district), `070801`
+(expenditure_peer, revenue_peer), `128901` (expenditure_peer, revenue_district, revenue_peer). No
+campus record is affected.
+
+Nothing in the data says *which* year is missing, so zipping index-by-index would shift every value
+after the gap into the wrong year — a district's 2025 spending displayed as 2024. The misalignment is
+per-series, not per-record: `021803` has five of six series intact.
+
+Resolution: a series whose length disagrees with `year` becomes `null` for **every** year of that
+entity and is counted as dropped. Aligned series are unaffected. We do not guess an alignment, and we
+do not discard good data alongside bad.
 
 - [ ] **Step 5: Verify against the real snapshot**
 
@@ -469,7 +513,9 @@ Design §6 view 6 wants, per entity: the six-year line (already present), domain
 
 Add, after the existing rating-history table:
 
-- A **domain table** — one row per domain with its label from `DOMAIN_LABELS`, current score, cut score, and margin. Show the margin with an explicit sign so "+12" and "−3" read differently at a glance. A negative margin means the domain sits below the threshold for its grade and should be visually distinguishable without relying on colour alone.
+- A **domain table** — one row per domain with its label from `DOMAIN_LABELS`, current score, letter
+  grade, and points needed to reach the next grade. An entity already at A shows no distance rather
+  than a zero, since zero would read as "on the boundary".
 - A **finance table** — the most recent year's per-pupil spend for the entity, its peer group and the state, plus the entity's difference from peer.
 - The **consecutive-unacceptable count** when `multYear > 0`, stated plainly: an entity at three or more years is in state-intervention territory and that is the single most consequential fact on its page.
 
@@ -477,7 +523,9 @@ Entities missing any of these must render without the corresponding section rath
 
 - [ ] **Step 2: Extend the tests**
 
-Cover: a district with all sections; an entity with no finance data omits that section; a negative margin renders with a minus sign; `multYear: 0` produces no intervention notice while `multYear: 3` does.
+Cover: a district with all sections; an entity with no finance data omits that section; an entity
+already at A shows no distance rather than a zero; a series nulled by finance misalignment renders as
+"not reported" rather than blank; `multYear: 0` produces no intervention notice while `multYear: 3` does.
 
 - [ ] **Step 3: Verify on real pages**
 
