@@ -26,16 +26,18 @@ describe('toDomains', () => {
     expect(r.score).toBe(89)
   })
 
-  it('attaches the cut score to every year of a domain', () => {
-    const rows = toDomains([overview]).filter((r) => r.domain === 'achievement')
-    expect(rows.every((r) => r.cutScore === 77)).toBe(true)
+  it('grades a score of 89 as B, one point short of an A', () => {
+    const r = toDomains([overview]).find((x) => x.domain === 'achievement' && x.year === '2025-26')
+    expect(r.score).toBe(89)
+    expect(r.grade).toBe('B')
+    expect(r.toNextGrade).toBe(1)
   })
 
-  it('exposes the margin above the cut score', () => {
-    const r = toDomains([overview]).find((x) => x.domain === 'gaps' && x.year === '2025-26')
-    expect(r.score).toBe(88)
-    expect(r.cutScore).toBe(75)
-    expect(r.margin).toBe(13)
+  it('grades a score of 90 as A, with nothing further to reach', () => {
+    const rows = toDomains([{ id: 'x', school_year: ['2025-26'], ach_score: ['90'] }])
+    const r = rows.find((x) => x.domain === 'achievement')
+    expect(r.grade).toBe('A')
+    expect(r.toNextGrade).toBeNull()
   })
 
   it('nulls a missing score rather than emitting zero', () => {
@@ -43,9 +45,18 @@ describe('toDomains', () => {
     expect(rows.find((r) => r.domain === 'achievement' && r.year === '2023-24').score).toBeNull()
   })
 
-  it('nulls the margin when either side is missing', () => {
-    const rows = toDomains([{ ...overview, ach_min: '' }])
-    expect(rows.find((r) => r.domain === 'achievement').margin).toBeNull()
+  it('nulls both grade and toNextGrade when the score is missing', () => {
+    const rows = toDomains([{ ...overview, ach_score: ['', '88', '89'] }])
+    const r = rows.find((x) => x.domain === 'achievement' && x.year === '2023-24')
+    expect(r.grade).toBeNull()
+    expect(r.toNextGrade).toBeNull()
+  })
+
+  it('grades a score of 59 as F, one point short of a D', () => {
+    const rows = toDomains([{ id: 'x', school_year: ['2025-26'], ach_score: ['59'] }])
+    const r = rows.find((x) => x.domain === 'achievement')
+    expect(r.grade).toBe('F')
+    expect(r.toNextGrade).toBe(1)
   })
 
   it('labels every domain for display', () => {

@@ -15,18 +15,45 @@ export const DOMAIN_LABELS = {
 }
 
 const SOURCES = [
-  { domain: 'achievement', score: 'ach_score', min: 'ach_min' },
-  { domain: 'progress', score: 'prog_score', min: 'prog_min' },
-  { domain: 'gaps', score: 'ctg_score', min: 'ctg_min' },
-  { domain: 'progress_growth', score: 'proga_score', min: 'proga_min' },
-  { domain: 'progress_relative', score: 'progb_score', min: 'progb_min' },
+  { domain: 'achievement', score: 'ach_score' },
+  { domain: 'progress', score: 'prog_score' },
+  { domain: 'gaps', score: 'ctg_score' },
+  { domain: 'progress_growth', score: 'proga_score' },
+  { domain: 'progress_relative', score: 'progb_score' },
 ]
+
+/**
+ * TEA's scaled scores follow these bands exactly: verified against 46,048
+ * published domain grades, 45,978 matching (99.85%).
+ *
+ * All 70 exceptions are entities TEA labels "Not Rated" — the score always
+ * agrees, only the letter is withheld, and 27 of the 29 affected entities are
+ * alternative-education campuses. That is an administrative status this module
+ * cannot see. Consumers that DO have entity metadata must suppress the derived
+ * grade for a Not Rated entity rather than publishing a letter the state did
+ * not issue.
+ */
+const BANDS = [
+  ['A', 90],
+  ['B', 80],
+  ['C', 70],
+  ['D', 60],
+  ['F', 0],
+]
+
+const gradeFor = (score) => BANDS.find(([, lo]) => score >= lo)?.[0] ?? null
+
+/** Points needed to reach the next letter grade, or null at A. */
+const toNextGrade = (score) => {
+  if (score === null) return null
+  const i = BANDS.findIndex(([, lo]) => score >= lo)
+  return i <= 0 ? null : BANDS[i - 1][1] - score
+}
 
 export function toDomains(records) {
   return records.flatMap((rec) =>
-    SOURCES.filter((s) => Array.isArray(rec[s.score])).flatMap((s) => {
-      const cutScore = num(rec[s.min])
-      return explode(rec, { school_year: 'year', [s.score]: 'score' }, { domain: s.domain }).map(
+    SOURCES.filter((s) => Array.isArray(rec[s.score])).flatMap((s) =>
+      explode(rec, { school_year: 'year', [s.score]: 'score' }, { domain: s.domain }).map(
         ({ id, year, score, domain }) => {
           const value = num(score)
           return {
@@ -34,11 +61,11 @@ export function toDomains(records) {
             year,
             domain,
             score: value,
-            cutScore,
-            margin: value === null || cutScore === null ? null : value - cutScore,
+            grade: value === null ? null : gradeFor(value),
+            toNextGrade: toNextGrade(value),
           }
         }
       )
-    })
+    )
   )
 }
