@@ -24,12 +24,28 @@ export function buildManifest(entries, fetchedAt) {
   return { fetchedAt, source: 'https://txschools.gov/data', files }
 }
 
+// Decoding a non-JSON body (a maintenance page, HTML interstitial, WAF
+// challenge served with HTTP 200) is the failure decodeBody can't name —
+// it's a pure function with no knowledge of which source it's decoding.
+// validateRows already prefixes its own errors with source.name, so only
+// the decodeBody call is wrapped here, keeping every failure path naming
+// the source exactly once.
+export function decodeAndValidate(source, buf) {
+  let decoded
+  try {
+    decoded = decodeBody(buf)
+  } catch (err) {
+    throw new Error(`${source.name}: ${err.message}`)
+  }
+  return validateRows(source.name, decoded, source.minRows)
+}
+
 async function fetchOne(source) {
   const url = sourceUrl(source.name)
   const res = await fetch(url)
   if (!res.ok) throw new Error(`${source.name}: HTTP ${res.status} from ${url}`)
   const buf = Buffer.from(await res.arrayBuffer())
-  const rows = validateRows(source.name, decodeBody(buf), source.minRows)
+  const rows = decodeAndValidate(source, buf)
   return {
     name: source.name,
     text: JSON.stringify(rows),

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { snapshotDir, buildManifest } from '../src/fetch.js'
+import { snapshotDir, buildManifest, decodeAndValidate } from '../src/fetch.js'
 
 describe('snapshotDir', () => {
   it('names the directory by year and month', () => {
@@ -32,5 +32,21 @@ describe('buildManifest', () => {
     expect(m.files.districts.etag).toBe('W/"abc"')
     expect(m.files.districts.rows).toBe(1)
     expect(m.fetchedAt).toBe('2026-08-15T00:00:00.000Z')
+  })
+})
+
+describe('decodeAndValidate', () => {
+  const source = { name: 'districts', minRows: 1 }
+
+  it('names the source when the body is not JSON', () => {
+    const buf = Buffer.from('<html>maintenance page</html>')
+    expect(() => decodeAndValidate(source, buf)).toThrow(/^districts: /)
+  })
+
+  it('does not double-prefix a validateRows failure', () => {
+    const buf = Buffer.from('[]') // valid JSON, but below minRows
+    expect(() => decodeAndValidate(source, buf)).toThrow(
+      'districts: got 0 rows, below floor 1',
+    )
   })
 })
