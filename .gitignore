@@ -1,0 +1,28 @@
+# Claude Code loop state
+.loop-state/
+
+# Raw TEA snapshots — large, regenerable via `fetch`, archived separately
+data/raw/
+
+# Built database artifacts
+*.duckdb
+*.duckdb.wal
+*.sqlite
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+
+# OS
+.DS_Store
