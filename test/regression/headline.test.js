@@ -79,7 +79,7 @@ describe('design §8 — charters serve higher-poverty populations', () => {
   }
 
   it('reports the medians the design states', () => {
-    expect(medianEcoDis(false)).toBeCloseTo(59.3, 1)
+    expect(medianEcoDis(false)).toBeCloseTo(59.35, 1)
     expect(medianEcoDis(true)).toBeCloseTo(77.4, 1)
   })
 })

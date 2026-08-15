@@ -51,9 +51,9 @@ GitHub Actions job.
 
 ```
 fetch      14 TEA files  → data/raw/<YYYY-MM>/*.json.gz   verbatim, committed to git
-build      raw snapshot  → build/tea.duckdb                normalized tidy tables
-export     duckdb        → site/data/payload-<hash>.json   ~2.5 MB, dashboard route only
-prerender  duckdb        → site/district/<id>.html + campus/<id>.html   10,230 pages
+build      raw snapshot  → build/*.ndjson                  normalized tidy tables
+export     build/        → site/data/payload-<hash>.json   dashboard route only
+prerender  build/        → site/district/<id>.html + campus/<id>.html   10,230 pages
 deploy     site/         → Cloudflare Workers Static Assets  via wrangler
 ```
 
@@ -76,8 +76,11 @@ once a year; it bills per row *scanned* in the request path; and imports block t
 their duration, making the annual refresh an outage. R2 + Parquet + DuckDB-WASM was rejected as
 a net loss at this size — the WASM bundle alone exceeds the data.
 
-**DuckDB stays as a build-time tool.** It is the analysis engine that produces the payload and
-the prerendered pages, and a portable artifact for ad-hoc querying. It is never served.
+**No database in the build either.** The pipeline is plain Node with no native dependencies:
+430,000 small scalar rows sort and aggregate in memory faster than a database could be installed.
+Tables are written as NDJSON, which the DuckDB CLI reads directly via
+`read_json_auto('build/*.ndjson')` — so ad-hoc SQL stays available for analysis without DuckDB
+being a build dependency or a CI install step. Nothing is served from it.
 
 ### Hosting: Cloudflare Workers Static Assets
 
@@ -117,16 +120,16 @@ archive, to stay under the 25 MiB per-file asset limit.
 
 ## 4. Data model
 
-`build.py` explodes the source files' parallel-array structure into tidy long tables. A source
+`build.js` explodes the source files' parallel-array structure into tidy long tables. A source
 record like `{"academic_year": [...], "overall_rating": [...], "score": [...]}` becomes one row
-per year.
+per year. Row counts below are **measured** from the 2026-08 snapshot, not estimated.
 
 | Table | Grain | Approx rows | Key columns |
 |---|---|---|---|
-| `entities` | district or campus | 10,230 | `id`, `level`, `district_id`, `name`, `region_id`, `county_id`, `is_charter`, `is_alt_standards`, `campus_type`, `enrollment`, `lat`, `lon` |
-| `ratings` | entity × year × method | ~60,000 | `id`, `year`, `method`, `rating`, `score` |
+| `entities` | district or campus | 10,230 (measured) | `id`, `level`, `district_id`, `name`, `region_id`, `county_id`, `is_charter`, `is_alt_standards`, `campus_type`, `enrollment`, `lat`, `lon` |
+| `ratings` | entity × year × method | 58,984 | `id`, `year`, `method`, `rating`, `score` |
 | `domains` | entity × year × domain | ~95,000 | `id`, `year`, `domain`, `score`, `grade`, `cut_score` |
-| `profile` | entity, current year | 10,234 | `id`, `eco_dis_pct`, `attendance`, `absenteeism`, `enrollment_by_race`, `avg_salary`, `teacher_years` |
+| `profile` | entity, current year | 10,230 | `id`, `eco_dis_pct`, `attendance`, `absenteeism`, `avg_salary` |
 | `finance` | entity × year | ~79,000 | `id`, `year`, `per_pupil_entity`, `per_pupil_peer`, `per_pupil_state` |
 | `groups` | entity × student group × measure | ~180,000 | `id`, `group`, `measure`, `value` |
 
@@ -205,8 +208,10 @@ Computed from the 2026-08-15 snapshot. These double as regression tests (§10).
 | 2023-24 | 78.9 | 79.8 |
 | 2025-26 | 82.4 | 82.9 |
 
-**Eco-dis composition:** charter districts median 77.4% vs traditional 59.3%; charter campuses
-80.8% vs traditional 65.7%.
+**Eco-dis composition:** charter districts median 77.4% vs traditional 59.35%; charter campuses
+80.8% vs traditional 65.7%. (The traditional district median is stated to two decimals deliberately:
+n is even at 1,020, so the median is the mean of 59.3 and 59.4. Rounding it to 59.3 puts it exactly on
+the regression suite's ±0.05 tolerance edge, where the assertion passes only by floating-point luck.)
 
 **Gain by poverty decile, 2023-24 → 2025-26 (campuses):** bottom decile +4.3 vs top decile +0.8.
 Traditional leads in 7 of 10 deciles, by roughly 0.5–1.0 points.
