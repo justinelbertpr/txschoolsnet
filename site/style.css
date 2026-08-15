@@ -1,0 +1,7 @@
+:root { color-scheme: light dark; }
+body { font: 16px/1.6 system-ui, sans-serif; max-width: 46rem; margin: 0 auto; padding: 2rem 1rem; }
+h1 { font-size: 1.6rem; margin-bottom: .25rem; }
+table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+th, td { text-align: left; padding: .4rem .6rem; border-bottom: 1px solid color-mix(in oklch, currentColor 20%, transparent); }
+caption { text-align: left; padding-bottom: .5rem; opacity: .75; font-size: .875rem; }
+a { color: inherit; }

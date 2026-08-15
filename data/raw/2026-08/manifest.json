@@ -1,0 +1,104 @@
+{
+  "fetchedAt": "2026-08-15T16:19:29.181Z",
+  "source": "https://txschools.gov/data",
+  "files": {
+    "districts": {
+      "sha256": "0e2fec8e2319a1f2b3ff8afc6a3f5a7340c5d3f551354bb3543a7091202d683f",
+      "bytes": 1635171,
+      "rows": 1199,
+      "etag": "\"2da4f-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "schools": {
+      "sha256": "9c1cab5982e4981becb6914383340be33fe83bf117acff0987507e8b42572f73",
+      "bytes": 13541101,
+      "rows": 9031,
+      "etag": "\"12b68e-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "change_over_time": {
+      "sha256": "97cb6c819cca4c807eb823a766bfa86d3a9cf969960f5c3bb6414eee72d5fd65",
+      "bytes": 1898230,
+      "rows": 10234,
+      "etag": "\"24c7e-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "change_over_time_achievement": {
+      "sha256": "a8f037c0b43a29653586dd4202bedbcc0af9f7e2699d0ecd5ce070b18c128088",
+      "bytes": 1356253,
+      "rows": 10682,
+      "etag": "\"1787b-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "change_over_time_progress": {
+      "sha256": "0d989233be919663416b2f87a8ed920af9786c3267f7ac29fce210f0b1f3c76a",
+      "bytes": 1325105,
+      "rows": 10682,
+      "etag": "\"187e5-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "change_over_time_gaps": {
+      "sha256": "47e750cdbd6102b2283856db92009959e7817a45994cc047260600515fe167c2",
+      "bytes": 1284431,
+      "rows": 10682,
+      "etag": "\"196f6-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "overview": {
+      "sha256": "7efd3d73837022b4efb8510a9239999a713b4012a80a115611b2c9eba6730921",
+      "bytes": 3012440,
+      "rows": 10234,
+      "etag": "\"56824-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "profile_tab": {
+      "sha256": "9e023ccbc4f4f80ad9bf230c3f9bae362cc3fa20d2f960bbed72781369fbdca6",
+      "bytes": 4275223,
+      "rows": 10234,
+      "etag": "\"b2090-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "finance_district": {
+      "sha256": "9200cfdf69727db7e8dc3008b8789850a59ed5f4bc747b1c13f08366fb65f4a4",
+      "bytes": 953135,
+      "rows": 1195,
+      "etag": "\"1ff8f-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "finance_school": {
+      "sha256": "743ee36db7080d0996c24c7dfd3374e491f4c8a20952508e8f6be9042e161710",
+      "bytes": 2696481,
+      "rows": 8723,
+      "etag": "\"5047f-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "ctg_districts": {
+      "sha256": "c034a1881d7312179a680f5c218e5bae60f2a85fa2140d1d94bc1fe63c605c0a",
+      "bytes": 660806,
+      "rows": 1199,
+      "etag": "\"1ccd6-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "ctg_schools": {
+      "sha256": "e324fcd26408bdea29c5315ad740580fd62bba205fe936903d2df010569b6e8d",
+      "bytes": 6667277,
+      "rows": 9031,
+      "etag": "\"6371c-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "student_achievement_tab": {
+      "sha256": "3b081e96529a9ac80032c8c8b39307f95faaa80e36b0b662a91edba6602ac7ea",
+      "bytes": 4063951,
+      "rows": 9913,
+      "etag": "\"5d546-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    },
+    "school_progress_tab": {
+      "sha256": "70d51841d595f53e2044c9c9ade67b69939d89fe7b278e1e471751e884154ff1",
+      "bytes": 3468961,
+      "rows": 10234,
+      "etag": "\"3409c-6590706cceb80\"",
+      "lastModified": "Fri, 14 Aug 2026 19:42:54 GMT"
+    }
+  }
+}

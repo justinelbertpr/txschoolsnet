@@ -6,8 +6,12 @@
 ## 1. Purpose
 
 A public-facing dashboard showing how Texas public schools are moving through the A–F
-accountability system across the six years of available history, with traditional ISDs
-and charters comparable at every step.
+accountability system across the five academic years of available history — 2021-22 through
+2025-26 — with traditional ISDs and charters comparable at every step.
+
+(TEA publishes **six** year labels, but two of them are the same year: `2021-22` and
+`2021-22 What If` are that year scored under the pre- and post-2023 methodologies. §5 collapses
+them. Anything that says "six years" is counting labels, not years.)
 
 ### Editorial thesis
 
@@ -51,17 +55,18 @@ GitHub Actions job.
 
 ```
 fetch      14 TEA files  → data/raw/<YYYY-MM>/*.json.gz   verbatim, committed to git
-build      raw snapshot  → build/tea.duckdb                normalized tidy tables
-export     duckdb        → site/data/payload-<hash>.json   ~2.5 MB, dashboard route only
-prerender  duckdb        → site/district/<id>.html + campus/<id>.html   10,230 pages
+build      raw snapshot  → build/*.ndjson                  normalized tidy tables
+export     build/        → site/data/payload-<hash>.json   dashboard route only
+prerender  build/        → site/district/<id>.html + campus/<id>.html   10,230 pages
 deploy     site/         → Cloudflare Workers Static Assets  via wrangler
 ```
 
 ### No server-side database
 
-The dataset is smaller than the payload it would serve. All ~430,000 rows are small scalars,
-totalling roughly 1.5 MB as Parquet or 3.3 MB as gzipped JSON — less than the ~2.5 MB dashboard
-payload itself.
+The whole dataset is trivially small. All ~430,000 rows are small scalars; the normalized tables
+total a few MB, and the dashboard payload built from them measures **1.27 MB raw / 0.23 MB
+gzipped** (measured, §11). Both numbers are far below the threshold where moving data to a query
+engine beats moving it to the client.
 
 A database earns its place when the query set cannot be enumerated in advance over data too
 large to move. Neither holds here: zero user-generated writes, one batch rebuild per year, and a
@@ -76,8 +81,11 @@ once a year; it bills per row *scanned* in the request path; and imports block t
 their duration, making the annual refresh an outage. R2 + Parquet + DuckDB-WASM was rejected as
 a net loss at this size — the WASM bundle alone exceeds the data.
 
-**DuckDB stays as a build-time tool.** It is the analysis engine that produces the payload and
-the prerendered pages, and a portable artifact for ad-hoc querying. It is never served.
+**No database in the build either.** The pipeline is plain Node with no native dependencies:
+430,000 small scalar rows sort and aggregate in memory faster than a database could be installed.
+Tables are written as NDJSON, which the DuckDB CLI reads directly via
+`read_json_auto('build/*.ndjson')` — so ad-hoc SQL stays available for analysis without DuckDB
+being a build dependency or a CI install step. Nothing is served from it.
 
 ### Hosting: Cloudflare Workers Static Assets
 
@@ -91,7 +99,8 @@ traffic spike costs the same as a quiet day. Total: $0/month on the Workers Free
   breach the cap. CI fails the build above 18,000 files. The escape hatch is the Paid plan's
   100,000-file limit, which requires Wrangler ≥ 4.34.0 — so Wrangler is pinned to that floor now,
   before the guard ever trips.
-- **Payload routing:** the ~2.5 MB payload is fetched **only on the dashboard route**. Search
+- **Payload routing:** the payload (1.27 MB raw / 0.23 MB gzipped, measured) is fetched **only
+  on the dashboard route**. Search
   traffic landing on `/district/109901` downloads kilobytes, not megabytes, because that page's
   data is already inlined.
 - **Caching:** `/data/*` gets `max-age=31536000, immutable` via `_headers`, safe because payload
@@ -117,16 +126,16 @@ archive, to stay under the 25 MiB per-file asset limit.
 
 ## 4. Data model
 
-`build.py` explodes the source files' parallel-array structure into tidy long tables. A source
+`build.js` explodes the source files' parallel-array structure into tidy long tables. A source
 record like `{"academic_year": [...], "overall_rating": [...], "score": [...]}` becomes one row
-per year.
+per year. Row counts below are **measured** from the 2026-08 snapshot, not estimated.
 
 | Table | Grain | Approx rows | Key columns |
 |---|---|---|---|
-| `entities` | district or campus | 10,230 | `id`, `level`, `district_id`, `name`, `region_id`, `county_id`, `is_charter`, `is_alt_standards`, `campus_type`, `enrollment`, `lat`, `lon` |
-| `ratings` | entity × year × method | ~60,000 | `id`, `year`, `method`, `rating`, `score` |
+| `entities` | district or campus | 10,230 (measured) | `id`, `level`, `districtId`, `name`, `regionId`, `countyId`, `isCharter`, `isAlt`, `campusType`, `enrollment`, `lat`, `lon` |
+| `ratings` | entity × year × method | 58,984 | `id`, `year`, `method`, `rating`, `score` |
 | `domains` | entity × year × domain | ~95,000 | `id`, `year`, `domain`, `score`, `grade`, `cut_score` |
-| `profile` | entity, current year | 10,234 | `id`, `eco_dis_pct`, `attendance`, `absenteeism`, `enrollment_by_race`, `avg_salary`, `teacher_years` |
+| `profile` | entity, current year | 10,230 | `id`, `ecoDisPct`, `attendance`, `absenteeism`, `avgSalary` |
 | `finance` | entity × year | ~79,000 | `id`, `year`, `per_pupil_entity`, `per_pupil_peer`, `per_pupil_state` |
 | `groups` | entity × student group × measure | ~180,000 | `id`, `group`, `measure`, `value` |
 
@@ -156,7 +165,7 @@ flattering one.
 
 ## 6. Dashboard views
 
-1. **Statewide shift** — 100% stacked area of grade mix across six years, methodology break marked.
+1. **Statewide shift** — 100% stacked area of grade mix across the five academic years, methodology break marked.
 2. **Grade flow** — transition matrix between any two selected years; separates real movement from
    churn at grade boundaries.
 3. **Movers** — every entity ranked by score delta, sparkline per row, searchable and filterable.
@@ -205,8 +214,10 @@ Computed from the 2026-08-15 snapshot. These double as regression tests (§10).
 | 2023-24 | 78.9 | 79.8 |
 | 2025-26 | 82.4 | 82.9 |
 
-**Eco-dis composition:** charter districts median 77.4% vs traditional 59.3%; charter campuses
-80.8% vs traditional 65.7%.
+**Eco-dis composition:** charter districts median 77.4% vs traditional 59.35%; charter campuses
+80.8% vs traditional 65.7%. (The traditional district median is stated to two decimals deliberately:
+n is even at 1,020, so the median is the mean of 59.3 and 59.4. Rounding it to 59.3 puts it exactly on
+the regression suite's ±0.05 tolerance edge, where the assertion passes only by floating-point luck.)
 
 **Gain by poverty decile, 2023-24 → 2025-26 (campuses):** bottom decile +4.3 vs top decile +0.8.
 Traditional leads in 7 of 10 deciles, by roughly 0.5–1.0 points.
@@ -220,12 +231,14 @@ and is confounded by sector differences in student poverty. Not asserted anywher
 ## 9. Data caveats to encode in the UI
 
 - Methodology refresh between 2021-22 and 2022-23 (§5).
-- `Not Rated` (3,220 entity-years) and `Data Integrity Issues` (6) are distinct from missing data
-  and are excluded from mean calculations, never coerced to zero.
+- `Not Rated` (3,219 rows, 2,821 distinct entity-years) and `Data Integrity Issues` (6 rows) are
+  distinct from missing data and are excluded from mean calculations, never coerced to zero.
 - 2022-23 and 2023-24 ratings were released late following litigation.
 - 386 campuses are paired (`paired_id`) and share accountability results.
-- Entities appear and disappear across years; 9,529 of 10,234 have full six-year history. Trend
-  aggregates must state their n, and cohort-based views must hold the cohort constant.
+- Entities appear and disappear across years; **9,525 of 10,230 have all five years**. Charter
+  district counts in particular rise across the window (166 → 170 → 179) as operators open and
+  report. Trend aggregates must state their n, and cohort-based views must hold the cohort
+  constant.
 
 ## 10. Error handling and testing
 
@@ -266,18 +279,20 @@ not used. Production signal comes from the post-deploy canary assertions above p
 uptime check on the same three URLs. Cloudflare Web Analytics covers traffic; it is a client-side
 beacon and deliberately not relied on for error detection.
 
-## 11. Measure before building
+## 11. Measurements
 
-Three load-bearing numbers in this design are estimates, and all three are answerable in one
-afternoon of ingest work. They are measured first, before the dashboard is built, because each
-one can invalidate a decision above:
+Three numbers in this design were load-bearing estimates. Two have now been measured against the
+2026-08 snapshot; the third has no producer yet.
 
-- **Real payload size** from real TEA files. The ~2.5 MB figure is estimated. If it lands closer
-  to 8 MB, the payload needs splitting per view.
-- **Prerender wall-clock** for 10,230 pages, and **wrangler upload time** for ~10,430 files. If
-  upload is slow enough to be painful, the file-count strategy changes.
-- **Actual served `Content-Encoding`** on the real domain in Chrome and Safari, which settles
-  whether any compression configuration is needed at all.
+| Measurement | Estimated | Measured | Consequence |
+|---|---|---|---|
+| Dashboard payload | ~2.5 MB | **1.27 MB raw / 0.23 MB gzipped** | Comfortably under the 4 MB budget. **No per-view split needed.** Lower bound — `domains`, `finance` and `groups` are deferred and must be re-measured when added. |
+| Prerender wall-clock, 10,230 pages | unknown | **~1 s**, 10,236 files total | Far under the 18,000-file CI guard and the 20,000 Free-plan cap. |
+| Wrangler upload time | unknown | **not yet taken** | Requires a real deploy. Take it on the first CI run. |
+
+Also outstanding: the served `Content-Encoding` on the real domain, in Chrome and Safari, which
+settles whether any compression configuration is needed at all. It cannot be checked before the
+site is live.
 
 ## 12. Out of scope
 

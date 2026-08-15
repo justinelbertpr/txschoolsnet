@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "txschoolsnet",
+  "compatibility_date": "2026-08-15",
+
+  // NO "main" KEY. This is an assets-only Worker: static asset requests are free
+  // and unlimited, and with no script there are zero billable invocations.
+  // Adding "main" silently converts this site from unmetered to metered.
+  // test/wrangler.test.js asserts its absence.
+
+  "assets": {
+    "directory": "./site",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+
+  "workers_dev": false,
+  // preview_urls defaults to the value of workers_dev. Set explicitly: the CI
+  // smoke test between `versions upload` and `versions deploy` needs a target.
+  "preview_urls": true
+}
