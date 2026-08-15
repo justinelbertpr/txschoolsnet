@@ -9,6 +9,12 @@ describe('wrangler.jsonc', () => {
     expect(config.main).toBeUndefined()
   })
 
+  it('declares no per-environment main entrypoint either — `wrangler deploy --env <name>` would honor it', () => {
+    for (const [name, env] of Object.entries(config.env ?? {})) {
+      expect(env.main, `env.${name}.main must be undefined`).toBeUndefined()
+    }
+  })
+
   it('serves the site directory', () => {
     expect(config.assets.directory).toBe('./site')
   })

@@ -73,6 +73,20 @@ jobs:
             [ "$code" = "200" ] || exit 1
           done
 
+          # The content-hashed payload is the one asset whose filename plus
+          # `immutable` caching makes a bad deploy effectively permanent — a
+          # wrong payload would be cached for a year (design §10). Check its
+          # status AND that the served byte count matches what we built, not
+          # just that something answered 200.
+          payload=$(cat build/payload-name.txt)
+          expected=$(wc -c < "site/data/$payload" | tr -d ' ')
+          got_code=$(curl -s -o /tmp/payload.json -w '%{http_code}' "$URL/data/$payload")
+          echo "/data/$payload -> $got_code"
+          [ "$got_code" = "200" ] || exit 1
+          got_bytes=$(wc -c < /tmp/payload.json | tr -d ' ')
+          echo "expected $expected bytes, got $got_bytes bytes"
+          [ "$got_bytes" = "$expected" ] || exit 1
+
       - name: Promote to production
         uses: cloudflare/wrangler-action@v4
         with:
