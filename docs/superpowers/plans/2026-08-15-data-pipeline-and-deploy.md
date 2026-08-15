@@ -806,10 +806,14 @@ export function toRatings(records) {
  */
 export const METHOD_PRECEDENCE = ['current', 'what_if', 'original']
 
-/** True for the single row that represents an entity-year on the default trend line. */
-export const isDefaultMethod = (row, rowsForSameYear) => {
-  const best = METHOD_PRECEDENCE.find((m) => rowsForSameYear.some((r) => r.method === m))
-  return row.method === best
+/**
+ * An unknown method ranks AFTER all known ones. A bare
+ * `METHOD_PRECEDENCE.indexOf(method)` returns -1 for an unrecognized value,
+ * which would make garbage data outrank `current`.
+ */
+const rank = (method) => {
+  const i = METHOD_PRECEDENCE.indexOf(method)
+  return i === -1 ? METHOD_PRECEDENCE.length : i
 }
 
 /** Reduce a rating set to one row per entity-year, using METHOD_PRECEDENCE. */
@@ -818,7 +822,7 @@ export function preferredRatings(rows) {
   for (const row of rows) {
     const key = `${row.id}|${row.year}`
     const held = best.get(key)
-    if (!held || METHOD_PRECEDENCE.indexOf(row.method) < METHOD_PRECEDENCE.indexOf(held.method)) {
+    if (!held || rank(row.method) < rank(held.method)) {
       best.set(key, row)
     }
   }
@@ -2011,7 +2015,9 @@ git commit -m "Add CI refresh pipeline with automated deploy gates"
 
 - [ ] `npm test` passes, including the spec §8 regression suite
 - [ ] `npm run site` produces 10,230 entity pages from the committed snapshot
-- [ ] The three spec §11 measurements are recorded: payload size gzipped, prerender wall-clock, wrangler upload time
+- [ ] The spec §11 measurements are recorded. Payload (1.27 MB raw / 0.23 MB gzipped) and prerender
+      (~1 s, 10,236 files) are measured. Wrangler upload time has no producer until the first real
+      deploy — take it then, and record the served `Content-Encoding` at the same time.
 - [ ] The site is live and `/district/109901` returns 200 with rating history
 - [ ] CI runs green from a manual trigger, including the pre-cutover smoke test
 - [ ] `wrangler.jsonc` still has no `main` key
