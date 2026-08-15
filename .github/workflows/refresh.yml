@@ -67,11 +67,53 @@ jobs:
         run: |
           URL="${{ steps.upload.outputs.deployment-url }}"
           test -n "$URL" || { echo "no preview URL — check preview_urls in wrangler.jsonc"; exit 1; }
-          for path in / /district/109901 /campus/057905001; do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "$URL$path")
+
+          # Entity URLs are /<level>/<name slug>-<id>, and TEA renames districts
+          # and campuses between snapshots, so the slug is read out of the build
+          # this job is about to deploy rather than typed in here. The ids are
+          # what is pinned: they are TEA's own and they do not churn. If an id
+          # stops resolving to exactly one page, the URL scheme or the data
+          # changed and the job fails here instead of shipping.
+          slug_for () {
+            local level="$1" id="$2"
+            local matches=(site/"$level"/*-"$id".html)
+            if [ "${#matches[@]}" -ne 1 ] || [ ! -f "${matches[0]}" ]; then
+              echo "expected exactly one site/$level page for id $id, got: ${matches[*]}" >&2
+              return 1
+            fi
+            basename "${matches[0]}" .html
+          }
+          district_page=$(slug_for district 109901) || exit 1    # Abbott ISD
+          campus_page=$(slug_for campus 057905001) || exit 1     # a Dallas ISD campus
+          echo "resolved /district/$district_page and /campus/$campus_page"
+
+          # A 200 alone does not prove the right bytes came back — a misrouted
+          # deploy that answers every request with one page would pass a status
+          # check — so each URL also has to contain something only that page
+          # says. Entity pages are matched on their own canonical URL.
+          expect_ok () {
+            local path="$1" needle="$2" code
+            code=$(curl -sS -o /tmp/smoke.html -w '%{http_code}' "$URL$path")
             echo "$path -> $code"
-            [ "$code" = "200" ] || exit 1
-          done
+            [ "$code" = "200" ] || return 1
+            grep -qF "$needle" /tmp/smoke.html || { echo "  body did not contain: $needle" >&2; return 1; }
+          }
+          expect_ok / 'Texas school ratings' || exit 1
+          expect_ok /about 'not affiliated with the Texas Education Agency' || exit 1
+          expect_ok /download 'entities.csv' || exit 1
+          expect_ok /districts/a 'Texas school districts starting with A' || exit 1
+          expect_ok /region/10 'txschools.net/region/10' || exit 1
+          expect_ok /county/dallas 'Dallas County' || exit 1
+          expect_ok "/district/$district_page" "txschools.net/district/$district_page" || exit 1
+          expect_ok "/campus/$campus_page" "txschools.net/campus/$campus_page" || exit 1
+
+          # The check above is only worth running if a wrong URL can still fail.
+          # wrangler.jsonc sets not_found_handling to "404-page"; if a future
+          # change makes everything answer 200, every assertion above becomes
+          # decoration and this catches it.
+          missing=$(curl -s -o /dev/null -w '%{http_code}' "$URL/district/no-such-district-000000")
+          echo "/district/no-such-district-000000 -> $missing (expected 404)"
+          [ "$missing" = "404" ] || { echo "an unknown URL did not 404 — the smoke test above proves nothing"; exit 1; }
 
           # The content-hashed payload is the one asset whose filename plus
           # `immutable` caching makes a bad deploy effectively permanent — a

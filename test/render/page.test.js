@@ -1,0 +1,339 @@
+// test/render/page.test.js
+//
+// The rail is an index of the page it sits beside. The load-bearing property is
+// therefore not how it looks but where it comes from: it is derived from the
+// sections that actually rendered, never from a list kept in step by hand. A
+// campus with no finance file and no campus list must get a rail with no
+// #spending and no #campuses link, because a rail link to a section that is not
+// on the page scrolls nowhere and lights no scroll-spy.
+//
+// The second property is that none of this is load-bearing for the reader. With
+// JavaScript off the index is still a list of working anchors, the sticky bar
+// stays hidden and says nothing the hero has not already said, and the pinner is
+// simply an input that does nothing.
+
+import { describe, it, expect } from 'vitest'
+import { railFor, renderEntity, sectionIndex, stickyFor } from '../../src/render/page.js'
+import { HERO_ID, HERO_LABEL } from '../../src/render/sections.js'
+import { shell } from '../../src/render/shell.js'
+
+const COHORTS = [
+  { key: 'peer', label: 'Similar student population', short: 'similar', n: 294, metrics: { ecoDis: 60 } },
+  { key: 'state', label: 'Texas average', short: 'state', n: 1_207, metrics: { ecoDis: 61 } },
+]
+
+/** The narrowest view model renderEntity accepts: an entity with nothing but a name. */
+const vm = (over = {}) => ({
+  id: '057905',
+  name: 'Dallas ISD',
+  level: 'district',
+  slug: 'dallas-isd-057905',
+  county: 'Dallas',
+  countySlug: 'dallas',
+  regionId: '10',
+  regionName: 'Region 10',
+  snapshotDate: '15 August 2026',
+  isCharter: false,
+  isAlt: false,
+  enrollment: 138_000,
+  multYear: 0,
+  notRated: false,
+  history: [{ year: '2025-26', rating: 'B', score: 88 }],
+  stateByYear: { '2025-26': 72.4 },
+  stateAvg: 72.4,
+  peerByYear: { '2025-26': 70.2 },
+  peerAvg: 70.2,
+  peerN: 294,
+  comparisons: [{ key: 'peer', label: 'Similar student population', n: 294, byYear: { '2025-26': 70.2 } }],
+  rank: 0,
+  rankOf: 0,
+  regionRank: 0,
+  regionRankOf: 0,
+  domains: [],
+  profile: null,
+  raceShare: null,
+  staffYears: null,
+  staar: null,
+  graduation: null,
+  ccmr: null,
+  finance: null,
+  campuses: null,
+  cohorts: COHORTS,
+  own: { ecoDis: 88.4 },
+  ranks: [],
+  standouts: [],
+  ...over,
+})
+
+const PAYLOAD = '/data/payload-deadbeef.json'
+
+/* ------------------------------------------------------------ sectionIndex -- */
+
+describe('sectionIndex', () => {
+  it('reads the id and the heading off each section that rendered', () => {
+    const index = sectionIndex([
+      '<section id="trajectory">\n  <h2>5 years of ratings</h2>\n  <p>x</p>\n</section>',
+      '<section id="source">\n  <h2>Where this comes from</h2>\n</section>',
+    ])
+    expect(index).toEqual([
+      { id: 'trajectory', label: '5 years of ratings' },
+      { id: 'source', label: 'Where this comes from' },
+    ])
+  })
+
+  it('drops the nulls, so an absent section can never become a dead anchor', () => {
+    const index = sectionIndex(['<section id="a"><h2>A</h2></section>', null, null, '<section id="b"><h2>B</h2></section>'])
+    expect(index.map((s) => s.id)).toEqual(['a', 'b'])
+  })
+
+  it('prefers a section\'s declared rail label to its heading', () => {
+    const index = sectionIndex([`<section class="hero" id="${HERO_ID}" data-rail-label="${HERO_LABEL}"><h1>Dallas ISD</h1></section>`])
+    expect(index).toEqual([{ id: HERO_ID, label: HERO_LABEL }])
+  })
+
+  it('skips a section with no id at all rather than emitting href="#"', () => {
+    expect(sectionIndex(['<section class="hero"><h2>Nameless</h2></section>'])).toEqual([])
+  })
+
+  it('does not escape a heading twice', () => {
+    const index = sectionIndex(['<section id="x"><h2>Ford &amp; Sons ISD</h2></section>'])
+    expect(index[0].label).toBe('Ford &amp; Sons ISD')
+    expect(index[0].label).not.toContain('&amp;amp;')
+  })
+
+  it('takes the section heading, not a subheading inside it', () => {
+    const index = sectionIndex(['<section id="outcomes"><h2>Student outcomes</h2><h3>STAAR performance</h3></section>'])
+    expect(index[0].label).toBe('Student outcomes')
+  })
+})
+
+/* -------------------------------------------------------------- the rail --- */
+
+describe('railFor', () => {
+  const index = [
+    { id: HERO_ID, label: HERO_LABEL },
+    { id: 'trajectory', label: '5 years of ratings' },
+    { id: 'source', label: 'Where this comes from' },
+  ]
+
+  it('links every indexed section, in page order, as a plain anchor', () => {
+    const html = railFor(vm(), index, { payload: PAYLOAD })
+    expect(html).toContain('<h2 class="rail-title">On this page</h2>')
+    expect(html).toContain(`<a class="rail-link" href="#${HERO_ID}" data-spy="${HERO_ID}">${HERO_LABEL}</a>`)
+    expect(html).toContain('<a class="rail-link" href="#trajectory" data-spy="trajectory">5 years of ratings</a>')
+    expect([...html.matchAll(/href="#([a-z]+)"/g)].map((m) => m[1])).toEqual([HERO_ID, 'trajectory', 'source'])
+  })
+
+  it('links only what rendered', () => {
+    const html = railFor(vm(), index, { payload: PAYLOAD })
+    expect(html).not.toContain('#spending')
+    expect(html).not.toContain('#campuses')
+    expect(html).not.toContain('#standouts')
+  })
+
+  it('carries the cohort switch with both payload scripts, exactly as the client reads them', () => {
+    const html = railFor(vm(), index, { payload: PAYLOAD })
+    expect(html).toContain('rail-block rail-compare')
+    expect(html).toContain('<div class="cohort-bar"')
+    expect(html).toContain('class="chip chip-cohort" data-cohort="peer"')
+    expect(html).toContain('<script type="application/json" data-cohorts>')
+    expect(html).toContain('<script type="application/json" data-own>')
+    expect(html).toContain('aria-pressed="true"') // the first cohort is the active one
+  })
+
+  it('omits the compare block for an entity with no cohorts', () => {
+    const html = railFor(vm({ cohorts: [] }), index, { payload: PAYLOAD })
+    expect(html).not.toContain('rail-compare')
+    expect(html).toContain('rail-sections')
+  })
+
+  it('names the payload for the pinner instead of inlining 1,199 districts', () => {
+    const html = railFor(vm(), index, { payload: PAYLOAD })
+    expect(html).toContain(`<script type="application/json" data-pin-source>{"payload":"${PAYLOAD}"}</script>`)
+    expect(html).toContain('class="pin-search"')
+    expect(html).toContain('<ul class="pin-results" hidden></ul>')
+    expect(html).toContain('<ul class="pin-list" aria-label="Pinned districts"></ul>')
+    expect(html.length).toBeLessThan(4_000)
+  })
+
+  it('offers no pinner where there is no chart to pin a line onto', () => {
+    const html = railFor(vm(), index.filter((s) => s.id !== 'trajectory'), { payload: PAYLOAD })
+    expect(html).not.toContain('rail-pins')
+    expect(html).not.toContain('pin-search')
+  })
+
+  it('offers no pinner when the payload name is unknown, rather than a search of nothing', () => {
+    const html = railFor(vm(), index, { payload: null })
+    expect(html).not.toContain('pin-search')
+    expect(html).not.toContain('data-pin-source')
+  })
+
+  it('labels every block, so the rail is navigable by heading', () => {
+    const html = railFor(vm(), index, { payload: PAYLOAD })
+    expect([...html.matchAll(/class="rail-title">([^<]+)</g)].map((m) => m[1])).toEqual([
+      'On this page',
+      'Compare against',
+      'Pin districts',
+    ])
+  })
+})
+
+/* ------------------------------------------------------------ sticky bar --- */
+
+describe('stickyFor', () => {
+  it('states the name, the grade with its score, and the active comparison', () => {
+    const html = stickyFor(vm())
+    expect(html).toContain('<span class="sb-name">Dallas ISD</span>')
+    expect(html).toContain('class="sb-grade"')
+    expect(html).toContain('>B<')
+    expect(html).toContain('>88<')
+    expect(html).toContain('vs <span data-sb-cohort>Similar student population</span>')
+  })
+
+  it('says NR rather than inventing a grade for an unrated entity', () => {
+    expect(stickyFor(vm({ history: [], notRated: true }))).toContain('>NR<')
+  })
+
+  it('drops the comparison for an entity with no cohorts', () => {
+    const html = stickyFor(vm({ cohorts: [] }))
+    expect(html).not.toContain('sb-cohort')
+    expect(html).toContain('sb-name')
+  })
+
+  it('escapes the entity name and the cohort label', () => {
+    const html = stickyFor(vm({ name: 'A <b>B</b> ISD', cohorts: [{ ...COHORTS[0], label: 'X & Y' }] }))
+    expect(html).toContain('A &lt;b&gt;B&lt;/b&gt; ISD')
+    expect(html).toContain('X &amp; Y')
+  })
+})
+
+/* ------------------------------------------------------------- the shell --- */
+
+describe('shell layout', () => {
+  const args = {
+    title: 'T',
+    description: 'D',
+    canonical: 'https://txschools.net/x',
+    crumbs: [{ href: '/', label: 'Texas schools', current: 'X' }],
+    sections: ['<section id="a"><h2>A</h2></section>'],
+  }
+
+  it('emits no layout wrapper at all without a rail, so the hubs are untouched', () => {
+    const html = shell(args)
+    expect(html).not.toContain('class="layout"')
+    expect(html).not.toContain('class="rail"')
+    expect(html).not.toContain('class="col"')
+    expect(html).not.toContain('stickybar')
+  })
+
+  it('wraps the rail and the column only when a rail is given', () => {
+    const html = shell({ ...args, rail: '<div class="rail-block">R</div>', sticky: '<span class="sb-name">X</span>' })
+    expect(html).toContain('<div class="layout">')
+    expect(html).toContain('<aside class="rail" id="rail" aria-label="Page tools">')
+    expect(html).toContain('<div class="col">')
+    expect(html).toContain('<div class="stickybar" hidden><span class="sb-name">X</span></div>')
+  })
+
+  it('puts the rail before the column and the breadcrumb inside it, ahead of main', () => {
+    const html = shell({ ...args, rail: '<div class="rail-block">R</div>', sticky: '<span>X</span>' })
+    const at = (s) => html.indexOf(s)
+    expect(at('<aside class="rail"')).toBeLessThan(at('<div class="col">'))
+    expect(at('<div class="col">')).toBeLessThan(at('class="stickybar"'))
+    expect(at('class="stickybar"')).toBeLessThan(at('aria-label="Breadcrumb"'))
+    expect(at('aria-label="Breadcrumb"')).toBeLessThan(at('<main id="main">'))
+  })
+
+  it('keeps the skip link pointing at main, which is still there to skip to', () => {
+    const html = shell({ ...args, rail: '<div class="rail-block">R</div>' })
+    expect(html).toContain('<a class="skip" href="#main">Skip to content</a>')
+    expect(html.indexOf('class="skip"')).toBeLessThan(html.indexOf('<aside class="rail"'))
+  })
+
+  it('renders a rail-less page byte for byte as it did before there were rails', () => {
+    expect(shell({ ...args, rail: null, sticky: null })).toBe(shell(args))
+  })
+})
+
+/* ------------------------------------------------------------ the page ----- */
+
+describe('renderEntity', () => {
+  it('indexes the sections it rendered, and only those', () => {
+    const html = renderEntity(vm(), { payload: PAYLOAD })
+    const links = [...html.matchAll(/data-spy="([^"]+)"/g)].map((m) => m[1])
+    expect(links).toContain(HERO_ID)
+    expect(links).toContain('trajectory')
+    expect(links).toContain('source')
+    expect(links).not.toContain('spending')
+    for (const id of links) expect(html).toContain(`id="${id}"`)
+  })
+
+  it('grows the index when a section gains its data', () => {
+    const before = renderEntity(vm(), { payload: PAYLOAD })
+    const after = renderEntity(
+      vm({
+        campuses: [
+          { slug: 'a-1', name: 'A', rating: 'B', score: 80, enrollment: 100, campusType: 'High School' },
+          { slug: 'b-2', name: 'B', rating: 'C', score: 74, enrollment: 90, campusType: 'Elementary' },
+        ],
+      }),
+      { payload: PAYLOAD }
+    )
+    expect(before).not.toContain('data-spy="campuses"')
+    expect(after).toContain('data-spy="campuses"')
+    // The label is the section's own <h2>, not a name the rail invents for it.
+    expect(after).toContain('<a class="rail-link" href="#campuses" data-spy="campuses">2 schools in this district</a>')
+  })
+
+  // The point of the whole exercise: a campus is not a district with fewer rows.
+  it('omits from a campus rail every section the campus does not have', () => {
+    const campus = renderEntity(
+      vm({
+        id: '001902001',
+        level: 'campus',
+        name: 'Cayuga H S',
+        slug: 'cayuga-h-s-001902001',
+        districtSlug: 'cayuga-isd-001902',
+        districtName: 'Cayuga ISD',
+        campuses: null,
+        finance: null,
+        profile: null,
+      }),
+      { payload: PAYLOAD }
+    )
+    expect(campus).not.toContain('data-spy="campuses"')
+    expect(campus).not.toContain('data-spy="spending"')
+    expect(campus).not.toContain('data-spy="students"')
+    expect(campus).toContain('data-spy="trajectory"')
+  })
+
+  it('reads without JavaScript: every section, its figures, and a working index', () => {
+    const html = renderEntity(vm(), { payload: PAYLOAD })
+    // Nothing in the rail's index is script-generated, and the sticky bar — the
+    // one part that needs the client — ships hidden and repeats the hero.
+    expect(html).toContain('<div class="stickybar" hidden>')
+    expect(html).toContain('<h1>Dallas ISD</h1>')
+    expect(html).toContain('<table')
+    for (const [, id] of html.matchAll(/href="#([a-z]+)"/g)) expect(html).toContain(`id="${id}"`)
+  })
+
+  it('puts the cohort switch in the rail and nowhere else on the page', () => {
+    const html = renderEntity(vm(), { payload: PAYLOAD })
+    expect(html.match(/chip-cohort/g)).toHaveLength(2) // one chip per cohort, once each
+    expect(html.match(/data-cohorts/g)).toHaveLength(1)
+    expect(html.match(/data-own/g)).toHaveLength(1)
+    const rail = html.slice(html.indexOf('<aside class="rail"'), html.indexOf('</aside>'))
+    expect(rail).toContain('chip-cohort')
+    expect(html.slice(html.indexOf('<main id="main">'))).not.toContain('chip-cohort')
+  })
+
+  it('renders an entity with nothing but a name, rail and all', () => {
+    const html = renderEntity(
+      vm({ history: [], comparisons: [], cohorts: [], stateByYear: {}, peerByYear: null }),
+      { payload: PAYLOAD }
+    )
+    expect(html).toContain(`data-spy="${HERO_ID}"`)
+    expect(html).toContain('data-spy="source"')
+    expect(html).not.toContain('data-spy="trajectory"')
+    expect(html).not.toContain('rail-compare')
+  })
+})

@@ -1,0 +1,277 @@
+// test/render/hubs.test.js
+import { describe, it, expect } from 'vitest'
+import { renderRegionPage, renderCountyPage, renderLetterPage, renderHomePage, regionPath } from '../../src/render/hubs.js'
+
+const district = (over = {}) => ({
+  id: '057905',
+  name: 'Dallas ISD',
+  slug: 'dallas-isd-057905',
+  level: 'district',
+  rating: 'B',
+  score: 85,
+  enrollment: 139000,
+  countyId: '057',
+  county: 'Dallas',
+  regionId: '10',
+  isCharter: false,
+  campusType: null,
+  ...over,
+})
+
+const region = (over = {}) => ({
+  regionId: '10',
+  regionName: 'Region 10: Richardson',
+  districts: [district(), district({ id: '057916', name: 'Highland Park ISD', slug: 'highland-park-isd-057916', rating: 'A', score: 96, enrollment: 7100 })],
+  counties: ['Dallas', 'Collin'],
+  snapshotDate: '15 August 2026',
+  ...over,
+})
+
+const county = (over = {}) => ({
+  countyName: 'Dallas',
+  countySlug: 'dallas',
+  regionName: 'Region 10: Richardson',
+  regionId: '10',
+  districts: [district()],
+  snapshotDate: '15 August 2026',
+  ...over,
+})
+
+describe('every hub renderer', () => {
+  const pages = [
+    ['region', () => renderRegionPage(region()), 'Region 10: Richardson', 'https://txschools.net/region/10'],
+    ['county', () => renderCountyPage(county()), 'Dallas County', 'https://txschools.net/county/dallas'],
+    ['letter', () => renderLetterPage({ letter: 'd', districts: [district()] }), 'Districts starting with D', 'https://txschools.net/districts/d'],
+    ['home', () => renderHomePage({ regions: [{ id: '10', name: 'Region 10: Richardson' }] }), 'Texas school ratings', 'https://txschools.net/'],
+  ]
+
+  for (const [kind, render, heading, canonical] of pages) {
+    it(`${kind}: returns a string carrying its heading`, () => {
+      const html = render()
+      expect(typeof html).toBe('string')
+      expect(html).toContain(`<h1>${heading}</h1>`)
+    })
+
+    it(`${kind}: declares a canonical URL on SITE_ORIGIN`, () => {
+      expect(render()).toContain(`<link rel="canonical" href="${canonical}">`)
+    })
+
+    it(`${kind}: has a title and a meta description`, () => {
+      const html = render()
+      expect(html).toMatch(/<title>[^<]{10,}<\/title>/)
+      expect(html).toMatch(/<meta name="description" content="[^"]{40,}">/)
+    })
+  }
+})
+
+describe('district links', () => {
+  it('links a district by /district/SLUG', () => {
+    expect(renderRegionPage(region())).toContain('href="/district/dallas-isd-057905"')
+  })
+
+  it('falls back to entitySlug when the caller omits slug', () => {
+    const html = renderCountyPage(county({ districts: [district({ slug: undefined })] }))
+    expect(html).toContain('href="/district/dallas-isd-057905"')
+  })
+
+  it('links a district from the letter index too', () => {
+    expect(renderLetterPage({ letter: 'd', districts: [district()] })).toContain('href="/district/dallas-isd-057905"')
+  })
+})
+
+describe('empty lists', () => {
+  it('region: states the emptiness instead of rendering an empty table', () => {
+    const html = renderRegionPage(region({ districts: [], counties: [] }))
+    expect(html).toContain('No districts in Region 10: Richardson appear in this snapshot.')
+    expect(html).not.toContain('<table')
+  })
+
+  it('county: states the emptiness instead of rendering an empty table', () => {
+    const html = renderCountyPage(county({ districts: [] }))
+    expect(html).toContain('No districts in Dallas County appear in this snapshot.')
+    expect(html).not.toContain('<table')
+  })
+
+  it('letter: states the emptiness instead of rendering an empty table', () => {
+    const html = renderLetterPage({ letter: 'q', districts: [] })
+    expect(html).toContain('No district in this snapshot has a name beginning with Q.')
+    expect(html).not.toContain('<table')
+  })
+
+  it('home: renders without regions, letters or stats', () => {
+    const html = renderHomePage({})
+    expect(html).toContain('<h1>Texas school ratings</h1>')
+    expect(html).toContain('No regions are listed in this snapshot.')
+  })
+
+  it('renders a zero count rather than crashing', () => {
+    expect(renderRegionPage(region({ districts: [] }))).toContain('0 districts in Region 10')
+  })
+})
+
+describe('breadcrumbs', () => {
+  it('region: sits under the site root', () => {
+    const html = renderRegionPage(region())
+    expect(html).toContain('<li><a href="/">Texas schools</a></li>')
+    expect(html).toContain('<li aria-current="page">Region 10: Richardson</li>')
+  })
+
+  it('county: climbs through its region', () => {
+    const html = renderCountyPage(county())
+    expect(html).toContain('<li><a href="/region/10">Region 10: Richardson</a></li>')
+    expect(html).toContain('<li aria-current="page">Dallas County</li>')
+  })
+
+  it('county: drops the region crumb when no region was given', () => {
+    const html = renderCountyPage(county({ regionId: null, regionName: null }))
+    expect(html).toContain('<li aria-current="page">Dallas County</li>')
+    expect(html).not.toContain('/region/')
+  })
+
+  it('letter: sits under the site root', () => {
+    expect(renderLetterPage({ letter: 'd', districts: [] })).toContain('<li aria-current="page">Districts: D</li>')
+  })
+})
+
+describe('counts and averages state their denominator', () => {
+  it('reports the region average with its n', () => {
+    const html = renderRegionPage(region())
+    expect(html).toContain('90.5') // mean of 85 and 96
+    expect(html).toContain('across the 2 districts with a published overall score')
+  })
+
+  it('compares against the state average only when given both sides', () => {
+    const bare = renderRegionPage(region())
+    expect(bare).not.toContain('state average')
+
+    const withState = renderRegionPage(region({ stateAvg: 79.8, stateN: 1199 }))
+    expect(withState).toContain('the state average of 79.8, which averages 1,199 Texas districts')
+    expect(withState).toContain('10.7 points above')
+  })
+
+  it('omits the campus figure when no campuses were supplied', () => {
+    expect(renderRegionPage(region())).not.toContain('Campuses')
+  })
+
+  it('counts campus rows separately from district rows', () => {
+    const html = renderRegionPage(
+      region({
+        districts: [
+          ...region().districts,
+          { id: '057905001', name: 'Cayuga HS', slug: 'cayuga-hs-057905001', level: 'campus', score: 70 },
+        ],
+      })
+    )
+    expect(html).toContain('<dt>Campuses</dt><dd>1</dd>')
+    expect(html).toContain('2 districts in Region 10: Richardson')
+    expect(html).not.toContain('href="/district/cayuga-hs-057905001"')
+  })
+
+  it('says so plainly when nothing has a published score', () => {
+    const html = renderCountyPage(county({ districts: [district({ score: null, rating: 'Not Rated' })] }))
+    expect(html).toContain('No district in Dallas County has a published overall score')
+  })
+})
+
+describe('counties', () => {
+  it('lists the given counties as links', () => {
+    const html = renderRegionPage(region())
+    expect(html).toContain('href="/county/dallas"')
+    expect(html).toContain('href="/county/collin"')
+  })
+
+  it('derives the county list from the districts when none is given', () => {
+    const html = renderRegionPage(region({ counties: [] }))
+    expect(html).toContain('href="/county/dallas"')
+    expect(html).toContain('1 county in this region')
+  })
+
+  it('accepts county objects with an explicit slug', () => {
+    const html = renderRegionPage(region({ counties: [{ name: 'De Witt', slug: 'de-witt', districtCount: 3 }] }))
+    expect(html).toContain('href="/county/de-witt"')
+    expect(html).toContain('De Witt County')
+  })
+})
+
+describe('letter pages', () => {
+  it('keeps only districts whose name begins with the letter', () => {
+    const html = renderLetterPage({
+      letter: 'd',
+      districts: [district(), district({ id: '109901', name: 'Abbott ISD', slug: 'abbott-isd-109901' })],
+    })
+    expect(html).toContain('Dallas ISD')
+    expect(html).not.toContain('Abbott ISD')
+    expect(html).toContain('1 district beginning with D')
+  })
+
+  it('carries an A-Z nav and marks the current letter', () => {
+    const html = renderLetterPage({ letter: 'd', districts: [] })
+    expect(html).toContain('<a href="/districts/a">A</a>')
+    expect(html).toContain('<a href="/districts/z">Z</a>')
+    expect(html).toContain('<a href="/districts/d" aria-current="page">D</a>')
+  })
+
+  it('accepts an uppercase letter', () => {
+    const html = renderLetterPage({ letter: 'D', districts: [district()] })
+    expect(html).toContain('https://txschools.net/districts/d')
+    expect(html).toContain('<h1>Districts starting with D</h1>')
+  })
+})
+
+describe('home page', () => {
+  it('says it is unofficial and links /about', () => {
+    const html = renderHomePage({})
+    expect(html).toContain('<strong>unofficial</strong>')
+    expect(html).toContain('href="/about"')
+  })
+
+  it('links every region it is given', () => {
+    const html = renderHomePage({
+      regions: Array.from({ length: 20 }, (_, i) => ({ id: String(i + 1).padStart(2, '0'), name: `Region ${i + 1}` })),
+    })
+    expect(html).toContain('20 education service regions')
+    expect(html).toContain('href="/region/01"')
+    expect(html).toContain('href="/region/20"')
+  })
+
+  it('offers the full A-Z index by default', () => {
+    const html = renderHomePage({})
+    expect(html).toContain('href="/districts/a"')
+    expect(html).toContain('href="/districts/z"')
+  })
+
+  it('prints the stats it is handed and invents none', () => {
+    const html = renderHomePage({ stats: { Districts: 1199, Campuses: 9031 } })
+    expect(html).toContain('<dt>Districts</dt><dd>1,199</dd>')
+    expect(html).toContain('<dt>Campuses</dt><dd>9,031</dd>')
+  })
+
+  it('accepts stats as label/value/note triples', () => {
+    const html = renderHomePage({ stats: [['Rated A', 214, 'of 1,199 districts']] })
+    expect(html).toContain('<dt>Rated A</dt><dd>214</dd>')
+    expect(html).toContain('of 1,199 districts')
+  })
+
+  it('drops the stats section entirely when given no stats', () => {
+    expect(renderHomePage({})).not.toContain('Texas at a glance')
+  })
+
+  it('escapes a string stat rather than injecting it', () => {
+    const html = renderHomePage({ stats: [['Note', '<script>x</script>']] })
+    expect(html).not.toContain('<script>x</script>')
+    expect(html).toContain('&lt;script&gt;')
+  })
+})
+
+describe('regionPath', () => {
+  it('zero-pads to the two-character ids the URL scheme uses', () => {
+    expect(regionPath(7)).toBe('07')
+    expect(regionPath('7')).toBe('07')
+    expect(regionPath('07')).toBe('07')
+    expect(regionPath('20')).toBe('20')
+  })
+
+  it('is applied to the canonical URL', () => {
+    expect(renderRegionPage(region({ regionId: 7 }))).toContain('https://txschools.net/region/07')
+  })
+})
