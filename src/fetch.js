@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 import { gzipSync } from 'node:zlib'
-import { mkdir, writeFile } from 'node:fs/promises'
+import { mkdir, rm, writeFile } from 'node:fs/promises'
 import { SOURCES, sourceUrl } from './sources.js'
 import { decodeBody, validateRows } from './decode.js'
 
@@ -55,9 +55,24 @@ async function fetchOne(source) {
   }
 }
 
+/**
+ * Deletes dir/manifest.json if present.
+ *
+ * manifest.json's presence is what latestSnapshot() (build.js) treats as
+ * "this snapshot is complete." Calling this before fetchAll's fetch loop
+ * means a re-fetch that dies partway through leaves a directory that's
+ * correctly detected as incomplete, rather than an existing complete
+ * snapshot silently mutating into a mix of new and stale files under a
+ * manifest that still describes the old bytes.
+ */
+export async function invalidateManifest(dir) {
+  await rm(`${dir}/manifest.json`, { force: true })
+}
+
 export async function fetchAll(date = new Date()) {
   const dir = snapshotDir(date)
   await mkdir(dir, { recursive: true })
+  await invalidateManifest(dir)
 
   const entries = []
   for (const source of SOURCES) {

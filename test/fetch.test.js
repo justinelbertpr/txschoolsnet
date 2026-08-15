@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest'
-import { snapshotDir, buildManifest, decodeAndValidate } from '../src/fetch.js'
+import { describe, it, expect, afterEach } from 'vitest'
+import { mkdtemp, mkdir, writeFile, readdir, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { snapshotDir, buildManifest, decodeAndValidate, invalidateManifest } from '../src/fetch.js'
 
 describe('snapshotDir', () => {
   it('names the directory by year and month', () => {
@@ -48,5 +51,41 @@ describe('decodeAndValidate', () => {
     expect(() => decodeAndValidate(source, buf)).toThrow(
       'districts: got 0 rows, below floor 1',
     )
+  })
+})
+
+// fetchAll itself does network I/O, so it isn't unit-tested directly.
+// invalidateManifest is the piece of fetchAll's sequencing that matters —
+// called after mkdir and before the fetch loop, it's what makes a re-fetch
+// that dies partway through leave a directory latestSnapshot() (build.js)
+// correctly rejects as incomplete, instead of one it accepts under a
+// manifest describing bytes that are no longer all there.
+describe('invalidateManifest', () => {
+  const scratchDirs = []
+  const scratchDir = async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'tea-fetch-'))
+    scratchDirs.push(dir)
+    return dir
+  }
+
+  afterEach(async () => {
+    await Promise.all(scratchDirs.splice(0).map((d) => rm(d, { recursive: true, force: true })))
+  })
+
+  it('deletes an existing manifest.json, leaving the other snapshot files untouched', async () => {
+    const dir = await scratchDir()
+    await writeFile(join(dir, 'manifest.json'), '{"fetchedAt":"stale"}')
+    await writeFile(join(dir, 'districts.json.gz'), 'stale-bytes')
+
+    await invalidateManifest(dir)
+
+    expect(await readdir(dir)).toEqual(['districts.json.gz'])
+  })
+
+  it('is a no-op when no manifest exists yet, e.g. a brand-new snapshot dir', async () => {
+    const dir = await scratchDir()
+    await mkdir(dir, { recursive: true }) // dir exists but is otherwise empty
+    await expect(invalidateManifest(dir)).resolves.not.toThrow()
+    expect(await readdir(dir)).toEqual([])
   })
 })
