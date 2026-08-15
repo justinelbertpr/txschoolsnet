@@ -51,8 +51,34 @@ jobs:
           git diff --staged --quiet || git commit -m "Add TEA snapshot $(cat build/snapshot.txt)"
           git push
 
+      # `versions upload` uploads a new version of a Worker that already exists; it
+      # cannot create one. The first run of this workflow therefore failed with
+      # "You cannot upload a new version of a Worker that does not yet exist."
+      #
+      # The upload -> smoke-test -> promote dance exists to protect a live site
+      # during a cutover. On a first deploy there is no live site to protect, so
+      # bootstrapping with `deploy` is correct rather than a shortcut, and every
+      # subsequent run takes the safe path.
+      - name: Does the Worker already exist?
+        id: exists
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deployments list
+
+      - name: First deploy — create the Worker and bind the domain
+        if: steps.exists.outcome == 'failure'
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
+
       - name: Upload a new version
         id: upload
+        if: steps.exists.outcome == 'success'
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -64,6 +90,7 @@ jobs:
           command: versions upload --tag ci-${{ github.run_number }}
 
       - name: Smoke-test the preview before cutover
+        if: steps.exists.outcome == 'success'
         run: |
           URL="${{ steps.upload.outputs.deployment-url }}"
           test -n "$URL" || { echo "no preview URL — check preview_urls in wrangler.jsonc"; exit 1; }
@@ -130,8 +157,26 @@ jobs:
           [ "$got_bytes" = "$expected" ] || exit 1
 
       - name: Promote to production
+        if: steps.exists.outcome == 'success'
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: versions deploy --yes
+
+      # A first deploy publishes immediately, so there is no preview to test —
+      # but that is the run most worth verifying, not least.
+      - name: Verify the live site after a first deploy
+        if: steps.exists.outcome == 'failure'
+        run: |
+          echo "Waiting for the custom domain to answer..."
+          for i in $(seq 1 30); do
+            code=$(curl -sS -o /tmp/live.html -w '%{http_code}' https://txschools.net/ || echo 000)
+            [ "$code" = "200" ] && break
+            sleep 10
+          done
+          echo "https://txschools.net/ -> $code"
+          [ "$code" = "200" ] || { echo "the apex is not serving"; exit 1; }
+          grep -q "Texas school accountability" /tmp/live.html || {
+            echo "the apex answered but did not return the home page"; exit 1; }
+          echo "Live."
