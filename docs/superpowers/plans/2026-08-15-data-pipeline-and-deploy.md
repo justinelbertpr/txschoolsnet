@@ -1174,11 +1174,18 @@ Expected:
 ```
 Building from data/raw/2026-08
   entities      10230 rows
-  ratings       ~60000 rows
-  profile       10234 rows
+  ratings       58984 rows
+  profile       10230 rows
 ```
 
-`assertIntegrity` **will** throw on `profile` the first time. This is expected and already diagnosed: `profile_tab` carries 10,234 rows against 10,230 entities, and exactly four ids appear in neither `districts` nor `schools` — `221801026`, `227901029`, `227901054`, `227901157`. 10,234 − 4 = 10,230, which confirms the entity table is complete and these four are the anomaly.
+`assertIntegrity` **will** throw the first time, on BOTH `profile` and `ratings`. Four ids appear in neither `districts` nor `schools` — `221801026`, `227901029`, `227901054`, `227901157` — yet TEA publishes data for them in two source files:
+
+| Table | Orphan rows | Why |
+|---|---|---|
+| `profile` | 4 | one profile row each |
+| `ratings` | 24 | the same four ids, each with a full six-year history in `change_over_time` |
+
+10,234 − 4 = 10,230 confirms the entity table is complete and these four are the anomaly: TEA publishes profile and rating data for campuses carrying no accountability record.
 
 Do not weaken the assertion. Drop them at the source with the reason recorded, by changing the `profile` line in `build()`:
 
