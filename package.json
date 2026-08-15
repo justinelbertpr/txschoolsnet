@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "fetch": "node src/fetch.js",
     "build": "node src/build.js",
@@ -12,7 +14,8 @@
     "site": "npm run build && npm run export && npm run prerender",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "preview": "node scripts/serve.mjs"
   },
   "devDependencies": {
     "vitest": "^4.1.10",
