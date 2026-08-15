@@ -13,6 +13,28 @@ describe('parseYear', () => {
   it('treats post-refresh years as current methodology', () => {
     expect(parseYear('2025-26')).toEqual({ year: '2025-26', method: 'current' })
   })
+
+  it('trims stray whitespace rather than treating it as a new year', () => {
+    expect(parseYear('2025-26 ')).toEqual({ year: '2025-26', method: 'current' })
+    expect(parseYear(' 2021-22 What If ')).toEqual({ year: '2021-22', method: 'what_if' })
+  })
+
+  it('throws naming an unrecognized label instead of inventing a phantom year', () => {
+    expect(() => parseYear('2021-22 (Revised)')).toThrow(/2021-22 \(Revised\)/)
+  })
+
+  it('parses all six real TEA academic_year labels observed in the 2026-08 snapshot', () => {
+    const labels = ['2021-22', '2021-22 What If', '2022-23', '2023-24', '2024-25', '2025-26']
+    for (const label of labels) {
+      expect(() => parseYear(label)).not.toThrow()
+    }
+    expect(parseYear('2021-22')).toEqual({ year: '2021-22', method: 'original' })
+    expect(parseYear('2021-22 What If')).toEqual({ year: '2021-22', method: 'what_if' })
+    expect(parseYear('2022-23')).toEqual({ year: '2022-23', method: 'current' })
+    expect(parseYear('2023-24')).toEqual({ year: '2023-24', method: 'current' })
+    expect(parseYear('2024-25')).toEqual({ year: '2024-25', method: 'current' })
+    expect(parseYear('2025-26')).toEqual({ year: '2025-26', method: 'current' })
+  })
 })
 
 describe('toRatings', () => {

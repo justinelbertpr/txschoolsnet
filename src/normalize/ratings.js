@@ -7,12 +7,25 @@ const REFRESH_YEAR = '2022-23' // first year published under the refreshed metho
 /**
  * TEA labels the back-published re-scoring of 2021-22 as "2021-22 What If".
  * It is the same year under the post-2023 rules, not a separate year.
+ *
+ * The raw label is coerced with `str()` (trims stray whitespace TEA's export
+ * sometimes carries, e.g. '2025-26 ') before any suffix is stripped. Once the
+ * What If suffix (if present) is removed, whatever remains MUST look like a
+ * TEA academic year (YYYY-YY). An unrecognized suffix — TEA has already
+ * invented one ('What If'); a second is not implausible — would otherwise be
+ * treated as a brand-new year and silently add a phantom column to every
+ * chart and a phantom row to every one of the 10,230 pages. There is no safe
+ * way to recover from that, so this throws, same as `explode` throwing on a
+ * length mismatch.
  */
-export function parseYear(label) {
-  if (label.endsWith(WHAT_IF)) {
-    return { year: label.slice(0, -WHAT_IF.length), method: 'what_if' }
+export function parseYear(rawLabel) {
+  const label = str(rawLabel)
+  const isWhatIf = label != null && label.endsWith(WHAT_IF)
+  const year = isWhatIf ? label.slice(0, -WHAT_IF.length) : label
+  if (!/^\d{4}-\d{2}$/.test(year ?? '')) {
+    throw new Error(`parseYear: unrecognized TEA academic_year label ${JSON.stringify(rawLabel)}`)
   }
-  return { year: label, method: label < REFRESH_YEAR ? 'original' : 'current' }
+  return isWhatIf ? { year, method: 'what_if' } : { year, method: year < REFRESH_YEAR ? 'original' : 'current' }
 }
 
 export function toRatings(records) {
