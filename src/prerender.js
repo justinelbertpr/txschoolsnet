@@ -32,7 +32,7 @@ export function renderEntity(e, history) {
 <main>
   <p><a href="/">All Texas schools</a></p>
   <h1>${name}</h1>
-  <p>${kind} · ${sector}${e.county ? ` · ${escapeHtml(e.county)} County` : ''}${e.enrollment ? ` · ${e.enrollment.toLocaleString('en-US')} students` : ''}</p>
+  <p>${kind} · ${sector}${e.county ? ` · ${escapeHtml(e.county)} County` : ''}${e.enrollment ? ` · ${e.enrollment.toLocaleString('en-US')} students` : ''}${e.isAlt ? ' · Alternative Education Accountability' : ''}</p>
   <p>Current rating <strong>${escapeHtml(e.rating ?? 'Not Rated')}</strong>${e.score == null ? '' : ` (${e.score})`}</p>
   <table>
     <caption>Rating history. 2021-22 is shown under the refreshed methodology TEA adopted in 2023.</caption>

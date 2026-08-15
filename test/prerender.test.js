@@ -40,6 +40,14 @@ describe('renderEntity', () => {
     expect(renderEntity({ ...entity, isCharter: true }, history)).toContain('Charter')
   })
 
+  it('labels alternative-education campuses so their bar is not mistaken for a comprehensive one', () => {
+    expect(renderEntity({ ...entity, isAlt: true }, history)).toContain('Alternative Education Accountability')
+  })
+
+  it('does not label a non-AEA entity', () => {
+    expect(renderEntity({ ...entity, isAlt: false }, history)).not.toContain('Alternative Education Accountability')
+  })
+
   it('escapes HTML in names', () => {
     expect(renderEntity({ ...entity, name: 'A & B <script>' }, history)).toContain('A &amp; B &lt;script&gt;')
   })
