@@ -1,7 +1,8 @@
 import { createHash } from 'node:crypto'
 import { gzipSync } from 'node:zlib'
-import { readFile, mkdir, writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { preferredRatings } from './normalize/ratings.js'
+import { resetDir } from './lib/reset-dir.js'
 
 export const contentHash = (text) => createHash('sha256').update(text).digest('hex').slice(0, 8)
 
@@ -52,7 +53,12 @@ export async function exportPayload() {
   const hash = contentHash(text)
   const file = `payload-${hash}.json`
 
-  await mkdir('site/data', { recursive: true })
+  // Each run's payload gets a new content hash (payload-<hash>.json), so
+  // without clearing the directory first (see resetDir), every prior run's
+  // payload file stays on disk beside the new one — regenerated and
+  // reachable, but stale and never linked from anywhere. Scoped to
+  // site/data only.
+  await resetDir('site/data')
   await writeFile(`site/data/${file}`, text)
   await writeFile('build/payload-name.txt', file + '\n')
 

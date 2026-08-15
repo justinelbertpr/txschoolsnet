@@ -1,5 +1,6 @@
-import { readFile, mkdir, writeFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { preferredRatings } from './normalize/ratings.js'
+import { resetDir } from './lib/reset-dir.js'
 
 export const SITE_ORIGIN = 'https://txschools.net'
 
@@ -65,13 +66,12 @@ export async function prerender() {
   }
   for (const rows of history.values()) rows.sort((a, b) => b.year.localeCompare(a.year))
 
-  // Hoisted out of the per-entity loop: only two directories are ever
-  // created (site/district, site/campus), so calling mkdir once for each
-  // up front is equivalent to calling it inside the loop 10,230 times —
-  // recreating an existing directory with `recursive: true` is a no-op —
-  // and avoids 10,230 redundant mkdir syscalls.
-  await mkdir('site/district', { recursive: true })
-  await mkdir('site/campus', { recursive: true })
+  // Clear whatever a previous run left behind before regenerating (see
+  // resetDir for why), rather than only ever adding files. Scoped to
+  // site/district and site/campus only — never site/ itself, which also
+  // holds the hand-authored index.html/404.html/style.css/_headers.
+  await resetDir('site/district')
+  await resetDir('site/campus')
 
   const paths = []
   for (const e of entities) {
