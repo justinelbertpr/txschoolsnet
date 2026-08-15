@@ -179,6 +179,69 @@ Additionally surfaced: **`mult_year`**, consecutive unacceptable ratings. 58 dis
 carry at least one, 8 at three or more years — state-intervention territory. Small n, outsized
 consequence.
 
+## 6a. Rankings, identity and data access
+
+Added after the first build, from the project owner. These are not refinements of §6 — two of them
+change what the site is for, and one changes the payload routing decided in §3.
+
+### Rankings — the ranking tool
+
+A view where the reader picks a **population** and a **metric** and gets a ranked list, defaulting to
+the top twenty.
+
+- **Population:** the whole state, one of the 20 ESC regions, or one of the 253 counties. Filtered
+  further by the §7 global controls, so "top 20 traditional ISDs in Region 10" is one selection away.
+- **Metric:** any orderable column — overall score, each of the five domain scores, score change over
+  a chosen window, enrollment, eco-dis %, per-pupil spend, spend relative to peer group, attendance,
+  consecutive unacceptable years.
+- Ties are shown as ties, and the reader can invert to see the bottom twenty. A "top" list that
+  silently breaks ties by id is a fabricated ordering.
+- Every ranking states its **n** and what was excluded. A top-20 that quietly dropped Not Rated
+  districts, or mixed AEA campuses into a comprehensive-school list, is misleading by omission.
+
+**This changes the §3 payload routing.** Ranking every district by spending requires spending data
+resident in the browser, which §3 assigned to prerendered pages only. Correction: the **most recent
+year** of finance and domain scores moves into the payload — roughly ten numeric columns over 10,230
+entities. The **full eight-year finance history and three-year domain history stay inlined** on
+entity pages. Ranking needs one year; the detail view needs all of them, one entity at a time.
+Task 6 of the data-layer plan re-measures after this addition.
+
+### About — what this site is, and is not
+
+A prose page, linked from every page's footer, stating plainly:
+
+- This site is **not affiliated with, endorsed by, or operated by** the Texas Education Agency or
+  txschools.gov.
+- It is an **unofficial** presentation of data TEA publishes publicly. **txschools.gov is the
+  official source**, linked directly.
+- What it adds: comparison, ranking, trend context and downloadable data that the official site
+  does not provide.
+- Where the data comes from, when it was last fetched, and what the methodology caveats are —
+  particularly the 2023 methodology refresh (§5), AEA campuses (§5), and Not Rated entities.
+
+This is a requirement, not a courtesy. The domain is one character from the official `.gov`, and a
+site presenting state accountability data without disclaiming affiliation invites exactly the
+confusion that discredits it. It also happens to be the clearest signal to a search engine that this
+is an independent work rather than a scraped duplicate.
+
+### Data download — built for journalists
+
+Any view's current selection is downloadable as **CSV and JSON**, reflecting the filters actually
+applied, with a header row naming the columns and a comment line recording the source snapshot date
+and the filters in effect. A journalist who downloads a filtered table and cannot later reconstruct
+what filter produced it has a file they cannot cite.
+
+The full normalized dataset is also downloadable whole, and the dated raw TEA snapshots are served
+as-is for anyone who wants to verify the chain themselves.
+
+### Presentation
+
+The dashboard reveals content progressively as the reader scrolls rather than presenting everything
+at once. **This must respect `prefers-reduced-motion`:** where the reader has asked for reduced
+motion, content appears without animation. Scroll-triggered motion that ignores that setting is an
+accessibility failure, and for some readers a vestibular one. Content must never depend on animation
+to become readable — a reader with JavaScript disabled or motion reduced still gets the whole page.
+
 ## 7. Global controls
 
 Persistent across every view, not per-view filters:
