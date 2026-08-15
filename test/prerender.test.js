@@ -43,6 +43,34 @@ describe('renderEntity', () => {
   it('escapes HTML in names', () => {
     expect(renderEntity({ ...entity, name: 'A & B <script>' }, history)).toContain('A &amp; B &lt;script&gt;')
   })
+
+  it('states the history count in the description, matching the number of rows passed in', () => {
+    expect(html).toContain('2 years of history')
+  })
+})
+
+describe('renderEntity — description year count', () => {
+  // A hardcoded count (e.g. the "six years" this replaces) would pass at
+  // most one of these, since each uses a different history length.
+  it('reflects a longer history', () => {
+    const longHistory = [
+      { year: '2025-26', rating: 'B', score: 89 },
+      { year: '2024-25', rating: 'B', score: 88 },
+      { year: '2023-24', rating: 'B', score: 85 },
+      { year: '2022-23', rating: 'B', score: 87 },
+      { year: '2021-22', rating: 'B', score: 87 },
+    ]
+    expect(renderEntity(entity, longHistory)).toContain('5 years of history')
+  })
+
+  it('uses the singular for exactly one year', () => {
+    expect(renderEntity(entity, [{ year: '2025-26', rating: 'B', score: 89 }])).toContain('1 year of history')
+    expect(renderEntity(entity, [{ year: '2025-26', rating: 'B', score: 89 }])).not.toContain('1 years of history')
+  })
+
+  it('handles an entity with no history', () => {
+    expect(renderEntity(entity, [])).toContain('0 years of history')
+  })
 })
 
 describe('escapeHtml', () => {
