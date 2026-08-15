@@ -5,14 +5,25 @@
    Grades are never encoded by colour — the letter is the encoding. */
 
 :root {
-  --bg: #fcfcfb;
+  /* THREE planes, not two. The previous ground and surface were 1.027:1 apart —
+     1.000 being literally the same colour — so cards could not read as cards.
+     Ground is now ~1.17:1 from surface and carries a slight blue bias toward the
+     accent, so the neutral reads as chosen rather than inherited. Only --raised
+     takes a shadow, so a shadow always means "floats above the content". */
+  --ground: #eceef2;
   --surface: #ffffff;
+  --raised: #ffffff;
+  --bg: #eceef2;           /* alias: older rules still reference --bg */
+
   --ink: #16181d;
   --ink-2: #4a5058;
   --ink-3: #6b7280;
-  --line: #e3e5e8;
-  --line-2: #f0f1f3;
+  --line: #dcdfe5;
+  --line-2: #e9ebef;
   --accent: #1d4ed8;
+
+  --shadow-raised: 0 1px 2px rgb(16 24 40 / .06), 0 8px 24px -8px rgb(16 24 40 / .10);
+  --shadow-card: 0 1px 2px rgb(16 24 40 / .04);
 
   --c-entity: #2563eb;
   --c-peer: #ea580c;
@@ -31,13 +42,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #0e1013;
-    --surface: #16191e;
+    --ground: #0b0d10;
+    --surface: #171a21;
+    --raised: #1e222a;
+    --bg: #0b0d10;
+    --shadow-raised: 0 1px 2px rgb(0 0 0 / .5), 0 10px 30px -10px rgb(0 0 0 / .6);
+    --shadow-card: 0 1px 2px rgb(0 0 0 / .35);
     --ink: #f2f4f7;
     --ink-2: #b3bac4;
     --ink-3: #8b939e;
-    --line: #272c33;
-    --line-2: #1d2127;
+    --line: #2b313a;
+    --line-2: #21262e;
     --accent: #7aa2f7;
 
     --c-entity: #60a5fa;
@@ -53,8 +68,11 @@
   }
 }
 :root[data-theme='dark'] {
-  --bg: #0e1013; --surface: #16191e; --ink: #f2f4f7; --ink-2: #b3bac4;
-  --ink-3: #8b939e; --line: #272c33; --line-2: #1d2127; --accent: #7aa2f7;
+  --ground: #0b0d10; --surface: #171a21; --raised: #1e222a; --bg: #0b0d10;
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / .5), 0 10px 30px -10px rgb(0 0 0 / .6);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / .35);
+  --ink: #f2f4f7; --ink-2: #b3bac4;
+  --ink-3: #8b939e; --line: #2b313a; --line-2: #21262e; --accent: #7aa2f7;
   --c-entity: #60a5fa; --c-peer: #fb923c; --c-state: #2dd4bf;
   --s0: #60a5fa; --s1: #fb923c; --s2: #2dd4bf; --s3: #c084fc;
   --s4: #fbbf24; --s5: #f472b6; --s6: #94a3b8;
@@ -65,7 +83,7 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: var(--ground);
   color: var(--ink);
   font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   font-feature-settings: "kern", "liga";
@@ -126,8 +144,24 @@ a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset:
 .note { font-size: .875rem; margin: .85rem 0 0; }
 .na { color: var(--ink-3); font-style: italic; }
 
-section { padding: 2.25rem 0; border-top: 1px solid var(--line-2); }
-section.hero { border-top: 0; padding-top: 1.5rem; }
+/* Sections are cards ON the ground. The old treatment — a rule between blocks on
+   one flat sheet — is what made eight screens of page read as undifferentiated. */
+main > section {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+  padding: 1.75rem;
+  margin-bottom: 1rem;
+}
+main > section.hero { padding-top: 1.75rem; }
+
+/* Nested panels sit on the ground so they read as inset, the inverse of a card. */
+.verdict, .cohort-bar, .stats, .standouts {
+  background: var(--ground);
+}
+.stat { background: var(--surface); }
+.grade { background: var(--surface); }
 
 /* ---------- verdict ---------- */
 
