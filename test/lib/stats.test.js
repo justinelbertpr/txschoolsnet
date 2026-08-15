@@ -28,6 +28,10 @@ describe('weightedMean', () => {
   it('returns null when no weight remains', () => {
     expect(weightedMean([{ v: 1, w: 0 }])).toBeNull()
   })
+
+  it('skips a negative weight', () => {
+    expect(weightedMean([{ v: 5, w: -1 }, { v: 10, w: 2 }])).toBe(10)
+  })
 })
 
 describe('median', () => {
@@ -41,6 +45,11 @@ describe('median', () => {
 
   it('excludes nulls', () => {
     expect(median([1, null, 3])).toBe(2)
+  })
+
+  it('sorts numerically, not lexicographically', () => {
+    expect(median([1, 5, 10, 100])).toBe(7.5)
+    expect(median([1, 2, 10])).toBe(2)
   })
 
   it('does not mutate its input', () => {
