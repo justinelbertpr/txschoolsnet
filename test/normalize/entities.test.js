@@ -15,6 +15,20 @@ const charterCampus = {
   mult_year: '2', paired_id: '001902002',
 }
 
+// Traditional campus whose name does NOT contain "ISD" — a name-based
+// isCharter heuristic would wrongly call this a charter.
+const traditionalCampus = {
+  ...district, id: '001902001', name: 'Cayuga HS',
+  entity_type: 'Traditional', campus_type: 'High School',
+}
+
+// Converse: entity_type is Charter but the name DOES contain "ISD" — a
+// name-based heuristic would wrongly call this traditional.
+const charterWithIsdName = {
+  ...district, id: '001902099', name: 'Cayuga ISD',
+  entity_type: 'Charter',
+}
+
 describe('toEntity', () => {
   it('marks level from the source file', () => {
     expect(toEntity(district, 'district').level).toBe('district')
@@ -24,6 +38,10 @@ describe('toEntity', () => {
   it('derives isCharter from entity_type, never from the name', () => {
     expect(toEntity(district, 'district').isCharter).toBe(false)
     expect(toEntity(charterCampus, 'campus').isCharter).toBe(true)
+    // Traditional campus with no "ISD" in its name must NOT be a charter.
+    expect(toEntity(traditionalCampus, 'campus').isCharter).toBe(false)
+    // Charter entity whose name contains "ISD" must still be a charter.
+    expect(toEntity(charterWithIsdName, 'district').isCharter).toBe(true)
   })
 
   it('derives isAlt from alt_standards', () => {
