@@ -178,7 +178,7 @@ td .grade-letter { font-size: .95rem; }
 .row-grade { fill: var(--ink); font-size: 13px; font-weight: 650; text-anchor: end; }
 .bar { fill: var(--c-entity); }
 .bar-value, .pt-label { fill: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
-.pt-label { text-anchor: middle; font-weight: 600; }
+.pt-label { font-weight: 600; }
 .line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .line-entity { stroke: var(--c-entity); }
 .line-peer { stroke: var(--c-peer); }
@@ -239,3 +239,24 @@ td .grade-letter { font-size: .95rem; }
     }
   }
 }
+
+/* ---------- added by the section shell ---------- */
+
+.grade-lg { padding: .6rem 1rem; }
+.grade-lg .grade-letter { font-size: 2.6rem; }
+
+.group-label { fill: var(--ink-2); font-size: 12.5px; font-weight: 600; }
+.na-sm { fill: var(--ink-3); font-size: 12px; font-style: italic; }
+.gb-l0 { fill: var(--s0); }
+.gb-l1 { fill: var(--s2); }
+.gb-l2 { fill: var(--s3); }
+.swatch-l0 { background: var(--s0); }
+.swatch-l1 { background: var(--s2); }
+.swatch-l2 { background: var(--s3); }
+
+.data .wrap { font-weight: 450; white-space: normal; line-height: 1.4; max-width: 34rem; }
+.data.scroll { display: block; max-height: 30rem; overflow: auto; }
+.data.scroll thead th { position: sticky; top: 0; background: var(--bg); z-index: 1; }
+
+#outcomes h3:first-of-type { margin-top: 0; }
+.chart-grouped { margin-top: .75rem; }
