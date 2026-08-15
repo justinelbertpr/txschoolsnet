@@ -1,0 +1,94 @@
+name: CI
+
+# Runs on every pull request and every push to main. The deploy pipeline in
+# refresh.yml is manual and annual; this is the gate that actually sees a change
+# before it lands.
+#
+# It builds the whole site rather than only running unit tests, because the build
+# IS the integration test: the normalizers, the cohort engine, the renderer and
+# the file budget only meet each other during a full 10,230-page run, and every
+# defect that has reached this repo's generated output got past the unit tests.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # No network: the build reads the dated TEA snapshot committed under
+      # data/raw/, which is the whole point of archiving it.
+      - name: Build the site
+        run: npm run site
+
+      - name: Test
+        run: npm test
+
+      - name: Asset budget
+        run: node scripts/check-file-count.mjs
+
+      # The one config change that would silently convert this site from
+      # unmetered to metered. test/wrangler.test.js asserts it too; this fails
+      # faster and names the consequence.
+      - name: Assert the Worker stays assets-only
+        run: |
+          if grep -qE '^\s*"main"\s*:' wrangler.jsonc; then
+            echo "wrangler.jsonc declares a main entrypoint."
+            echo "That converts static-asset serving from free and unmetered to billed per request."
+            exit 1
+          fi
+          echo "No main key — serving stays unmetered."
+
+      - name: Summarise the build
+        if: always()
+        run: |
+          {
+            echo "### Generated site"
+            echo ""
+            echo "| Directory | Files |"
+            echo "|---|---|"
+            for d in district campus region county districts data; do
+              [ -d "site/$d" ] && printf '| %s | %s |\n' "$d" "$(find site/$d -type f | wc -l | tr -d ' ')"
+            done
+            printf '| **total** | **%s** |\n' "$(find site -type f | wc -l | tr -d ' ')"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # A page whose links 404 is not a working page, and unit tests cannot see
+      # this: it needs the built output and a server.
+      - name: Every link on a district page must resolve
+        run: |
+          node scripts/serve.mjs 8790 &
+          for i in $(seq 1 30); do sleep 1; curl -sf -o /dev/null http://127.0.0.1:8790/ && break; done
+          node -e '
+            const {readFileSync} = require("node:fs")
+            const page = "site/district/dallas-isd-057905.html"
+            const html = readFileSync(page, "utf8")
+            const links = [...new Set([...html.matchAll(/(?:href|src)="(\/[^"#]*)"/g)].map(m => m[1]))]
+            let bad = 0
+            ;(async () => {
+              for (const l of links) {
+                const r = await fetch("http://127.0.0.1:8790" + l)
+                if (!r.ok) { console.log("FAIL", r.status, l); bad++ }
+              }
+              console.log(`${links.length} links checked, ${bad} broken`)
+              process.exit(bad ? 1 : 0)
+            })()
+          '
