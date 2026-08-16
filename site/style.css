@@ -364,53 +364,104 @@ header.site {
    direction (open → closed → open) correctly on every engine, because nothing
    here is asking a browser to override its own hidden-content behaviour —
    only ever to apply it, which is the one direction that is reliable. */
+/* An icon button, same footprint as .theme-toggle beside it (see below) so
+   the two read as a matched pair of header utilities rather than a text
+   link and a circle. Pinned via position:absolute in the mobile layout
+   below — see that block for why a single <details> element needs its
+   summary pulled out of normal flow to sit fixed at the header's top-right
+   corner while the link list under it is free to occupy its own row. */
 .nav-toggle {
-  display: inline-flex; align-items: center; gap: .35rem;
-  font: inherit; font-size: var(--t-meta); font-weight: 600; color: var(--ink-2);
-  padding: .4rem .15rem; cursor: pointer; list-style: none;
-  border-bottom: 2px solid transparent;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.25rem; height: 2.25rem; padding: 0;
+  color: var(--ink-2); background: transparent;
+  border: 1px solid var(--ink-3);
+  cursor: pointer; list-style: none;
 }
+@media (pointer: coarse) {
+  .nav-toggle { width: 2.75rem; height: 2.75rem; }
+}
+.nav-toggle:hover { color: var(--ink); border-color: var(--ink); }
+.nav-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .nav-toggle::-webkit-details-marker { display: none; }
-.nav-toggle::after {
-  content: ''; width: .5em; height: .5em; margin-top: -.2em;
-  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
-  transform: rotate(45deg);
+.hamburger { width: 1.15rem; height: 1.15rem; }
+.hamburger .bar {
+  fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+  transform-box: fill-box; transform-origin: center;
 }
-.nav-disclosure:not([open]) .nav-toggle::after { transform: rotate(-45deg); margin-top: .05em; }
+/* Hamburger -> X on open, same three bars: the top and bottom slide to the
+   middle bar's line and rotate into an X; the middle bar just fades. Shows
+   what tapping again DOES (closes it), same convention as .theme-toggle's
+   sun/moon swap below. */
+.nav-disclosure[open] .bar-top { transform: translateY(4px) rotate(45deg); }
+.nav-disclosure[open] .bar-mid { opacity: 0; }
+.nav-disclosure[open] .bar-bot { transform: translateY(-4px) rotate(-45deg); }
 @media (prefers-reduced-motion: no-preference) {
-  .nav-toggle::after { transition: transform .15s; }
+  .hamburger .bar { transition: transform .18s cubic-bezier(.22,.61,.36,1), opacity .18s; }
 }
-.nav-toggle:hover { color: var(--ink); }
-.nav-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 0; }
 .nav-disclosure .sitenav { margin: .5rem 0 0; }
 .nav-disclosure .navlist { flex-direction: column; gap: .1rem; }
-.nav-disclosure .navlist a { display: block; padding-block: .55rem; }
+/* line-height was inheriting body's 1.6 prose leading, meant for wrapped
+   paragraphs — on a one-line link label that just pads the row with height
+   nothing is reading. 1.25 plus a trimmed padding-block keeps each row a
+   comfortable tap target (~34px) without the five-item list running to a
+   quarter of a phone screen. */
+.nav-disclosure .navlist a { display: block; padding-block: .45rem; line-height: 1.25; }
 
 @media (max-width: 39.99rem) {
-  /* Visual order must match DOM/tab order here (WCAG 2.4.3): theme-toggle
-     sits after .nav-disclosure in the markup, so it needs an explicit order
-     too, not just the disclosure and the disclaimer — otherwise it stays in
-     the default order-0 bucket with the wordmark and search box and renders
-     ABOVE the nav it comes after in tab order. */
-  /* Sized to the closed "Menu" summary, not the full row: at flex-basis:100%
-     unconditionally, closed and open looked identical, which meant the
-     theme toggle right after it (same order-based flow) always got shoved
-     onto its own otherwise-empty row — a lone circle with nothing beside it
-     instead of sharing the compact "Menu" row it fits on. Only grows to the
-     full row once actually open, when the link list underneath needs it. */
-  .nav-disclosure { flex-basis: auto; order: 5; }
-  .nav-disclosure[open] { flex-basis: 100%; }
-  /* Pinned to the far end of that same row rather than left with the
-     "Menu" toggle — an edge-aligned pair reads as deliberate; the leftover
-     middle space the old full-width row left around a lone circle did not. */
-  .theme-toggle { order: 6; margin-left: auto; }
-  .unofficial { order: 7; }
+  /* A grid of FIXED rows, not flex-wrap: the old flow-based layout meant
+     every item's position depended on how much room the items before it
+     took, so opening the menu (which changes .nav-disclosure's height)
+     could reshuffle everything after it — including the search box, which
+     should never move. Explicit grid-row per item means only the rows that
+     are actually supposed to grow (the open menu panel and whatever the
+     reader now sees below it) do; search stays put in row 2 regardless.
+     Row 1 is set to the toggle button's own height (not "auto") because the
+     toggle is pulled out of flow below and would otherwise have nothing
+     sizing that row to make room for it. */
+  header.site {
+    display: grid;
+    grid-template-rows: 2.75rem auto auto auto auto;
+    row-gap: .5rem;
+  }
+  .wordmark { grid-row: 1; align-self: center; }
+  header.site > form.sitesearch { grid-row: 2; }
+  .nav-disclosure { grid-row: 3; margin: 0; }
+  /* Pulled out of the grid entirely and pinned to the header's own top-right
+     padding corner — see the comment on .nav-toggle in the MASTHEAD section
+     for why. Both open and closed, the button stays exactly where a reader
+     tapped it; only the icon under it (hamburger -> X) and the link list
+     below (row 3) change. */
+  .nav-toggle { position: absolute; top: 0; right: 0; }
+  /* Hidden until the menu is open, then read as the rest of the same
+     dropdown as the links above them, not separate always-on header rows.
+     WCAG 2.4.3 focus order still holds: a display:none element is
+     untabbable regardless of where it sits, and both become visible AND
+     reachable together the instant .nav-disclosure gains [open]. */
+  /* Two-class specificity (.nav-disclosure ~ .theme-toggle), not a bare
+     .theme-toggle, so this reliably beats the base .theme-toggle rule's
+     display:inline-flex further down the file regardless of which one the
+     cascade would otherwise prefer by source order alone. */
+  .nav-disclosure ~ .theme-toggle { grid-row: 4; justify-self: start; display: none; }
+  .nav-disclosure ~ .unofficial { grid-row: 5; display: none; }
+  .nav-disclosure[open] ~ .theme-toggle { display: inline-flex; }
+  .nav-disclosure[open] ~ .unofficial { display: block; }
 }
 
 @media (min-width: 40rem) {
+  /* The mobile layout needs the toggle (inside .nav-disclosure) ahead of
+     the search form in the DOM, so a keyboard user's tab order matches
+     its top-right visual position instead of jumping backward past the
+     search row to reach it (see the mobile block below). Desktop's own
+     visual/tab order — wordmark, search, nav, theme toggle, disclaimer —
+     predates that change and stays exactly what it was; explicit `order`
+     restores it despite the new source order, rather than the reverse. */
+  .wordmark { order: 1; }
+  form.sitesearch { order: 2; }
   /* .nav-disclosure, not .sitenav, is the actual flex item now — the details
      wrapper sits where .sitenav used to sit directly in header.site's flow. */
-  .nav-disclosure { margin-right: auto; }
+  .nav-disclosure { order: 3; margin-right: auto; }
+  .theme-toggle { order: 4; }
+  .unofficial { order: 5; }
   .nav-toggle { display: none; }
   .nav-disclosure .sitenav { margin: 0; }
   .nav-disclosure .navlist { flex-direction: row; gap: .25rem 1.15rem; }

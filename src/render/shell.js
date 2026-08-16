@@ -342,12 +342,19 @@ ${main}`
 
 <header class="site">
   <a class="wordmark" href="/">txschools<span>.net</span></a>
-  ${renderSearch({ id: 'header-search', variant: 'header', assets: false })}
   <details class="nav-disclosure" open>
-    <summary class="nav-toggle">Menu</summary>
+    <summary class="nav-toggle">
+      <svg class="hamburger" aria-hidden="true" viewBox="0 0 20 20">
+        <path class="bar bar-top" d="M3 6h14"/>
+        <path class="bar bar-mid" d="M3 10h14"/>
+        <path class="bar bar-bot" d="M3 14h14"/>
+      </svg>
+      <span class="sr-only">Menu</span>
+    </summary>
     ${siteNav(canonical)}
   </details>
   <script>${NAV_INIT_SCRIPT}</script>
+  ${renderSearch({ id: 'header-search', variant: 'header', assets: false })}
   <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false">
     <svg class="ti ti-moon" aria-hidden="true" viewBox="0 0 20 20"><path d="M17.3 12.5A7.3 7.3 0 0 1 7.5 2.7a7.6 7.6 0 1 0 9.8 9.8Z" fill="currentColor"/></svg>
     <svg class="ti ti-sun" aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M15.7 4.3l-1.4 1.4M5.7 14.3l-1.4 1.4M15.7 15.7l-1.4-1.4M5.7 5.7 4.3 4.3"/></g></svg>
