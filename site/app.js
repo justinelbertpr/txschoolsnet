@@ -1666,6 +1666,50 @@ function initHeaderH() {
   set()
 }
 
+/* --------------------------------------------------------- nav disclosure -- */
+
+/**
+ * Guarantees the primary nav can never end up unreachable.
+ *
+ * The nav lives in a <details> that ships `open` in the markup, and shell.js's
+ * inline NAV_INIT_SCRIPT closes it before first paint on a narrow viewport so a
+ * phone does not open on a full-height link list. Above 40rem the <summary>
+ * that reopens it is display:none — the links are supposed to be laid out
+ * inline there, with no toggle at all.
+ *
+ * Those two facts compose into a trap: load narrow (script closes it), then
+ * widen — rotate a phone to landscape, drag a narrow window wider — and you are
+ * left with a CLOSED <details> whose only control is hidden. The nav is gone
+ * with no way back, which is exactly the failure style.css's MASTHEAD comment
+ * warned about when it said the `open` attribute must always ship.
+ *
+ * So: whenever the viewport is at or above the breakpoint, force it open. The
+ * one state that must never persist is "closed while the toggle is hidden", and
+ * this makes that state unrepresentable rather than merely unlikely. Uses the
+ * same 39.99rem breakpoint as NAV_INIT_SCRIPT and style.css, and runs on load
+ * as well as on change so a page that loads wide is correct too.
+ *
+ * With JavaScript off none of this runs — but neither does NAV_INIT_SCRIPT, so
+ * the <details> keeps the `open` attribute it was served with and the nav is
+ * simply always visible. The no-JS path cannot reach the trap at all.
+ */
+function initNavDisclosure() {
+  const nav = document.querySelector('.nav-disclosure')
+  if (!nav) return
+  const narrow = matchMedia('(max-width: 39.99rem)')
+  const sync = () => { if (!narrow.matches) nav.open = true }
+  sync()
+  // Two sources, deliberately. The matchMedia 'change' event is the precise
+  // one — it fires only on the crossing that matters — but it is also the one
+  // that did not fire under automated viewport changes during testing, and a
+  // nav that becomes unreachable is too severe a failure to hang on a single
+  // event firing. 'resize' is noisier but fires unconditionally, and sync() is
+  // idempotent and does nothing but read a media query and set an attribute
+  // that is usually already set, so the redundancy costs nothing measurable.
+  narrow.addEventListener('change', sync)
+  addEventListener('resize', sync, { passive: true })
+}
+
 /* ------------------------------------------------------------------ init -- */
 
 const charts = [...document.querySelectorAll('[data-chart="trajectory"]')].map(initTrajectory).filter(Boolean)
@@ -1673,6 +1717,7 @@ initBars()
 initCohorts(charts[0])
 initCopy()
 initSpy()
+initNavDisclosure()
 initHeaderH()
 initStickybar()
 initPins(charts[0])
