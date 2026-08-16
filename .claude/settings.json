@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "elbert-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "justinelbertpr/claude-plugins"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "design-craft@elbert-plugins": true
+  }
+}
