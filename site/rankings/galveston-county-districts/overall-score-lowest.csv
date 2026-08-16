@@ -1,0 +1,23 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/galveston-county-districts/overall-score-lowest
+# rows: 10 (excluding this header and the column row)
+# ranking: Galveston County school districts with the lowest overall score in 2025-26
+# population: 10 districts of 10 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,10,0,084908,Hitchcock ISD,Galveston,D,67,1937,https://txschools.net/district/hitchcock-isd-084908
+2,10,0,084802,Odyssey Academy Inc,Galveston,C,70,1778,https://txschools.net/district/odyssey-academy-inc-084802
+3,10,0,084906,Texas City ISD,Galveston,C,77,7379,https://txschools.net/district/texas-city-isd-084906
+4,10,0,084902,Galveston ISD,Galveston,B,80,6664,https://txschools.net/district/galveston-isd-084902
+5,10,0,084909,Santa Fe ISD,Galveston,B,81,4326,https://txschools.net/district/santa-fe-isd-084909
+6,10,0,084903,High Island ISD,Galveston,B,85,122,https://txschools.net/district/high-island-isd-084903
+7,10,0,084901,Dickinson ISD,Galveston,B,88,12569,https://txschools.net/district/dickinson-isd-084901
+8,10,0,084910,Clear Creek ISD,Galveston,B,89,38634,https://txschools.net/district/clear-creek-isd-084910
+9,10,1,084804,Ambassadors Preparatory Academy,Galveston,A,92,140,https://txschools.net/district/ambassadors-preparatory-academy-084804
+9,10,1,084911,Friendswood ISD,Galveston,A,92,6116,https://txschools.net/district/friendswood-isd-084911

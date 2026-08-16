@@ -1,0 +1,23 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/hunt-county-districts/overall-score-lowest
+# rows: 10 (excluding this header and the column row)
+# ranking: Hunt County school districts with the lowest overall score in 2025-26
+# population: 10 districts of 10 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,10,0,116903,Commerce ISD,Hunt,D,67,1526,https://txschools.net/district/commerce-isd-116903
+2,10,0,116910,Campbell ISD,Hunt,D,69,298,https://txschools.net/district/campbell-isd-116910
+3,10,0,116905,Greenville ISD,Hunt,C,72,5435,https://txschools.net/district/greenville-isd-116905
+4,10,0,116908,Quinlan ISD,Hunt,C,79,2974,https://txschools.net/district/quinlan-isd-116908
+5,10,0,116916,Boles ISD,Hunt,B,82,530,https://txschools.net/district/boles-isd-116916
+6,10,0,116909,Wolfe City ISD,Hunt,B,83,694,https://txschools.net/district/wolfe-city-isd-116909
+7,10,0,116906,Lone Oak ISD,Hunt,B,85,1090,https://txschools.net/district/lone-oak-isd-116906
+8,10,1,116915,Bland ISD,Hunt,B,87,777,https://txschools.net/district/bland-isd-116915
+8,10,1,116901,Caddo Mills ISD,Hunt,B,87,3325,https://txschools.net/district/caddo-mills-isd-116901
+10,10,0,116902,Celeste ISD,Hunt,B,88,471,https://txschools.net/district/celeste-isd-116902

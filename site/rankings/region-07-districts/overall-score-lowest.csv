@@ -1,0 +1,114 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-07-districts/overall-score-lowest
+# rows: 100 (excluding this header and the column row)
+# ranking: Region 07: Kilgore school districts with the lowest overall score in 2025-26
+# population: 100 districts of 101 districts are ranked here.
+# population: 1 was not rated by TEA for 2025-26 and is not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,100,0,107908,Murchison ISD,Henderson,D,65,187,https://txschools.net/district/murchison-isd-107908
+2,100,0,102901,Karnack ISD,Harrison,D,66,121,https://txschools.net/district/karnack-isd-102901
+3,100,0,001908,Westwood ISD,Anderson,D,67,1300,https://txschools.net/district/westwood-isd-001908
+4,100,0,183904,Gary ISD,Panola,D,68,478,https://txschools.net/district/gary-isd-183904
+5,100,2,037904,Jacksonville ISD,Cherokee,D,69,4572,https://txschools.net/district/jacksonville-isd-037904
+5,100,2,201903,Laneville ISD,Rusk,D,69,104,https://txschools.net/district/laneville-isd-201903
+5,100,2,102902,Marshall ISD,Harrison,D,69,4726,https://txschools.net/district/marshall-isd-102902
+8,100,0,201904,Leveretts Chapel ISD,Rusk,C,71,233,https://txschools.net/district/leveretts-chapel-isd-201904
+9,100,0,190903,Rains ISD,Rains,C,72,1664,https://txschools.net/district/rains-isd-190903
+10,100,5,210901,Center ISD,Shelby,C,73,2258,https://txschools.net/district/center-isd-210901
+10,100,5,212801,Cumberland Academy,Smith,C,73,1519,https://txschools.net/district/cumberland-academy-212801
+10,100,5,174904,Nacogdoches ISD,Nacogdoches,C,73,5513,https://txschools.net/district/nacogdoches-isd-174904
+10,100,5,203901,San Augustine ISD,San Augustine,C,73,585,https://txschools.net/district/san-augustine-isd-203901
+10,100,5,102903,Waskom ISD,Harrison,C,73,764,https://txschools.net/district/waskom-isd-102903
+10,100,5,212910,Winona ISD,Smith,C,73,1122,https://txschools.net/district/winona-isd-212910
+16,100,0,230901,Big Sandy ISD,Upshur,C,74,643,https://txschools.net/district/big-sandy-isd-230901
+17,100,3,210906,Excelsior ISD,Shelby,C,75,112,https://txschools.net/district/excelsior-isd-210906
+17,100,3,092902,Kilgore ISD,Gregg,C,75,3576,https://txschools.net/district/kilgore-isd-092902
+17,100,3,201908,Overton ISD,Rusk,C,75,534,https://txschools.net/district/overton-isd-201908
+17,100,3,230904,Union Hill ISD,Upshur,C,75,254,https://txschools.net/district/union-hill-isd-230904
+21,100,4,212901,Arp ISD,Smith,C,76,918,https://txschools.net/district/arp-isd-212901
+21,100,4,003907,Central ISD,Angelina,C,76,1491,https://txschools.net/district/central-isd-003907
+21,100,4,212909,Chapel Hill ISD,Smith,C,76,3186,https://txschools.net/district/chapel-hill-isd-212909
+21,100,4,107910,Lapoynor ISD,Henderson,C,76,465,https://txschools.net/district/lapoynor-isd-107910
+21,100,4,250905,Yantis ISD,Wood,C,76,309,https://txschools.net/district/yantis-isd-250905
+26,100,3,037901,Alto ISD,Cherokee,C,77,524,https://txschools.net/district/alto-isd-037901
+26,100,3,001907,Palestine ISD,Anderson,C,77,3144,https://txschools.net/district/palestine-isd-001907
+26,100,3,210904,Tenaha ISD,Shelby,C,77,402,https://txschools.net/district/tenaha-isd-210904
+26,100,3,202905,West Sabine ISD,Sabine,C,77,659,https://txschools.net/district/west-sabine-isd-202905
+30,100,3,102904,Hallsville ISD,Harrison,C,78,26808,https://txschools.net/district/hallsville-isd-102904
+30,100,3,250902,Hawkins ISD,Wood,C,78,776,https://txschools.net/district/hawkins-isd-250902
+30,100,3,212904,Troup ISD,Smith,C,78,1067,https://txschools.net/district/troup-isd-212904
+30,100,3,201914,West Rusk County Consolidated ISD,Rusk,C,78,1006,https://txschools.net/district/west-rusk-county-consolidated-isd-201914
+34,100,2,092901,Gladewater ISD,Gregg,C,79,1577,https://txschools.net/district/gladewater-isd-092901
+34,100,2,003903,Lufkin ISD,Angelina,C,79,6678,https://txschools.net/district/lufkin-isd-003903
+34,100,2,230903,Ore City ISD,Upshur,C,79,786,https://txschools.net/district/ore-city-isd-230903
+37,100,6,183902,Carthage ISD,Panola,B,80,2602,https://txschools.net/district/carthage-isd-183902
+37,100,6,102906,Elysian Fields ISD,Harrison,B,80,753,https://txschools.net/district/elysian-fields-isd-102906
+37,100,6,234904,Grand Saline ISD,Van Zandt,B,80,1205,https://txschools.net/district/grand-saline-isd-234904
+37,100,6,201902,Henderson ISD,Rusk,B,80,3151,https://txschools.net/district/henderson-isd-201902
+37,100,6,092906,Sabine ISD,Gregg,B,80,1567,https://txschools.net/district/sabine-isd-092906
+37,100,6,107907,Trinidad ISD,Henderson,B,80,175,https://txschools.net/district/trinidad-isd-107907
+37,100,6,234906,Van ISD,Van Zandt,B,80,2265,https://txschools.net/district/van-isd-234906
+44,100,2,174901,Chireno ISD,Nacogdoches,B,81,343,https://txschools.net/district/chireno-isd-174901
+44,100,2,234903,Edgewood ISD,Van Zandt,B,81,997,https://txschools.net/district/edgewood-isd-234903
+44,100,2,250904,Quitman ISD,Wood,B,81,1216,https://txschools.net/district/quitman-isd-250904
+47,100,7,174902,Cushing ISD,Nacogdoches,B,82,561,https://txschools.net/district/cushing-isd-174902
+47,100,7,003905,Diboll ISD,Angelina,B,82,1513,https://txschools.net/district/diboll-isd-003905
+47,100,7,001903,Elkhart ISD,Anderson,B,82,1175,https://txschools.net/district/elkhart-isd-001903
+47,100,7,234909,Fruitvale ISD,Van Zandt,B,82,390,https://txschools.net/district/fruitvale-isd-234909
+47,100,7,003904,Huntington ISD,Angelina,B,82,1496,https://txschools.net/district/huntington-isd-003904
+47,100,7,037907,Rusk ISD,Cherokee,B,82,1980,https://txschools.net/district/rusk-isd-037907
+47,100,7,250907,Winnsboro ISD,Wood,B,82,1395,https://txschools.net/district/winnsboro-isd-250907
+47,100,7,003906,Zavalla ISD,Angelina,B,82,308,https://txschools.net/district/zavalla-isd-003906
+55,100,1,107902,Brownsboro ISD,Henderson,B,83,2583,https://txschools.net/district/brownsboro-isd-107902
+55,100,1,212905,Tyler ISD,Smith,B,83,18800,https://txschools.net/district/tyler-isd-212905
+57,100,5,102905,Harleton ISD,Harrison,B,84,702,https://txschools.net/district/harleton-isd-102905
+57,100,5,230905,Harmony ISD,Upshur,B,84,855,https://txschools.net/district/harmony-isd-230905
+57,100,5,250903,Mineola ISD,Wood,B,84,1790,https://txschools.net/district/mineola-isd-250903
+57,100,5,003801,Pineywoods Community Academy,Angelina,B,84,1060,https://txschools.net/district/pineywoods-community-academy-003801
+57,100,5,037909,Wells ISD,Cherokee,B,84,235,https://txschools.net/district/wells-isd-037909
+57,100,5,174906,Woden ISD,Nacogdoches,B,84,824,https://txschools.net/district/woden-isd-174906
+63,100,6,250906,Alba-Golden ISD,Wood,B,85,772,https://txschools.net/district/alba-golden-isd-250906
+63,100,6,107904,Cross Roads ISD,Henderson,B,85,541,https://txschools.net/district/cross-roads-isd-107904
+63,100,6,107905,Eustace ISD,Henderson,B,85,1685,https://txschools.net/district/eustace-isd-107905
+63,100,6,003902,Hudson ISD,Angelina,B,85,2755,https://txschools.net/district/hudson-isd-003902
+63,100,6,001909,Slocum ISD,Anderson,B,85,330,https://txschools.net/district/slocum-isd-001909
+63,100,6,201910,Tatum ISD,Rusk,B,85,1327,https://txschools.net/district/tatum-isd-201910
+63,100,6,210905,Timpson ISD,Shelby,B,85,718,https://txschools.net/district/timpson-isd-210905
+70,100,2,234905,Martins Mill ISD,Van Zandt,B,86,447,https://txschools.net/district/martins-mill-isd-234905
+70,100,2,210903,Shelbyville ISD,Shelby,B,86,862,https://txschools.net/district/shelbyville-isd-210903
+70,100,2,230908,Union Grove ISD,Upshur,B,86,710,https://txschools.net/district/union-grove-isd-230908
+73,100,5,230902,Gilmer ISD,Upshur,B,87,2923,https://txschools.net/district/gilmer-isd-230902
+73,100,5,107906,Malakoff ISD,Henderson,B,87,1522,https://txschools.net/district/malakoff-isd-107906
+73,100,5,001906,Neches ISD,Anderson,B,87,338,https://txschools.net/district/neches-isd-001906
+73,100,5,230906,New Diana ISD,Upshur,B,87,1150,https://txschools.net/district/new-diana-isd-230906
+73,100,5,037908,New Summerfield ISD,Cherokee,B,87,512,https://txschools.net/district/new-summerfield-isd-037908
+73,100,5,092904,Pine Tree ISD,Gregg,B,87,4435,https://txschools.net/district/pine-tree-isd-092904
+79,100,5,183901,Beckville ISD,Panola,B,88,652,https://txschools.net/district/beckville-isd-183901
+79,100,5,201913,Carlisle ISD,Rusk,B,88,656,https://txschools.net/district/carlisle-isd-201913
+79,100,5,001904,Frankston ISD,Anderson,B,88,785,https://txschools.net/district/frankston-isd-001904
+79,100,5,092903,Longview ISD,Gregg,B,88,7906,https://txschools.net/district/longview-isd-092903
+79,100,5,174909,Martinsville ISD,Nacogdoches,B,88,315,https://txschools.net/district/martinsville-isd-174909
+79,100,5,092908,White Oak ISD,Gregg,B,88,1429,https://txschools.net/district/white-oak-isd-092908
+85,100,2,212902,Bullard ISD,Smith,B,89,2853,https://txschools.net/district/bullard-isd-212902
+85,100,2,001902,Cayuga ISD,Anderson,B,89,574,https://txschools.net/district/cayuga-isd-001902
+85,100,2,201907,Mount Enterprise ISD,Rusk,B,89,482,https://txschools.net/district/mount-enterprise-isd-201907
+88,100,1,174903,Garrison ISD,Nacogdoches,A,90,739,https://txschools.net/district/garrison-isd-174903
+88,100,1,212906,Whitehouse ISD,Smith,A,90,4840,https://txschools.net/district/whitehouse-isd-212906
+90,100,2,174908,Central Heights ISD,Nacogdoches,A,92,1106,https://txschools.net/district/central-heights-isd-174908
+90,100,2,202903,Hemphill ISD,Sabine,A,92,728,https://txschools.net/district/hemphill-isd-202903
+90,100,2,212903,Lindale ISD,Smith,A,92,4613,https://txschools.net/district/lindale-isd-212903
+93,100,1,210902,Joaquin ISD,Shelby,A,93,695,https://txschools.net/district/joaquin-isd-210902
+93,100,1,092907,Spring Hill ISD,Gregg,A,93,1941,https://txschools.net/district/spring-hill-isd-092907
+95,100,1,174801,Stephen F Austin State University Charter School,Nacogdoches,A,95,254,https://txschools.net/district/stephen-f-austin-state-university-charter-school-174801
+95,100,1,212804,UT Tyler University Academy,Smith,A,95,1224,https://txschools.net/district/ut-tyler-university-academy-212804
+97,100,2,203902,Broaddus ISD,San Augustine,A,96,380,https://txschools.net/district/broaddus-isd-203902
+97,100,2,174911,Douglass ISD,Nacogdoches,A,96,405,https://txschools.net/district/douglass-isd-174911
+97,100,2,183801,Panola Charter School,Panola,A,96,174,https://txschools.net/district/panola-charter-school-183801
+100,100,0,092801,East Texas Charter Schools,Gregg,A,97,125,https://txschools.net/district/east-texas-charter-schools-092801

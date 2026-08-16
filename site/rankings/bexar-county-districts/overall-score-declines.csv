@@ -1,0 +1,49 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/bexar-county-districts/overall-score-declines
+# rows: 34 (excluding this header and the column row)
+# ranking: Bexar County school districts with the largest overall score declines since 2021-22
+# population: 34 districts of 38 districts are ranked here.
+# population: 4 have no figure at the start of the window and are not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,34,0,015805,New Frontiers Public Schools Inc,Bexar,B,-8,96,88,335,https://txschools.net/district/new-frontiers-public-schools-inc-015805
+2,34,3,015834,Basis Texas,Bexar,A,-3,96,93,9480,https://txschools.net/district/basis-texas-015834
+2,34,3,015836,Eleanor Kolitz Hebrew Language Academy,Bexar,B,-3,92,89,464,https://txschools.net/district/eleanor-kolitz-hebrew-language-academy-015836
+2,34,3,015916,Judson ISD,Bexar,C,-3,74,71,22556,https://txschools.net/district/judson-isd-015916
+2,34,3,015915,Northside ISD,Bexar,C,-3,81,78,98031,https://txschools.net/district/northside-isd-015915
+6,34,0,015910,North East ISD,Bexar,B,-2,83,81,53464,https://txschools.net/district/north-east-isd-015910
+7,34,1,015835,Great Hearts Texas,Bexar,B,-1,83,82,14038,https://txschools.net/district/great-hearts-texas-015835
+7,34,1,015815,Heritage Academy,Bexar,A,-1,91,90,574,https://txschools.net/district/heritage-academy-015815
+9,34,5,015904,Harlandale ISD,Bexar,C,0,74,74,11096,https://txschools.net/district/harlandale-isd-015904
+9,34,5,015907,San Antonio ISD,Bexar,C,0,75,75,42508,https://txschools.net/district/san-antonio-isd-015907
+9,34,5,015827,School of Science and Technology,Bexar,B,0,89,89,5855,https://txschools.net/district/school-of-science-and-technology-015827
+9,34,5,015831,School of Science and Technology Discovery,Bexar,A,0,90,90,6366,https://txschools.net/district/school-of-science-and-technology-discovery-015831
+9,34,5,015917,Southside ISD,Bexar,B,0,83,83,6091,https://txschools.net/district/southside-isd-015917
+9,34,5,015807,Southwest Preparatory School,Bexar,C,0,76,76,849,https://txschools.net/district/southwest-preparatory-school-015807
+15,34,0,015912,Southwest ISD,Bexar,C,1,78,79,14839,https://txschools.net/district/southwest-isd-015912
+16,34,2,015901,Alamo Heights ISD,Bexar,B,2,86,88,4723,https://txschools.net/district/alamo-heights-isd-015901
+16,34,2,015828,Harmony Public Schools - South Texas,Bexar,B,2,86,88,4991,https://txschools.net/district/harmony-public-schools-south-texas-015828
+16,34,2,015801,Por Vida Academy,Bexar,B,2,82,84,167,https://txschools.net/district/por-vida-academy-015801
+19,34,1,015808,Inspire Academies,Bexar,C,3,68,71,1158,https://txschools.net/district/inspire-academies-015808
+19,34,1,015906,Randolph Field ISD,Bexar,A,3,91,94,1402,https://txschools.net/district/randolph-field-isd-015906
+21,34,1,015838,Compass Rose Public Schools,Bexar,C,4,66,70,4032,https://txschools.net/district/compass-rose-public-schools-015838
+21,34,1,015839,Promesa Academy Charter School,Bexar,D,4,58,62,275,https://txschools.net/district/promesa-academy-charter-school-015839
+23,34,1,015905,Edgewood ISD,Bexar,D,5,63,68,7670,https://txschools.net/district/edgewood-isd-015905
+23,34,1,015802,George Gervin Academy,Bexar,B,5,80,85,744,https://txschools.net/district/george-gervin-academy-015802
+25,34,0,015909,Somerset ISD,Bexar,B,6,82,88,4169,https://txschools.net/district/somerset-isd-015909
+26,34,0,015908,South San Antonio ISD,Bexar,C,8,67,75,7083,https://txschools.net/district/south-san-antonio-isd-015908
+27,34,1,015911,East Central ISD,Bexar,C,9,67,76,11798,https://txschools.net/district/east-central-isd-015911
+27,34,1,015913,Lackland ISD,Bexar,B,9,78,87,966,https://txschools.net/district/lackland-isd-015913
+29,34,0,015914,Ft Sam Houston ISD,Bexar,A,10,85,95,1543,https://txschools.net/district/ft-sam-houston-isd-015914
+30,34,0,015830,Somerset Academies of Texas,Bexar,B,11,73,84,2682,https://txschools.net/district/somerset-academies-of-texas-015830
+31,34,1,015806,Legacy Traditional Schools - Texas,Bexar,B,12,68,80,1855,https://txschools.net/district/legacy-traditional-schools-texas-015806
+31,34,1,015814,Positive Solutions Charter School,Bexar,B,12,73,85,91,https://txschools.net/district/positive-solutions-charter-school-015814
+33,34,0,015822,Jubilee Academies,Bexar,B,13,68,81,5019,https://txschools.net/district/jubilee-academies-015822
+34,34,0,015825,Lighthouse Public Schools,Bexar,C,17,54,71,481,https://txschools.net/district/lighthouse-public-schools-015825

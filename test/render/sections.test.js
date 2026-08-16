@@ -11,9 +11,10 @@
 
 import { describe, it, expect } from 'vitest'
 import {
-  SECTIONS, HERO_ID, HERO_LABEL, claimSentence, verdict, trajectory, domains, outcomes,
-  students, spending, teachers, campuses, standouts, source,
+  SECTIONS, HERO_ID, HERO_LABEL, claimSentence, verdict, trajectory, changeRankings, domains, outcomes,
+  students, spending, teachers, campuses, standouts, source, rankingHref, rankingEnd, rankedBoard,
 } from '../../src/render/sections.js'
+import { LIST_LIMIT } from '../../src/render/rankings-page.js'
 
 /** A view model with every optional source absent. */
 const empty = (over = {}) => ({
@@ -66,6 +67,7 @@ const COHORTS = [
 
 const OPTIONAL = [
   ['trajectory', trajectory],
+  ['changeRankings', changeRankings],
   ['domains', domains],
   ['outcomes', outcomes],
   ['students', students],
@@ -578,5 +580,258 @@ describe('source', () => {
 
   it('marks the outbound TEA link nofollow', () => {
     expect(source(empty())).toContain('rel="nofollow"')
+  })
+})
+
+/* ------------------------------------------------- links to the rankings -- */
+//
+// A rank is a claim about a population, and until the ranked lists existed the
+// reader had no way to see that population: "Ranks 400th of 1,184 Texas
+// districts" named 1,183 other districts and linked none of them.
+//
+// These sections construct no ranking URLs. `vm.rankingLinks` is a map the build
+// step hands in, holding only hrefs of pages that were actually written, so the
+// property under test is as much what is NOT linked as what is.
+
+describe('ranking links', () => {
+  // Both ends of every board are in the index now, keyed { top, bottom }, each
+  // an { href, title } — not a bare href — because rankedBoard has to choose
+  // between them (see the 'rankedBoard chooses the end that lists the entity'
+  // block below) and a caller labels its link with the board's own title
+  // rather than composing a completeness claim.
+  const board = (href, title) => ({ href, title })
+  const LINKS = {
+    state: {
+      score: {
+        top: board('/rankings/texas-districts/overall-score-highest', 'Texas school districts with the highest overall score'),
+        bottom: board('/rankings/texas-districts/overall-score-lowest', 'Texas school districts with the lowest overall score'),
+      },
+      absenteeism: {
+        top: board('/rankings/texas-districts/chronically-absent-highest', 'Texas school districts with the highest chronically absent share'),
+        bottom: board('/rankings/texas-districts/chronically-absent-lowest', 'Texas school districts with the lowest chronically absent share'),
+      },
+    },
+    region: {
+      score: {
+        top: board('/rankings/region-10-districts/overall-score-highest', 'Region 10 school districts with the highest overall score'),
+        bottom: board('/rankings/region-10-districts/overall-score-lowest', 'Region 10 school districts with the lowest overall score'),
+      },
+    },
+    county: null,
+  }
+
+  const placed = (over = {}) => ({
+    metric: 'score', label: 'Overall score', cohort: 'state', cohortLabel: 'Texas average',
+    rank: 3, of: 1_184, tied: 0, lowerIsBetter: false, ...over,
+  })
+
+  const ranked = (over = {}) =>
+    empty({ history: [{ year: '2025-26', rating: 'B', score: 85 }], rank: 400, rankOf: 1_184, regionRank: 35, regionRankOf: 110, ...over })
+
+  it('links the statewide and the region placement to the lists they came from', () => {
+    const html = verdict(ranked({ rankingLinks: LINKS }))
+    expect(html).toContain('<a href="/rankings/texas-districts/overall-score-highest"')
+    expect(html).toContain('<a href="/rankings/region-10-districts/overall-score-highest"')
+  })
+
+  it('keeps the whole claim inside the link, denominator included', () => {
+    const html = verdict(ranked({ rankingLinks: LINKS }))
+    expect(html).toMatch(/>400th of 1,184 Texas districts<\/a>/)
+    expect(html).toMatch(/>35th of 110 in Region 10<\/a>/)
+  })
+
+  it('renders the rank exactly as before when no ranking was built', () => {
+    const html = verdict(ranked())
+    expect(html).toContain('400th of 1,184 Texas districts')
+    expect(html).not.toContain('/rankings')
+  })
+
+  it('still renders an entity TEA gave no rank, rather than ordinal-ing a null', () => {
+    expect(verdict(ranked({ rank: null, regionRank: null, rankingLinks: LINKS }))).not.toContain('summary-rank')
+  })
+
+  // Was: 'Every Texas district ranked by overall score'. That claim is false
+  // once a board is a slice — see the truncation block below — so the
+  // aria-label is now the linked board's own title, read off the index.
+  it("labels the link with the board's own title, not a composed completeness claim", () => {
+    const html = verdict(ranked({ rankingLinks: LINKS }))
+    expect(html).toContain('aria-label="Texas school districts with the highest overall score"')
+    expect(html).toContain('aria-label="Region 10 school districts with the highest overall score"')
+    expect(html).not.toContain('Every Texas district ranked by overall score')
+  })
+
+  it('links a standout to its own full ranking', () => {
+    const html = standouts(empty({ rankingLinks: LINKS, ranks: [placed()], standouts: [placed()] }))
+    expect(html).toContain('href="/rankings/texas-districts/overall-score-highest"')
+    expect(html).toContain('aria-label="Full ranking: Overall score, Texas average"')
+  })
+
+  it('leaves a peer-band placement unlinked, because no static page can exist for one', () => {
+    // The band is defined relative to THIS entity's economically disadvantaged
+    // share, so there is no list to point at. Borrowing the statewide one would
+    // link a population the placement was never measured against.
+    const peer = placed({ cohort: 'peer', cohortLabel: 'Similar student population' })
+    const html = standouts(empty({ rankingLinks: LINKS, ranks: [peer], standouts: [peer] }))
+    expect(html).not.toContain('full ranking')
+  })
+
+  it('leaves a placement unlinked when its metric got no ranking at that scope', () => {
+    const county = placed({ cohort: 'county', cohortLabel: 'Dallas County' })
+    const salary = placed({ metric: 'avgSalary', label: 'Average teacher salary' })
+    const html = standouts(empty({ rankingLinks: LINKS, ranks: [county, salary], standouts: [county, salary] }))
+    expect(html).not.toContain('full ranking')
+  })
+
+  it('offers the unselected rankings, so "a selection, not a summary" is checkable', () => {
+    const vm = empty({ rankingsIndex: '/rankings', ranks: [placed()], standouts: [placed()] })
+    expect(standouts(vm)).toContain('<a href="/rankings">Every ranking this site publishes</a>')
+    expect(standouts(empty({ ranks: [placed()], standouts: [placed()] }))).not.toContain('/rankings')
+  })
+
+  it('reads a link only through the lookup, never by building a URL', () => {
+    expect(rankingHref(empty({ rankingLinks: LINKS }), 'score', 'state', 3, 1_184)).toBe(LINKS.state.score.top.href)
+    expect(rankingHref(empty({ rankingLinks: LINKS }), 'ccmr:0', 'state', 3, 1_184)).toBeNull()
+    expect(rankingHref(empty({ rankingLinks: LINKS }), 'score', 'county', 3, 1_184)).toBeNull()
+    expect(rankingHref(empty(), 'score', 'state', 3, 1_184)).toBeNull()
+  })
+})
+
+/* -------------------------------------------------- truncated boards (#1) -- */
+//
+// rankings-page.js prints only the first LIST_LIMIT rows of a long ordering:
+// overall-score-highest for campuses lists the top 1,500 of roughly 8,500, not
+// all of them. Before this fix, every entity page linked ONLY the 'highest'/
+// 'top' end regardless of where the entity actually placed, so ~82% of campus
+// pages sent the reader to a table that did not contain their own school.
+
+describe('rankingEnd: which board a rank actually appears on', () => {
+  const OF = 8_475 // roughly the statewide rated-campus population for score
+
+  it('picks the top (highest-value-first) board when the rank is inside its printed slice', () => {
+    expect(rankingEnd(1, OF)).toBe('top')
+    expect(rankingEnd(LIST_LIMIT, OF)).toBe('top') // the very last row the top page prints
+  })
+
+  it('picks the bottom (lowest-value-first) board when the rank falls in its slice instead', () => {
+    expect(rankingEnd(OF, OF)).toBe('bottom') // the worst entity: first row of 'bottom'
+    expect(rankingEnd(OF - LIST_LIMIT + 1, OF)).toBe('bottom') // the last row 'bottom' prints
+  })
+
+  it('picks neither for the unpublished middle band — no board lists this rank', () => {
+    const middle = Math.round(OF / 2)
+    expect(rankingEnd(middle, OF)).toBeNull()
+    expect(rankingEnd(LIST_LIMIT + 1, OF)).toBeNull() // one past the top slice
+    expect(rankingEnd(OF - LIST_LIMIT, OF)).toBeNull() // one short of the bottom slice
+  })
+
+  it('always resolves to top for a population that fits on one page', () => {
+    // Every Texas district population (state, region or county) is under
+    // LIST_LIMIT, so a district's own rank is always inside the 'top' page —
+    // this is why the defect was invisible on district pages and only
+    // surfaced on the ~8,500-entity statewide campus boards.
+    expect(rankingEnd(1_184, 1_184)).toBe('top')
+  })
+
+  it('reverses which end is "best" for a lower-is-better metric', () => {
+    // Chronic absence: rank 1 (the best result) is the SMALLEST value, so it
+    // sits at the very end of the 'top' (highest-value-first) ordering and at
+    // the front of 'bottom' — the opposite of a higher-is-better metric like
+    // score. Getting this backwards would link "highest chronic absenteeism"
+    // for a district whose actual standout is the LOWEST rate.
+    expect(rankingEnd(1, OF, true)).toBe('bottom')
+    expect(rankingEnd(OF, OF, true)).toBe('top')
+    const middle = Math.round(OF / 2)
+    expect(rankingEnd(middle, OF, true)).toBeNull()
+  })
+
+  it('treats a missing or nonsensical rank as unresolvable, not as a guess', () => {
+    expect(rankingEnd(null, OF)).toBeNull()
+    expect(rankingEnd(5, null)).toBeNull()
+    expect(rankingEnd(0, OF)).toBeNull()
+    expect(rankingEnd(OF + 1, OF)).toBeNull()
+  })
+})
+
+describe('rankedBoard / the verdict rank line on a truncated board', () => {
+  const OF = 8_475
+  const CAMPUS_LINKS = {
+    state: {
+      score: {
+        top: { href: '/rankings/texas-campuses/overall-score-highest', title: 'Texas campuses with the highest overall score' },
+        bottom: { href: '/rankings/texas-campuses/overall-score-lowest', title: 'Texas campuses with the lowest overall score' },
+      },
+    },
+  }
+
+  const campus = (over = {}) =>
+    empty({
+      level: 'campus',
+      history: [{ year: '2025-26', rating: 'B', score: 85 }],
+      rank: 1_200, rankOf: OF, regionRank: 0, regionRankOf: 0,
+      rankingLinks: CAMPUS_LINKS,
+      ...over,
+    })
+
+  it('links the highest-scored board for a campus ranked inside its slice', () => {
+    const html = verdict(campus())
+    expect(html).toContain('href="/rankings/texas-campuses/overall-score-highest"')
+    expect(html).not.toContain('/overall-score-lowest')
+  })
+
+  it('links the lowest-scored board instead for a campus ranked in the bottom slice', () => {
+    const html = verdict(campus({ rank: OF - 10, rankOf: OF }))
+    expect(html).toContain('href="/rankings/texas-campuses/overall-score-lowest"')
+    expect(html).not.toContain('/overall-score-highest')
+  })
+
+  it('links NEITHER board for a campus in the unpublished middle — the old defect', () => {
+    // Before this fix, this exact case still printed a link to '-highest', a
+    // page that does not contain this campus's row: the ~82% failure a
+    // verified audit found.
+    const middle = Math.round(OF / 2)
+    const html = verdict(campus({ rank: middle, rankOf: OF }))
+    expect(html).not.toContain('/rankings')
+    // The rank claim itself is still stated, just as plain, unlinked text.
+    expect(html).toContain(`${middle.toLocaleString('en-US')}th of ${OF.toLocaleString('en-US')} Texas schools`)
+    expect(html).not.toMatch(/<a[^>]*>[^<]*4,238/)
+  })
+
+  it("rankedBoard returns the board's own title so a caller never invents a completeness claim", () => {
+    const inSlice = rankedBoard(campus(), 'score', 'state', 1_200, OF)
+    expect(inSlice.title).toBe('Texas campuses with the highest overall score')
+    expect(rankedBoard(campus(), 'score', 'state', Math.round(OF / 2), OF)).toBeNull()
+  })
+})
+
+describe('standouts on a truncated board', () => {
+  const OF = 8_475
+  const CAMPUS_LINKS = {
+    state: {
+      'domain:achievement': {
+        top: { href: '/rankings/texas-campuses/achievement-highest', title: 'Texas campuses with the highest achievement domain score' },
+        bottom: { href: '/rankings/texas-campuses/achievement-lowest', title: 'Texas campuses with the lowest achievement domain score' },
+      },
+    },
+  }
+  const placement = (over = {}) => ({
+    metric: 'domain:achievement', label: 'Student Achievement', cohort: 'state', cohortLabel: 'Texas average',
+    rank: 5, of: OF, tied: 0, lowerIsBetter: false, ...over,
+  })
+
+  it('never calls a 1,500-row slice of ~8,500 entities "full"', () => {
+    const html = standouts(empty({
+      level: 'campus', rankingLinks: CAMPUS_LINKS, ranks: [placement()], standouts: [placement()],
+    }))
+    expect(html).not.toContain('full ranking')
+    expect(html).toContain('ranking (top 1,500 shown)')
+    expect(html).toContain('aria-label="Texas campuses with the highest achievement domain score"')
+  })
+
+  it('links nothing when the standout itself is not on either printed slice', () => {
+    const middle = placement({ rank: Math.round(OF / 2) })
+    const html = standouts(empty({
+      level: 'campus', rankingLinks: CAMPUS_LINKS, ranks: [middle], standouts: [middle],
+    }))
+    expect(html).not.toContain('/rankings')
   })
 })

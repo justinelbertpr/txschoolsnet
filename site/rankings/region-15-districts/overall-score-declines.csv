@@ -1,0 +1,60 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-15-districts/overall-score-declines
+# rows: 46 (excluding this header and the column row)
+# ranking: Region 15: San Angelo school districts with the largest overall score declines since 2021-22
+# population: 46 districts of 46 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,46,1,233903,Comstock ISD,Val Verde,C,-17,91,74,166,https://txschools.net/district/comstock-isd-233903
+1,46,1,042903,Santa Anna ISD,Coleman,C,-17,88,71,245,https://txschools.net/district/santa-anna-isd-042903
+3,46,1,052901,Crane ISD,Crane,D,-16,85,69,1228,https://txschools.net/district/crane-isd-052901
+3,46,1,025905,May ISD,Brown,C,-16,87,71,257,https://txschools.net/district/may-isd-025905
+5,46,0,233901,San Felipe-Del Rio CISD,Val Verde,C,-10,85,75,9494,https://txschools.net/district/san-felipe-del-rio-cisd-233901
+6,46,0,025908,Brookesmith ISD,Brown,C,-9,87,78,508,https://txschools.net/district/brookesmith-isd-025908
+7,46,0,218901,Sonora ISD,Sutton,C,-8,86,78,642,https://txschools.net/district/sonora-isd-218901
+8,46,0,134901,Junction ISD,Kimble,C,-7,79,72,552,https://txschools.net/district/junction-isd-134901
+9,46,0,206901,San Saba ISD,San Saba,C,-6,79,73,686,https://txschools.net/district/san-saba-isd-206901
+10,46,0,226906,Wall ISD,Tom Green,B,-5,94,89,1306,https://txschools.net/district/wall-isd-226906
+11,46,1,069902,Nueces Canyon CISD,Edwards,B,-4,87,83,198,https://txschools.net/district/nueces-canyon-cisd-069902
+11,46,1,200906,Olfen ISD,Runnels,B,-4,89,85,137,https://txschools.net/district/olfen-isd-200906
+13,46,3,053001,Crockett County Consolidated CSD,Crockett,B,-3,86,83,615,https://txschools.net/district/crockett-county-consolidated-csd-053001
+13,46,3,226907,Grape Creek ISD,Tom Green,C,-3,81,78,1192,https://txschools.net/district/grape-creek-isd-226907
+13,46,3,160904,Rochelle ISD,McCulloch,A,-3,98,95,166,https://txschools.net/district/rochelle-isd-160904
+13,46,3,207901,Schleicher ISD,Schleicher,B,-3,85,82,383,https://txschools.net/district/schleicher-isd-207901
+17,46,1,025909,Early ISD,Brown,B,-2,84,82,1087,https://txschools.net/district/early-isd-025909
+17,46,1,200904,Winters ISD,Runnels,B,-2,82,80,499,https://txschools.net/district/winters-isd-200904
+19,46,1,226901,Christoval ISD,Tom Green,B,0,87,87,628,https://txschools.net/district/christoval-isd-226901
+19,46,1,200902,Miles ISD,Runnels,A,0,95,95,497,https://txschools.net/district/miles-isd-200902
+21,46,5,025901,Bangs ISD,Brown,B,1,80,81,768,https://txschools.net/district/bangs-isd-025901
+21,46,5,160901,Brady ISD,McCulloch,B,1,82,83,857,https://txschools.net/district/brady-isd-160901
+21,46,5,041901,Bronte ISD,Coke,A,1,89,90,224,https://txschools.net/district/bronte-isd-041901
+21,46,5,157901,Mason ISD,Mason,A,1,91,92,675,https://txschools.net/district/mason-isd-157901
+21,46,5,164901,Menard ISD,Menard,B,1,84,85,249,https://txschools.net/district/menard-isd-164901
+21,46,5,042905,Panther Creek CISD,Coleman,B,1,81,82,139,https://txschools.net/district/panther-creek-cisd-042905
+27,46,1,118902,Irion County ISD,Irion,A,2,89,91,307,https://txschools.net/district/irion-county-isd-118902
+27,46,1,216901,Sterling City ISD,Sterling,A,2,92,94,312,https://txschools.net/district/sterling-city-isd-216901
+29,46,3,042901,Coleman ISD,Coleman,B,5,76,81,740,https://txschools.net/district/coleman-isd-042901
+29,46,3,086902,Harper ISD,Gillespie,B,5,83,88,566,https://txschools.net/district/harper-isd-086902
+29,46,3,041902,Robert Lee ISD,Coke,B,5,80,85,253,https://txschools.net/district/robert-lee-isd-041902
+29,46,3,226903,San Angelo ISD,Tom Green,C,5,71,76,12500,https://txschools.net/district/san-angelo-isd-226903
+33,46,2,200901,Ballinger ISD,Runnels,B,6,76,82,781,https://txschools.net/district/ballinger-isd-200901
+33,46,2,025902,Brownwood ISD,Brown,B,6,77,83,3293,https://txschools.net/district/brownwood-isd-025902
+33,46,2,133905,Divide ISD,Kerr,B,6,76,82,41,https://txschools.net/district/divide-isd-133905
+36,46,0,226905,Water Valley ISD,Tom Green,A,8,84,92,305,https://txschools.net/district/water-valley-isd-226905
+37,46,0,069901,Rocksprings ISD,Edwards,B,9,78,87,201,https://txschools.net/district/rocksprings-isd-069901
+38,46,1,048901,Eden CISD,Concho,B,11,73,84,217,https://txschools.net/district/eden-cisd-048901
+38,46,1,025906,Zephyr ISD,Brown,B,11,74,85,217,https://txschools.net/district/zephyr-isd-025906
+40,46,0,206902,Richland Springs ISD,San Saba,C,12,66,78,101,https://txschools.net/district/richland-springs-isd-206902
+41,46,0,048903,Paint Rock ISD,Concho,B,14,69,83,330,https://txschools.net/district/paint-rock-isd-048903
+42,46,1,226801,Texas Leadership Public Schools,Tom Green,B,17,66,83,4070,https://txschools.net/district/texas-leadership-public-schools-226801
+42,46,1,226908,Veribest ISD,Tom Green,B,17,72,89,258,https://txschools.net/district/veribest-isd-226908
+44,46,0,206903,Cherokee ISD,San Saba,B,20,69,89,127,https://txschools.net/district/cherokee-isd-206903
+45,46,0,025904,Blanket ISD,Brown,B,22,59,81,151,https://txschools.net/district/blanket-isd-025904
+46,46,0,160905,Lohn ISD,McCulloch,B,30,56,86,109,https://txschools.net/district/lohn-isd-160905

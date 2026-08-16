@@ -1,0 +1,124 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-10-districts/overall-score-highest
+# rows: 110 (excluding this header and the column row)
+# ranking: Region 10: Richardson school districts with the highest overall score in 2025-26
+# population: 110 districts of 112 districts are ranked here.
+# population: 2 were not rated by TEA for 2025-26 and are not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,110,1,057911,Highland Park ISD,Dallas,A,95,6215,https://txschools.net/district/highland-park-isd-057911
+1,110,1,043801,Imagine International Academy of North Texas,Collin,A,95,1438,https://txschools.net/district/imagine-international-academy-of-north-texas-043801
+3,110,1,043919,Lovejoy ISD,Collin,A,94,3841,https://txschools.net/district/lovejoy-isd-043919
+3,110,1,057919,Sunnyvale ISD,Dallas,A,94,2313,https://txschools.net/district/sunnyvale-isd-057919
+5,110,1,057922,Coppell ISD,Dallas,A,93,13047,https://txschools.net/district/coppell-isd-057922
+5,110,1,057808,Universal Academy,Dallas,A,93,2051,https://txschools.net/district/universal-academy-057808
+7,110,1,091907,Tioga ISD,Grayson,A,92,610,https://txschools.net/district/tioga-isd-091907
+7,110,1,043914,Wylie ISD,Collin,A,92,19400,https://txschools.net/district/wylie-isd-043914
+9,110,5,091901,Bells ISD,Grayson,A,91,1011,https://txschools.net/district/bells-isd-091901
+9,110,5,043905,Frisco ISD,Collin,A,91,62627,https://txschools.net/district/frisco-isd-043905
+9,110,5,043802,Imagine Lone Star International Academy,Collin,A,91,269,https://txschools.net/district/imagine-lone-star-international-academy-043802
+9,110,5,043908,Melissa ISD,Collin,A,91,8560,https://txschools.net/district/melissa-isd-043908
+9,110,5,043912,Prosper ISD,Collin,A,91,33583,https://txschools.net/district/prosper-isd-043912
+9,110,5,199901,Rockwall ISD,Rockwall,A,91,19077,https://txschools.net/district/rockwall-isd-199901
+15,110,3,043901,Allen ISD,Collin,A,90,20092,https://txschools.net/district/allen-isd-043901
+15,110,3,074904,Dodd City ISD,Fannin,A,90,319,https://txschools.net/district/dodd-city-isd-074904
+15,110,3,057834,Evolution Academy Charter School,Dallas,A,90,639,https://txschools.net/district/evolution-academy-charter-school-057834
+15,110,3,091913,Pottsboro ISD,Grayson,A,90,1363,https://txschools.net/district/pottsboro-isd-091913
+19,110,1,070908,Midlothian ISD,Ellis,B,89,11537,https://txschools.net/district/midlothian-isd-070908
+19,110,1,057845,UME Preparatory Academy,Dallas,B,89,1766,https://txschools.net/district/ume-preparatory-academy-057845
+21,110,2,116902,Celeste ISD,Hunt,B,88,471,https://txschools.net/district/celeste-isd-116902
+21,110,2,074917,Sam Rayburn ISD,Fannin,B,88,477,https://txschools.net/district/sam-rayburn-isd-074917
+21,110,2,091910,Whitewright ISD,Grayson,B,88,791,https://txschools.net/district/whitewright-isd-091910
+24,110,6,116915,Bland ISD,Hunt,B,87,777,https://txschools.net/district/bland-isd-116915
+24,110,6,116901,Caddo Mills ISD,Hunt,B,87,3325,https://txschools.net/district/caddo-mills-isd-116901
+24,110,6,129905,Mabank ISD,Kaufman,B,87,4098,https://txschools.net/district/mabank-isd-129905
+24,110,6,043907,McKinney ISD,Collin,B,87,23667,https://txschools.net/district/mckinney-isd-043907
+24,110,6,070910,Palmer ISD,Ellis,B,87,1382,https://txschools.net/district/palmer-isd-070910
+24,110,6,057836,St Anthony School,Dallas,B,87,321,https://txschools.net/district/st-anthony-school-057836
+24,110,6,091908,Van Alstyne ISD,Grayson,B,87,2856,https://txschools.net/district/van-alstyne-isd-091908
+31,110,3,234902,Canton ISD,Van Zandt,B,86,2249,https://txschools.net/district/canton-isd-234902
+31,110,3,057909,Garland ISD,Dallas,B,86,49060,https://txschools.net/district/garland-isd-057909
+31,110,3,129903,Kaufman ISD,Kaufman,B,86,4208,https://txschools.net/district/kaufman-isd-129903
+31,110,3,129910,Scurry-Rosser ISD,Kaufman,B,86,1052,https://txschools.net/district/scurry-rosser-isd-129910
+35,110,6,043903,Celina ISD,Collin,B,85,6337,https://txschools.net/district/celina-isd-043903
+35,110,6,057905,Dallas ISD,Dallas,B,85,134302,https://txschools.net/district/dallas-isd-057905
+35,110,6,061804,Leadership Prep School,Denton,B,85,1894,https://txschools.net/district/leadership-prep-school-061804
+35,110,6,057846,Legacy Preparatory,Dallas,B,85,914,https://txschools.net/district/legacy-preparatory-057846
+35,110,6,116906,Lone Oak ISD,Hunt,B,85,1090,https://txschools.net/district/lone-oak-isd-116906
+35,110,6,043910,Plano ISD,Collin,B,85,43805,https://txschools.net/district/plano-isd-043910
+35,110,6,057828,Winfree Academy Charter Schools,Dallas,B,85,1051,https://txschools.net/district/winfree-academy-charter-schools-057828
+42,110,0,043904,Farmersville ISD,Collin,B,84,2523,https://txschools.net/district/farmersville-isd-043904
+43,110,4,091902,Collinsville ISD,Grayson,B,83,647,https://txschools.net/district/collinsville-isd-091902
+43,110,4,070905,Ferris ISD,Ellis,B,83,3031,https://txschools.net/district/ferris-isd-070905
+43,110,4,091917,Gunter ISD,Grayson,B,83,1153,https://txschools.net/district/gunter-isd-091917
+43,110,4,057916,Richardson ISD,Dallas,B,83,36142,https://txschools.net/district/richardson-isd-057916
+43,110,4,116909,Wolfe City ISD,Hunt,B,83,694,https://txschools.net/district/wolfe-city-isd-116909
+48,110,3,116916,Boles ISD,Hunt,B,82,530,https://txschools.net/district/boles-isd-116916
+48,110,3,057844,Manara Academy,Dallas,B,82,658,https://txschools.net/district/manara-academy-057844
+48,110,3,074912,Trenton ISD,Fannin,B,82,730,https://txschools.net/district/trenton-isd-074912
+48,110,3,057847,Village Tech Schools,Dallas,B,82,1330,https://txschools.net/district/village-tech-schools-057847
+52,110,5,057903,Carrollton-Farmers Branch ISD,Dallas,B,81,22831,https://txschools.net/district/carrollton-farmers-branch-isd-057903
+52,110,5,057848,International Leadership of Texas (ILTexas),Dallas,B,81,26257,https://txschools.net/district/international-leadership-of-texas-iltexas-057848
+52,110,5,074909,Leonard ISD,Fannin,B,81,840,https://txschools.net/district/leonard-isd-074909
+52,110,5,057827,Nova Academy Southeast,Dallas,B,81,181,https://txschools.net/district/nova-academy-southeast-057827
+52,110,5,043911,Princeton ISD,Collin,B,81,11375,https://txschools.net/district/princeton-isd-043911
+52,110,5,057804,Texans Can Academies,Dallas,B,81,2880,https://txschools.net/district/texans-can-academies-057804
+58,110,10,070901,Avalon ISD,Ellis,B,80,316,https://txschools.net/district/avalon-isd-070901
+58,110,10,043918,Community ISD,Collin,B,80,5764,https://txschools.net/district/community-isd-043918
+58,110,10,074905,Ector ISD,Fannin,B,80,234,https://txschools.net/district/ector-isd-074905
+58,110,10,057910,Grand Prairie ISD,Dallas,B,80,25445,https://txschools.net/district/grand-prairie-isd-057910
+58,110,10,070907,Italy ISD,Ellis,B,80,599,https://txschools.net/district/italy-isd-070907
+58,110,10,057913,Lancaster ISD,Dallas,B,80,6431,https://txschools.net/district/lancaster-isd-057913
+58,110,10,057807,Life School,Dallas,B,80,5560,https://txschools.net/district/life-school-057807
+58,110,10,057914,Mesquite ISD,Dallas,B,80,36585,https://txschools.net/district/mesquite-isd-057914
+58,110,10,091918,Tom Bean ISD,Grayson,B,80,763,https://txschools.net/district/tom-bean-isd-091918
+58,110,10,057803,Uplift Education,Dallas,B,80,23539,https://txschools.net/district/uplift-education-057803
+58,110,10,070912,Waxahachie ISD,Ellis,B,80,11092,https://txschools.net/district/waxahachie-isd-070912
+69,110,3,057829,A' Academy,Dallas,C,79,1703,https://txschools.net/district/a-academy-057829
+69,110,3,129902,Forney ISD,Kaufman,C,79,19643,https://txschools.net/district/forney-isd-129902
+69,110,3,057850,Pioneer Technology & Arts Academy,Dallas,C,79,2400,https://txschools.net/district/pioneer-technology-arts-academy-057850
+69,110,3,116908,Quinlan ISD,Hunt,C,79,2974,https://txschools.net/district/quinlan-isd-116908
+73,110,7,091903,Denison ISD,Grayson,C,78,4742,https://txschools.net/district/denison-isd-091903
+73,110,7,070903,Ennis ISD,Ellis,C,78,6621,https://txschools.net/district/ennis-isd-070903
+73,110,7,057912,Irving ISD,Dallas,C,78,29182,https://txschools.net/district/irving-isd-057912
+73,110,7,070915,Maypearl ISD,Ellis,C,78,1217,https://txschools.net/district/maypearl-isd-070915
+73,110,7,070911,Red Oak ISD,Ellis,C,78,6569,https://txschools.net/district/red-oak-isd-070911
+73,110,7,199902,Royse City ISD,Rockwall,C,78,10141,https://txschools.net/district/royse-city-isd-199902
+73,110,7,074911,Savoy ISD,Fannin,C,78,301,https://txschools.net/district/savoy-isd-074911
+73,110,7,091909,Whitesboro ISD,Grayson,C,78,1757,https://txschools.net/district/whitesboro-isd-091909
+81,110,3,057806,Advantage Academy,Dallas,C,77,909,https://txschools.net/district/advantage-academy-057806
+81,110,3,043917,Blue Ridge ISD,Collin,C,77,1056,https://txschools.net/district/blue-ridge-isd-043917
+81,110,3,070801,Faith Family Academy,Ellis,C,77,2883,https://txschools.net/district/faith-family-academy-070801
+81,110,3,091905,Howe ISD,Grayson,C,77,1191,https://txschools.net/district/howe-isd-091905
+85,110,1,107901,Athens ISD,Henderson,C,76,2938,https://txschools.net/district/athens-isd-107901
+85,110,1,057839,La Academia De Estrellas,Dallas,C,76,1021,https://txschools.net/district/la-academia-de-estrellas-057839
+87,110,2,070909,Milford ISD,Ellis,C,75,277,https://txschools.net/district/milford-isd-070909
+87,110,2,057813,Trinity Basin Preparatory,Dallas,C,75,6741,https://txschools.net/district/trinity-basin-preparatory-057813
+87,110,2,234907,Wills Point ISD,Van Zandt,C,75,2882,https://txschools.net/district/wills-point-isd-234907
+90,110,2,043902,Anna ISD,Collin,C,74,6686,https://txschools.net/district/anna-isd-043902
+90,110,2,057841,Cityscape Schools,Dallas,C,74,1218,https://txschools.net/district/cityscape-schools-057841
+90,110,2,091914,S and S CISD,Grayson,C,74,923,https://txschools.net/district/s-and-s-cisd-091914
+93,110,2,129901,Crandall ISD,Kaufman,C,73,7455,https://txschools.net/district/crandall-isd-129901
+93,110,2,091906,Sherman ISD,Grayson,C,73,7452,https://txschools.net/district/sherman-isd-091906
+93,110,2,129906,Terrell ISD,Kaufman,C,73,5178,https://txschools.net/district/terrell-isd-129906
+96,110,2,057904,Cedar Hill ISD,Dallas,C,72,5876,https://txschools.net/district/cedar-hill-isd-057904
+96,110,2,057907,Duncanville ISD,Dallas,C,72,10988,https://txschools.net/district/duncanville-isd-057907
+96,110,2,116905,Greenville ISD,Hunt,C,72,5435,https://txschools.net/district/greenville-isd-116905
+99,110,1,057906,Desoto ISD,Dallas,C,71,5564,https://txschools.net/district/desoto-isd-057906
+99,110,1,057830,Inspired Vision Academy,Dallas,C,71,1103,https://txschools.net/district/inspired-vision-academy-057830
+101,110,0,074903,Bonham ISD,Fannin,C,70,1939,https://txschools.net/district/bonham-isd-074903
+102,110,2,116910,Campbell ISD,Hunt,D,69,298,https://txschools.net/district/campbell-isd-116910
+102,110,2,057831,Gateway Charter Academy,Dallas,D,69,430,https://txschools.net/district/gateway-charter-academy-057831
+102,110,2,057819,Jean Massieu Academy,Dallas,D,69,172,https://txschools.net/district/jean-massieu-academy-057819
+105,110,1,057835,Golden Rule Charter School,Dallas,D,68,1285,https://txschools.net/district/golden-rule-charter-school-057835
+105,110,1,129904,Kemp ISD,Kaufman,D,68,2017,https://txschools.net/district/kemp-isd-129904
+107,110,1,116903,Commerce ISD,Hunt,D,67,1526,https://txschools.net/district/commerce-isd-116903
+107,110,1,057833,Education Center International Academy,Dallas,D,67,144,https://txschools.net/district/education-center-international-academy-057833
+109,110,0,057802,Pegasus School of Liberal Arts and Sciences,Dallas,D,66,277,https://txschools.net/district/pegasus-school-of-liberal-arts-and-sciences-057802
+110,110,0,057809,Nova Academy,Dallas,F,47,67,https://txschools.net/district/nova-academy-057809

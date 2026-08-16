@@ -58,6 +58,13 @@
 //
 //     10,573 + (1,199 x 2 = 2,398) = 12,971 files, 5,029 under the CI guard.
 //
+// The ranked lists spend from those 5,029, and they are capped at a quarter of
+// them (RANKING_FILE_BUDGET, 1,200) so that a plan which starts emitting one
+// board per district fails here with the arithmetic printed rather than at
+// deploy time. Ranking pages are cohort-shaped, not entity-shaped — one page per
+// (metric, scope), where scope is the state, one of 20 regions or one of 253
+// counties — which is why they fit at all and entity-shaped files do not.
+//
 // Districts win the slots because they are the low-cardinality half (1,199 vs
 // 9,031) and the half people download — a district's record is the unit a comms
 // officer, a board member or a reporter works in.
@@ -106,7 +113,7 @@ import { availableParallelism } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { deflateSync, gunzipSync } from 'node:zlib'
 import { existsSync, readFileSync } from 'node:fs'
-import { readdir, writeFile, stat, rm } from 'node:fs/promises'
+import { readdir, writeFile, stat, rm, mkdir } from 'node:fs/promises'
 
 import { resetDir } from './lib/reset-dir.js'
 import { latestSnapshot } from './build.js'
@@ -122,6 +129,28 @@ import { searchIndexJson, searchClientJs, renderSearchPage, SEARCH_LETTERS } fro
 import { APPLE_TOUCH_ICON, BRAND, MARK_BARS, OG_IMAGE, faviconSvg, shell } from './render/shell.js'
 import { renderAboutPage } from './render/about.js'
 import { renderDownloadPage, datasetCsv, entityCsv, entityJson } from './render/downloads.js'
+import { RANKABLE, CHANGE_METRICS, MIN_POPULATION, rankingBundles, rankBy, changeMetrics, scopeKey } from './render/rankings.js'
+import {
+  DEFAULT_PLAN,
+  RANKINGS_HREF,
+  isHeadlineMetric,
+  rankingCatalogue,
+  relatedFor,
+  renderRankingPage,
+  renderRankingsIndexPage,
+} from './render/rankings-page.js'
+
+// A second, namespace import of the same module, for one export the line above
+// deliberately does NOT name: rankingCsv. Its owner (src/render/rankings-page.js)
+// is adding it alongside this build, not before it — `import { rankingCsv } from
+// ...` is a NAMED import, and Node throws a SyntaxError at module load, for every
+// test and every page this file renders, the instant a named import does not
+// exist on the target module. That would take the whole build down over a
+// function this step does not own and has not landed yet. Reading it off the
+// namespace object instead resolves to `undefined` until the export lands, which
+// lets the write loop below degrade to "skip the CSV for this build" rather than
+// "fail every page render". See the loop for how the presence check is made.
+import * as rankingsPageModule from './render/rankings-page.js'
 
 export const SITE_ORIGIN = 'https://txschools.net'
 
@@ -350,14 +379,27 @@ export async function writeBrandAssets(dir = 'site') {
 
 const SHARD_TAG = 'txschools:prerender-shard'
 
-/** One stripe of the entity list: pages, plus data files for the districts in it. */
-async function renderShard({ dir, index, stride, snapshotDate }) {
+/**
+ * One stripe of the entity list: pages, plus data files for the districts in it.
+ *
+ * `rankIndex` arrives through workerData (structured-cloned once per worker, a
+ * few hundred strings) and is attached to each view model rather than computed
+ * inside buildViewModel — view-model.js is not this step's to edit, and the
+ * index is a fact about which FILES this run wrote, which only this step knows.
+ */
+async function renderShard({ dir, index, stride, snapshotDate, rankIndex = null, rankingsIndex = null }) {
   const t = loadTables(dir)
-  const stats = { pages: 0, district: 0, campus: 0, dataFiles: 0, htmlBytes: 0, dataBytes: 0, largest: null }
+  const stats = { pages: 0, district: 0, campus: 0, dataFiles: 0, htmlBytes: 0, dataBytes: 0, largest: null, linked: 0 }
 
   for (let i = index; i < t.entities.length; i += stride) {
     const e = t.entities[i]
     const vm = viewModelFor(t, e, snapshotDate)
+    const links = rankingLinksFor(rankIndex, e)
+    if (rankingsIndex) vm.rankingsIndex = rankingsIndex
+    if (links) {
+      vm.rankingLinks = links
+      stats.linked += 1
+    }
     const html = renderEntity(vm)
     const path = entityPath(e)
     const bytes = Buffer.byteLength(html)
@@ -435,7 +477,414 @@ export function hubPlan(entities, regionNames) {
 
   return { districts, regions, counties, state }
 }
+/* --------------------------------------------------------------- rankings -- */
+//
+// The ranked lists, and the wiring that makes them reachable.
+//
+// WHAT WAS MISSING. Until these pages existed the only ranks this site published
+// were single-entity and single-year, shown on the profile of the entity they
+// flattered: "Ranks 400th of 1,184 Texas districts" with no link to the other
+// 1,183, and a standouts section that showed a district's best twelve placements
+// and none of its worst. There was no page anywhere on the site — not statewide,
+// not by region, not by county — on which the sentence "the top 20 districts in
+// Texas" could be read off. The largest list was /region/10: 112 districts
+// ordered by score, unsortable, and never labelled as an ordering at all.
+//
+// WHO OWNS WHAT. This step owns none of the ranking arithmetic and none of the
+// ranking markup. src/render/rankings.js computes a ranked population from the
+// snapshot; src/render/rankings-page.js turns one of those into a page and
+// declares, in rankingCatalogue, which (metric x scope x end) combinations are
+// worth a file. This file is the driver between them: it decides which
+// populations are offered, computes each result once, writes the pages, puts
+// them in the sitemap, counts them against the asset budget, and — the part that
+// matters most here — hands every OTHER page the hrefs it needs, so a rank
+// printed anywhere on the site links to the list it came out of.
+//
+// ------------------------------------------------------ LINKS ARE A LOOKUP
+//
+// No entity page and no hub constructs a ranking URL. Every board that is
+// actually written contributes its href to an index keyed by
+//
+//     level ("district" | "campus")  ->  scope  ->  metric key  ->  href
+//
+// where scope is 'state', `region:<id>` or `county:<id>`. Each entity is handed
+// the three slices of that index that apply to it, and src/render/sections.js
+// emits a link only where it finds one.
+//
+// That is deliberately the opposite of a URL-scheme constant shared between the
+// renderer and the linker. A shared scheme has to be kept in step by two files
+// edited at different times, and its failure mode is a 10,230-page site full of
+// links to pages that were renamed or never built. A lookup cannot fail that
+// way: an href is in the index because the file was written, in this run, at
+// that path. Drop a board and its links disappear with it; add one and it is
+// linked with no change to sections.js at all.
+//
+// Two populations are absent from that index on purpose:
+//
+//   The peer band. "Districts within 10 points of this district's economically
+//   disadvantaged share" is a different population for every district, so no
+//   static page can exist for it. A standout measured against the band is left
+//   unlinked rather than pointed at a statewide list it never entered.
+//
+//   Any board whose result was suppressed. rankings.js will not publish a rank
+//   out of fewer than MIN_POPULATION, so those entries are dropped before
+//   anything is written — no file, no sitemap entry, no link, and no thin page
+//   saying "nothing to rank" for a crawler to find.
+//
+// --------------------------------------------------------- THE FILE BUDGET
+//
+// 12,971 files before this section, an 18,000 CI guard and a 20,000 hard cap, so
+// 5,029 spare. What the plan below asks for:
+//
+//     statewide districts   37 metrics x 2 ends                 74
+//     statewide campuses     7 metrics x 2 ends                 14
+//     regions                2 metrics x 20 regions x 2 ends    80
+//     counties               2 metrics x 22 counties x 2 ends   88
+//     the /rankings index                                        1
+//     -----------------------------------------------------------
+//                                                              257
+//
+// 12,971 + 257 = 13,228, which is 4,772 under the CI guard. Both ends of every
+// ordering are published, which is why every line doubles: a site that prints
+// only the flattering half of an ordering is advertising, and the second half
+// costs one file.
+//
+// Every one of the 256 board files (257 minus the /rankings index, which has
+// no CSV of its own) ships a CSV beside its HTML now — rankingCsv, wired in
+// the write loop below — so the true cost of this section is roughly double:
+// 257 + 256 = 513. 12,971 + 513 = 13,484, still 4,516 under the CI guard and
+// well inside the quarter of the 5,029 spare files this section is allotted:
+// RANKING_FILE_BUDGET counts the HTML catalogue only, and a CSV is exactly
+// one-for-one with an HTML board, so doubling the HTML count (already capped
+// below) is enough to know the CSV count can never overrun the budget either.
+//
+// Ranking pages are cohort-shaped, not entity-shaped — one page per (metric,
+// scope) — which is why they fit at all when per-entity files do not. The guard
+// below is what stops that from changing quietly: a plan that starts emitting
+// one board per district fails here with the arithmetic printed, rather than at
+// deploy time.
 
+export const RANKING_FILE_BUDGET = 1_200
+
+/** A board's CSV, same path as its HTML with the extension swapped. */
+export const rankingCsvFile = (htmlFile) => String(htmlFile ?? '').replace(/\.html$/, '.csv')
+
+/**
+ * Which counties are offered a ranking at all.
+ *
+ * rankings.js refuses to publish a rank out of fewer than MIN_POPULATION, on the
+ * same reasoning metrics.js uses: 4th of 6 is a fact about a small county, not a
+ * placement anyone can cite. 231 of the 253 Texas counties hold fewer than ten
+ * rated districts, so offering them a ranking page would mean 924 files, most of
+ * them suppressed on arrival.
+ *
+ * The 22 that clear the bar are the ones where the question has an answer, and
+ * they are the populous ones — Harris, Dallas, Bexar, Tarrant, Travis — so most
+ * Texas parents asking "the best districts in my county" get a page. The rest
+ * keep their county hub's score-ordered table and a link to the rankings index,
+ * which is the honest resolution rather than a page ranking four districts.
+ */
+export const countyRankingScopes = (counties, level = 'district') =>
+  counties
+    .map((c) => ({
+      c,
+      rated: c.rows.filter((e) => e.level === level && typeof e.score === 'number' && Number.isFinite(e.score)).length,
+    }))
+    .filter(({ rated }) => rated >= MIN_POPULATION)
+    .map(({ c }) => ({
+      kind: 'county',
+      // `id` is what rankings.js partitions on (SCOPES.county reads countyId);
+      // `slug` is only the URL segment, and `countySlug` is what the link index
+      // is keyed by, so /county/dallas and its ranking agree on one spelling.
+      id: c.rows.find((e) => e.countyId != null)?.countyId ?? c.slug,
+      slug: `${c.slug}-county`,
+      countySlug: c.slug,
+      label: `${c.name} County`,
+      level,
+      href: `/county/${c.slug}`,
+    }))
+
+/**
+ * The metric set offered to the catalogue: everything rankings.js declares
+ * rankable, plus a change variant for the seven measures that have real history.
+ *
+ * The change variants are separate metric objects rather than a flag on the
+ * page, because rankings-page.js keys almost everything off the metric — the URL
+ * segment, the headline verb ("largest gains" not "highest"), the signed
+ * formatting, the cross-links. `kind: 'change'` is what its isChangeMetric
+ * reads; the `change:` key prefix says the same thing a second way, so a spread
+ * that dropped one signal cannot silently turn a change page back into a level
+ * page. The slug is deliberately NOT changed: the end segment already differs
+ * (`-gains` / `-declines` against `-highest` / `-lowest`), so the paths cannot
+ * collide and the URLs stay readable.
+ *
+ * STAAR, CCMR, graduation and absenteeism get no change variant, and that is a
+ * fact about the snapshot rather than an omission: TEA publishes them for the
+ * current year only. Differencing a single year against itself would be
+ * fabrication. They become rankable over time from the second annual snapshot,
+ * which is what the dated archive exists for.
+ */
+export function rankingMetrics() {
+  const change = CHANGE_METRICS.map((m) => ({
+    ...m,
+    key: `change:${m.key}`,
+    base: m,
+    kind: 'change',
+    label: m.changeTitle ?? `Change in ${m.label}`,
+    title: m.changeTitle ?? `Change in ${m.label}`,
+    // The thing measured, for the headline: "the largest overall score gains".
+    // Left un-lowered: rankings-page.js's nounOf()/lower1() already sentence-
+    // cases this correctly, and only for labels that are sentence case
+    // throughout — pre-lowering it here stripped the internal capitals off
+    // Title Case labels ("Student Achievement" -> "student achievement")
+    // before that check ever ran.
+    noun: String(m.label ?? ''),
+  }))
+  return [...RANKABLE, ...change]
+}
+
+/** State (both levels), every region, and the counties big enough to rank. */
+export function rankingScopes({ regions, counties }) {
+  return [
+    { kind: 'state', label: 'Texas', level: 'district' },
+    { kind: 'state', label: 'Texas', level: 'campus' },
+    ...regions.map((r) => ({ kind: 'region', id: r.id, label: r.name, level: 'district', href: `/region/${r.id}` })),
+    ...countyRankingScopes(counties),
+  ]
+}
+
+/**
+ * DEFAULT_PLAN gives statewide districts every metric, statewide campuses the
+ * ones TEA scores every campus on, and regions the headline pair. Counties are
+ * added here rather than there: rankings-page.js left them out on the grounds
+ * that 253 counties x 2 metrics x 2 ends is 1,012 pages for populations mostly
+ * too small to rank, which is correct for all 253 and wrong for the 22 that
+ * clear MIN_POPULATION. countyRankingScopes is what makes the difference — the
+ * plan only ever sees counties that can carry a real ranking.
+ */
+export const RANKING_PLAN = [...DEFAULT_PLAN, { kind: 'county', level: 'district', select: isHeadlineMetric }]
+
+/**
+ * The exclusion lines, as prose that agrees with its own count.
+ *
+ * rankings.js returns exclusions as a tally; rankings-page.js prints each as
+ * "<n> <reason> and are not ranked", and reconciles the total against the
+ * population — a page whose named exclusions do not add up says so out loud. So
+ * every reason is a verb phrase, and every one is written for both numbers: "1
+ * was not rated by TEA" and "15 were not rated by TEA".
+ */
+const EXCLUSION_REASONS = {
+  notRated: (n, year) => `${n === 1 ? 'was' : 'were'} not rated by TEA for ${year}`,
+  population: (n) =>
+    `${n === 1 ? 'is' : 'are'} judged under the other accountability standard, on which this measure means something different`,
+  sector: (n) => `${n === 1 ? 'was' : 'were'} removed by the sector filter`,
+  aea: (n) => `${n === 1 ? 'was' : 'were'} removed by the alternative-education filter`,
+  noValue: (n) => `reported no figure for this measure`,
+  noStart: (n) => `${n === 1 ? 'has' : 'have'} no figure at the start of the window`,
+  noEnd: (n) => `${n === 1 ? 'has' : 'have'} no figure at the end of the window`,
+}
+
+// `level` and `scope` count the entities this page was never about — the wrong
+// level, or a different county — and naming them would put "9,031 campuses are
+// not ranked" under a table of districts.
+const EXCLUDED_HERE = ['notRated', 'population', 'sector', 'aea', 'noValue', 'noStart', 'noEnd']
+
+export function rankingMeta(result, latestYear) {
+  const tally = result.population?.excluded ?? {}
+  const excluded = EXCLUDED_HERE.map((k) => ({ k, n: tally[k] ?? 0 }))
+    .filter((x) => x.n > 0)
+    .map(({ k, n }) => ({ n, reason: EXCLUSION_REASONS[k](n, latestYear) }))
+
+  // The population the page states is exactly what it can account for: the rows
+  // it ranked plus every exclusion it names. `result.population.eligible` counts
+  // the pool AFTER rankings.js has already dropped the unrated and the
+  // wrong-population, so publishing that as the denominator alongside the same
+  // exclusions would double-count them and trip the reconciliation warning.
+  const named = excluded.reduce((a, x) => a + x.n, 0)
+  const w = result.window
+
+  return {
+    eligible: (result.population?.n ?? result.rows.length) + named,
+    excluded,
+    window: w ? `since ${w.from}` : latestYear ? `in ${latestYear}` : null,
+    fromLabel: w?.from ?? null,
+    toLabel: w?.to ?? null,
+    methodology: w?.methodology ?? null,
+  }
+}
+
+/**
+ * A ranked row as the table wants it. rankings.js keeps the demographic shares
+ * in `context` so a ranking can never BE of them (see its CONTEXT note); the
+ * table reads enrollment and the two slugs from the top level, so those three
+ * are lifted and the shares stay where they are.
+ */
+const rankingRow = (r) => {
+  // A district's own districtName is itself, and rankings-page.js chooses the
+  // context column by asking whether the rows carry one — so passing it through
+  // gave a district ranking two "District" columns holding the same name twice.
+  // The useful context for a district is its county; for a campus it is the
+  // district it belongs to, which is why only the district rows drop it.
+  const ofDistrict = r.level === 'district'
+  return {
+    ...r,
+    enrollment: r.context?.enrollment ?? null,
+    countySlug: r.county ? slugify(r.county) : null,
+    districtName: ofDistrict ? null : r.districtName ?? null,
+    districtSlug: !ofDistrict && r.districtName && r.districtId ? `${slugify(r.districtName)}-${r.districtId}` : null,
+  }
+}
+
+/**
+ * The rows for one end of one ordering.
+ *
+ * `end` is a statement about the VALUE — 'top' is the highest figure, 'bottom'
+ * the lowest — never about the result, which is why chronic absenteeism has a
+ * "highest" page that is its worst end and the page says so in words.
+ * rankings.js sorts best-first, which is the opposite order for a metric where
+ * less is better, so the rows are re-sorted here and their placements are
+ * dropped: rankings-page.js recomputes them from the values with the same
+ * competition rule (ties share a placement, the next skips), and a rank counted
+ * from the other end of the list would otherwise travel with the row and be kept.
+ */
+export const rankingRows = (result, end) =>
+  [...result.rows]
+    .sort((a, b) => (end === 'bottom' ? a.value - b.value : b.value - a.value))
+    .map(({ rank, tied, pctile, ...r }) => rankingRow(r))
+
+/**
+ * Every ranking page this build will write, computed but not yet rendered.
+ *
+ * Computed early, before the entity shards are spawned, because the link index
+ * has to travel into the workers with them. Rendering waits until after: ~250
+ * page renders competing with ten CPU-bound shards for the same cores costs more
+ * than it saves.
+ *
+ * One result serves both ends of an ordering, so the catalogue's ~257 entries
+ * cost ~129 rankings rather than 257.
+ */
+export function planRankings({ entities, bundles, regions, counties, latestYear }) {
+  const catalogue = rankingCatalogue({
+    metrics: rankingMetrics(),
+    scopes: rankingScopes({ regions, counties }),
+    plan: RANKING_PLAN,
+  })
+
+  if (catalogue.length + 1 > RANKING_FILE_BUDGET) {
+    throw new Error(
+      `the ranking catalogue asks for ${catalogue.length.toLocaleString('en-US')} pages plus an index; ` +
+        `this section's budget is ${RANKING_FILE_BUDGET.toLocaleString('en-US')} files.\n` +
+        `site/ held 12,971 files before rankings, the CI guard is 18,000 and the Workers hard cap is 20,000, ` +
+        `so there are 5,029 spare and rankings may spend a quarter of them.\n` +
+        `Read the FILE BUDGET note above RANKING_FILE_BUDGET before raising it — the usual cause is a scope ` +
+        `list that grew per-entity rather than per-cohort.`
+    )
+  }
+
+  const cache = new Map()
+  const kept = []
+  const suppressed = []
+
+  for (const entry of catalogue) {
+    const { metric, scope } = entry
+    const level = scope.level ?? 'district'
+    const where = scope.kind === 'state' ? 'state' : { kind: scope.kind, id: scope.id }
+    const ck = `${metric.key}|${level}|${scopeKey(where)}`
+
+    if (!cache.has(ck)) {
+      const args = { entities, bundles, scope: where, level, latestYear }
+      cache.set(
+        ck,
+        metric.base
+          ? changeMetrics({ ...args, metric: metric.base.key })
+          : rankBy({ ...args, metric: metric.key })
+      )
+    }
+    const result = cache.get(ck)
+
+    // Suppressed populations are not written at all. A page saying "nothing to
+    // rank" is a file, a sitemap entry and a crawl budget spent on a table with
+    // no rows in it; the count is reported instead.
+    if (!result.published || result.rows.length < MIN_POPULATION) {
+      suppressed.push(entry)
+      continue
+    }
+    kept.push({ ...entry, result, level, n: result.population?.n ?? result.rows.length })
+  }
+
+  return { kept, suppressed, catalogue }
+}
+
+/**
+ * level -> scope -> metric -> { top, bottom }, over the boards that were
+ * actually kept. `top`/`bottom` are each either null (that end was never
+ * built, which the suppression rule in planRankings makes true for BOTH ends
+ * of a metric at once — they share one underlying result) or `{ href, title }`.
+ *
+ * BOTH ends are indexed, not just 'top'. The reason is that rankings-page.js
+ * prints only the first LIST_LIMIT rows of a long ranking (topSlice / the
+ * `shown` slice in renderRankingPage): overall-score-highest for campuses
+ * lists the top 1,500 of roughly 8,500, not all of them. An entity ranked
+ * past that slice does not appear on the 'top' page at all — only on
+ * 'bottom', if it falls in the last 1,500 instead — and a huge middle band
+ * appears on NEITHER. src/render/sections.js:rankedBoard is what works out
+ * which (if either) actually contains a given entity's row, from that
+ * entity's own rank; this index only has to carry both hrefs for it to
+ * choose between, plus each board's own title so a caller can label the
+ * link with the board's actual heading ("Texas school districts with the
+ * highest overall score") instead of composing a completeness claim
+ * ("Every ... ranked by ...") that a 1,500-row slice cannot back.
+ */
+export function rankingIndex(kept) {
+  const idx = {}
+  for (const b of kept) {
+    const scope = b.scope.kind === 'state' ? 'state' : `${b.scope.kind}:${b.scope.countySlug ?? b.scope.id}`
+    const slot = (((idx[b.level] ??= {})[scope] ??= {})[b.metric.key] ??= {})
+    slot[b.end] = { href: b.href, title: b.title }
+  }
+  return idx
+}
+
+/**
+ * The three slices of the index that apply to one entity, by reference — no
+ * copying, because this runs 10,230 times inside the shard workers. The shape is
+ * exactly what src/render/sections.js:rankedBoard reads: cohort, then metric
+ * key, then { top, bottom }.
+ */
+export const rankingLinksFor = (idx, e) => {
+  const byScope = idx?.[e.level]
+  if (!byScope) return null
+  const links = {
+    state: byScope.state ?? null,
+    region: byScope[`region:${regionPath(e.regionId)}`] ?? null,
+    county: byScope[`county:${slugify(e.county ?? '')}`] ?? null,
+  }
+  return links.state || links.region || links.county ? links : null
+}
+
+/**
+ * The link list a hub shows for its own population — both ends of every
+ * board that covers it, not only 'highest'/'gains'. A hub that showed just
+ * the flattering direction was the same "only the good ones are shown"
+ * complaint the ranking pages themselves exist to answer, reproduced one
+ * layer up; the fix is the same one rankingIndex above makes: stop dropping
+ * the 'bottom' half before the caller ever sees it.
+ */
+export const rankingBoardsFor = (kept, scope) =>
+  kept
+    .filter((b) => {
+      const k = b.scope.kind === 'state' ? 'state' : `${b.scope.kind}:${b.scope.countySlug ?? b.scope.id}`
+      return k === scope
+    })
+    .map((b) => ({
+      href: b.href,
+      label: b.title,
+      // Never a bare number: a link to a ranked list with no n is the same
+      // unlabelled boast a rank with no n is.
+      meta: `${b.n.toLocaleString('en-US')} ${b.level === 'campus' ? 'campuses' : 'districts'}`,
+    }))
+
+/* ------------------------------------------------------------------- main -- */
 /* ------------------------------------------------------------------- main -- */
 
 const DATASETS = {
@@ -461,6 +910,14 @@ export async function prerender({ concurrency } = {}) {
 
   const byId = new Map(entities.map((e) => [e.id, e]))
   const regionNames = new Map(rawDistricts.map((d) => [regionPath(d.region_id), d.region]))
+  // county id -> name, for renderRankingsIndexPage's data-rankings-lookups tag
+  // (see the call below): the same normalized field countyRankingScopes and
+  // rankingRow already read off `entities`, just collected once here rather
+  // than requiring a second load of the raw snapshot.
+  const countyNames = new Map()
+  for (const e of entities) {
+    if (e.countyId && e.county && !countyNames.has(e.countyId)) countyNames.set(e.countyId, e.county)
+  }
   const years = [...new Set(allRatings.map((r) => r.year))].sort().reverse()
   const { districts, regions, counties, state } = hubPlan(entities, regionNames)
   const campuses = entities.filter((e) => e.level === 'campus')
@@ -475,7 +932,35 @@ export async function prerender({ concurrency } = {}) {
     resetDir('site/districts'),
     resetDir('site/data/entity'),
     resetDir('site/search'),
+    resetDir('site/rankings'),
   ])
+
+  /* --- the ranking plan, before anything is rendered ------------------------ */
+  //
+  // Planned first because every other page depends on knowing which boards will
+  // exist: the entity pages need the link index inside the shard workers, and
+  // the hubs need the boards scoped to their own region or county. Only the PLAN
+  // is computed here — the board pages themselves are rendered further down,
+  // after the workers have finished, so ~600 renders do not compete with ten
+  // CPU-bound shards for the same cores.
+
+  // The whole snapshot in one Map, built once here and passed to every ranking:
+  // rankingBundles extends metrics.js:sourceBundles with the same extractors, so
+  // a figure in a ranked table and the same figure on the entity's own page come
+  // from one place and cannot drift.
+  const tables = loadTables(dir)
+  const bundles = rankingBundles({ ...tables, regionNames })
+  const { kept, suppressed } = planRankings({
+    entities,
+    bundles,
+    regions,
+    counties,
+    latestYear: tables.latestYear,
+  })
+
+  const rankIndex = rankingIndex(kept)
+  const rankingsIndexHref = RANKINGS_HREF
+  const boardsFor = (scope) => rankingBoardsFor(kept, scope)
 
   /* --- entity pages, striped across workers (see the PERFORMANCE note) ------ */
 
@@ -488,7 +973,7 @@ export async function prerender({ concurrency } = {}) {
     Array.from({ length: stride }, (_, index) =>
       new Promise((resolve, reject) => {
         const w = new Worker(fileURLToPath(import.meta.url), {
-          workerData: { tag: SHARD_TAG, dir, index, stride, snapshotDate },
+          workerData: { tag: SHARD_TAG, dir, index, stride, snapshotDate, rankIndex, rankingsIndex: rankingsIndexHref },
         })
         w.once('message', resolve)
         w.once('error', reject)
@@ -505,9 +990,10 @@ export async function prerender({ concurrency } = {}) {
       dataFiles: a.dataFiles + s.dataFiles,
       htmlBytes: a.htmlBytes + s.htmlBytes,
       dataBytes: a.dataBytes + s.dataBytes,
+      linked: a.linked + (s.linked ?? 0),
       largest: !a.largest || (s.largest && s.largest.bytes > a.largest.bytes) ? s.largest : a.largest,
     }),
-    { pages: 0, district: 0, campus: 0, dataFiles: 0, htmlBytes: 0, dataBytes: 0, largest: null }
+    { pages: 0, district: 0, campus: 0, dataFiles: 0, htmlBytes: 0, dataBytes: 0, linked: 0, largest: null }
   )
 
   if (entityStats.pages !== entities.length) {
@@ -533,6 +1019,8 @@ export async function prerender({ concurrency } = {}) {
         snapshotDate,
         stateAvg: state.avg,
         stateN: state.n,
+        rankings: boardsFor(`region:${r.id}`),
+        rankingsIndex: rankingsIndexHref,
       })
     )
   }
@@ -549,6 +1037,8 @@ export async function prerender({ concurrency } = {}) {
         snapshotDate,
         stateAvg: state.avg,
         stateN: state.n,
+        rankings: boardsFor(`county:${c.slug}`),
+        rankingsIndex: rankingsIndexHref,
       })
     )
   }
@@ -564,9 +1054,36 @@ export async function prerender({ concurrency } = {}) {
 
   const enrolled = districts.map((d) => d.enrollment).filter(finite)
 
+  // The front page carries the statewide boards, and at most six of them: the
+  // headline metrics first (the overall score and its change over time — the two
+  // orderings a newsroom actually asks for), then whatever else is statewide, and
+  // /rankings carries the other ~250. The front page is a doorway to the ranked
+  // lists, not a directory of them. Region and county boards are reached from the
+  // region and county pages, where the reader asking "the best districts in my
+  // county" already is.
+  //
+  // BOTH ends of a headline metric land in headlineHrefs now, not only 'top' —
+  // boardsFor already returns both ('bottom' is dropped no more than 'lowest'
+  // and 'declines' are dropped anywhere else on this site now) — so the home
+  // page shows a metric's highest AND its lowest together rather than only the
+  // flattering half. slice(0, 6) below never splits a pair in half: `kept`
+  // keeps a metric's 'top' entry immediately followed by its 'bottom' one (they
+  // share one underlying result and are suppressed together, see planRankings),
+  // so every 2-item run this filter produces stays intact across the cut.
+  const statewide = boardsFor('state')
+  const headlineHrefs = new Set(
+    kept.filter((b) => b.scope.kind === 'state' && isHeadlineMetric(b.metric)).map((b) => b.href)
+  )
+  const homeRankings = [
+    ...statewide.filter((r) => headlineHrefs.has(r.href)),
+    ...statewide.filter((r) => !headlineHrefs.has(r.href)),
+  ].slice(0, 6)
+
   await write(
     'index.html',
     renderHomePage({
+      rankings: homeRankings,
+      rankingsIndex: rankingsIndexHref,
       regions: regions.map((r) => ({ id: r.id, name: r.name, districtCount: r.districtCount })),
       letters: ALPHABET.map((letter) => ({ letter, count: letterCounts.get(letter) })),
       counts: { districts: districts.length, campuses: campuses.length },
@@ -602,6 +1119,92 @@ export async function prerender({ concurrency } = {}) {
   for (const l of SEARCH_LETTERS) {
     await write(`search/${l}.html`, renderSearchPage({ districts, campuses, letter: l, snapshotDate }))
   }
+
+  /* --- the ranked lists ------------------------------------------------------ */
+
+  // Static HTML, every one of them. A ranked list is the page a newsroom cites
+  // and a crawler has to be able to read, so "the table sorts once JavaScript
+  // loads" is not an option for the indexable ones — site/rankings.js enhances
+  // these pages, it does not supply them.
+  // A board's path is /rankings/<population>/<metric>-<end>, so each population
+  // is a directory of its own that has to exist before the first write into it.
+  // Directories cost nothing against the asset cap — only files are counted.
+  for (const dirName of new Set(kept.map((b) => b.file.slice(0, b.file.lastIndexOf('/'))))) {
+    await mkdir(`site/${dirName}`, { recursive: true })
+  }
+
+  // `relatedFor` is given the KEPT catalogue, not the planned one, so a cross-link
+  // can only ever point at a page this run wrote — the same rule the entity-page
+  // link index follows, applied to the rankings' own navigation.
+  //
+  // Every board ships a CSV beside its HTML, from rankings-page.js:rankingCsv —
+  // rankingCsv({ metric, scope, rows, meta, snapshotDate, end }), same filename
+  // as the HTML with the extension swapped (rankings/.../overall-score-highest
+  // .html -> .csv), so a reader who wants the numbers behind a table does not
+  // have to fall back to the whole-dataset download for one board. `rows` and
+  // `meta` are computed once and handed to both renderers, so the CSV and the
+  // HTML can never disagree about what they counted. See the note on the
+  // rankingsPageModule import above: if the export has not landed yet, this
+  // loop writes the HTML as before and silently skips the CSV rather than
+  // failing every board over one missing function.
+  const rankingCsv = rankingsPageModule.rankingCsv
+  let rankingCsvFiles = 0
+  for (const b of kept) {
+    const rows = rankingRows(b.result, b.end)
+    const meta = rankingMeta(b.result, tables.latestYear)
+    await write(
+      b.file,
+      renderRankingPage({
+        metric: b.metric,
+        scope: b.scope,
+        rows,
+        meta,
+        related: relatedFor(kept, b),
+        end: b.end,
+        snapshotDate,
+      })
+    )
+    if (typeof rankingCsv === 'function') {
+      await write(
+        rankingCsvFile(b.file),
+        rankingCsv({ metric: b.metric, scope: b.scope, rows, meta, snapshotDate, end: b.end })
+      )
+      rankingCsvFiles += 1
+    }
+  }
+
+  await write(
+    'rankings.html',
+    renderRankingsIndexPage({
+      pages: kept,
+      snapshotDate,
+      note: suppressed.length
+        ? `${suppressed.length.toLocaleString('en-US')} further orderings were computed and not published: each covered ` +
+          `fewer than ${MIN_POPULATION} rated entities, and a placement out of nine is not a placement. ` +
+          `Those populations are listed in full on their region and county pages.`
+        : null,
+      // Names for all 20 regions and 253 counties, from data this step
+      // already loads for other pages — renderRankingsIndexPage's own
+      // data-rankings-lookups script tag (site/rankings.js's documented
+      // contract: {"regions":{"01":"Region 01: Edinburg"},
+      // "counties":{"001":"Anderson"}}) reads it when a `tool` is also
+      // passed. This step does not assemble `tool` — that is the interactive
+      // rankings.js widget's own payload/defaults/metric-key contract, a
+      // different vocabulary than rankings.js's, and not one of the defects
+      // this pass owns — so on a build without one, `lookups` is accepted
+      // and currently unused rather than wired to nothing that renders. See
+      // the handoff notes.
+      lookups: {
+        regions: Object.fromEntries(regionNames),
+        counties: Object.fromEntries(countyNames),
+      },
+      // How many of Texas's counties get NO board of their own (too few
+      // rated districts) — countyRankingScopes already decides which ones
+      // clear that bar; this is just its denominator, for the "the other N
+      // counties..." sentence renderRankingsIndexPage now prints.
+      countiesTotal: counties.length,
+    })
+  )
 
   /* --- bulk data, then the pages that link it -------------------------------- */
 
@@ -724,7 +1327,9 @@ export async function prerender({ concurrency } = {}) {
   <p class="lede">That district or school is not in this snapshot, or the address has changed.
   Every page here is named for the entity plus its TEA id, so a link that drops the id will not resolve.</p>
   <p class="downloads"><a href="/">Start from the state</a> &middot;
-     <a href="/districts/a">Browse districts A&ndash;Z</a> &middot;
+     <a href="/districts/a">Browse districts A&ndash;Z</a> &middot;${
+       rankingsIndexHref ? `\n     <a href="${rankingsIndexHref}">Ranked lists</a> &middot;` : ''
+     }
      <a href="/about">What this site is</a> &middot;
      <a href="/download">Download the data</a></p>
 </section>`,
@@ -740,11 +1345,17 @@ export async function prerender({ concurrency } = {}) {
 
   /* --- sitemap -------------------------------------------------------------- */
 
+  // Ranked lists are in the sitemap alongside everything else, and they are the
+  // entries most worth crawling: a profile page is one school's record, but
+  // "Texas districts with the largest rating gains" is a page another site links
+  // to, and crawl demand for the other 10,230 follows the links that arrive.
   const paths = [
     '',
     'about.html',
     'download.html',
     'search.html',
+    'rankings.html',
+    ...kept.map((b) => b.file),
     ...regions.map((r) => `region/${r.id}.html`),
     ...counties.map((c) => `county/${c.slug}.html`),
     ...ALPHABET.map((l) => `districts/${l}.html`),
@@ -767,7 +1378,16 @@ export async function prerender({ concurrency } = {}) {
     .sort((a, b) => b.bytes - a.bytes)[0]
   const elapsed = (Date.now() - started) / 1000
 
-  report({ entityStats, regions, counties, entities, elapsed, total, largest, stride, files, brand })
+  report({
+    entityStats, regions, counties, entities, elapsed, total, largest, stride, files, brand,
+    rankings: {
+      boards: kept.length,
+      index: 1,
+      suppressed: suppressed.length,
+      linked: entityStats.linked,
+      csv: rankingCsvFiles,
+    },
+  })
   return { pages: entityStats.pages + written.length, files: total, elapsed, largest, brand }
 }
 
@@ -781,13 +1401,15 @@ async function countFiles(dir) {
 
 const mb = (b) => `${(b / 1e6).toFixed(1)} MB`
 
-function report({ entityStats, regions, counties, entities, elapsed, total, largest, stride, brand = [] }) {
+function report({ entityStats, regions, counties, entities, elapsed, total, largest, stride, brand = [], rankings = null }) {
   const rows = [
     ['district pages', entityStats.district],
     ['campus pages', entityStats.campus],
     ['region pages', regions.length],
     ['county pages', counties.length],
     ['letter pages', ALPHABET.length],
+    ['ranking pages', (rankings?.boards ?? 0) + (rankings?.index ?? 0)],
+    ['ranking CSVs', rankings?.csv ?? 0],
     ['home / about / download', 3],
     ['per-district CSV + JSON', entityStats.dataFiles],
     ['bulk CSVs', 3],
@@ -801,6 +1423,24 @@ function report({ entityStats, regions, counties, entities, elapsed, total, larg
   console.log(`  ${'html'.padEnd(26)}${mb(entityStats.htmlBytes).padStart(7)}`)
   console.log(`  ${'per-district data'.padEnd(26)}${mb(entityStats.dataBytes).padStart(7)}`)
   console.log(`  ${'largest page'.padEnd(26)}${(largest.bytes / 1024).toFixed(1).padStart(7)} KB   /${largest.path.replace(/\.html$/, '')}`)
+  if (rankings) {
+    console.log(
+      `  ${'entity pages linking a'.padEnd(26)}${rankings.linked.toLocaleString('en-US').padStart(7)}   ` +
+        `of ${entities.length.toLocaleString('en-US')} — a rank on a page now links the list it came from`
+    )
+    if (rankings.suppressed) {
+      console.log(
+        `  ${'orderings not published'.padEnd(26)}${rankings.suppressed.toLocaleString('en-US').padStart(7)}   ` +
+          `fewer than ${MIN_POPULATION} rated entities — no page, no sitemap entry, no link`
+      )
+    }
+    if (!rankings.csv && rankings.boards) {
+      console.log(
+        `  ${'ranking CSVs'.padEnd(26)}${'0'.padStart(7)}   rankingCsv() is not exported by src/render/rankings-page.js ` +
+          `in this build — every board's HTML wrote, its CSV was skipped`
+      )
+    }
+  }
   for (const b of brand) {
     console.log(`  ${b.path.padEnd(26)}${(b.bytes / 1024).toFixed(1).padStart(7)} KB`)
   }

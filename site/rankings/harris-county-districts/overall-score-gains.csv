@@ -1,0 +1,67 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/harris-county-districts/overall-score-gains
+# rows: 51 (excluding this header and the column row)
+# ranking: Harris County school districts with the largest overall score gains since 2021-22
+# population: 51 districts of 57 districts are ranked here.
+# population: 2 were not rated by TEA for 2025-26 and are not ranked.
+# population: 4 have no figure at the start of the window and are not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,51,0,101868,The Pro-Vision Academy,Harris,B,21,59,80,239,https://txschools.net/district/the-pro-vision-academy-101868
+2,51,0,101875,Bloom Academy Charter School,Harris,F,19,40,59,364,https://txschools.net/district/bloom-academy-charter-school-101875
+3,51,0,101902,Aldine ISD,Harris,C,10,69,79,52115,https://txschools.net/district/aldine-isd-101902
+4,51,0,101821,Houston Heights High School,Harris,A,9,82,91,152,https://txschools.net/district/houston-heights-high-school-101821
+5,51,0,101915,Klein ISD,Harris,B,7,81,88,51154,https://txschools.net/district/klein-isd-101915
+6,51,4,101842,Comquest Academy,Harris,B,6,74,80,35,https://txschools.net/district/comquest-academy-101842
+6,51,4,101912,Houston ISD,Harris,B,6,79,85,167793,https://txschools.net/district/houston-isd-101912
+6,51,4,101916,La Porte ISD,Harris,B,6,80,86,6900,https://txschools.net/district/la-porte-isd-101916
+6,51,4,101920,Spring Branch ISD,Harris,B,6,79,85,31584,https://txschools.net/district/spring-branch-isd-101920
+6,51,4,101845,Yes Prep Public Schools Inc,Harris,B,6,83,89,20806,https://txschools.net/district/yes-prep-public-schools-inc-101845
+11,51,1,101853,Bakerripley Community Schools,Harris,B,5,81,86,1908,https://txschools.net/district/bakerripley-community-schools-101853
+11,51,1,101913,Humble ISD,Harris,B,5,78,83,47734,https://txschools.net/district/humble-isd-101913
+13,51,0,101903,Alief ISD,Harris,C,3,75,78,36376,https://txschools.net/district/alief-isd-101903
+14,51,2,101837,Calvin Nelms Charter Schools,Harris,A,2,88,90,414,https://txschools.net/district/calvin-nelms-charter-schools-101837
+14,51,2,101910,Galena Park ISD,Harris,B,2,86,88,20108,https://txschools.net/district/galena-park-isd-101910
+14,51,2,101919,Spring ISD,Harris,C,2,74,76,32328,https://txschools.net/district/spring-isd-101919
+17,51,7,101905,Channelview ISD,Harris,B,1,80,81,9086,https://txschools.net/district/channelview-isd-101905
+17,51,7,101906,Crosby ISD,Harris,B,1,80,81,7183,https://txschools.net/district/crosby-isd-101906
+17,51,7,101907,Cypress-Fairbanks ISD,Harris,B,1,85,86,114430,https://txschools.net/district/cypress-fairbanks-isd-101907
+17,51,7,101846,Harmony Public Schools - Houston South,Harris,A,1,89,90,4100,https://txschools.net/district/harmony-public-schools-houston-south-101846
+17,51,7,101862,Harmony Public Schools - Houston West,Harris,A,1,93,94,6906,https://txschools.net/district/harmony-public-schools-houston-west-101862
+17,51,7,101914,Katy ISD,Harris,B,1,87,88,95136,https://txschools.net/district/katy-isd-101914
+17,51,7,101917,Pasadena ISD,Harris,B,1,83,84,44046,https://txschools.net/district/pasadena-isd-101917
+17,51,7,101921,Tomball ISD,Harris,A,1,91,92,23202,https://txschools.net/district/tomball-isd-101921
+25,51,0,101908,Deer Park ISD,Harris,B,0,83,83,12001,https://txschools.net/district/deer-park-isd-101908
+26,51,2,101806,Raul Yzaguirre Schools for Success,Harris,B,-1,88,87,2180,https://txschools.net/district/raul-yzaguirre-schools-for-success-101806
+26,51,2,101924,Sheldon ISD,Harris,C,-1,80,79,10576,https://txschools.net/district/sheldon-isd-101924
+26,51,2,101861,The Rhodes School for Performing Arts,Harris,B,-1,84,83,405,https://txschools.net/district/the-rhodes-school-for-performing-arts-101861
+29,51,1,101911,Goose Creek CISD,Harris,B,-2,82,80,23308,https://txschools.net/district/goose-creek-cisd-101911
+29,51,1,101858,Harmony Public Schools - Houston North,Harris,B,-2,89,87,8807,https://txschools.net/district/harmony-public-schools-houston-north-101858
+31,51,1,101819,Amigos Por Vida-Friends for Life Pub Chtr Sch,Harris,A,-3,93,90,802,https://txschools.net/district/amigos-por-vida-friends-for-life-pub-chtr-sch-101819
+31,51,1,101803,Aristoi Classical Academy,Harris,B,-3,86,83,1713,https://txschools.net/district/aristoi-classical-academy-101803
+33,51,1,101849,Accelerated Intermediate Academy,Harris,A,-4,95,91,166,https://txschools.net/district/accelerated-intermediate-academy-101849
+33,51,1,101804,George I Sanchez Charter,Harris,C,-4,79,75,941,https://txschools.net/district/george-i-sanchez-charter-101804
+35,51,1,101828,Houston Gateway Academy Inc,Harris,B,-5,92,87,2364,https://txschools.net/district/houston-gateway-academy-inc-101828
+35,51,1,101864,The Lawson Academy,Harris,B,-5,86,81,317,https://txschools.net/district/the-lawson-academy-101864
+37,51,1,101871,A' Unlimited Potential,Harris,B,-6,88,82,190,https://txschools.net/district/a-unlimited-potential-101871
+37,51,1,101847,Beatrice Mayes Institute Charter School,Harris,C,-6,85,79,628,https://txschools.net/district/beatrice-mayes-institute-charter-school-101847
+39,51,1,101870,Beta Academy,Harris,B,-7,91,84,1674,https://txschools.net/district/beta-academy-101870
+39,51,1,101838,Southwest Public Schools,Harris,B,-7,88,81,1727,https://txschools.net/district/southwest-public-schools-101838
+41,51,0,101815,Alief Montessori Community School,Harris,B,-9,93,84,416,https://txschools.net/district/alief-montessori-community-school-101815
+42,51,0,101925,Huffman ISD,Harris,C,-10,81,71,3698,https://txschools.net/district/huffman-isd-101925
+43,51,1,101856,Draw Academy,Harris,C,-11,85,74,695,https://txschools.net/district/draw-academy-101856
+43,51,1,101802,Ser-Ninos Charter School,Harris,C,-11,87,76,1206,https://txschools.net/district/ser-ninos-charter-school-101802
+45,51,0,101859,Step Charter School,Harris,B,-13,93,80,723,https://txschools.net/district/step-charter-school-101859
+46,51,0,101855,Meyerpark Charter,Harris,C,-15,87,72,259,https://txschools.net/district/meyerpark-charter-101855
+47,51,0,101874,Legacy School of Sport Sciences,Harris,D,-17,86,69,550,https://txschools.net/district/legacy-school-of-sport-sciences-101874
+48,51,0,101840,Two Dimensions Preparatory Academy,Harris,D,-18,80,62,342,https://txschools.net/district/two-dimensions-preparatory-academy-101840
+49,51,0,101872,Etoile Academy Charter School,Harris,F,-24,83,59,1064,https://txschools.net/district/etoile-academy-charter-school-101872
+50,51,0,101873,Yellowstone College Preparatory,Harris,D,-25,91,66,361,https://txschools.net/district/yellowstone-college-preparatory-101873
+51,51,0,101814,The Varnett Public School,Harris,D,-26,90,64,1084,https://txschools.net/district/the-varnett-public-school-101814

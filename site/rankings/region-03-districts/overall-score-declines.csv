@@ -1,0 +1,51 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-03-districts/overall-score-declines
+# rows: 37 (excluding this header and the column row)
+# ranking: Region 03: Victoria school districts with the largest overall score declines since 2021-22
+# population: 37 districts of 37 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,37,0,143904,Vysehrad ISD,Lavaca,D,-24,87,63,46,https://txschools.net/district/vysehrad-isd-143904
+2,37,0,143905,Sweet Home ISD,Lavaca,C,-18,93,75,164,https://txschools.net/district/sweet-home-isd-143905
+3,37,0,196902,Woodsboro ISD,Refugio,C,-10,80,70,383,https://txschools.net/district/woodsboro-isd-196902
+4,37,1,235904,Nursery ISD,Victoria,B,-9,98,89,179,https://txschools.net/district/nursery-isd-235904
+4,37,1,158906,Van Vleck ISD,Matagorda,C,-9,85,76,1048,https://txschools.net/district/van-vleck-isd-158906
+6,37,1,235901,Bloomington ISD,Victoria,D,-7,75,68,705,https://txschools.net/district/bloomington-isd-235901
+6,37,1,062901,Cuero ISD,Dewitt,C,-7,83,76,1802,https://txschools.net/district/cuero-isd-062901
+8,37,2,196901,Austwell-Tivoli ISD,Refugio,C,-6,79,73,122,https://txschools.net/district/austwell-tivoli-isd-196901
+8,37,2,062906,Meyersville ISD,Dewitt,B,-6,91,85,167,https://txschools.net/district/meyersville-isd-062906
+8,37,2,062905,Westhoff ISD,Dewitt,B,-6,89,83,100,https://txschools.net/district/westhoff-isd-062905
+11,37,2,120905,Industrial ISD,Jackson,B,-3,92,89,1153,https://txschools.net/district/industrial-isd-120905
+11,37,2,158904,Matagorda ISD,Matagorda,C,-3,78,75,118,https://txschools.net/district/matagorda-isd-158904
+11,37,2,045903,Rice CISD,Colorado,C,-3,79,76,1287,https://txschools.net/district/rice-cisd-045903
+14,37,3,241902,East Bernard ISD,Wharton,B,-2,87,85,987,https://txschools.net/district/east-bernard-isd-241902
+14,37,3,120901,Edna ISD,Jackson,B,-2,87,85,1538,https://txschools.net/district/edna-isd-120901
+14,37,3,128902,Kenedy ISD,Karnes,B,-2,83,81,733,https://txschools.net/district/kenedy-isd-128902
+14,37,3,143902,Moulton ISD,Lavaca,B,-2,86,84,258,https://txschools.net/district/moulton-isd-143902
+18,37,1,158901,Bay City ISD,Matagorda,C,0,79,79,3312,https://txschools.net/district/bay-city-isd-158901
+18,37,1,241904,Wharton ISD,Wharton,F,0,58,58,1707,https://txschools.net/district/wharton-isd-241904
+20,37,1,158905,Palacios ISD,Matagorda,B,1,81,82,1266,https://txschools.net/district/palacios-isd-158905
+20,37,1,045905,Weimar ISD,Colorado,A,1,90,91,735,https://txschools.net/district/weimar-isd-045905
+22,37,1,241903,El Campo ISD,Wharton,B,2,79,81,3206,https://txschools.net/district/el-campo-isd-241903
+22,37,1,062903,Yoakum ISD,Dewitt,B,2,82,84,1409,https://txschools.net/district/yoakum-isd-062903
+24,37,1,120902,Ganado ISD,Jackson,B,3,80,83,720,https://txschools.net/district/ganado-isd-120902
+24,37,1,143901,Hallettsville ISD,Lavaca,B,3,86,89,1129,https://txschools.net/district/hallettsville-isd-143901
+26,37,1,241901,Boling ISD,Wharton,C,4,74,78,1143,https://txschools.net/district/boling-isd-241901
+26,37,1,158902,Tidehaven ISD,Matagorda,A,4,87,91,1038,https://txschools.net/district/tidehaven-isd-158902
+28,37,1,029901,Calhoun County ISD,Calhoun,B,6,77,83,3381,https://txschools.net/district/calhoun-county-isd-029901
+28,37,1,143903,Shiner ISD,Lavaca,A,6,87,93,700,https://txschools.net/district/shiner-isd-143903
+30,37,1,143906,Ezzell ISD,Lavaca,B,7,82,89,124,https://txschools.net/district/ezzell-isd-143906
+30,37,1,088902,Goliad ISD,Goliad,B,7,75,82,1191,https://txschools.net/district/goliad-isd-088902
+32,37,0,196903,Refugio ISD,Refugio,B,8,75,83,591,https://txschools.net/district/refugio-isd-196903
+33,37,1,241906,Louise ISD,Wharton,B,9,80,89,510,https://txschools.net/district/louise-isd-241906
+33,37,1,235902,Victoria ISD,Victoria,C,9,69,78,12534,https://txschools.net/district/victoria-isd-235902
+35,37,0,062902,Nordheim ISD,Dewitt,B,10,74,84,111,https://txschools.net/district/nordheim-isd-062902
+36,37,1,128903,Runge ISD,Karnes,C,13,60,73,172,https://txschools.net/district/runge-isd-128903
+36,37,1,062904,Yorktown ISD,Dewitt,B,13,69,82,552,https://txschools.net/district/yorktown-isd-062904

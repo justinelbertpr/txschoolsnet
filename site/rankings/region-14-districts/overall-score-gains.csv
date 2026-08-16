@@ -1,0 +1,57 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-14-districts/overall-score-gains
+# rows: 43 (excluding this header and the column row)
+# ranking: Region 14: Abilene school districts with the largest overall score gains since 2021-22
+# population: 43 districts of 43 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,43,0,221905,Trent ISD,Taylor,B,16,65,81,118,https://txschools.net/district/trent-isd-221905
+2,43,1,067908,Rising Star ISD,Eastland,B,15,67,82,160,https://txschools.net/district/rising-star-isd-067908
+2,43,1,076903,Roby CISD,Fisher,A,15,79,94,313,https://txschools.net/district/roby-cisd-076903
+4,43,0,209902,Moran ISD,Shackelford,C,14,62,76,86,https://txschools.net/district/moran-isd-209902
+5,43,0,208901,Hermleigh ISD,Scurry,B,13,73,86,265,https://txschools.net/district/hermleigh-isd-208901
+6,43,1,209901,Albany ISD,Shackelford,B,12,77,89,449,https://txschools.net/district/albany-isd-209901
+6,43,1,217901,Aspermont ISD,Stonewall,A,12,84,96,210,https://txschools.net/district/aspermont-isd-217901
+8,43,0,047902,De Leon ISD,Comanche,A,8,84,92,616,https://txschools.net/district/de-leon-isd-047902
+9,43,2,221901,Abilene ISD,Taylor,C,7,69,76,14260,https://txschools.net/district/abilene-isd-221901
+9,43,2,177903,Blackwell CISD,Nolan,A,7,90,97,171,https://txschools.net/district/blackwell-cisd-177903
+9,43,2,127904,Hawley ISD,Jones,B,7,74,81,773,https://txschools.net/district/hawley-isd-127904
+12,43,0,221911,Jim Ned CISD,Taylor,A,6,84,90,1625,https://txschools.net/district/jim-ned-cisd-221911
+13,43,2,215901,Breckenridge ISD,Stephens,B,4,77,81,1288,https://txschools.net/district/breckenridge-isd-215901
+13,43,2,067903,Eastland ISD,Eastland,B,4,77,81,939,https://txschools.net/district/eastland-isd-067903
+13,43,2,127903,Hamlin Collegiate ISD,Jones,B,4,76,80,383,https://txschools.net/district/hamlin-collegiate-isd-127903
+16,43,2,168902,Loraine ISD,Mitchell,C,3,72,75,133,https://txschools.net/district/loraine-isd-168902
+16,43,2,221904,Merkel ISD,Taylor,C,3,74,77,1127,https://txschools.net/district/merkel-isd-221904
+16,43,2,168903,Westbrook ISD,Mitchell,A,3,89,92,217,https://txschools.net/district/westbrook-isd-168903
+19,43,3,030902,Clyde CISD,Callahan,B,2,84,86,1421,https://txschools.net/district/clyde-cisd-030902
+19,43,3,208903,Ira ISD,Scurry,A,2,92,94,307,https://txschools.net/district/ira-isd-208903
+19,43,3,104903,Rule ISD,Haskell,B,2,79,81,143,https://txschools.net/district/rule-isd-104903
+19,43,3,221801,Texas College Preparatory Academies,Taylor,B,2,79,81,17201,https://txschools.net/district/texas-college-preparatory-academies-221801
+23,43,4,030903,Baird ISD,Callahan,B,1,81,82,345,https://txschools.net/district/baird-isd-030903
+23,43,4,030901,Cross Plains ISD,Callahan,B,1,85,86,357,https://txschools.net/district/cross-plains-isd-030901
+23,43,4,177905,Highland ISD,Nolan,A,1,96,97,211,https://txschools.net/district/highland-isd-177905
+23,43,4,104907,Paint Creek ISD,Haskell,A,1,93,94,116,https://txschools.net/district/paint-creek-isd-104907
+23,43,4,067907,Ranger ISD,Eastland,D,1,68,69,262,https://txschools.net/district/ranger-isd-067907
+28,43,0,127906,Stamford ISD,Jones,B,0,85,85,546,https://txschools.net/district/stamford-isd-127906
+29,43,2,104901,Haskell CISD,Haskell,B,-1,84,83,545,https://txschools.net/district/haskell-cisd-104901
+29,43,2,177902,Sweetwater ISD,Nolan,C,-1,73,72,1738,https://txschools.net/district/sweetwater-isd-177902
+29,43,2,221912,Wylie ISD,Taylor,B,-1,89,88,5617,https://txschools.net/district/wylie-isd-221912
+32,43,0,067902,Cisco ISD,Eastland,B,-2,85,83,861,https://txschools.net/district/cisco-isd-067902
+33,43,2,047901,Comanche ISD,Comanche,B,-3,84,81,1327,https://txschools.net/district/comanche-isd-047901
+33,43,2,030906,Eula ISD,Callahan,B,-3,87,84,486,https://txschools.net/district/eula-isd-030906
+33,43,2,047905,Sidney ISD,Comanche,A,-3,93,90,115,https://txschools.net/district/sidney-isd-047905
+36,43,0,168901,Colorado ISD,Mitchell,C,-4,81,77,901,https://txschools.net/district/colorado-isd-168901
+37,43,0,177901,Roscoe Collegiate ISD,Nolan,F,-5,62,57,14905,https://txschools.net/district/roscoe-collegiate-isd-177901
+38,43,0,208902,Snyder ISD,Scurry,C,-6,77,71,2220,https://txschools.net/district/snyder-isd-208902
+39,43,1,127901,Anson ISD,Jones,C,-7,80,73,702,https://txschools.net/district/anson-isd-127901
+39,43,1,067904,Gorman ISD,Eastland,C,-7,78,71,210,https://txschools.net/district/gorman-isd-067904
+41,43,0,076904,Rotan ISD,Fisher,C,-10,84,74,265,https://txschools.net/district/rotan-isd-076904
+42,43,0,047903,Gustine ISD,Comanche,B,-11,94,83,166,https://txschools.net/district/gustine-isd-047903
+43,43,0,127905,Lueders-Avoca ISD,Jones,D,-13,82,69,103,https://txschools.net/district/lueders-avoca-isd-127905

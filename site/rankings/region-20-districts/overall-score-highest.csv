@@ -1,0 +1,96 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-20-districts/overall-score-highest
+# rows: 82 (excluding this header and the column row)
+# ranking: Region 20: San Antonio school districts with the highest overall score in 2025-26
+# population: 82 districts of 84 districts are ranked here.
+# population: 2 were not rated by TEA for 2025-26 and are not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,82,0,015914,Ft Sam Houston ISD,Bexar,A,95,1543,https://txschools.net/district/ft-sam-houston-isd-015914
+2,82,1,015906,Randolph Field ISD,Bexar,A,94,1402,https://txschools.net/district/randolph-field-isd-015906
+2,82,1,232904,Utopia ISD,Uvalde,A,94,190,https://txschools.net/district/utopia-isd-232904
+4,82,1,015834,Basis Texas,Bexar,A,93,9480,https://txschools.net/district/basis-texas-015834
+4,82,1,163902,D'Hanis ISD,Medina,A,93,297,https://txschools.net/district/d-hanis-isd-163902
+6,82,2,130901,Boerne ISD,Kendall,A,92,11132,https://txschools.net/district/boerne-isd-130901
+6,82,2,133902,Hunt ISD,Kerr,A,92,211,https://txschools.net/district/hunt-isd-133902
+6,82,2,232901,Knippa ISD,Uvalde,A,92,408,https://txschools.net/district/knippa-isd-232901
+9,82,1,133904,Ingram ISD,Kerr,A,91,1365,https://txschools.net/district/ingram-isd-133904
+9,82,1,247904,Poth ISD,Wilson,A,91,967,https://txschools.net/district/poth-isd-247904
+11,82,2,128904,Falls City ISD,Karnes,A,90,452,https://txschools.net/district/falls-city-isd-128904
+11,82,2,015815,Heritage Academy,Bexar,A,90,574,https://txschools.net/district/heritage-academy-015815
+11,82,2,015831,School of Science and Technology Discovery,Bexar,A,90,6366,https://txschools.net/district/school-of-science-and-technology-discovery-015831
+14,82,1,015836,Eleanor Kolitz Hebrew Language Academy,Bexar,B,89,464,https://txschools.net/district/eleanor-kolitz-hebrew-language-academy-015836
+14,82,1,015827,School of Science and Technology,Bexar,B,89,5855,https://txschools.net/district/school-of-science-and-technology-015827
+16,82,4,015901,Alamo Heights ISD,Bexar,B,88,4723,https://txschools.net/district/alamo-heights-isd-015901
+16,82,4,046902,Comal ISD,Comal,B,88,30341,https://txschools.net/district/comal-isd-046902
+16,82,4,015828,Harmony Public Schools - South Texas,Bexar,B,88,4991,https://txschools.net/district/harmony-public-schools-south-texas-015828
+16,82,4,015805,New Frontiers Public Schools Inc,Bexar,B,88,335,https://txschools.net/district/new-frontiers-public-schools-inc-015805
+16,82,4,015909,Somerset ISD,Bexar,B,88,4169,https://txschools.net/district/somerset-isd-015909
+21,82,0,015913,Lackland ISD,Bexar,B,87,966,https://txschools.net/district/lackland-isd-015913
+22,82,1,015802,George Gervin Academy,Bexar,B,85,744,https://txschools.net/district/george-gervin-academy-015802
+22,82,1,015814,Positive Solutions Charter School,Bexar,B,85,91,https://txschools.net/district/positive-solutions-charter-school-015814
+24,82,4,247903,La Vernia ISD,Wilson,B,84,3505,https://txschools.net/district/la-vernia-isd-247903
+24,82,4,094903,Navarro ISD,Guadalupe,B,84,3039,https://txschools.net/district/navarro-isd-094903
+24,82,4,046901,New Braunfels ISD,Comal,B,84,9710,https://txschools.net/district/new-braunfels-isd-046901
+24,82,4,015801,Por Vida Academy,Bexar,B,84,167,https://txschools.net/district/por-vida-academy-015801
+24,82,4,015830,Somerset Academies of Texas,Bexar,B,84,2682,https://txschools.net/district/somerset-academies-of-texas-015830
+29,82,3,159901,Eagle Pass ISD,Maverick,B,83,13415,https://txschools.net/district/eagle-pass-isd-159901
+29,82,3,128901,Karnes City ISD,Karnes,B,83,928,https://txschools.net/district/karnes-city-isd-128901
+29,82,3,094904,Marion ISD,Guadalupe,B,83,1741,https://txschools.net/district/marion-isd-094904
+29,82,3,015917,Southside ISD,Bexar,B,83,6091,https://txschools.net/district/southside-isd-015917
+33,82,2,015835,Great Hearts Texas,Bexar,B,82,14038,https://txschools.net/district/great-hearts-texas-015835
+33,82,2,163908,Medina Valley ISD,Medina,B,82,10442,https://txschools.net/district/medina-valley-isd-163908
+33,82,2,247906,Stockdale ISD,Wilson,B,82,879,https://txschools.net/district/stockdale-isd-247906
+36,82,4,247901,Floresville ISD,Wilson,B,81,3893,https://txschools.net/district/floresville-isd-247901
+36,82,4,015822,Jubilee Academies,Bexar,B,81,5019,https://txschools.net/district/jubilee-academies-015822
+36,82,4,133903,Kerrville ISD,Kerr,B,81,4402,https://txschools.net/district/kerrville-isd-133903
+36,82,4,015910,North East ISD,Bexar,B,81,53464,https://txschools.net/district/north-east-isd-015910
+36,82,4,094902,Schertz-Cibolo-U City ISD,Guadalupe,B,81,14764,https://txschools.net/district/schertz-cibolo-u-city-isd-094902
+41,82,3,007901,Charlotte ISD,Atascosa,B,80,422,https://txschools.net/district/charlotte-isd-007901
+41,82,3,015806,Legacy Traditional Schools - Texas,Bexar,B,80,1855,https://txschools.net/district/legacy-traditional-schools-texas-015806
+41,82,3,010901,Medina ISD,Bandera,B,80,239,https://txschools.net/district/medina-isd-010901
+41,82,3,015843,Prelude Preparatory Charter School,Bexar,B,80,165,https://txschools.net/district/prelude-preparatory-charter-school-015843
+45,82,1,133901,Center Point ISD,Kerr,C,79,492,https://txschools.net/district/center-point-isd-133901
+45,82,1,015912,Southwest ISD,Bexar,C,79,14839,https://txschools.net/district/southwest-isd-015912
+47,82,2,142901,Cotulla ISD,La Salle,C,78,1130,https://txschools.net/district/cotulla-isd-142901
+47,82,2,007902,Jourdanton ISD,Atascosa,C,78,1561,https://txschools.net/district/jourdanton-isd-007902
+47,82,2,015915,Northside ISD,Bexar,C,78,98031,https://txschools.net/district/northside-isd-015915
+50,82,0,007905,Pleasanton ISD,Atascosa,C,77,3301,https://txschools.net/district/pleasanton-isd-007905
+51,82,3,010902,Bandera ISD,Bandera,C,76,2159,https://txschools.net/district/bandera-isd-010902
+51,82,3,136901,Brackett ISD,Kinney,C,76,490,https://txschools.net/district/brackett-isd-136901
+51,82,3,015911,East Central ISD,Bexar,C,76,11798,https://txschools.net/district/east-central-isd-015911
+51,82,3,015807,Southwest Preparatory School,Bexar,C,76,849,https://txschools.net/district/southwest-preparatory-school-015807
+55,82,5,130902,Comfort ISD,Kendall,C,75,1012,https://txschools.net/district/comfort-isd-130902
+55,82,5,163904,Hondo ISD,Medina,C,75,1720,https://txschools.net/district/hondo-isd-163904
+55,82,5,082903,Pearsall ISD,Frio,C,75,1900,https://txschools.net/district/pearsall-isd-082903
+55,82,5,014801,Richard Milburn Alter High School (Killeen),Bell,C,75,1525,https://txschools.net/district/richard-milburn-alter-high-school-killeen-014801
+55,82,5,015907,San Antonio ISD,Bexar,C,75,42508,https://txschools.net/district/san-antonio-isd-015907
+55,82,5,015908,South San Antonio ISD,Bexar,C,75,7083,https://txschools.net/district/south-san-antonio-isd-015908
+61,82,4,254901,Crystal City ISD,Zavala,C,74,1480,https://txschools.net/district/crystal-city-isd-254901
+61,82,4,163901,Devine ISD,Medina,C,74,1975,https://txschools.net/district/devine-isd-163901
+61,82,4,082902,Dilley ISD,Frio,C,74,830,https://txschools.net/district/dilley-isd-082902
+61,82,4,015904,Harlandale ISD,Bexar,C,74,11096,https://txschools.net/district/harlandale-isd-015904
+61,82,4,232902,Sabinal ISD,Uvalde,C,74,447,https://txschools.net/district/sabinal-isd-232902
+66,82,0,064903,Carrizo Springs CISD,Dimmit,C,73,1796,https://txschools.net/district/carrizo-springs-cisd-064903
+67,82,1,193902,Leakey ISD,Real,C,72,308,https://txschools.net/district/leakey-isd-193902
+67,82,1,163903,Natalia ISD,Medina,C,72,1301,https://txschools.net/district/natalia-isd-163903
+69,82,2,015808,Inspire Academies,Bexar,C,71,1158,https://txschools.net/district/inspire-academies-015808
+69,82,2,015916,Judson ISD,Bexar,C,71,22556,https://txschools.net/district/judson-isd-015916
+69,82,2,015825,Lighthouse Public Schools,Bexar,C,71,481,https://txschools.net/district/lighthouse-public-schools-015825
+72,82,1,015838,Compass Rose Public Schools,Bexar,C,70,4032,https://txschools.net/district/compass-rose-public-schools-015838
+72,82,1,094901,Seguin ISD,Guadalupe,C,70,7160,https://txschools.net/district/seguin-isd-094901
+74,82,0,007904,Lytle ISD,Atascosa,D,69,1803,https://txschools.net/district/lytle-isd-007904
+75,82,0,015905,Edgewood ISD,Bexar,D,68,7670,https://txschools.net/district/edgewood-isd-015905
+76,82,0,254902,La Pryor ISD,Zavala,D,67,445,https://txschools.net/district/la-pryor-isd-254902
+77,82,0,007906,Poteet ISD,Atascosa,D,66,1867,https://txschools.net/district/poteet-isd-007906
+78,82,0,015839,Promesa Academy Charter School,Bexar,D,62,275,https://txschools.net/district/promesa-academy-charter-school-015839
+79,82,2,015844,Essence Preparatory Charter School,Bexar,F,59,438,https://txschools.net/district/essence-preparatory-charter-school-015844
+79,82,2,015842,Royal Public Schools,Bexar,F,59,394,https://txschools.net/district/royal-public-schools-015842
+79,82,2,232903,Uvalde CISD,Uvalde,F,59,3815,https://txschools.net/district/uvalde-cisd-232903
+82,82,0,015845,Celebrate Dyslexia Schools,Bexar,F,41,100,https://txschools.net/district/celebrate-dyslexia-schools-015845
