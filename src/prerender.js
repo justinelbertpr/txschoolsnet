@@ -493,8 +493,10 @@ export function hubPlan(entities, regionNames) {
 // WHO OWNS WHAT. This step owns none of the ranking arithmetic and none of the
 // ranking markup. src/render/rankings.js computes a ranked population from the
 // snapshot; src/render/rankings-page.js turns one of those into a page and
-// declares, in rankingCatalogue, which (metric x scope x end) combinations are
-// worth a file. This file is the driver between them: it decides which
+// declares, in rankingCatalogue, which (metric x scope) combinations are worth
+// a file — and, per metric, which single end of the ordering (`goodEnd`: the
+// one where 1st place is the best result) is the one that gets published. This
+// file is the driver between them: it decides which
 // populations are offered, computes each result once, writes the pages, puts
 // them in the sitemap, counts them against the asset budget, and — the part that
 // matters most here — hands every OTHER page the hrefs it needs, so a rank
@@ -534,25 +536,32 @@ export function hubPlan(entities, regionNames) {
 // --------------------------------------------------------- THE FILE BUDGET
 //
 // 12,971 files before this section, an 18,000 CI guard and a 20,000 hard cap, so
-// 5,029 spare. What the plan below asks for:
+// 5,029 spare. What the plan below asks for, publishing one end per metric —
+// see rankings-page.js's Rule 3 and `goodEnd`, the site owner's explicit call
+// not to compile a standalone "worst of" list — measured on the 2026-08
+// snapshot:
 //
-//     statewide districts   37 metrics x 2 ends                 74
-//     statewide campuses     7 metrics x 2 ends                 14
-//     regions                2 metrics x 20 regions x 2 ends    80
-//     counties               2 metrics x 22 counties x 2 ends   88
-//     the /rankings index                                        1
+//     statewide districts   35 metrics                             35
+//     statewide campuses     7 metrics                              7
+//     regions                2 metrics x 20 regions                40
+//     counties               2 metrics x 16 counties                32
+//     the /rankings index                                           1
 //     -----------------------------------------------------------
-//                                                              257
+//                                                                  115
 //
-// 12,971 + 257 = 13,228, which is 4,772 under the CI guard. Both ends of every
-// ordering are published, which is why every line doubles: a site that prints
-// only the flattering half of an ordering is advertising, and the second half
-// costs one file.
+// 12,971 + 115 = 13,086, which is 4,914 under the CI guard. Publishing both
+// ends cost 457 files here (228 boards x 2 + the index); one end costs 229
+// (114 boards + the index) — almost exactly half, and site/rankings/ itself
+// (the boards, with no index in it) is EXACTLY half: 456 files before this
+// change, 228 after, because every metric+scope this build kept still
+// contributes precisely one board and one CSV, only the SIDE it publishes
+// changed. `npm run site` is what re-measures this; the numbers above are
+// its actual output on this snapshot, not an estimate.
 //
-// Every one of the 256 board files (257 minus the /rankings index, which has
+// Every one of the 114 board files (115 minus the /rankings index, which has
 // no CSV of its own) ships a CSV beside its HTML now — rankingCsv, wired in
 // the write loop below — so the true cost of this section is roughly double:
-// 257 + 256 = 513. 12,971 + 513 = 13,484, still 4,516 under the CI guard and
+// 115 + 114 = 229. 12,971 + 229 = 13,200, still 4,800 under the CI guard and
 // well inside the quarter of the 5,029 spare files this section is allotted:
 // RANKING_FILE_BUDGET counts the HTML catalogue only, and a CSV is exactly
 // one-for-one with an HTML board, so doubling the HTML count (already capped
@@ -759,8 +768,16 @@ export const rankingRows = (result, end) =>
  * page renders competing with ten CPU-bound shards for the same cores costs more
  * than it saves.
  *
- * One result serves both ends of an ordering, so the catalogue's ~257 entries
- * cost ~129 rankings rather than 257.
+ * `cache` below is keyed by metric+level+scope, not by catalogue entry. Before
+ * Rule 3 (rankings-page.js) that mattered: a metric's 'top' and 'bottom' pages
+ * were two catalogue entries sharing one underlying rankBy/changeMetrics
+ * result, and the cache was what stopped ~257 entries from computing it twice
+ * each. Now rankingCatalogue emits at most one entry per metric+level+scope,
+ * so the cache ordinarily never gets a second lookup for the same key at
+ * all — it is kept anyway, as a cheap defensive dedup rather than the load-
+ * bearing optimization it used to be, so a plan or a metric list that someday
+ * does produce two entries for the same population still shares one
+ * computation instead of paying for it twice.
  */
 export function planRankings({ entities, bundles, regions, counties, latestYear }) {
   const catalogue = rankingCatalogue({
@@ -816,22 +833,34 @@ export function planRankings({ entities, bundles, regions, counties, latestYear 
 
 /**
  * level -> scope -> metric -> { top, bottom }, over the boards that were
- * actually kept. `top`/`bottom` are each either null (that end was never
- * built, which the suppression rule in planRankings makes true for BOTH ends
- * of a metric at once — they share one underlying result) or `{ href, title }`.
+ * actually kept. `top`/`bottom` are each either undefined (that end was never
+ * built) or `{ href, title }`.
  *
- * BOTH ends are indexed, not just 'top'. The reason is that rankings-page.js
+ * Only one of the two is EVER populated for a given metric now, by
+ * construction: rankings-page.js's rankingCatalogue publishes a single end per
+ * metric (`goodEnd` — 'bottom' for a lower-is-better measure like chronic
+ * absenteeism, 'top' for everything else; see its Rule 3), so the other slot
+ * is indistinguishable from one dropped by MIN_POPULATION suppression — both
+ * are simply absent, and that is deliberate: a caller reading this index has
+ * no way to tell "this end was never built at all" apart from "this cohort
+ * was too small to rank," and does not need to.
+ *
+ * The shape still keys by `end` explicitly rather than collapsing to a single
+ * href, because src/render/sections.js:rankedBoard has to work out which end
+ * (if either) actually contains a GIVEN ENTITY'S OWN row: rankings-page.js
  * prints only the first LIST_LIMIT rows of a long ranking (topSlice / the
- * `shown` slice in renderRankingPage): overall-score-highest for campuses
- * lists the top 1,500 of roughly 8,500, not all of them. An entity ranked
- * past that slice does not appear on the 'top' page at all — only on
- * 'bottom', if it falls in the last 1,500 instead — and a huge middle band
- * appears on NEITHER. src/render/sections.js:rankedBoard is what works out
- * which (if either) actually contains a given entity's row, from that
- * entity's own rank; this index only has to carry both hrefs for it to
- * choose between, plus each board's own title so a caller can label the
- * link with the board's actual heading ("Texas school districts with the
- * highest overall score") instead of composing a completeness claim
+ * `shown` slice in renderRankingPage) — overall-score-highest for campuses
+ * lists the top 1,500 of roughly 8,500, not all of them — so an entity outside
+ * that slice on the one published end has no board to link, full stop. It
+ * does NOT fall back to the other end, because the other end does not exist:
+ * for a higher-is-better metric that other end would have been the
+ * worst-performers list rankings-page.js's Rule 3 refuses to publish, so
+ * "no board covers this entity" is the correct, intended answer for anyone
+ * who ranked badly enough to have fallen only on that unpublished side.
+ * rankedBoard's own doc comment (sections.js) has the position arithmetic;
+ * this index only has to carry each end's href and title, so a caller can
+ * label a link with the board's actual heading ("Texas school districts with
+ * the highest overall score") instead of composing a completeness claim
  * ("Every ... ranked by ...") that a 1,500-row slice cannot back.
  */
 export function rankingIndex(kept) {
@@ -862,12 +891,17 @@ export const rankingLinksFor = (idx, e) => {
 }
 
 /**
- * The link list a hub shows for its own population — both ends of every
- * board that covers it, not only 'highest'/'gains'. A hub that showed just
- * the flattering direction was the same "only the good ones are shown"
- * complaint the ranking pages themselves exist to answer, reproduced one
- * layer up; the fix is the same one rankingIndex above makes: stop dropping
- * the 'bottom' half before the caller ever sees it.
+ * The link list a hub shows for its own population: every board in `kept`
+ * that covers this scope, exactly as `kept` hands it over. This function does
+ * no filtering by `end` at all, on purpose — see the hub-side coverage in
+ * test/render/hubs.test.js proving a hub links whatever it is given, in
+ * order. Which boards a hub actually gets to show is decided upstream, once,
+ * in rankings-page.js's rankingCatalogue (Rule 3, `goodEnd`): a metric now
+ * contributes exactly one board — the flattering end — so a region or county
+ * page naturally shows "highest overall score" without ever needing to know
+ * that a "lowest overall score" board was never built to filter out. Keeping
+ * that decision in one place, upstream of every hub, is what stops a future
+ * hub template from having to remember the rule for itself.
  */
 export const rankingBoardsFor = (kept, scope) =>
   kept
@@ -1090,14 +1124,12 @@ export async function prerender({ concurrency } = {}) {
   // region and county pages, where the reader asking "the best districts in my
   // county" already is.
   //
-  // BOTH ends of a headline metric land in headlineHrefs now, not only 'top' —
-  // boardsFor already returns both ('bottom' is dropped no more than 'lowest'
-  // and 'declines' are dropped anywhere else on this site now) — so the home
-  // page shows a metric's highest AND its lowest together rather than only the
-  // flattering half. slice(0, 6) below never splits a pair in half: `kept`
-  // keeps a metric's 'top' entry immediately followed by its 'bottom' one (they
-  // share one underlying result and are suppressed together, see planRankings),
-  // so every 2-item run this filter produces stays intact across the cut.
+  // Each metric contributes exactly one board to `kept` now — its flattering
+  // end only, decided once in rankings-page.js's rankingCatalogue (Rule 3) —
+  // so headlineHrefs holds one href per headline metric (score, its five-year
+  // change) rather than a pair, and slice(0, 6) below has nothing to split:
+  // there is no second, unpublished 'bottom' entry riding along beside it to
+  // worry about cutting in half.
   const statewide = boardsFor('state')
   const headlineHrefs = new Set(
     kept.filter((b) => b.scope.kind === 'state' && isHeadlineMetric(b.metric)).map((b) => b.href)

@@ -20,13 +20,23 @@
 //     dashboard payload, search index            2
 //     favicon.svg, og.png,
 //       apple-touch-icon.png                     3
-//     ranking boards + CSVs                    513   257 boards (metric x scope,
-//                                                     both ends of every ordering)
-//                                                     + 256 CSVs beside them — see
+//     ranking boards + CSVs                    229   115 boards (metric x scope,
+//                                                     ONE flattering end per
+//                                                     ordering — the site owner's
+//                                                     call not to compile a
+//                                                     "worst of" list; see Rule 3,
+//                                                     src/render/rankings-page.js)
+//                                                     + 114 CSVs beside them — see
 //                                                     THE FILE BUDGET in
 //                                                     src/prerender.js
 //     ------------------------------------------
-//                                           13,484   4,516 under the guard
+//                                           13,200   4,800 under the guard
+//
+// The rows above the ranking-boards one are not re-measured here; they were
+// already approximate before this edit and are not what changed. The ranking
+// row is: it used to publish both ends of every ordering (513 files) and now
+// publishes one (229) — see THE FILE BUDGET in src/prerender.js for the
+// measured breakdown this halving comes from.
 //
 // The line that matters is the per-entity one. Campus CSV and JSON are NOT
 // generated: 10,230 entities x 2 formats is 20,460 files on its own, past the

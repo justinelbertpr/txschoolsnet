@@ -34,6 +34,23 @@
 //
 //   4. DEMOGRAPHICS ARE NOT RANKED. See the CONTEXT note further down.
 //
+// WHAT THIS MODULE COMPUTES IS NOT WHAT GETS PUBLISHED. rankBy/changeMetrics
+// compute the WHOLE ordering — both directions, every entity placed — because
+// an entity page needs the full thing to print "412th of 1,184" honestly, and
+// because a partial ordering cannot state its own population correctly (Rule
+// 2). What src/render/rankings-page.js does with that result is a separate,
+// later decision: rankingCatalogue() there publishes only ONE end of each
+// ordering as a standalone page — the end where 1st place is the best result
+// — never a list whose entire subject is who scored lowest, whose dropout rate
+// was highest, or whose rating fell the most. That is the site owner's
+// explicit call, not a limitation of what this module can produce: this file
+// keeps computing the losing half exactly as before, so a rank, a percentile
+// and a "how many were excluded" sentence are all still correct for every
+// entity regardless of which end of the ordering it falls on. Only the
+// COMPILED LIST — a titled, linked, indexed page whose reason to exist is
+// ranking entities from worst to bad — stops being built. See rankings-
+// page.js's Rule 3 and `goodEnd` for where that line is actually drawn.
+//
 // PERFORMANCE. rankingBundles is the expensive half and is entity-invariant, so
 // it is built ONCE per process and handed to every rankBy/changeMetrics call.
 // Measured on the 2026-08 snapshot — 10,230 entities, Node 24, Apple silicon,

@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="t">
 <title id="t">txschools.net</title>
 <style>
-  .tile { fill: #4338ca }
+  .tile { fill: #78350f }
   .bar { fill: #ffffff }
   @media (prefers-color-scheme: dark) {
-    .tile { fill: #a5b4fc }
+    .tile { fill: #f2cd82 }
     .bar { fill: #0d0e14 }
   }
 </style>

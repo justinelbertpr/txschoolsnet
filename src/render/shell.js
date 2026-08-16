@@ -22,6 +22,49 @@ export const SITE_ORIGIN = 'https://txschools.net'
  */
 export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}`
 
+/**
+ * The mobile nav ships `open` in the markup unconditionally (see .nav-toggle
+ * in style.css for why: a native <details> closed by default has a failure
+ * mode on a width this file guessed wrong about, so open-by-default is the
+ * only state with no way to end up unrecoverable). That is the correct
+ * fallback for a reader with no JavaScript, but it means a reader WITH
+ * JavaScript sees the full nav list expanded on every phone-width load,
+ * which is not what "Menu" behind a summary is for. This closes it, once, on
+ * narrow viewports, before first paint — same technique as THEME_INIT_SCRIPT
+ * above, placed as a sibling script immediately after the element itself
+ * (site/render/shell.js's header markup) so the DOM node already exists by
+ * the time this runs, without waiting on app.js or risking a flash of open
+ * then closed. matches style.css's own mobile breakpoint for this control.
+ */
+export const NAV_INIT_SCRIPT = `try{if(matchMedia('(max-width:39.99rem)').matches)document.currentScript.previousElementSibling.removeAttribute('open')}catch(e){}`
+
+/**
+ * CSP's `require-trusted-types-for 'script'` (site/_headers) turns every
+ * assignment to a Trusted-Types-guarded DOM sink into a thrown TypeError
+ * unless the value is a Trusted Types object rather than a plain string.
+ * site/app.js and site/rankings.js both assign plain strings to `.innerHTML`
+ * (chart redraws, the CCMR/trajectory table swap, the rankings tool's
+ * control panel and results table) — none of it reader-supplied HTML, all of
+ * it either static markup or values already run through esc(), but none of
+ * it wrapped in a Trusted Types policy either, and rewriting every call site
+ * is a change to those files' own logic that belongs to whoever is touching
+ * them next, not to a headers-only change.
+ *
+ * A policy literally named "default" is the one name the platform will
+ * invoke automatically for a plain-string sink assignment, so installing one
+ * here — before app.js/rankings.js run, same before-paint placement as
+ * THEME_INIT_SCRIPT — turns enforcement on without editing either file: every
+ * existing innerHTML write keeps working exactly as it does today. It only
+ * implements createHTML, deliberately: createScript/createScriptURL are left
+ * unimplemented, so if any script ever DOES try to hand a string to eval, a
+ * <script>.text, or a dynamic script src, that throws rather than silently
+ * running — the one class of injection this can still catch for free. The
+ * trusted-types directive in site/_headers restricts policy creation to
+ * exactly this name, so nothing else — vendored, injected, or otherwise —
+ * can register a competing "default" and intercept these sinks first.
+ */
+export const TRUSTED_TYPES_INIT_SCRIPT = `if(window.trustedTypes&&trustedTypes.createPolicy){try{trustedTypes.createPolicy('default',{createHTML:function(s){return s}})}catch(e){}}`
+
 export const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
@@ -40,9 +83,9 @@ export const esc = (s) =>
  * it says nothing about any particular school.
  */
 export const BRAND = {
-  tile: '#4338ca', // --accent, light scheme
+  tile: '#78350f', // --accent, light scheme
   glyph: '#ffffff',
-  tileDark: '#a5b4fc', // --accent, dark scheme
+  tileDark: '#f2cd82', // --accent, dark scheme
   glyphDark: '#0d0e14',
   themeLight: '#f7f5f1', // --ground, light
   themeDark: '#14120f', // --ground, dark
@@ -186,6 +229,15 @@ export const siteNav = (canonical) => {
  * The sticky bar ships `hidden` and is a duplicate of what the hero already
  * says, so a reader with JavaScript off loses nothing by never seeing it.
  *
+ * ---------------------------------------------------- CSS BEFORE THE FONT
+ *
+ * <link rel="stylesheet" href="/style.css"> comes before the font preload,
+ * not after: style.css blocks first paint and the font does not — its
+ * @font-face rule (site/style.css) sets font-display: swap, so a slow font
+ * swaps in over the fallback rather than holding text back — so the resource
+ * that actually gates rendering is the one the preload scanner should reach
+ * first.
+ *
  * ------------------------------------------------------- THE SHARE CARD
  *
  * Every page emits og: and twitter: tags built from the title, description and
@@ -281,9 +333,10 @@ ${main}`
 <meta name="twitter:description" content="${esc(ogDescription)}">
 <meta name="twitter:image" content="${esc(image)}">
 <meta name="twitter:image:alt" content="${esc(BRAND.markAlt)}">
-<link rel="preload" href="/fonts/geist-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
+<link rel="preload" href="/fonts/geist-var.woff2" as="font" type="font/woff2" crossorigin>
 <script>${THEME_INIT_SCRIPT}</script>
+<script>${TRUSTED_TYPES_INIT_SCRIPT}</script>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
@@ -294,6 +347,7 @@ ${main}`
     <summary class="nav-toggle">Menu</summary>
     ${siteNav(canonical)}
   </details>
+  <script>${NAV_INIT_SCRIPT}</script>
   <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false">
     <svg class="ti ti-moon" aria-hidden="true" viewBox="0 0 20 20"><path d="M17.3 12.5A7.3 7.3 0 0 1 7.5 2.7a7.6 7.6 0 1 0 9.8 9.8Z" fill="currentColor"/></svg>
     <svg class="ti ti-sun" aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M15.7 4.3l-1.4 1.4M5.7 14.3l-1.4 1.4M15.7 15.7l-1.4-1.4M5.7 5.7 4.3 4.3"/></g></svg>
@@ -399,11 +453,21 @@ export const section = (id, heading, inner, lede = '') =>
   ${inner}
 </section>`
 
+/**
+ * Each .stat div's content model has to be exactly one <dt>/<dd> pair and
+ * nothing else — a <dl> may wrap its groups in <div>s, but each of those
+ * divs may contain only dt/dd (plus script/template), per the HTML spec. The
+ * note used to be a <p> sibling of <dd> inside that div, which is why axe and
+ * Lighthouse both flagged this list as malformed. The note is real content
+ * about the stat, so it moves inside the <dd> it belongs to rather than
+ * being dropped.
+ */
 export const statGrid = (items) =>
   `<dl class="stats">${items
     .filter(Boolean)
-    .map(([label, value, note]) =>
-      `<div class="stat"><dt>${esc(label)}</dt><dd>${value}</dd>${note ? `<p class="stat-note">${esc(note)}</p>` : ''}</div>`
+    .map(
+      ([label, value, note]) =>
+        `<div class="stat"><dt>${esc(label)}</dt><dd>${value}${note ? `<p class="stat-note">${esc(note)}</p>` : ''}</dd></div>`
     )
     .join('')}</dl>`
 

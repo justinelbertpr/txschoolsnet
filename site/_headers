@@ -35,3 +35,93 @@
 # a rebuild is never stale for long.
 /data/search-index.json
   Cache-Control: public, max-age=3600
+
+# ---------------------------------------------------------------------------
+# SECURITY HEADERS — every response, via /*, which Cloudflare's format treats
+# as matching everything. No header name below collides with a Cache-Control
+# rule above, so the "headers merge, comma-joined on collision" rule noted at
+# the top of this file never triggers here: /data/* responses get both their
+# specific Cache-Control AND everything below, cleanly.
+#
+# CSP is deny-by-default (default-src 'none') with narrow allow-lists rather
+# than one broad relaxation, because this is a 100% static, server-less site:
+# every resource it ever loads is knowable ahead of time by reading the
+# rendered HTML, so "list exactly what's really there" costs nothing and
+# "allow broad categories just in case" would buy nothing.
+#
+#   script-src   'self' covers the three same-origin module/external scripts
+#                (/app.js, /search.js, /rankings.js — all <script src=...>,
+#                loaded from this origin only). Every *inline* <script> the
+#                build ever emits is one of four byte-identical constants —
+#                THEME_INIT_SCRIPT, NAV_INIT_SCRIPT and
+#                TRUSTED_TYPES_INIT_SCRIPT in src/render/shell.js (on every
+#                page), and RANKINGS_GROUP_FILTER_JS in
+#                src/render/rankings-page.js (site/rankings.html only) — so
+#                each gets its own 'sha256-...' source instead of
+#                'unsafe-inline'. Verified against a full `npm run site`
+#                build: exactly these four hashes occur across all 9,531
+#                rendered pages, nothing else does. `<script type=
+#                "application/json" data-cohorts|data-own|data-trajectory|
+#                data-pin-source|data-rankings-lookups>` data-island tags are
+#                inert JSON, never executed, and need no script-src entry at
+#                all — only the four above actually run as script.
+#
+#                IMPORTANT — these hashes are tied to exact bytes: editing
+#                any of the four constants named above changes its rendered
+#                <script> content and therefore its hash, silently breaking
+#                that inline script under this CSP (the browser drops it,
+#                no console-visible failure beyond a CSP violation report)
+#                until the hash below is recomputed and replaced. To
+#                recompute: `npm run site`, then for the changed script's
+#                exact <script>...</script> body as it appears in the built
+#                HTML (not the JS source constant string — whitespace or
+#                quoting can differ), `openssl dgst -sha256 -binary | base64`
+#                (or Node's crypto.createHash('sha256')...digest('base64')).
+#
+#                static.cloudflareinsights.com is Cloudflare's own Web
+#                Analytics/RUM beacon (beacon.min.js) — injected at the edge
+#                by Cloudflare's zone settings (Speed > Observatory /
+#                Analytics), not by anything in this repo's source (grepped:
+#                no reference anywhere in src/ or site/). Allow-listed here,
+#                under both script-src and connect-src below, purely so a
+#                strict CSP does not silently break Cloudflare's own
+#                instrumentation; remove both if that zone setting is ever
+#                turned off.
+#
+#   style-src    'unsafe-inline' is deliberate, not an oversight: the one
+#                static <style> block (src/render/search.js's searchAssets,
+#                byte-identical on every page) could be hashed, but every
+#                chart (src/render/charts.js) also writes a per-data-point
+#                `style="--m:...;background:..."` attribute — 192,000+
+#                occurrences across the built site, a different value at
+#                nearly every one, because the value IS the data (a bar's
+#                length, a dot's position). There is no finite hash list for
+#                that, and CSS injection is not the same risk class as script
+#                injection (no code execution), so 'unsafe-inline' here does
+#                not weather the "avoid unsafe-inline" bar that script-src
+#                has to clear. 'self' still covers the external stylesheet.
+#
+#   trusted-types / require-trusted-types-for — enforced, not just declared,
+#                because TRUSTED_TYPES_INIT_SCRIPT (src/render/shell.js)
+#                installs a policy literally named "default" before any other
+#                script runs. That name is what lets the platform keep
+#                honouring the plain-string .innerHTML writes already in
+#                site/app.js and site/rankings.js (chart redraws, the
+#                rankings tool's results table) without either file being
+#                rewritten — see the comment on TRUSTED_TYPES_INIT_SCRIPT
+#                itself for why that is the correct trade-off here, not a
+#                loophole. Restricting the directive to exactly that one name
+#                is what stops any other script — vendored, injected, or
+#                otherwise — from registering a competing "default" policy
+#                and intercepting those sinks first.
+#
+# frame-ancestors 'none' is the modern, CSP-based clickjacking control;
+# X-Frame-Options: DENY sits alongside it only for browsers old enough to
+# ignore frame-ancestors. Strict-Transport-Security is safe to set
+# unconditionally — wrangler.jsonc's custom_domain is already HTTPS-only, so
+# there is no plain-HTTP origin this could ever lock a reader out of.
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-wBdtWdXsHnAU2DdByySW4LlXFAScrBvmBgkXtydwJdg=' 'sha256-d6OfB9fxyGMyAr4e2q+WElyKt73Of+IEOVYzkdgm2ZQ=' 'sha256-at86aj+4J4wwkAqYTaG7W3nWe9lXEbf5AmxtNM1HBDM=' 'sha256-PiJjrtl4vqQqu+0o5I9S5RQz6NEFIbhAU7prdNQpiVE=' https://static.cloudflareinsights.com https://*.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self' https://static.cloudflareinsights.com https://*.cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; require-trusted-types-for 'script'; trusted-types default; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Cross-Origin-Opener-Policy: same-origin
+  X-Frame-Options: DENY
