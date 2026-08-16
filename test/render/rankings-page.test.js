@@ -134,11 +134,14 @@ describe('the page frame', () => {
     // 1st carries .rk-podium too — a weight/rule treatment for the top 3
     // placements, never a colour (see site/style.css .rk-podium).
     expect(html).toContain('<td class="num rk-podium">1st</td>')
-    // Only the shell's own scripts: search + app (external) and the inline
-    // theme-init snippet (THEME_INIT_SCRIPT — sets [data-theme] before paint
-    // if a reader has stored a preference; a no-op with nothing to restore,
-    // never a source of rendered content). None of the three are this page's own.
-    expect(html.match(/<script/g).length).toBe(html.match(/src="\/(search|app)\.js"/g).length + 1)
+    // Only the shell's own scripts: search + app (external) and the three
+    // inline before-paint snippets, THEME_INIT_SCRIPT (sets [data-theme] if
+    // a reader has stored a preference), NAV_INIT_SCRIPT (collapses the
+    // mobile nav by default) and TRUSTED_TYPES_INIT_SCRIPT (installs the
+    // Trusted Types policy site/_headers' CSP requires) — all three no-ops
+    // with nothing to restore/collapse/policy-check here, never a source of
+    // rendered content. None of the five are this page's own.
+    expect(html.match(/<script/g).length).toBe(html.match(/src="\/(search|app)\.js"/g).length + 3)
   })
 })
 
@@ -564,10 +567,13 @@ describe('a window that reaches 2021-22 discloses the "What If" rescoring', () =
   })
 })
 
-/* ----------------------------------------------------------- both ends -- */
+/* ------------------------------------------------- only the flattering end -- */
 
-describe('the opposite end is never hidden', () => {
-  it('links the inverse by name', () => {
+describe('only the flattering end of an ordering is published (Rule 3)', () => {
+  it('still links a caller-supplied inverse rather than hiding a page that genuinely exists', () => {
+    // renderRankingPage itself stays capable of this — see relatedFor's own
+    // comment on why `inverse` is not hard-coded to null — even though
+    // rankingCatalogue() never hands one over in the ordinary build.
     const html = page({
       related: { inverse: { href: '/rankings/texas-districts/score-lowest', label: 'The lowest-scoring districts' } },
     })
@@ -575,8 +581,35 @@ describe('the opposite end is never hidden', () => {
     expect(html).toContain('The lowest-scoring districts')
   })
 
-  it('says the inverse is missing rather than pretending there is none', () => {
-    expect(page()).toContain('The opposite end of this list is not published in this build.')
+  it('states the policy rather than reading like a gap this build happened to leave', () => {
+    const html = page()
+    expect(html).toContain('This site does not publish the other end of this ordering.')
+    expect(html).toContain('txschools.net does not compile one')
+    expect(html).not.toContain('is not published in this build')
+  })
+
+  it('never assembles a "-lowest" or "-declines" page or link for a higher-is-better metric', () => {
+    const cat = rankingCatalogue({ metrics: [SCORE, CHANGE], scopes: [TEXAS] })
+    expect(cat.every((e) => e.end === 'top')).toBe(true)
+    expect(cat.some((e) => e.href.endsWith('-lowest'))).toBe(false)
+    expect(cat.some((e) => e.href.endsWith('-declines'))).toBe(false)
+    const html = renderRankingsIndexPage({ pages: cat })
+    expect(html).not.toContain('-lowest')
+    expect(html).not.toContain('-declines')
+  })
+
+  it('publishes the "-lowest" end, never "-highest", for a lower-is-better metric — the flattering end is the low one', () => {
+    // Chronic absenteeism: LOWEST is best (least absent). Publishing
+    // "-highest" here would be exactly the worst-performers leaderboard
+    // Rule 3 exists to drop, so goodEnd must resolve to 'bottom' for it.
+    const cat = rankingCatalogue({
+      metrics: [ABSENT],
+      scopes: [TEXAS],
+      plan: [{ kind: 'state', level: 'district', select: () => true }],
+    })
+    expect(cat).toHaveLength(1)
+    expect(cat[0].end).toBe('bottom')
+    expect(cat[0].href).toBe('/rankings/texas-districts/absenteeism-lowest')
   })
 
   it('cross-links other metrics at this scope and this metric at other scopes', () => {
@@ -610,7 +643,7 @@ describe('demographics are never ranked', () => {
       scopes: [TEXAS],
       plan: [{ kind: 'state', level: 'district', select: () => true }],
     })
-    expect(cat.map((e) => e.metric.key)).toEqual(['score', 'score'])
+    expect(cat.map((e) => e.metric.key)).toEqual(['score'])
   })
 })
 
@@ -733,8 +766,12 @@ describe('an alternative-education board never shares a title with its standard 
       scopes: [TEXAS],
       plan: [{ kind: 'state', level: 'district', select: () => true }],
     })
-    const std = cat.find((e) => e.metric.key === 'grad:3' && e.end === 'top')
-    const aea = cat.find((e) => e.metric.key === 'grad:3@aea' && e.end === 'top')
+    // Dropout rate is lower-is-better, so its one published end is 'bottom'
+    // (the lowest-dropout-first list) — see goodEnd in rankings-page.js.
+    const std = cat.find((e) => e.metric.key === 'grad:3')
+    const aea = cat.find((e) => e.metric.key === 'grad:3@aea')
+    expect(std.end).toBe('bottom')
+    expect(aea.end).toBe('bottom')
     expect(std.title).not.toBe(aea.title)
     expect(aea.title).toContain('alternative education')
   })
@@ -763,14 +800,17 @@ describe('the catalogue and the file budget', () => {
   }))
   const scopes = [TEXAS, CAMPUSES, ...regions]
 
-  it('generates metric x scope x both ends, and nothing else', () => {
+  it('generates metric x scope, one end each — the flattering one — and nothing else', () => {
     const cat = rankingCatalogue({ metrics, scopes })
-    // 9 district metrics statewide x2 ends = 18; 7 campus metrics x2 = 14;
-    // 2 headline metrics x 20 regions x2 = 80.
-    expect(cat.filter((e) => e.scope === TEXAS).length).toBe(18)
-    expect(cat.filter((e) => e.scope === CAMPUSES).length).toBe(14)
-    expect(cat.filter((e) => e.scope.kind === 'region').length).toBe(80)
-    expect(cat.length).toBe(112)
+    // 9 district metrics statewide x1 end = 9; 7 campus metrics x1 = 7;
+    // 2 headline metrics x 20 regions x1 = 40. Half of what publishing both
+    // ends would have cost (112), give or take: it is exact here because
+    // every one of these 9 metrics has a real 'top' or 'bottom' page — see
+    // the "only the flattering end" tests above for the lower-is-better case.
+    expect(cat.filter((e) => e.scope === TEXAS).length).toBe(9)
+    expect(cat.filter((e) => e.scope === CAMPUSES).length).toBe(7)
+    expect(cat.filter((e) => e.scope.kind === 'region').length).toBe(40)
+    expect(cat.length).toBe(56)
   })
 
   it('gives every page a unique path and a title', () => {
@@ -780,7 +820,9 @@ describe('the catalogue and the file budget', () => {
   })
 
   it('fails loudly rather than quietly spending the file budget', () => {
-    const many = Array.from({ length: 250 }, (_, i) => ({ key: `m${i}`, label: `Metric ${i}` }))
+    // One end per metric now, so it takes more than MAX_RANKING_PAGES metrics
+    // (not half that many) to trip the guard at a single scope.
+    const many = Array.from({ length: 450 }, (_, i) => ({ key: `m${i}`, label: `Metric ${i}` }))
     expect(() => rankingCatalogue({ metrics: many, scopes: [TEXAS] })).toThrow(/exceeds the 400-page budget/)
     expect(MAX_RANKING_PAGES).toBe(400)
   })
@@ -800,7 +842,8 @@ describe('the catalogue and the file budget', () => {
       scopes: regions,
     })
     // Three metrics match the headline selector; the region plan takes two.
-    expect(cat.length).toBe(80)
+    // One end each x 20 regions = 40.
+    expect(cat.length).toBe(40)
     expect(new Set(cat.map((e) => e.metric.key))).toEqual(new Set(['score', 'change:score:5y']))
   })
 
@@ -818,29 +861,51 @@ describe('the catalogue and the file budget', () => {
     expect(isHeadlineMetric(ABSENT)).toBe(false)
   })
 
-  it('builds cross-links that only ever point at pages it generated', () => {
+  it('builds cross-links that only ever point at pages it generated, and never finds an inverse', () => {
     const cat = rankingCatalogue({ metrics, scopes })
     const entry = cat.find((e) => e.scope === TEXAS && e.metric.key === 'score' && e.end === 'top')
     const rel = relatedFor(cat, entry)
     const paths = new Set(cat.map((e) => e.href))
 
-    expect(rel.inverse.href).toBe('/rankings/texas-districts/score-lowest')
+    // No two entries ever share a scope AND a metric key with different ends
+    // now — each metric contributes exactly one — so there is never a real
+    // inverse in a catalogue rankingCatalogue() produced.
+    expect(rel.inverse).toBeNull()
+    // 8 other metrics at the Texas-districts scope, regardless of THEIR own
+    // end: chronic absenteeism's only entry is 'bottom' while score's is
+    // 'top', and it still belongs in "other rankings of Texas school
+    // districts" — see relatedFor's own comment on why `end` is not part of
+    // this filter.
     expect(rel.metrics.length).toBe(8)
     expect(rel.scopes.length).toBe(21)
-    for (const l of [rel.inverse, ...rel.metrics, ...rel.scopes]) expect(paths.has(l.href)).toBe(true)
+    for (const l of [...rel.metrics, ...rel.scopes]) expect(paths.has(l.href)).toBe(true)
   })
 
-  it('renders a page whose inverse link comes from the catalogue', () => {
+  it('cross-links a lower-is-better metric\'s "-lowest" board alongside a higher-is-better one\'s "-highest"', () => {
+    // Regression for the relatedFor fix: before it stopped filtering by
+    // `end`, chronic absenteeism (end: 'bottom') was silently missing from
+    // the "other rankings" list on the score (end: 'top') page.
     const cat = rankingCatalogue({ metrics, scopes })
-    const entry = cat.find((e) => e.scope === TEXAS && e.metric.key === 'change:score:5y' && e.end === 'top')
+    const entry = cat.find((e) => e.scope === TEXAS && e.metric.key === 'score')
+    const rel = relatedFor(cat, entry)
+    expect(rel.metrics.some((m) => m.href === '/rankings/texas-districts/absenteeism-lowest')).toBe(true)
+  })
+
+  it('renders a change-metric page that never links a "-declines" page, because none was built', () => {
+    const cat = rankingCatalogue({ metrics, scopes })
+    const entry = cat.find((e) => e.scope === TEXAS && e.metric.key === 'change:score:5y')
+    expect(entry.end).toBe('top')
+    expect(entry.href).toBe('/rankings/texas-districts/change-score-5y-gains')
+
     const html = renderRankingPage({
       ...entry,
       rows: rows(30),
       meta: { eligible: 30 },
       related: relatedFor(cat, entry),
     })
-    expect(html).toContain('href="/rankings/texas-districts/change-score-5y-declines"')
-    expect(html).toContain('largest rating declines since 2021-22')
+    expect(html).not.toContain('change-score-5y-declines')
+    expect(html).toContain('largest rating gains since 2021-22')
+    expect(html).toContain('This site does not publish the other end of this ordering.')
   })
 })
 
@@ -859,10 +924,13 @@ describe('the rankings index', () => {
   it('groups every list by the population it ranks', () => {
     const html = renderRankingsIndexPage({ pages: cat })
     expect(html).toContain('Texas school districts')
-    expect(html).toContain('4 ranked lists')
+    // One entry per metric now (score, change:score:5y) — 2 lists per scope,
+    // not 4.
+    expect(html).toContain('2 ranked lists')
     expect(html).toContain('Region 10 school districts')
     expect(html).toContain('href="/rankings/texas-districts/score-highest"')
-    expect(html).toContain('href="/rankings/region-10-districts/change-score-5y-declines"')
+    expect(html).toContain('href="/rankings/region-10-districts/change-score-5y-gains"')
+    expect(html).not.toContain('change-score-5y-declines')
   })
 
   it('states the rules the lists follow, including the one about demographics', () => {

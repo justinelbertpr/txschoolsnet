@@ -73,9 +73,20 @@ const versus = (mine, avg) => (Math.abs(mine - avg) < 0.5 ? 'level with' : mine 
  *   contains neither, sends the reader to a table that does not have this
  *   entity's own row in it: a verified defect on ~82% of campus pages before
  *   this existed. rankedBoard below is what closes it — it compares the
- *   entity's own rank and population against LIST_LIMIT and returns the one
- *   board (of the two that exist for a metric) whose printed rows actually
- *   include this entity, or null when neither slice does.
+ *   entity's own rank and population against LIST_LIMIT and returns whichever
+ *   end (of the up to two that could exist for a metric) actually has this
+ *   entity's row on its printed page, or null when none does.
+ *
+ *   Since rankings-page.js's Rule 3, ordinarily only ONE end of a metric is
+ *   ever built at all — the flattering one, from `goodEnd` — so this third
+ *   case now has two different causes that read identically from here and are
+ *   meant to: an entity outside LIST_LIMIT on the published end gets no link,
+ *   and neither does an entity that only falls in the unpublished, worse-
+ *   performing end's slice, because that end was never written and so was
+ *   never in `vm.rankingLinks` to begin with. A district with the state's
+ *   worst chronic-absenteeism figure simply prints no ranking link on its own
+ *   page — not a link to a "highest chronic absenteeism" leaderboard — which
+ *   is the intended effect of Rule 3, not a bug in this lookup.
  */
 const finite = (v) => typeof v === 'number' && Number.isFinite(v)
 
@@ -108,13 +119,14 @@ export const rankingEnd = (rank, of, lowerIsBetter = false) => {
 }
 
 /**
- * The one board (of the two that exist for a metric+cohort) whose printed
- * rows actually contain this entity, or null when neither does — see the
- * note above. `{ href, title }`, where `title` is the board's own heading
- * ("Texas school districts with the highest overall score"), read off the
- * index rather than composed here, so a caller can label a link with a claim
- * the linked page actually makes instead of inventing its own completeness
- * claim ("Every ... ranked by ...") that a 1,500-row slice cannot back.
+ * The one board — of at most two that could exist for a metric+cohort, and
+ * ordinarily just one since Rule 3 (rankings-page.js) — whose printed rows
+ * actually contain this entity, or null when none does — see the note above.
+ * `{ href, title }`, where `title` is the board's own heading ("Texas school
+ * districts with the highest overall score"), read off the index rather than
+ * composed here, so a caller can label a link with a claim the linked page
+ * actually makes instead of inventing its own completeness claim ("Every ...
+ * ranked by ...") that a 1,500-row slice cannot back.
  */
 export const rankedBoard = (vm, metric, cohort, rank, of, lowerIsBetter = false) => {
   const end = rankingEnd(rank, of, lowerIsBetter)

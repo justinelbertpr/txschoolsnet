@@ -28,7 +28,11 @@ import {
   rankingCsvFile,
   rankingRows,
   rankingMeta,
+  rankingMetrics,
+  rankingScopes,
+  RANKING_PLAN,
 } from '../src/prerender.js'
+import { rankingCatalogue } from '../src/render/rankings-page.js'
 import { renderEntity } from '../src/render/page.js'
 import { entitySlug } from '../src/render/view-model.js'
 
@@ -550,6 +554,62 @@ describe('rankingMeta', () => {
     const change = { ...result({}), window: { from: '2021-22', to: '2025-26' } }
     expect(rankingMeta(change, '2025-26').window).toBe('since 2021-22')
     expect(rankingMeta(change, '2025-26').fromLabel).toBe('2021-22')
+  })
+})
+
+describe('the real ranking catalogue publishes only the flattering end of every ordering', () => {
+  // End to end: rankingMetrics() and RANKING_PLAN are this build's actual
+  // metric list and plan — the same two arguments src/prerender.js:
+  // planRankings hands to rankingCatalogue — so this exercises the real
+  // policy decision, not a hand-picked stand-in metric. Only the scopes are
+  // synthetic, because a real region/county list needs the TEA snapshot on
+  // disk; the shapes below are exactly what rankingScopes/countyRankingScopes
+  // themselves produce from real data.
+  const regions = [{ id: '10', name: 'Region 10: Richardson' }]
+  const countyRows = Array.from({ length: 12 }, (_, i) => ({
+    level: 'district',
+    score: 90 - i,
+    countyId: '057',
+    county: 'Dallas',
+  }))
+  const counties = [{ name: 'Dallas', slug: 'dallas', rows: countyRows }]
+  const scopes = rankingScopes({ regions, counties })
+  const catalogue = rankingCatalogue({ metrics: rankingMetrics(), scopes, plan: RANKING_PLAN })
+
+  it('never publishes a "-declines" page: every change metric this snapshot supports is higher-is-better', () => {
+    expect(catalogue.some((e) => e.href.endsWith('-declines'))).toBe(false)
+    const changeEntries = catalogue.filter((e) => e.metric.kind === 'change')
+    expect(changeEntries.length).toBeGreaterThan(0) // the plan does offer change metrics
+    expect(changeEntries.every((e) => e.end === 'top')).toBe(true)
+  })
+
+  it('publishes "-lowest" only where the lowest figure is the good one, and "-highest" everywhere else', () => {
+    const lowest = catalogue.filter((e) => e.end === 'bottom')
+    expect(lowest.length).toBeGreaterThan(0) // chronic absenteeism and dropout rate are in this plan
+    for (const e of lowest) expect(e.metric.lowerIsBetter).toBe(true)
+
+    const highest = catalogue.filter((e) => e.end === 'top')
+    for (const e of highest) expect(e.metric.lowerIsBetter).not.toBe(true)
+  })
+
+  it('publishes chronic absenteeism and dropout rate as "-lowest" (the best-performers list), never "-highest" (the worst)', () => {
+    const stateDistrict = { kind: 'state', level: 'district' }
+    const isIt = (e, key) => e.metric.key === key && e.scope.kind === stateDistrict.kind && e.scope.level === stateDistrict.level
+    const absenteeism = catalogue.find((e) => isIt(e, 'absenteeism'))
+    const dropout = catalogue.find((e) => isIt(e, 'grad:3'))
+    expect(absenteeism?.end).toBe('bottom')
+    expect(absenteeism?.href.endsWith('-lowest')).toBe(true)
+    expect(dropout?.end).toBe('bottom')
+    expect(dropout?.href.endsWith('-lowest')).toBe(true)
+  })
+
+  it('publishes the overall score and its change as "-highest"/"-gains", never "-lowest"/"-declines"', () => {
+    const score = catalogue.find((e) => e.metric.key === 'score' && e.scope.kind === 'state' && e.scope.level === 'district')
+    const changeScore = catalogue.find((e) => e.metric.base?.key === 'score' && e.scope.kind === 'state' && e.scope.level === 'district')
+    expect(score.end).toBe('top')
+    expect(score.href.endsWith('-highest')).toBe(true)
+    expect(changeScore.end).toBe('top')
+    expect(changeScore.href.endsWith('-gains')).toBe(true)
   })
 })
 

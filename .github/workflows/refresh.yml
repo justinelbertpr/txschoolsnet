@@ -70,6 +70,21 @@ jobs:
           git diff --staged --quiet || git commit -m "Add TEA snapshot $(cat build/snapshot.txt)"
           git push
 
+      # site/style.css and site/app.js are hand-authored and heavily commented —
+      # real design documentation, not boilerplate — so that is what git keeps,
+      # and what `npm run site`/`npm run preview` serve to a developer working
+      # locally. This step overwrites this runner's on-disk copies only, in
+      # place, with an esbuild-minified rewrite (comments and whitespace
+      # stripped, syntax untouched — safe for the modern CSS this stylesheet
+      # uses: @supports selector(), color-mix(), oklch(), :has()) — right
+      # before the deploy steps below read ./site to build what actually ships.
+      # Nothing here is committed: the step above already pushed anything worth
+      # keeping, `git add` is never called again after this point, and the
+      # runner's checkout is discarded when the job ends. A rerun of this exact
+      # job always starts from the readable, git-committed source again.
+      - name: Minify CSS/JS for deploy (runner copy only — never committed)
+        run: npm run minify
+
       # `versions upload` uploads a new version of a Worker that already exists; it
       # cannot create one. The first run of this workflow therefore failed with
       # "You cannot upload a new version of a Worker that does not yet exist."

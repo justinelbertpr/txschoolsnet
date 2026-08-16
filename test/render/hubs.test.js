@@ -248,8 +248,10 @@ describe('home page', () => {
 
   it('accepts stats as label/value/note triples', () => {
     const html = renderHomePage({ stats: [['Rated A', 214, 'of 1,199 districts']] })
-    expect(html).toContain('<dt>Rated A</dt><dd>214</dd>')
-    expect(html).toContain('of 1,199 districts')
+    // The note lives inside the <dd> it describes, not as a <p> sibling of
+    // dt/dd inside the wrapping div — a <dl> group's div may contain only
+    // dt/dd (plus script/template), so a stray <p> there is invalid markup.
+    expect(html).toContain('<dt>Rated A</dt><dd>214<p class="stat-note">of 1,199 districts</p></dd>')
   })
 
   it('drops the stats section entirely when given no stats', () => {

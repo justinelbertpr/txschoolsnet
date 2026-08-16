@@ -26,8 +26,21 @@
 // 2. Ties are ties. Two districts sharing 3rd both print 3rd, the next
 //    placement is 5th, and the page says in words that it works that way.
 //
-// 3. Both ends exist. Every page links its inverse by name. A site that
-//    publishes only the flattering half of an ordering is a marketing site.
+// 3. Only the flattering end is published. Every metric here has a direction
+//    (rankings.js:rankable's `dir`/`lowerIsBetter`) — a higher score is better,
+//    a lower dropout rate is better — and the catalogue below emits exactly one
+//    end of each ordering: the one where 1st place is the best result. That is
+//    the site owner's explicit call, made after this module shipped both ends
+//    (see git history): txschools.net does not compile a standalone list of the
+//    worst-scoring districts, the lowest scores, or the steepest rating drops.
+//    It is a publishing decision, not a data one — every entity's own page
+//    still shows its real score, its real grade and its real trend, bad ones
+//    included, and rankings.js still computes the whole ordering underneath
+//    (an entity's "412th of 1,184" on its own page reads off the same ranked
+//    array a board would). What stops is assembling that ordering into an
+//    indexable, linkable, shareable page whose entire subject is who is doing
+//    worst. `goodEnd` below is the one place that decision is made; nothing
+//    downstream re-derives it.
 //
 // 4. Demographics are never ranked. metrics.js:isContextMetric is imported
 //    rather than re-listed, and renderRankingPage THROWS on a context metric —
@@ -42,32 +55,36 @@
 //
 // site/ holds 12,971 files against a CI guard of 18,000 and a Cloudflare hard
 // cap of 20,000, so there are 5,029 spare and every page here spends one.
-// Metrics x scopes explodes: ~26 rankable district metrics x 274 scopes x 2
-// ends is 14,248 pages, which is not affordable and would not be read.
+// Metrics x scopes explodes even at one page per metric: ~26 rankable district
+// metrics x 274 scopes is 7,124 pages, which is not affordable and would not
+// be read.
 //
 // The plan (DEFAULT_PLAN, below) and its arithmetic, against a RANKABLE of the
 // 26 non-context metrics metrics.js declares for a district plus ~6 change
-// metrics the multi-year tables actually support:
+// metrics the multi-year tables actually support. Rule 3 above means every
+// metric now spends ONE file, not two — its good end only, from `goodEnd`:
 //
-//     statewide districts   x 32 rankable metrics   x 2 ends   =   64
-//     statewide campuses    x  8 headline measures  x 2 ends   =   16
-//     20 regions, districts x  2 headline measures  x 2 ends   =   80
-//     the rankings index                                       =    1
+//     statewide districts   x 32 rankable metrics                =   32
+//     statewide campuses    x  8 headline measures                =    8
+//     20 regions, districts x  2 headline measures                =   40
+//     the rankings index                                          =    1
 //     ------------------------------------------------------------------
-//                                                                  161
+//                                                                     81
 //
-// 12,971 + 161 = 13,132, which is 4,868 under the CI guard and 6,868 under the
-// hard cap. rankingCatalogue() computes the exact figure from the metric list it
+// 12,971 + 81 = 13,052, which is 4,948 under the CI guard and 6,948 under the
+// hard cap — more headroom than when both ends were published, because Rule 3
+// halves the catalogue by construction rather than by trimming a metric or a
+// scope. rankingCatalogue() computes the exact figure from the metric list it
 // is handed rather than trusting this comment, and throws above
 // MAX_RANKING_PAGES (400), so a future metric added to RANKABLE cannot quietly
 // multiply into the file cap — the build fails and someone chooses. The region
 // row is where a loose selector would hurt: one more metric matching there is
-// 40 pages, not 2, which is why that plan entry carries a hard `limit`.
+// 20 pages, not 1, which is why that plan entry carries a hard `limit`.
 //
-// Counties are deliberately absent. 253 counties x even two metrics x two ends
-// is 1,012 pages, and most counties hold fewer than the 10 rated districts
-// metrics.js already refuses to publish a rank out of. The county hubs list
-// their districts by score; that is the right resolution for that population.
+// Counties are deliberately absent. 253 counties x even two metrics is 506
+// pages, and most counties hold fewer than the 10 rated districts metrics.js
+// already refuses to publish a rank out of. The county hubs list their
+// districts by score; that is the right resolution for that population.
 
 import {
   esc,
@@ -139,6 +156,34 @@ export const isChangeMetric = (m) =>
 
 /** true when a smaller number is the better result (dropout, chronic absence). */
 export const lowerIsBetter = (m) => m?.lowerIsBetter === true || m?.dir === 'lower'
+
+/**
+ * The one end of an ordering this site publishes for a given metric: whichever
+ * one puts the best result in 1st place. See Rule 3 at the top of this file.
+ *
+ * 'top' and 'bottom' name a VALUE direction (endSlug: highest/lowest,
+ * gains/declines), never a goodness direction, so the good end is not always
+ * 'top'. For a higher-is-better metric (score, attendance, spending) the
+ * highest figure IS the best result, so 'top' is the good end and the
+ * catalogue's "-highest" page is the flattering one. For a lower-is-better
+ * metric (chronic absenteeism, dropout rate) the LOWEST figure is the best
+ * result, so 'bottom' is the good end — the catalogue's "-lowest" page for
+ * chronic absenteeism is the one showing the districts with the LEAST chronic
+ * absence, and it is "-highest" that would have been the worst-performers
+ * list. Getting this backwards for a lower-is-better metric would keep
+ * exactly the leaderboard Rule 3 exists to drop and drop the one it exists to
+ * keep, so this is the one function every caller that decides what to publish
+ * must go through rather than assuming 'top'.
+ *
+ * A change metric's good end follows the same rule from the metric's own
+ * direction, not from whether it happens to be a change: an increase in score
+ * is a gain because score is higher-is-better, not because 'top' always means
+ * gains. No change metric in CHANGE_METRICS (rankings.js) is lower-is-better
+ * today, so in practice every change board's good end is 'top' — but a future
+ * one (a decrease being the improvement) would resolve correctly without this
+ * function needing to change.
+ */
+export const goodEnd = (metric) => (lowerIsBetter(metric) ? 'bottom' : 'top')
 
 /* ------------------------------------------------------------------ paths -- */
 
@@ -646,11 +691,25 @@ export function renderRankingPage({
     `Measured across ${who}, of which ${countOf(ranked.length, level)} ${ranked.length === 1 ? 'is' : 'are'} ranked below.`
   )}`
 
+  // Rule 3: only the flattering end of an ordering is published. When a
+  // caller does supply `related.inverse` anyway — hand-built related data, not
+  // anything rankingCatalogue() itself produces, see relatedFor's own comment —
+  // this still links it rather than hiding a page that genuinely exists. The
+  // ordinary case is the second branch, and it states the policy rather than
+  // reading like a gap this build happened to leave: the other end would be a
+  // standalone list of the worst-performing ${levelPlural(level)} on this
+  // measure, and this site does not compile one. It is not a data omission —
+  // every entity's own page still prints its real figure for this measure,
+  // whatever it is.
   const inverse = related.inverse
     ? `<p class="callout">The other end of this list: <a href="${esc(related.inverse.href)}">${esc(
         related.inverse.label
-      )}</a>. Both ends are published, because a site that prints only the flattering half of an ordering is advertising.</p>`
-    : `<p class="note na">The opposite end of this list is not published in this build.</p>`
+      )}</a>.</p>`
+    : `<p class="note na">This site does not publish the other end of this ordering. This page already shows the
+       better-performing end of ${esc(nounOf(metric))}; the other end would be a standalone list of the ${levelPlural(
+        level
+      )} doing worst on it, and txschools.net does not compile one. That is a publishing choice, not a data one —
+       every ${levelSingular(level)}'s own page still shows its real figure for this measure, good or bad.</p>`
 
   const crumbs = [{ href: '/', label: 'Texas schools' }, { href: RANKINGS_HREF, label: 'Rankings' }]
   if (scope?.href && scope?.label) crumbs.push({ href: scope.href, label: scope.label })
@@ -743,7 +802,7 @@ export function renderRankingPage({
           ),
       section(
         'other',
-        'The other end, and the other lists',
+        'What this list leaves out, and the other lists',
         `${inverse}
   ${
     related.metrics?.length
@@ -900,10 +959,15 @@ export const DEFAULT_PLAN = [
 /**
  * rankingCatalogue({ metrics, scopes, plan, max })
  *
- * Every page this module will produce, as data: one entry per metric x scope x
- * end. The caller loops it, computes rows for each entry and renders. Because
- * the catalogue is the same object the cross-links are built from
- * (relatedFor), a page can never link a ranking that was not generated.
+ * Every page this module will produce, as data: one entry per metric x scope —
+ * see Rule 3 above. `end` is not a second axis to loop; it is decided once per
+ * metric by `goodEnd`, so a district-level score board publishes only
+ * "-highest" and a district-level chronic-absenteeism board publishes only
+ * "-lowest", never the other end of either. The caller loops the result,
+ * computes rows for each entry and renders. Because the catalogue is the same
+ * object the cross-links are built from (relatedFor), a page can never link a
+ * ranking that was not generated — which, now, includes never being able to
+ * link the worse end of an ordering, because no entry for it exists to link.
  *
  * Context metrics are dropped here as well as refused in renderRankingPage —
  * the catalogue is where a demographic share would otherwise be silently
@@ -921,19 +985,18 @@ export function rankingCatalogue({ metrics = [], scopes = [], plan = DEFAULT_PLA
         if (!p.select(metric)) continue
         if (finite(p.limit) && taken >= p.limit) break
         taken += 1
-        for (const end of ['top', 'bottom']) {
-          const path = rankingPath({ scope, metric, end })
-          out.push({
-            key: path,
-            path,
-            href: `/${path}`,
-            file: `${path}.html`,
-            metric,
-            scope,
-            end,
-            title: asTitle(rankingHeadline({ metric, scope, end })),
-          })
-        }
+        const end = goodEnd(metric)
+        const path = rankingPath({ scope, metric, end })
+        out.push({
+          key: path,
+          path,
+          href: `/${path}`,
+          file: `${path}.html`,
+          metric,
+          scope,
+          end,
+          title: asTitle(rankingHeadline({ metric, scope, end })),
+        })
       }
     }
   }
@@ -952,9 +1015,32 @@ export function rankingCatalogue({ metrics = [], scopes = [], plan = DEFAULT_PLA
 }
 
 /**
- * The cross-links for one catalogue entry: its inverse, the other metrics at its
- * scope, and the same metric at every other scope. Every href here is a page the
- * catalogue produced, so no link can 404.
+ * The cross-links for one catalogue entry: its inverse (if the catalogue
+ * happens to carry one), the other metrics at its scope, and the same metric
+ * at every other scope. Every href here is a page the catalogue produced, so
+ * no link can 404.
+ *
+ * `inverse` will be null for everything rankingCatalogue() itself produces,
+ * always, now: each metric contributes exactly one end (goodEnd), so no two
+ * entries sharing a scope and a metric key ever differ by `end`. The lookup is
+ * left in rather than deleted, because it is still the correct way to ask "is
+ * this metric's other end also in the catalogue I was handed" — a caller
+ * assembling its own catalogue by hand (a test, or a future page that really
+ * does want to show both) gets the real answer instead of a hard-coded null.
+ * renderRankingPage's own fallback copy is what a reader sees in the ordinary
+ * case: it explains the policy rather than treating a missing inverse as an
+ * omission.
+ *
+ * `metrics` (other rankings of this population) is filtered by scope and
+ * metric key only, NOT by `end`: a lower-is-better metric's only entry has
+ * `end: 'bottom'` while a higher-is-better one's has `end: 'top'`, so
+ * matching on `end` would silently drop chronic absenteeism and dropout rate
+ * from every other board's "other rankings of Texas school districts" list.
+ * `scopes` (the same metric at other scopes) does not need the same fix: a
+ * metric's good end is a property of the metric, not the scope, so every
+ * entry sharing `metric.key` already shares `end` with `entry` by
+ * construction — filtering on it would be redundant, not wrong, so it is
+ * dropped for clarity rather than kept as a no-op check.
  */
 export function relatedFor(catalogue, entry, { limit = 24 } = {}) {
   const same = (a, b) => a?.path === b?.path
@@ -962,11 +1048,11 @@ export function relatedFor(catalogue, entry, { limit = 24 } = {}) {
     (e) => e.scope === entry.scope && e.metric?.key === entry.metric?.key && e.end !== entry.end
   )
   const metrics = catalogue
-    .filter((e) => e.scope === entry.scope && e.end === entry.end && e.metric?.key !== entry.metric?.key)
+    .filter((e) => e.scope === entry.scope && e.metric?.key !== entry.metric?.key)
     .slice(0, limit)
     .map((e) => ({ href: e.href, label: e.metric?.label ?? e.metric?.key }))
   const scopes = catalogue
-    .filter((e) => e.metric?.key === entry.metric?.key && e.end === entry.end && !same(e, entry))
+    .filter((e) => e.metric?.key === entry.metric?.key && !same(e, entry))
     .slice(0, limit)
     .map((e) => ({ href: e.href, label: populationLabel(e.scope) }))
 
@@ -1237,7 +1323,8 @@ export function renderRankingsIndexPage({
       }</p>
   <p class="lede">TEA publishes a rating for every district and campus. It does not publish them in
     order. These tables do, and each one states the population it ranked, how many entities that was,
-    and which were left out and why. Both ends of every ordering are published.</p>
+    and which were left out and why. Only the better-performing end of each ordering is published —
+    never a standalone list of the worst.</p>
 </section>`,
       section(
         'how',
@@ -1248,6 +1335,10 @@ export function renderRankingsIndexPage({
     <li>Entities TEA did not rate are excluded, not counted as zero, and each page says how many.</li>
     <li>Student demographics — economic disadvantage, English learners, special education — are
         never ranked. They describe who a school serves, not how it did.</li>
+    <li>Each list publishes only the end where 1st place is the best result — the highest score, the
+        lowest dropout rate, the largest gain — never the worst end of the same ordering. Every
+        district's and campus's own page still shows its real figure for every measure, whatever it
+        is; this site simply does not assemble a standalone leaderboard of who is doing worst.</li>
     ${countyRule}
   </ul>
   <p class="note">TEA publishes most measures for the current year only. Where a list ranks change
