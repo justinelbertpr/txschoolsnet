@@ -1,11 +1,30 @@
 # Refreshes the site from TEA data (or rebuilds from the committed snapshot)
-# and deploys it. Run manually — see the design doc for why this is not on
-# a schedule: GitHub disables scheduled workflows in public repos after 60
-# days without repository activity, and this pipeline runs about once a
-# year. A calendar reminder is the human backstop for triggering this.
+# and deploys it. Two triggers, two jobs:
+#
+#   push to main       every merge rebuilds from whatever snapshot is already
+#                      committed under data/raw/ and deploys it — no fetch,
+#                      no new commit. This is what makes "merged to main" and
+#                      "live on txschools.net" the same event.
+#
+#   workflow_dispatch  the annual path, run by hand (optionally with fetch
+#                      turned on to pull a fresh TEA snapshot first). NOT on
+#                      a schedule — see the design doc: GitHub disables
+#                      scheduled workflows in public repos after 60 days
+#                      without repository activity, and this only runs about
+#                      once a year, so a cron can't keep itself alive. A
+#                      calendar reminder is the human backstop for that one.
+#
+# Both paths share every step below; `inputs.fetch` is simply unset (falsy)
+# on a push trigger, so the fetch-and-commit steps only ever run from a
+# manual dispatch. The bot's own commit-and-push during a fetch run will
+# itself re-trigger this workflow on push — harmless: the second run finds
+# nothing new to fetch and just redeploys the snapshot the first run already
+# committed.
 name: Refresh and deploy
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       fetch:
