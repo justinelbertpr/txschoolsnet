@@ -255,7 +255,10 @@ describe('renderEntity — description year count', () => {
 
   it('renders an entity with no history at all rather than throwing', () => {
     const html = renderEntity(vm({ history: [] }))
-    expect(html).toContain('0 years of ratings')
+    // The description no longer counts years when there are none. "0 years of
+    // ratings" was a true sentence nobody should ever read; the page now simply
+    // does not make a claim about history it does not have.
+    expect(html).not.toMatch(/\b0 years? of ratings\b/)
     expect(html).toContain('<h1>Cayuga ISD</h1>')
     expect(html).toContain('not rated')
   })

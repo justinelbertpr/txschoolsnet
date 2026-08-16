@@ -1,34 +1,90 @@
-/* txschools.net
-   Light palette on :root; dark redefines tokens only. The comparison colours
-   (entity/peer/state) passed the dataviz six-check validator in both modes:
-   CVD separation ΔE 13.8 protan, normal-vision ΔE 28.8, contrast >= 3:1.
-   Grades are never encoded by colour — the letter is the encoding. */
+/* ==========================================================================
+   txschools.net — the design system
+
+   The site exists for one reason: to put a school next to the schools that
+   serve students like its own. So the identity is that comparison, not
+   decoration.
+
+   THREE RULES, applied everywhere below.
+
+   1. COLOUR ENCODES COMPARISON, NOTHING ELSE.
+      Four series colours exist. Each names exactly one set of schools:
+        --c-entity  the school or district whose page this is
+        --c-peer    the cohort this page is being compared against
+        --c-state   the Texas average
+        --c-tea     TEA's own published peer group  (spending only)
+      Nothing else on the site is coloured: not grades, not "better", not
+      "worse", not links-as-decoration. Direction is carried by the sign on
+      the number (+/−) and by weight, never by hue — a red/green delta would
+      make "Economically disadvantaged +1.0 pts" read as an achievement.
+      --c-tea exists because orange previously meant "the 288 districts
+      serving students like these" in one figure and "TEA's 40-district peer
+      group" in another, on the same page. One colour, one set.
+
+   2. TYPE CARRIES THE VOICE.
+      A serif for the things a reader came for — the entity's name, the
+      verdict sentence, the letter grade. A grotesque for everything that
+      operates the page. System faces only: no CDN, no @font-face, no network
+      request. Georgia leads the display stack because it is the one serif
+      present on Windows, macOS and Android alike, so the page has the same
+      voice everywhere rather than a different one per platform.
+
+   3. NOTHING IS ONLY COLOUR.
+      Every series carries a second channel: the entity's line is the
+      heaviest, the state is dashed, TEA's peer group is dashed differently,
+      and legend swatches are drawn as the rule they label rather than as
+      anonymous squares. Grades are never colour-coded at all — every
+      green–amber–red five-step ramp tested failed CVD separation (worst
+      adjacent pair ΔE 0.6 under deuteranopia). The letter is the encoding.
+
+   Series separation, measured (Brettel dichromat simulation, CIE76 ΔE, and
+   WCAG contrast on --surface):
+      normal ΔE 34.4 min · protan 13.1 min · deutan 9.8 min
+      entity 5.17:1 · peer 3.56:1 · state 3.74:1 · tea 6.32:1
+   The weakest pairs (entity/state under tritanopia, entity/tea under
+   deuteranopia) are exactly the pairs that also differ by dash pattern and
+   stroke weight, which is why rule 3 is not optional.
+   ========================================================================== */
 
 :root {
-  /* THREE planes, not two. The previous ground and surface were 1.027:1 apart —
-     1.000 being literally the same colour — so cards could not read as cards.
-     Ground is now ~1.17:1 from surface and carries a slight blue bias toward the
-     accent, so the neutral reads as chosen rather than inherited. Only --raised
-     takes a shadow, so a shadow always means "floats above the content". */
+  /* ---- planes ----------------------------------------------------------
+     Three, not two. Ground sits ~1.17:1 under surface with a slight blue
+     bias, so a card reads as a card. Only --raised takes a shadow, so a
+     shadow on this site always means "floats above the page", never
+     "important". */
   --ground: #eceef2;
   --surface: #ffffff;
   --raised: #ffffff;
   --bg: #eceef2;           /* alias: older rules still reference --bg */
 
-  --ink: #16181d;
-  --ink-2: #4a5058;
-  --ink-3: #5f6675;  /* 4.96:1 on --ground, 5.76:1 on --surface — AA at any size */
+  --ink: #16181d;          /* 17.8:1 on surface */
+  --ink-2: #4a5058;        /* 8.1:1 on surface, 7.0:1 on ground */
+  --ink-3: #5f6675;        /* 5.8:1 on surface, 5.0:1 on ground — AA at any size */
   --line: #dcdfe5;
   --line-2: #e9ebef;
-  --accent: #1d4ed8;
+  --hover: #f4f6f9;        /* row hover: must differ from BOTH planes */
+  --stripe: #fafbfd;       /* zebra for long lists; lighter than --hover */
+
+  /* --accent is --c-entity darkened until it passes 4.5:1 as text on the
+     ground plane (--c-entity itself is 4.45:1 there, which fails). One hue,
+     two lightnesses, two jobs: marks need 3:1, text needs 4.5:1. Blue means
+     "the subject, and the way to reach it" — the same meaning in a chart and
+     in a link. */
+  --accent: #1d4ed8;       /* 6.70:1 surface · 5.77:1 ground */
 
   --shadow-raised: 0 1px 2px rgb(16 24 40 / .06), 0 8px 24px -8px rgb(16 24 40 / .10);
   --shadow-card: 0 1px 2px rgb(16 24 40 / .04);
 
+  /* ---- the comparison palette ---- */
   --c-entity: #2563eb;
   --c-peer: #ea580c;
   --c-state: #0d9488;
+  --c-tea: #a21caf;
 
+  /* Categorical fills for composition figures (demographics, teacher
+     experience). Deliberately a different visual family from the series
+     colours above: these are shares of one population, not comparisons, and
+     their legend swatches stay squares while series swatches are rules. */
   --s0: #3b82f6; --s1: #f97316; --s2: #14b8a6; --s3: #a855f7;
   --s4: #eab308; --s5: #ec4899; --s6: #64748b;
 
@@ -36,23 +92,49 @@
   --alert-ink: #991b1b;
   --alert-line: #fecaca;
 
+  /* ---- type ------------------------------------------------------------
+     Georgia first so the voice is identical on Windows, macOS and Android.
+     Iowan Old Style and Charter are better where they exist, but a face that
+     only half the readers see is not an identity. */
+  --font-display: Georgia, "Iowan Old Style", Charter, "Times New Roman", ui-serif, serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+
+  /* A real scale, ~1.14 stepped, with every step used for one job. The old
+     stylesheet had six sizes and an inverted hierarchy: h3 was smaller and
+     greyer than the body text sitting under it. */
+  --t-micro: .6875rem;   /* 11px — chip counts, chart-adjacent notes        */
+  --t-label: .75rem;     /* 12px — eyebrows, rail titles, table heads       */
+  --t-small: .8125rem;   /* 13px — chips, breadcrumbs, pins                 */
+  --t-meta:  .875rem;    /* 14px — footnotes, footer                        */
+  --t-body:  1rem;       /* 16px — body                                     */
+  --t-lead:  1.125rem;   /* 18px — callouts                                 */
+  --t-h3:    1.0625rem;  /* 17px — subheads: ABOVE body, not below it       */
+  --t-h2:    1.4375rem;  /* 23px                                            */
+  --t-verdict: 1.1875rem;/* 19px — the most-read sentence on the site       */
+
   --radius: 10px;
+  --radius-card: 12px;
   --measure: 68ch;
+  --measure-display: 36em;
 
   /* Pin dots derive from a single inline --pin-hue number, so N pins get N
-     colours with no list to run out of. Lightness is a token because the same
-     hue needs to be darker on paper and lighter on ink. Two scales: hsl and
-     oklch do not mean the same thing by "lightness". */
+     colours with no list to run out of. Two scales because hsl and oklch do
+     not mean the same thing by "lightness". */
   --pin-l: 40%;
   --pin-lo: 55%;
 }
 
+/* Dark redefines tokens only. Every colour above has its value on bare
+   :root first, so a page never inherits the host's theme by accident. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --ground: #0b0d10;
     --surface: #171a21;
     --raised: #1e222a;
     --bg: #0b0d10;
+    --hover: #212630;
+    --stripe: #1b1f27;
     --shadow-raised: 0 1px 2px rgb(0 0 0 / .5), 0 10px 30px -10px rgb(0 0 0 / .6);
     --shadow-card: 0 1px 2px rgb(0 0 0 / .35);
     --ink: #f2f4f7;
@@ -60,11 +142,12 @@
     --ink-3: #8b939e;
     --line: #2b313a;
     --line-2: #21262e;
-    --accent: #7aa2f7;
+    --accent: #93b4f9;     /* 8.40:1 on surface — the light blue's sibling */
 
     --c-entity: #60a5fa;
     --c-peer: #fb923c;
     --c-state: #2dd4bf;
+    --c-tea: #f0abfc;
 
     --s0: #60a5fa; --s1: #fb923c; --s2: #2dd4bf; --s3: #c084fc;
     --s4: #fbbf24; --s5: #f472b6; --s6: #94a3b8;
@@ -79,11 +162,12 @@
 }
 :root[data-theme='dark'] {
   --ground: #0b0d10; --surface: #171a21; --raised: #1e222a; --bg: #0b0d10;
+  --hover: #212630; --stripe: #1b1f27;
   --shadow-raised: 0 1px 2px rgb(0 0 0 / .5), 0 10px 30px -10px rgb(0 0 0 / .6);
   --shadow-card: 0 1px 2px rgb(0 0 0 / .35);
   --ink: #f2f4f7; --ink-2: #b3bac4;
-  --ink-3: #8b939e; --line: #2b313a; --line-2: #21262e; --accent: #7aa2f7;
-  --c-entity: #60a5fa; --c-peer: #fb923c; --c-state: #2dd4bf;
+  --ink-3: #8b939e; --line: #2b313a; --line-2: #21262e; --accent: #93b4f9;
+  --c-entity: #60a5fa; --c-peer: #fb923c; --c-state: #2dd4bf; --c-tea: #f0abfc;
   --s0: #60a5fa; --s1: #fb923c; --s2: #2dd4bf; --s3: #c084fc;
   --s4: #fbbf24; --s5: #f472b6; --s6: #94a3b8;
   --alert-bg: #2a1416; --alert-ink: #fca5a5; --alert-line: #4c1d1f;
@@ -92,32 +176,34 @@
 
 * { box-sizing: border-box; }
 
-/* .stickybar and .pin-results are revealed by removing [hidden], and both carry
-   a display rule of their own. Without this, [hidden] would lose and the sticky
-   bar would be visible from the first paint. */
+/* .stickybar and .pin-results are revealed by removing [hidden], and both
+   carry a display rule of their own. Without this, [hidden] would lose. */
 [hidden] { display: none !important; }
 
-/* Anchor jumps and programmatic focus must land below the sticky bar, not under
-   it. scroll-padding on the scroller covers both. */
-/* Only pages carrying a sticky bar need their anchors offset; hub pages have
-   none, and an unconditional rule lands every in-page link 52px short. */
+/* Anchor jumps and programmatic focus must land below the sticky bar, not
+   under it. Only pages carrying a sticky bar need the offset; an
+   unconditional rule lands every in-page link 52px short on hub pages. */
 html:has(.stickybar) { scroll-padding-top: calc(var(--sb-h) + 1rem); }
 
 body {
   margin: 0;
   background: var(--ground);
   color: var(--ink);
-  font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: var(--t-body)/1.6 var(--font-sans);
   font-feature-settings: "kern", "liga";
   -webkit-text-size-adjust: 100%;
 }
+
+/* One visible focus treatment, defined once, for anything that does not
+   declare its own. */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .skip {
   position: fixed; left: -9999px;
   background: var(--raised); color: var(--ink); padding: .75rem 1rem;
   border: 1px solid var(--line); border-radius: var(--radius);
   box-shadow: var(--shadow-raised);
-  z-index: 60; /* above the sticky bar (20) and the mobile sheet (40) */
+  z-index: 60; /* above the sticky bar (20) */
 }
 .skip:focus { left: 1rem; top: 1rem; }
 
@@ -126,24 +212,53 @@ body {
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-/* ---------- chrome ---------- */
+/* ==========================================================================
+   MASTHEAD
+   A 2px rule the width of the measure. Achromatic, so it is identity without
+   spending any of the colour budget, and it says "publication" rather than
+   "app chrome".
+   ========================================================================== */
 
 header.site {
-  display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; align-items: baseline;
-  padding: 1rem 1.25rem; border-bottom: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: .35rem 1.5rem; align-items: baseline;
+  padding: 1.1rem 1.25rem .9rem;
+  border-bottom: 2px solid var(--ink);
   max-width: 68rem; margin: 0 auto;
 }
 .wordmark {
-  font-weight: 700; font-size: 1.05rem; letter-spacing: -.01em;
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 1.35rem; letter-spacing: -.015em;
   color: var(--ink); text-decoration: none;
 }
-.wordmark span { color: var(--ink-3); font-weight: 500; }
-.unofficial { margin: 0; font-size: .8125rem; color: var(--ink-3); }
+.wordmark span {
+  font-family: var(--font-sans); font-size: .95rem; font-weight: 500;
+  color: var(--ink-3); letter-spacing: 0;
+}
+.wordmark:hover { text-decoration: underline; text-underline-offset: 3px; }
+.unofficial { margin: 0; font-size: var(--t-small); color: var(--ink-3); }
+.unofficial a { color: var(--ink-2); }
+
+/* Site nav sits inside the masthead rule, between the wordmark and the
+   disclaimer. It is navigation, not content, so it takes label type rather
+   than link blue — the current page is marked by weight and an underline,
+   which survives greyscale. */
+.sitenav { margin-right: auto; }
+.navlist {
+  list-style: none; display: flex; flex-wrap: wrap; gap: .25rem 1.15rem;
+  margin: 0; padding: 0; font-size: var(--t-meta);
+}
+.navlist a {
+  color: var(--ink-2); text-decoration: none;
+  padding-block: .15rem; border-bottom: 2px solid transparent;
+}
+.navlist a:hover { color: var(--ink); border-bottom-color: var(--line); }
+.navlist a[aria-current='page'] { color: var(--ink); font-weight: 650; border-bottom-color: var(--ink); }
+.navlist a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
 
 nav[aria-label='Breadcrumb'] { max-width: 68rem; margin: 0 auto; padding: .75rem 1.25rem 0; }
 .crumbs {
   list-style: none; display: flex; flex-wrap: wrap; gap: .35rem;
-  margin: 0; padding: 0; font-size: .8125rem; color: var(--ink-3);
+  margin: 0; padding: 0; font-size: var(--t-small); color: var(--ink-3);
 }
 .crumbs li + li::before { content: '›'; margin-right: .35rem; color: var(--ink-3); }
 .crumbs a { color: var(--ink-2); }
@@ -153,140 +268,591 @@ main { max-width: 68rem; margin: 0 auto; padding: 0 1.25rem 4rem; }
 footer.site {
   border-top: 1px solid var(--line); margin-top: 3rem;
   padding: 1.5rem 1.25rem 3rem; max-width: 68rem; margin-inline: auto;
-  color: var(--ink-3); font-size: .875rem;
+  color: var(--ink-3); font-size: var(--t-meta);
 }
 footer.site p { max-width: var(--measure); }
 
-/* ---------- type ---------- */
+/* ==========================================================================
+   TYPE
+   ========================================================================== */
 
-h1 { font-size: clamp(1.9rem, 1.3rem + 2.4vw, 2.9rem); line-height: 1.1; letter-spacing: -.022em; margin: .15rem 0 .35rem; }
-h2 { font-size: 1.3rem; letter-spacing: -.012em; margin: 0 0 .35rem; }
-h3 { font-size: .9375rem; letter-spacing: -.004em; margin: 1.75rem 0 .6rem; color: var(--ink-2); }
+h1 {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(2rem, 1.35rem + 2.4vw, 3rem);
+  line-height: 1.08; letter-spacing: -.018em;
+  margin: .1rem 0 .4rem;
+}
+h2 {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: var(--t-h2); line-height: 1.25; letter-spacing: -.01em;
+  margin: 0 0 .4rem;
+}
+/* h3 used to be .9375rem and --ink-2 — smaller AND greyer than the body text
+   it introduced, which is an inverted hierarchy. It is now larger than body
+   and full ink; the sans keeps it clearly subordinate to the serif h2. */
+h3 {
+  font-family: var(--font-sans); font-weight: 650;
+  font-size: var(--t-h3); line-height: 1.35; letter-spacing: -.005em;
+  color: var(--ink); margin: 1.9rem 0 .55rem;
+}
 a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
-.eyebrow { margin: 0; font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); }
-.place { margin: 0; color: var(--ink-2); }
-.lede, .note { color: var(--ink-2); max-width: var(--measure); }
-.note { font-size: .875rem; margin: .85rem 0 0; }
+a:hover { text-decoration-thickness: 2px; }
+
+.eyebrow {
+  margin: 0; font-size: var(--t-label); font-weight: 650; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.place { margin: 0; color: var(--ink-2); font-size: var(--t-meta); }
+.lede { color: var(--ink-2); max-width: var(--measure); margin: .35rem 0 0; }
+.note { color: var(--ink-2); max-width: var(--measure); font-size: var(--t-meta); margin: .85rem 0 0; }
 .na { color: var(--ink-3); font-style: italic; }
 
-/* Sections are cards ON the ground. The old treatment — a rule between blocks on
-   one flat sheet — is what made eight screens of page read as undifferentiated. */
+/* Sections are cards ON the ground. A rule between blocks on one flat sheet
+   is what made eight screens of page read as undifferentiated. */
 main > section {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
   padding: 1.75rem;
   margin-bottom: 1rem;
 }
-main > section.hero { padding-top: 1.75rem; }
 
-/* Nested panels sit on the ground so they read as inset, the inverse of a card. */
-.verdict, .cohort-bar, .stats, .standouts {
-  background: var(--ground);
-}
-.stat { background: var(--surface); }
-.grade { background: var(--surface); }
+/* Nested panels sit on the ground, the inverse of a card. */
+.verdict, .stats, .standouts { background: var(--ground); }
+.stat, .grade { background: var(--surface); }
 
-/* ---------- verdict ---------- */
+/* ==========================================================================
+   VERDICT — the most-read sentence on the site gets the display face
+   ========================================================================== */
 
 .verdict {
   display: flex; gap: 1.25rem; align-items: flex-start; flex-wrap: wrap;
-  margin: 1.5rem 0 0; padding: 1.25rem; border: 1px solid var(--line); border-radius: var(--radius);
+  margin: 1.5rem 0 0; padding: 1.35rem;
+  border: 1px solid var(--line); border-radius: var(--radius);
 }
-.summary { margin: 0; flex: 1 1 22rem; font-size: 1.0625rem; line-height: 1.55; max-width: var(--measure); }
+.summary {
+  margin: 0; flex: 1 1 20rem;
+  font-family: var(--font-display);
+  font-size: var(--t-verdict); line-height: 1.5;
+  max-width: var(--measure-display);
+  text-wrap: pretty;
+}
+.summary strong { font-weight: 700; }
 
 .grade {
   display: inline-flex; align-items: baseline; gap: .5rem;
   padding: .5rem .85rem; border-radius: var(--radius);
-  background: var(--bg); border: 1px solid var(--line);
+  background: var(--surface); border: 1px solid var(--line);
 }
-.grade-letter { font-size: 2.25rem; font-weight: 700; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
-.grade-score { font-size: 1rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.grade-letter {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 2.4rem; line-height: 1; letter-spacing: -.02em;
+}
+.grade-score {
+  font-family: var(--font-sans); font-size: var(--t-body); color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
 td .grade, .crumbs .grade { padding: .1rem .4rem; }
-td .grade-letter { font-size: .95rem; }
+td .grade-letter { font-size: 1.05rem; }
+.grade-lg { padding: .65rem 1.05rem; }
+.grade-lg .grade-letter { font-size: 2.8rem; }
 
 .alert {
   margin: 1rem 0 0; padding: .8rem 1rem; border-radius: var(--radius);
   background: var(--alert-bg); color: var(--alert-ink); border: 1px solid var(--alert-line);
   max-width: var(--measure);
 }
-.callout { margin: 1rem 0 0; font-size: 1.0625rem; max-width: var(--measure); }
 
-/* ---------- stats ---------- */
+/* A conclusion drawn from the figure above it. The rule marks it as
+   editorial rather than as more data. */
+.callout {
+  margin: 1.15rem 0 0; padding-left: .9rem;
+  border-left: 3px solid var(--line);
+  font-size: var(--t-lead); line-height: 1.5;
+  max-width: var(--measure);
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   STATS
+   ========================================================================== */
 
 .stats {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: 1px; margin: 1.25rem 0 0; padding: 0;
-  background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+  /* The container used to be --line so the 1px gaps read as rules. With six
+     stats in a four-column grid that left two empty cells painting as a slab
+     of grey — a hole where a reader looks for a seventh number. The rules now
+     come from each tile's own ring, so an empty cell is simply empty. */
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden;
 }
-.stat { background: var(--surface); padding: .9rem 1rem; }
-.stat dt { font-size: .78rem; color: var(--ink-3); margin: 0 0 .2rem; }
-.stat dd { margin: 0; font-size: 1.35rem; font-weight: 650; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.stat-note { margin: .15rem 0 0; font-size: .75rem; color: var(--ink-3); }
+.stat { background: var(--surface); padding: .9rem 1rem; box-shadow: 0 0 0 1px var(--line); }
+.stat dt { font-size: var(--t-label); color: var(--ink-3); margin: 0 0 .25rem; line-height: 1.3; }
+.stat dd {
+  margin: 0; font-size: 1.4rem; font-weight: 650; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums; line-height: 1.2;
+}
+.stat-note { margin: .15rem 0 0; font-size: var(--t-micro); color: var(--ink-3); }
 
-/* ---------- charts ---------- */
+/* ==========================================================================
+   COMPARISON CHIPS  (± vs a cohort)
 
-.chart { width: 100%; height: auto; display: block; margin: 1.25rem 0 0; overflow: visible; }
+   These used to print teal for "up" and orange for "down" — which meant teal
+   said "Texas average" in the legend and "good" here, on the same page, and
+   which printed "Economically disadvantaged +1.0 pts" in the same green as a
+   test-score gain. Demographics are not achievements.
+
+   Direction is now carried by the sign character, which is already in the
+   text, plus weight: a judged comparison is medium, a context metric is not.
+   No hue at all.
+   ========================================================================== */
+
+.cmp {
+  display: block; margin-top: .2rem;
+  font-size: var(--t-micro); font-variant-numeric: tabular-nums;
+  color: var(--ink-2); font-weight: 550;
+}
+/* .cmp{display:block} above outranks the UA [hidden] rule, so site/app.js
+   toggling the hidden attribute alone never hid a chip — it has to set
+   style.display too, as a per-element workaround. This lets the attribute
+   stand on its own for any future reader of the attribute (print, a future
+   script) that does not know about that workaround. */
+.cmp[hidden] { display: none; }
+.cmp-vs { color: var(--ink-3); font-weight: 400; }
+.cmp-up, .cmp-down { color: var(--ink-2); font-weight: 550; }
+.cmp-level { color: var(--ink-3); font-weight: 400; }
+/* Context metrics — demographics, enrolment. Never a verdict. */
+.cmp-neutral { color: var(--ink-3); font-weight: 400; }
+
+/* ==========================================================================
+   CHARTS
+
+   The scale problem, stated plainly: every SVG here carries a fixed
+   viewBox 640 units wide, and font-size inside an SVG is in USER UNITS. So
+   the rendered size of chart text is (font-size × container ÷ 640). In a
+   914px column that made 11px axis labels render at 15.7 CSS px; in a 292px
+   phone column the same labels rendered at 5.0 CSS px. One stylesheet, a
+   3.1× spread.
+
+   Two halves to the fix:
+     · Cap the upscale. A figure is a figure, not a billboard: --chart-max
+       holds the line charts at 44rem so their text lands near 12px on a
+       desktop instead of 16px.
+     · Step the downscale. Below 48rem the user-unit sizes are raised per
+       band so the rendered size stays 10–14 CSS px. The bands are coarse
+       because CSS cannot read the render scale; within a band the error is
+       under ±20%.
+
+   What this CANNOT fix is documented at .chart-bars / .chart-grouped below.
+   ========================================================================== */
+
+.chart {
+  width: 100%; max-width: var(--chart-max, 44rem);
+  height: auto; display: block; margin: 1.25rem 0 0;
+  overflow: visible;
+
+  /* Every text size in every chart, in ONE place, so a media query retunes
+     the whole system with four declarations. */
+  --ct-micro: 11px;    /* axis and band labels          */
+  --ct-label: 13px;    /* row and group labels          */
+  --ct-value: 12px;    /* values printed beside a mark  */
+  --ct-strong: 13px;   /* the entity's own grade/value  */
+}
+
 .band { stroke: var(--line); stroke-width: 1; }
-.band-label, .x-label { fill: var(--ink-3); font-size: 11px; }
+.band-label, .x-label { fill: var(--ink-3); font-size: var(--ct-micro); }
 .band-label { text-anchor: end; }
 .x-label { text-anchor: middle; }
-.row-label { fill: var(--ink-2); font-size: 13px; }
-.row-grade { fill: var(--ink); font-size: 13px; font-weight: 650; text-anchor: end; }
-.bar { fill: var(--c-entity); }
-.bar-value, .pt-label { fill: var(--ink); font-size: 12px; font-variant-numeric: tabular-nums; }
+.row-label { fill: var(--ink-2); font-size: var(--ct-label); }
+.group-label { fill: var(--ink-2); font-size: var(--ct-label); font-weight: 600; }
+.row-grade { fill: var(--ink); font-size: var(--ct-strong); font-weight: 650; text-anchor: end; }
+.bar-value, .pt-label { fill: var(--ink); font-size: var(--ct-value); font-variant-numeric: tabular-nums; }
 .pt-label { font-weight: 600; }
+.row-sub, .delta { fill: var(--ink-3); font-size: var(--ct-micro); }
+.na-sm { fill: var(--ink-3); font-size: var(--ct-value); font-style: italic; }
+
+/* ---- series: hue AND weight AND dash, never hue alone ---- */
+
 .line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.line-entity { stroke: var(--c-entity); }
-.line-peer { stroke: var(--c-peer); }
-.line-state { stroke: var(--c-state); stroke-dasharray: 4 4; }
-.dot { fill: var(--c-entity); stroke: var(--bg); stroke-width: 2; }
+.line-entity { stroke: var(--c-entity); stroke-width: 2.75; }  /* always the heaviest */
+.line-peer   { stroke: var(--c-peer); }
+.line-state  { stroke: var(--c-state); stroke-dasharray: 4 4; }
+/* Pinned districts. app.js documents this rule as the stylesheet's job: with
+   no .line-pin here the stroke computes to none, and app.js falls back to
+   painting every pin the same neutral ink — five pins, one colour, and no
+   relationship to the coloured dot beside each name in the rail. Deriving the
+   stroke from the same --pin-hue the dot uses makes the rail the chart's
+   legend. The dash still varies per pin so the tie is not colour alone. */
+/* No !important: app.js's draw-on effect now reads getComputedStyle(el)
+   .strokeDasharray rather than el.style alone, so it restores a dash that
+   comes from this stylesheet as correctly as one set inline. (It used to read
+   only el.style, which is empty for every rule below — the animation left the
+   pin line permanently carrying its own length as the dash pattern, i.e.
+   solid, and the second channel disappeared. !important was the narrow
+   workaround; app.js:drawOn is the actual fix.) */
+.line-pin { stroke: hsl(var(--pin-hue, 220) 72% var(--pin-l)); stroke-dasharray: 5 4; }
+@supports (color: oklch(50% .1 200)) {
+  .line-pin { stroke: oklch(var(--pin-lo) .155 var(--pin-hue, 220)); }
+}
+@supports selector(:nth-child(1 of .x)) {
+  .line-pin:nth-child(2 of .line-pin) { stroke-dasharray: 11 4; }
+  .line-pin:nth-child(3 of .line-pin) { stroke-dasharray: 2 4; }
+  .line-pin:nth-child(4 of .line-pin) { stroke-dasharray: 12 3 3 3; }
+  .line-pin:nth-child(5 of .line-pin) { stroke-dasharray: 7 7; }
+}
+
+.line-region { stroke: var(--s3); stroke-dasharray: 1 5; stroke-linecap: round; }
+.line-county { stroke: var(--s4); stroke-dasharray: 7 4; }
+.line-size   { stroke: var(--s5); stroke-dasharray: 2 4; stroke-linecap: round; }
+/* TEA's own peer group (spending only) — see the --c-tea note below. */
+.line-tea    { stroke: var(--c-tea); stroke-dasharray: 8 4; }
+
+.bar { fill: var(--c-entity); }
+.dot { fill: var(--c-entity); stroke: var(--surface); stroke-width: 2; }
 .dot-peer { fill: var(--c-peer); }
 .dot-state { fill: var(--c-state); }
+.dot-tea { fill: var(--c-tea); }
+.dot-region { fill: var(--s3); }
+.dot-county { fill: var(--s4); }
+.dot-size   { fill: var(--s5); }
+
+/* Cohort ticks sitting on a bar track. */
+.mark { stroke-width: 2; stroke-linecap: round; }
+.mark-peer { stroke: var(--c-peer); }
+.mark-state { stroke: var(--c-state); stroke-dasharray: 2 3; }
+.mark-region { stroke: var(--s3); stroke-dasharray: 1 5; }
+.mark-county { stroke: var(--s4); stroke-dasharray: 7 4; }
+.mark-size   { stroke: var(--s5); stroke-dasharray: 2 4; }
+
+/* Categorical fills — shares of one population, not comparisons. */
 .seg-0 { fill: var(--s0); } .seg-1 { fill: var(--s1); } .seg-2 { fill: var(--s2); }
 .seg-3 { fill: var(--s3); } .seg-4 { fill: var(--s4); } .seg-5 { fill: var(--s5); }
 .seg-6 { fill: var(--s6); }
+.gb-l0 { fill: var(--s0); }
+.gb-l1 { fill: var(--s2); }
+.gb-l2 { fill: var(--s3); }
 
-.legend { list-style: none; display: flex; flex-wrap: wrap; gap: .35rem 1.1rem; margin: .7rem 0 0; padding: 0; font-size: .8125rem; color: var(--ink-2); }
-.legend li { display: flex; align-items: center; gap: .4rem; }
-.swatch { width: .7rem; height: .7rem; border-radius: 3px; background: var(--ink-3); flex: none; }
-.swatch-entity { background: var(--c-entity); }
-.swatch-peer { background: var(--c-peer); }
-.swatch-state { background: var(--c-state); }
+.chart-grouped { margin-top: .75rem; }
+
+/* ---- TEA's own peer group ------------------------------------------------
+   #spending is the one figure whose "peer" is not this site's cohort: it is
+   the 40-district group TEA publishes, which controls for size as well as
+   student population. src/render/sections.js:spending() emits it under its
+   own key, 'tea', rather than reusing 'peer' — a name that means something
+   else (the poverty-band cohort) on every other chart on the page — so it
+   gets its own colour and its own dash via .line-tea/.dot-tea/.swatch-tea
+   below, unscoped, rather than a #spending override repainting .peer. */
+
+/* ==========================================================================
+   LEGENDS
+   A series swatch is drawn as the rule it labels — same weight, same dash —
+   so the legend is readable in greyscale and under every CVD. A categorical
+   swatch stays a square, which is also how the two families stay apart.
+   ========================================================================== */
+
+.legend {
+  list-style: none; display: flex; flex-wrap: wrap; gap: .3rem 1.15rem;
+  margin: .75rem 0 0; padding: 0; font-size: var(--t-small); color: var(--ink-2);
+  max-width: var(--chart-max, 44rem);
+}
+.legend li { display: flex; align-items: center; gap: .45rem; }
+
+/* The hub pages' A–Z jump nav is emitted with class="legend" too, and its
+   items are links rather than swatches. Rendered as legend text those are
+   8px-wide tap targets. Matching on "a legend item that is a link" fixes
+   them without depending on a section id — a chart legend never contains an
+   anchor. (It should not be a .legend at all; noted for whoever owns
+   src/render/hubs.js.) */
+.legend li > a {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 2.5rem; min-height: 2.5rem; padding: 0 .5rem;
+  border: 1px solid var(--line); border-radius: 8px;
+  font-size: var(--t-body); font-weight: 650;
+  color: var(--ink-2); text-decoration: none;
+}
+.legend li > a:hover { border-color: var(--ink-3); color: var(--ink); }
+.legend li > a[aria-current='page'] {
+  background: var(--ink); border-color: var(--ink); color: var(--surface);
+}
+.legend:has(a) { gap: .35rem; }
+
+.swatch {
+  width: .7rem; height: .7rem; border-radius: 3px;
+  background: var(--ink-3); flex: none;
+}
+/* Series swatches: a rule, not a square. */
+.swatch-entity, .swatch-peer, .swatch-state, .swatch-tea,
+.swatch-region, .swatch-county, .swatch-size {
+  width: 1.35rem; height: .1875rem; border-radius: 2px;
+  background-repeat: repeat-x;
+}
+.swatch-entity { background: var(--c-entity); height: .25rem; }
+.swatch-peer   { background: var(--c-peer); }
+.swatch-state  {
+  background: transparent;
+  background-image: repeating-linear-gradient(90deg, var(--c-state) 0 .3rem, transparent .3rem .5rem);
+}
+/* Same dash rhythm as .line-tea/.line-region/.line-county/.line-size, so the
+   swatch is the rule it labels rather than an approximation of it. */
+.swatch-tea {
+  background: transparent;
+  background-image: repeating-linear-gradient(90deg, var(--c-tea) 0 .4rem, transparent .4rem .6rem);
+}
+.swatch-region {
+  background: transparent;
+  background-image: repeating-linear-gradient(90deg, var(--s3) 0 .15rem, transparent .15rem .65rem);
+}
+.swatch-county {
+  background: transparent;
+  background-image: repeating-linear-gradient(90deg, var(--s4) 0 .5rem, transparent .5rem .8rem);
+}
+.swatch-size {
+  background: transparent;
+  background-image: repeating-linear-gradient(90deg, var(--s5) 0 .2rem, transparent .2rem .5rem);
+}
+/* Categorical swatches stay squares. */
 .swatch-0 { background: var(--s0); } .swatch-1 { background: var(--s1); }
 .swatch-2 { background: var(--s2); } .swatch-3 { background: var(--s3); }
 .swatch-4 { background: var(--s4); } .swatch-5 { background: var(--s5); }
 .swatch-6 { background: var(--s6); }
+.swatch-l0 { background: var(--s0); }
+.swatch-l1 { background: var(--s2); }
+.swatch-l2 { background: var(--s3); }
 
-/* ---------- tables ---------- */
+/* ==========================================================================
+   TABLES
 
-.data { border-collapse: collapse; width: 100%; margin: 1.25rem 0 0; font-size: .9375rem; }
-.data th, .data td { text-align: left; padding: .55rem .7rem; border-bottom: 1px solid var(--line-2); }
-.data thead th { font-size: .78rem; letter-spacing: .03em; text-transform: uppercase; color: var(--ink-3); border-bottom-color: var(--line); }
+   The bug this replaces: `.data.scroll { display: block }` turned the <table>
+   into a block box, so the rows fell into an anonymous shrink-to-fit table
+   inside it. Every list on the site painted a full-width box around a narrow
+   table and then clipped it — Dallas showed 11 of 237 schools in a 480px
+   window with the 11th row sliced through, no search, no sort, and nothing
+   to say the box scrolled.
+
+   The scroller is gone rather than repaired. A 237-row list IS the section;
+   putting it behind a 480px porthole makes it harder to use, not easier —
+   the browser's own find stops working, print gives one screenful, and
+   without JS there is no way to reach row 12. A full table with a sticky
+   header is findable, printable, and needs no JavaScript. When the filter
+   lands above it, it filters a real table.
+   ========================================================================== */
+
+.data {
+  border-collapse: collapse;
+  display: table; width: 100%;
+  margin: 1.25rem 0 0; font-size: var(--t-meta);
+}
+.data th, .data td {
+  text-align: left; padding: .55rem .7rem;
+  border-bottom: 1px solid var(--line-2);
+}
+.data thead th {
+  font-size: var(--t-label); font-weight: 650; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--ink-3);
+  border-bottom: 1px solid var(--line);
+  /* The header follows the page down a long list. Two backgrounds because
+     the sticky row paints over the rows sliding under it. */
+  position: sticky; top: 0; z-index: 1;
+  background: var(--surface);
+}
+/* Only while the bar is actually showing — with JS off it never is, and an
+   unconditional offset would strand the header 52px low. */
+html:has(.stickybar:not([hidden])) .data thead th { top: var(--sb-h); }
 .data tbody th { font-weight: 550; }
+.data tbody th a { text-decoration-thickness: 1px; }
 .data .num { text-align: right; font-variant-numeric: tabular-nums; }
-.data tbody tr:hover { background: var(--surface); }
+/* A 237-row list is easier to track across with a stripe. Kept far lighter
+   than --hover so the two never read as the same state. */
+.data tbody tr:nth-child(even) { background: var(--stripe); }
+/* --hover is its own token: the old rule used --surface, which IS the
+   table's background, so hovering a row did nothing at all. */
+.data tbody tr:hover { background: var(--hover); }
+.data .wrap { font-weight: 450; white-space: normal; line-height: 1.4; max-width: 34rem; }
 
-#campuses .data { display: block; max-height: 32rem; overflow: auto; }
+/* Kept as a hook so the generators need no change, but it no longer clips.
+   A long list is long; that is honest. */
+.data.scroll { display: table; max-height: none; overflow: visible; }
 
-.downloads { font-size: .9375rem; }
+.downloads { font-size: var(--t-meta); }
 
+/* ==========================================================================
+   HORIZONTAL BAR LIST  (.hbars)
+
+   An HTML replacement for the two SVG bar charts, offered because they are
+   the one thing CSS alone cannot make legible on a phone — see the note at
+   the foot of this file. Text here is real text: it reflows, it is
+   selectable, it is findable, it scales with the reader's font size, and it
+   needs no JavaScript.
+
+   Markup contract:
+     <ol class="hbars">
+       <li class="hbar" style="--v:79;--m:74.5">
+         <span class="hbar-label">Student Achievement</span>
+         <span class="hbar-track"><span class="hbar-fill"></span>
+                                  <span class="hbar-mark"></span></span>
+         <span class="hbar-value">79</span>
+         <span class="hbar-sub">+4.5 vs the 288 similar districts</span>
+       </li>
+     </ol>
+   --v is the entity's 0-100 value, --m the cohort marker. Both optional.
+   ========================================================================== */
+
+.hbars { list-style: none; margin: 1.25rem 0 0; padding: 0; max-width: var(--chart-max, 44rem); }
+.hbar {
+  display: grid; align-items: center;
+  grid-template-columns: minmax(6rem, 12rem) minmax(0, 1fr) auto;
+  grid-template-areas: 'label track value' 'sub sub sub';
+  gap: .2rem .75rem;
+  padding: .55rem 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.hbar:last-child { border-bottom: 0; }
+.hbar-label { grid-area: label; font-size: var(--t-meta); color: var(--ink-2); }
+.hbar-value {
+  grid-area: value; font-variant-numeric: tabular-nums;
+  font-weight: 650; font-size: var(--t-body); min-width: 2.5ch; text-align: right;
+}
+.hbar-sub { grid-area: sub; font-size: var(--t-micro); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.hbar-track {
+  grid-area: track; position: relative; display: block;
+  height: .9rem; border-radius: 3px;
+  background: var(--line-2);
+  /* Grade thresholds, drawn as hairlines rather than as colour. */
+  background-image: repeating-linear-gradient(90deg,
+    transparent 0 calc(10% - 1px), var(--line) calc(10% - 1px) 10%);
+}
+.hbar-fill {
+  position: absolute; inset: 0 auto 0 0; width: calc(var(--v, 0) * 1%);
+  background: var(--c-entity); border-radius: 3px;
+}
+.hbar-mark {
+  position: absolute; top: -2px; bottom: -2px; width: 2px;
+  left: calc(var(--m, 0) * 1%);
+  background: var(--c-peer); border-radius: 2px;
+}
 @media (max-width: 34rem) {
-  .verdict { padding: 1rem; }
-  .grade-letter { font-size: 1.9rem; }
-  main { padding-inline: 1rem; }
+  .hbar { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'label value' 'track track' 'sub sub'; }
 }
 
-/* Scroll reveal, as progressive enhancement only.
-   Deliberately animates TRANSFORM ONLY and never opacity: if the scroll timeline
-   fails to resolve, or the animation never runs, the content is still fully
-   readable. An earlier version faded from opacity 0 and stranded the whole page
-   blank when the timeline did not resolve — content must never depend on an
-   animation to become visible. */
+/* ==========================================================================
+   COMPARISON PICKER AND COHORT SWITCH
+   ========================================================================== */
+
+.picker {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .45rem;
+  margin: 1.25rem 0 .25rem;
+}
+.picker-label {
+  font-size: var(--t-label); font-weight: 650; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--ink-3); margin-right: .35rem;
+}
+.chip {
+  display: inline-flex; align-items: center; gap: .45rem;
+  font: inherit; font-size: var(--t-small); line-height: 1;
+  padding: .45rem .7rem; border-radius: 999px; cursor: pointer;
+  color: var(--ink-2); background: transparent;
+  border: 1px solid var(--line);
+}
+.chip:hover { border-color: var(--ink-3); color: var(--ink); }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Pressed state carries weight and a filled ground, not just a tint. */
+.chip[aria-pressed='true'] {
+  color: var(--ink); font-weight: 600;
+  background: var(--surface); border-color: var(--ink-3);
+}
+.chip-n { font-size: var(--t-micro); color: var(--ink-3); font-variant-numeric: tabular-nums; font-weight: 400; }
+.chip-dot {
+  width: .55rem; height: .55rem; border-radius: 999px; flex: none;
+  background: var(--ink-3); opacity: .35;
+}
+.chip[aria-pressed='true'] .chip-dot { opacity: 1; }
+.chip-dot-peer { background: var(--c-peer); }
+.chip-dot-state { background: var(--c-state); }
+.chip-dot-region { background: var(--s3); }
+.chip-dot-county { background: var(--s4); }
+.chip-dot-size { background: var(--s5); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .chip { transition: background .18s, border-color .18s, color .18s; }
+  .chip-dot { transition: opacity .18s; }
+}
+
+.cohort-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .45rem;
+  margin: 1.25rem 0 0; padding: .85rem 1rem;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+}
+
+/* ==========================================================================
+   STANDOUTS
+   ========================================================================== */
+
+.standouts {
+  list-style: none; margin: 1.25rem 0 0; padding: 0; display: grid; gap: 1px;
+  background: var(--line); border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden;
+}
+.standout { display: flex; align-items: center; gap: 1rem; padding: .85rem 1rem; background: var(--surface); }
+.standout-rank { display: flex; flex-direction: column; align-items: center; min-width: 3.4rem; flex: none; }
+.standout-n {
+  font-family: var(--font-display); font-size: 1.6rem; font-weight: 700;
+  letter-spacing: -.02em; line-height: 1;
+}
+.standout-of { font-size: var(--t-micro); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.standout-body { flex: 1 1 auto; min-width: 0; }
+.standout-metric { margin: 0; font-size: var(--t-meta); font-weight: 550; }
+.standout-dir { color: var(--ink-3); font-size: var(--t-small); font-weight: 400; }
+.standout-scope { margin: .15rem 0 0; font-size: var(--t-small); color: var(--ink-3); }
+
+.copy {
+  font: inherit; font-size: var(--t-small); padding: .35rem .7rem; border-radius: 999px; cursor: pointer;
+  color: var(--ink-2); background: transparent; border: 1px solid var(--line); flex: none;
+}
+.copy:hover { color: var(--ink); border-color: var(--ink-3); }
+.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Confirmation is a state change, not a colour: teal here would be a fourth
+   meaning for the state series colour. */
+.copy.done { color: var(--ink); border-color: var(--ink-3); background: var(--ground); font-weight: 600; }
+@media (prefers-reduced-motion: no-preference) {
+  .copy { transition: background .18s, border-color .18s, color .18s; }
+}
+
+/* ==========================================================================
+   BARS BUILD IN — enhancement only
+   ========================================================================== */
+
+.chart-bars .bar, .chart-grouped .gb, .chart-stack .seg {
+  transform-box: fill-box; transform-origin: left center;
+}
+/* .pending is added by JavaScript and hides the mark until an observer adds
+   .shown. If that observer never fires — the figure was off-screen when it
+   was set up, the tab was backgrounded — the figure would stay blank, which
+   breaks the one rule this site does not bend: content is never contingent
+   on JavaScript. The animation is the dead-man's switch. It costs nothing
+   when .shown arrives on time, because the class change cancels it. */
+.chart-bars .bar.pending, .chart-grouped .gb.pending, .chart-stack .seg.pending {
+  transform: scaleX(0);
+  animation: un-pend 1ms linear 2.5s forwards;
+}
+@keyframes un-pend { to { transform: scaleX(1); } }
+.chart-bars .bar.shown, .chart-grouped .gb.shown, .chart-stack .seg.shown {
+  transform: scaleX(1);
+  transition: transform .6s cubic-bezier(.22,.61,.36,1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chart-bars .bar, .chart-grouped .gb, .chart-stack .seg {
+    transform: none !important; transition: none !important; animation: none !important;
+  }
+}
+
+/* Scroll reveal, as progressive enhancement only. TRANSFORM ONLY and never
+   opacity: if the scroll timeline fails to resolve the content is still
+   fully readable. */
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: view()) {
-    section {
+    main > section {
       animation: rise linear both;
       animation-timeline: view();
       animation-range: entry 5% entry 40%;
@@ -298,145 +864,24 @@ td .grade-letter { font-size: .95rem; }
   }
 }
 
-/* ---------- added by the section shell ---------- */
-
-.grade-lg { padding: .6rem 1rem; }
-.grade-lg .grade-letter { font-size: 2.6rem; }
-
-.group-label { fill: var(--ink-2); font-size: 12.5px; font-weight: 600; }
-.na-sm { fill: var(--ink-3); font-size: 12px; font-style: italic; }
-.gb-l0 { fill: var(--s0); }
-.gb-l1 { fill: var(--s2); }
-.gb-l2 { fill: var(--s3); }
-.swatch-l0 { background: var(--s0); }
-.swatch-l1 { background: var(--s2); }
-.swatch-l2 { background: var(--s3); }
-
-.data .wrap { font-weight: 450; white-space: normal; line-height: 1.4; max-width: 34rem; }
-.data.scroll { display: block; max-height: 30rem; overflow: auto; }
-.data.scroll thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; }
-
-#outcomes h3:first-of-type { margin-top: 0; }
-.chart-grouped { margin-top: .75rem; }
-
-/* ---------- comparison picker ---------- */
-
-.picker {
-  display: flex; flex-wrap: wrap; align-items: center; gap: .45rem;
-  margin: 1.25rem 0 .25rem;
-}
-.picker-label {
-  font-size: .78rem; font-weight: 600; letter-spacing: .05em;
-  text-transform: uppercase; color: var(--ink-3); margin-right: .35rem;
-}
-.chip {
-  display: inline-flex; align-items: center; gap: .45rem;
-  font: inherit; font-size: .8125rem; line-height: 1;
-  padding: .45rem .7rem; border-radius: 999px; cursor: pointer;
-  color: var(--ink-2); background: transparent;
-  border: 1px solid var(--line);
-  transition: background .18s, border-color .18s, color .18s;
-}
-.chip:hover { border-color: var(--ink-3); color: var(--ink); }
-.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.chip[aria-pressed='true'] { color: var(--ink); background: var(--surface); border-color: var(--ink-3); }
-.chip-n { font-size: .7rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.chip-dot {
-  width: .55rem; height: .55rem; border-radius: 999px; flex: none;
-  background: var(--ink-3); opacity: .35; transition: opacity .18s;
-}
-.chip[aria-pressed='true'] .chip-dot { opacity: 1; }
-.chip-dot-peer { background: var(--c-peer); }
-.chip-dot-state { background: var(--c-state); }
-.chip-dot-region { background: var(--s3); }
-.chip-dot-county { background: var(--s4); }
-.chip-dot-size { background: var(--s5); }
-.line-region { stroke: var(--s3); stroke-dasharray: 1 5; stroke-linecap: round; }
-.line-county { stroke: var(--s4); stroke-dasharray: 7 4; }
-.line-size   { stroke: var(--s5); stroke-dasharray: 2 4; stroke-linecap: round; }
-
-/* ---------- bars build in ---------- */
-
-.chart-bars .bar, .chart-grouped .gb, .chart-stack .seg {
-  transform-box: fill-box; transform-origin: left center;
-}
-.chart-bars .bar.pending, .chart-grouped .gb.pending, .chart-stack .seg.pending {
-  transform: scaleX(0);
-}
-.chart-bars .bar.shown, .chart-grouped .gb.shown, .chart-stack .seg.shown {
-  transform: scaleX(1);
-  transition: transform .6s cubic-bezier(.22,.61,.36,1);
-}
-@media (prefers-reduced-motion: reduce) {
-  .chart-bars .bar, .chart-grouped .gb, .chart-stack .seg { transform: none !important; transition: none !important; }
-}
-
-/* ---------- cohort markers on bars ---------- */
-
-.mark { stroke-width: 2; stroke-linecap: round; }
-.mark-peer { stroke: var(--c-peer); }
-.mark-state { stroke: var(--c-state); stroke-dasharray: 2 3; }
-.row-sub { fill: var(--ink-3); font-size: 11px; }
-.delta { fill: var(--ink-3); font-size: 11px; }
-.swatch-entity { background: var(--c-entity); }
-
-/* ---------- comparison chips on every figure ---------- */
-
-.cmp { display: block; font-size: .75rem; font-weight: 500; margin-top: .15rem; font-variant-numeric: tabular-nums; }
-.cmp-vs { color: var(--ink-3); font-weight: 400; }
-.cmp-up { color: var(--c-state); }
-.cmp-down { color: var(--c-peer); }
-.cmp-level { color: var(--ink-3); }
-.stat dd .cmp { margin-top: .2rem; }
-
-.cohort-bar {
-  display: flex; flex-wrap: wrap; align-items: center; gap: .45rem;
-  margin: 1.25rem 0 0; padding: .85rem 1rem;
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-}
-
-/* ---------- standouts ---------- */
-
-.standouts { list-style: none; margin: 1.25rem 0 0; padding: 0; display: grid; gap: 1px;
-  background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-.standout { display: flex; align-items: center; gap: 1rem; padding: .8rem 1rem; background: var(--surface); }
-.standout-rank { display: flex; flex-direction: column; align-items: center; min-width: 3.4rem; }
-.standout-n { font-size: 1.5rem; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; line-height: 1; }
-.standout-of { font-size: .7rem; color: var(--ink-3); font-variant-numeric: tabular-nums; }
-.standout-body { flex: 1 1 auto; min-width: 0; }
-.standout-metric { margin: 0; font-size: .9375rem; }
-.standout-dir { color: var(--ink-3); font-size: .8125rem; }
-.standout-scope { margin: .1rem 0 0; font-size: .8125rem; color: var(--ink-3); }
-.copy {
-  font: inherit; font-size: .78rem; padding: .35rem .7rem; border-radius: 999px; cursor: pointer;
-  color: var(--ink-2); background: transparent; border: 1px solid var(--line); flex: none;
-  transition: background .18s, border-color .18s, color .18s;
-}
-.copy:hover { color: var(--ink); border-color: var(--ink-3); }
-.copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.copy.done { color: var(--c-state); border-color: var(--c-state); }
-
 /* ==========================================================================
    RAIL, STICKY BAR, PINNER
 
-   Three planes are already in play: --ground under everything, --surface for
-   the section cards, --raised for things that float. The rail deliberately
-   takes NONE of them. It sits directly on the ground with no fill and no
-   border box, so the eye reads one column of cards (the subject) and one
-   column of unhoused controls (the tools). Giving the rail a card of its own
-   would have made it a peer of the sections it indexes.
+   Three planes are already in play. The rail deliberately takes none of
+   them: it sits on the ground with no fill and no border box, so the eye
+   reads one column of cards (the subject) and one column of unhoused
+   controls (the tools). Giving the rail a card would make it a peer of the
+   sections it indexes.
 
-   Only two things here float: the sticky bar and the pin dropdown. Both are
-   --raised with --shadow-raised, which is the whole vocabulary — a shadow on
-   this site means "above the page", never "important".
+   Only two things float: the sticky bar and the pin dropdown. Both are
+   --raised with --shadow-raised, which is the entire vocabulary.
    ========================================================================== */
 
 :root {
   --rail-w: 260px;
   --layout-gap: 2.5rem;
-  --layout-max: 82rem;   /* 1.25 pad + 16.25 rail + 2.5 gap + ~60 content + 1.25 pad */
+  --layout-max: 82rem;
   --sb-h: 52px;
-  --sheet-h: 3.5rem;
 }
 
 .layout {
@@ -449,35 +894,26 @@ td .grade-letter { font-size: .95rem; }
   padding: 1.25rem 1.25rem 0;
 }
 
-/* The chrome is 68rem wide on hub pages, where there is no rail. On a page that
-   HAS a rail the wordmark must line up with the rail's left edge, or the header
-   floats free of the thing it sits above. */
+/* On a page that HAS a rail the wordmark must line up with the rail's left
+   edge, or the masthead floats free of the thing it sits above. */
 body:has(.layout) header.site,
 body:has(.layout) footer.site { max-width: var(--layout-max); }
 
 .col { min-width: 0; max-width: 62rem; }
 
-/* main and the breadcrumb centre themselves on pages without a rail. Inside the
-   column that job belongs to .layout, so their own centring is switched off. */
 .layout main,
-.layout nav[aria-label='Breadcrumb'] {
-  max-width: none; margin: 0; padding-inline: 0;
-}
+.layout nav[aria-label='Breadcrumb'] { max-width: none; margin: 0; padding-inline: 0; }
 .layout nav[aria-label='Breadcrumb'] { padding-top: 0; padding-bottom: .25rem; }
-
-/* ---------- the rail ---------- */
 
 .rail {
   position: sticky;
-  /* Clears the sticky bar, so the rail never slides underneath it. */
   top: calc(var(--sb-h) + 1rem);
   max-height: calc(100vh - var(--sb-h) - 2rem);
   overflow-y: auto;
   overscroll-behavior: contain;
-  /* Room for focus rings, which would otherwise be clipped by the scroller. */
-  padding: .15rem .35rem 1.5rem;
+  padding: .15rem .35rem 1.5rem;   /* room for focus rings the scroller would clip */
   margin-inline: -.35rem;
-  font-size: .875rem;
+  font-size: var(--t-meta);
   scrollbar-width: thin;
 }
 
@@ -486,47 +922,34 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
   border-top: 1px solid var(--line);
 }
 
-/* --ink-3 is the label colour everywhere else on the site, but everywhere else
-   those labels sit on --surface (4.83:1). On the ground plane the same grey is
-   4.16:1, which fails at this size — so the rail's labels step up to --ink-2. */
+/* --ink-3 is the label colour everywhere else, but everywhere else those
+   labels sit on --surface (5.8:1). On the ground plane the same grey is
+   5.0:1, so the rail's labels step up to --ink-2. */
 .rail-title {
-  font-size: .72rem; font-weight: 600; letter-spacing: .07em;
+  font-size: var(--t-label); font-weight: 650; letter-spacing: .08em;
   text-transform: uppercase; color: var(--ink-2);
   margin: 0 0 .55rem;
 }
-.rail-hint { margin: -.3rem 0 .55rem; font-size: .78rem; color: var(--ink-2); }
+.rail-hint { margin: -.3rem 0 .55rem; font-size: var(--t-small); color: var(--ink-2); }
 
-/* ---------- section index + scroll spy ---------- */
-
-.rail-index {
-  list-style: none; margin: 0; padding: 0;
-  border-left: 2px solid var(--line);
-}
+.rail-index { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--line); }
 .rail-link {
-  display: block;
-  margin-left: -2px;
+  display: block; margin-left: -2px;
   border-left: 2px solid transparent;
   padding: .3rem .25rem .3rem .75rem;
   color: var(--ink-2); text-decoration: none; line-height: 1.35;
 }
 .rail-link:hover { color: var(--ink); border-left-color: var(--ink-3); }
 .rail-link:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; border-radius: 2px; }
-
-/* Two signals, never colour alone: a marker appears in the left gutter AND the
-   weight steps up, so the active section survives greyscale and every CVD. */
-.rail-link[aria-current='true'] {
-  color: var(--ink); font-weight: 650;
-  border-left-color: var(--accent);
-}
+/* Two signals, never colour alone: a marker in the gutter AND weight. */
+.rail-link[aria-current='true'] { color: var(--ink); font-weight: 650; border-left-color: var(--accent); }
 
 @media (prefers-reduced-motion: no-preference) {
   .rail-link { transition: color .15s, border-color .15s; }
 }
 
-/* ---------- compare block ---------- */
-
-/* .rail-title already says "Compare against"; the picker's own label would say
-   it twice. The group keeps its aria-label, so nothing is lost to a reader. */
+/* .rail-title already says "Compare against"; the picker's own label would
+   say it twice. The group keeps its aria-label, so nothing is lost. */
 .rail-compare .picker-label {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
@@ -540,20 +963,16 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
   width: 100%; justify-content: flex-start; text-align: left;
   border-radius: 8px; padding: .45rem .6rem; line-height: 1.25;
 }
-/* Same reason as .rail-title: an unpressed chip is transparent, so its count
-   sits on the ground, not on a surface. */
 .rail-compare .chip-n { margin-left: auto; padding-left: .4rem; color: var(--ink-2); }
 .rail-compare .chip[aria-pressed='true'] { background: var(--surface); }
-
-/* Direct children, in case the buttons move without their .picker wrapper. */
 .rail-compare > .chip { width: 100%; justify-content: flex-start; border-radius: 8px; }
 .rail-compare > .chip + .chip { margin-top: .3rem; }
 
-/* ---------- district pinner ---------- */
+/* ---------- pinner ---------- */
 
 .pin-search {
-  width: 100%; font: inherit; font-size: .8125rem;
-  padding: .45rem .6rem; border-radius: 8px;
+  width: 100%; font: inherit; font-size: var(--t-small);
+  padding: .5rem .6rem; border-radius: 8px;
   color: var(--ink); background: var(--surface);
   border: 1px solid var(--line);
   -webkit-appearance: none; appearance: none;
@@ -562,10 +981,15 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
 .pin-search:hover { border-color: var(--ink-3); }
 .pin-search:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
 
+/* role="status": announced, and visible as a plain count line. Previously
+   created by app.js with no styling at all. */
+.pin-status { margin: .35rem 0 0; font-size: var(--t-micro); color: var(--ink-3); }
+.pin-status:empty { display: none; }
+
 /* In flow rather than absolutely positioned: the rail is its own scroll
-   container, and an absolute dropdown would be clipped by it the moment the
-   list ran past the rail's bottom edge. --raised plus the raised shadow is
-   what makes it read as a dropdown; it does not need to escape the box. */
+   container, and an absolute dropdown would be clipped the moment the list
+   ran past the rail's bottom edge. --raised plus the raised shadow is what
+   makes it read as a dropdown; it does not need to escape the box. */
 .pin-results {
   list-style: none; margin: .35rem 0 0; padding: .25rem;
   max-height: 13rem; overflow-y: auto; overscroll-behavior: contain;
@@ -574,15 +998,33 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
 }
 .pin-results:empty { display: none; }
 .pin-results li { margin: 0; }
+/* app.js builds each option as a bare <li role="option"> with text in it, so
+   the option styling has to live on the li — the button/anchor rules below
+   never matched anything. */
+.pin-result {
+  display: block; padding: .4rem .45rem; border-radius: 6px;
+  font-size: var(--t-small); line-height: 1.3;
+  color: var(--ink-2); cursor: pointer;
+}
+.pin-result:hover { background: var(--ground); color: var(--ink); }
+/* app.js builds each option as <li class="pin-result"><span class="pin-opt-name">
+   <span class="pin-opt-sub">, the name plus the district/county that tells two
+   identically named schools apart. The sub-line is de-emphasised so the name —
+   the thing being searched for — stays the one a reader's eye lands on. */
+.pin-opt-name { color: var(--ink); }
+.pin-opt-sub { color: var(--ink-3); }
+.pin-results [aria-selected='true'] {
+  background: var(--ground); color: var(--ink); font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--accent);   /* second channel for the cursor */
+}
 .pin-results button,
 .pin-results li > a {
   display: block; width: 100%; text-align: left;
-  font: inherit; font-size: .8125rem; line-height: 1.3;
-  padding: .35rem .45rem; border: 0; border-radius: 6px;
+  font: inherit; font-size: var(--t-small); line-height: 1.3;
+  padding: .4rem .45rem; border: 0; border-radius: 6px;
   background: none; color: var(--ink-2); cursor: pointer; text-decoration: none;
 }
-.pin-results button:hover, .pin-results li > a:hover,
-.pin-results [aria-selected='true'] { background: var(--ground); color: var(--ink); }
+.pin-results button:hover, .pin-results li > a:hover { background: var(--ground); color: var(--ink); }
 .pin-results button:focus-visible,
 .pin-results li > a:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
@@ -590,14 +1032,14 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
 .pin {
   display: flex; align-items: center; gap: .45rem;
   padding: .3rem .3rem .3rem .55rem; margin-top: .3rem;
-  font-size: .8125rem; line-height: 1.3; min-width: 0;
+  font-size: var(--t-small); line-height: 1.3; min-width: 0;
   background: var(--surface); border: 1px solid var(--line);
   border-radius: 8px; overflow-wrap: anywhere;
 }
 .pin-name { min-width: 0; }
 
-/* N pins, N colours, no list to exhaust: the hue is a number set inline and the
-   lightness comes from a token, so the same dot reads on paper and on ink. */
+/* N pins, N colours, no list to exhaust: the hue is a number set inline and
+   the lightness comes from a token, so the same dot reads on paper and ink. */
 .pin-dot {
   width: .6rem; height: .6rem; border-radius: 999px; flex: none;
   background: hsl(var(--pin-hue, 220) 72% var(--pin-l));
@@ -610,7 +1052,7 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
   flex: none; margin-left: auto;
   display: inline-flex; align-items: center; justify-content: center;
   width: 1.5rem; height: 1.5rem; padding: 0;
-  font: inherit; font-size: .8125rem; line-height: 1;
+  font: inherit; font-size: var(--t-small); line-height: 1;
   color: var(--ink-3); background: none; border: 0; border-radius: 999px;
   cursor: pointer;
 }
@@ -623,126 +1065,216 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
   position: sticky; top: 0; z-index: 20;
   display: flex; align-items: center; gap: .55rem;
   height: var(--sb-h); padding: .4rem .9rem;
-  /* Occupies no flow height, so JS removing [hidden] mid-scroll does not shove
-     the article down 52px under the reader. Height + negative margin cancel;
-     the bar only ever paints over the first 52px of the column, which is above
-     the fold the bar is revealed at. */
+  /* Occupies no flow height, so revealing it mid-scroll does not shove the
+     article down 52px under the reader. */
   margin-block: 0 calc(-1 * var(--sb-h));
   background: var(--raised);
   border: 1px solid var(--line); border-top: 0;
   border-radius: 0 0 12px 12px;
   box-shadow: var(--shadow-raised);
-  font-size: .875rem;
+  font-size: var(--t-meta);
 }
 .sb-name {
-  font-weight: 650; letter-spacing: -.01em;
+  font-family: var(--font-display); font-weight: 700; font-size: 1rem;
+  letter-spacing: -.01em;
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.stickybar .grade { padding: .1rem .45rem; gap: .35rem; flex: none; }
-.stickybar .grade-letter { font-size: 1.05rem; }
-.stickybar .grade-score { font-size: .8125rem; }
+.stickybar .grade { padding: .1rem .45rem; gap: .35rem; flex: none; border-color: var(--line); }
+.stickybar .grade-letter { font-size: 1.15rem; }
+.stickybar .grade-score { font-size: var(--t-small); }
 .sb-cohort {
   margin-left: auto; padding-left: .5rem; flex: none;
-  color: var(--ink-3); font-size: .8125rem;
+  color: var(--ink-3); font-size: var(--t-small);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.sb-cohort [data-sb-cohort] { color: var(--ink-2); }
+.sb-cohort [data-sb-cohort] { color: var(--ink-2); font-weight: 600; }
 
-/* Transform only, never opacity — the same rule the scroll reveal follows. If
-   the animation never runs, the bar is still fully readable. */
+/* Transform only, never opacity — if the animation never runs the bar is
+   still fully readable. */
 @media (prefers-reduced-motion: no-preference) {
   .stickybar { animation: sb-in .18s cubic-bezier(.22,.61,.36,1) both; }
   @keyframes sb-in { from { transform: translateY(-.6rem); } to { transform: none; } }
 }
 
 /* ==========================================================================
-   BELOW 1024px — the rail becomes a bottom sheet
+   BELOW 1024px — the rail unstacks and prints after the article
+
+   There WAS a bottom-sheet treatment here, opted in on a .rail-handle button.
+   Nothing in the codebase ever created that button, so ~60 lines of CSS
+   described a component that did not exist. Removed rather than left to rot.
+
+   If a sheet is wanted, it should be built as markup that works with
+   JavaScript off — <details class="rail-sheet"><summary>Page tools</summary>
+   — and not as a JS-injected handle, because a reader without JS would then
+   have a collapsed panel and no way to open it. Say the word and the CSS
+   follows the markup.
    ========================================================================== */
 
 @media (max-width: 1023.98px) {
-  html { scroll-padding-bottom: calc(var(--sheet-h) + 1rem); }
-
-  /* Order, not display:none. With JS off the rail is simply a block of tools
-     printed after the content — every link still works as a plain anchor. */
   .layout {
     display: flex; flex-direction: column;
-    align-items: stretch;   /* the grid's align-items:start would shrink-wrap both */
+    align-items: stretch;      /* the grid's align-items:start shrink-wraps both */
     max-width: 68rem; gap: 0;
   }
+  /* Order, not display:none: the rail is simply a block of tools printed
+     after the content, and every link still works as a plain anchor. Visual
+     order matches DOM order, so focus order stays correct. */
   .col { order: 1; max-width: none; }
   .rail {
     order: 2; position: static; max-height: none; overflow: visible;
-    margin: 2rem 0 0; padding: 1.25rem 0 0;
-    border-top: 1px solid var(--line);
+    margin: 2rem 0 0; padding: 1.5rem 0 0;
+    border-top: 2px solid var(--ink);
+    font-size: var(--t-body);
   }
-
-  /* The sheet is opt-in on .rail-handle, which only exists once JS has built
-     it. That keeps the no-JS fallback above intact instead of collapsing the
-     rail into something a reader with no JS cannot open. */
-  .rail:has(.rail-handle) {
-    position: fixed; inset: auto 0 0 0; z-index: 40;
-    margin: 0; padding: 0 1rem;
-    max-height: var(--sheet-h);
-    overflow: hidden; overscroll-behavior: contain;
-    background: var(--raised);
-    border: 1px solid var(--line); border-bottom: 0;
-    border-radius: 14px 14px 0 0;
-    box-shadow: var(--shadow-raised);
-  }
-  .rail:has(.rail-handle):is(:focus-within, [data-open], [aria-expanded='true'], .open) {
-    max-height: min(75vh, 30rem);
-    overflow-y: auto;
-  }
-  body:has(.rail-handle) { padding-bottom: calc(var(--sheet-h) + 1rem); }
-
-  /* Fixed height, not min-height: the collapsed sheet IS this element, so a
-     label long enough to wrap would push itself out of the clipped box. */
-  .rail-handle {
-    position: sticky; top: 0; z-index: 1;
-    display: flex; align-items: center; justify-content: center; gap: .4rem;
-    width: calc(100% + 2rem); margin-inline: -1rem;
-    height: var(--sheet-h); padding: .6rem 1rem .3rem;
-    font: inherit; font-size: .8125rem; font-weight: 600;
-    color: var(--ink); background: var(--raised);
-    border: 0; cursor: pointer; text-align: center;
-  }
-  .rail-handle > * { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  /* The grab affordance. A pull-up sheet, not a menu. */
-  .rail-handle::before {
-    content: ''; position: absolute; top: .45rem; left: 50%; translate: -50% 0;
-    width: 2.25rem; height: .25rem; border-radius: 999px;
-    background: var(--ink-3); opacity: .4;
-  }
-  .rail-handle:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
-  .rail-handle-current { color: var(--ink-2); font-weight: 500; }
-
-  /* The sheet spans the viewport, but its contents should not: a 1000px-wide
-     list of eight short links is a worse index than a 34rem one. */
-  .rail:has(.rail-handle) .rail-block { max-width: 34rem; margin-inline: auto; }
-  .rail:has(.rail-handle) .rail-block:last-child {
-    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
-  }
-
+  .rail-block { max-width: 34rem; }
   /* Coarse pointers get real targets. */
   .pin-remove { width: 1.75rem; height: 1.75rem; }
-  .rail-link { padding-block: .45rem; }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .rail:has(.rail-handle) { transition: max-height .22s cubic-bezier(.22,.61,.36,1); }
-  }
+  .rail-link { padding-block: .5rem; }
+  .rail-compare .chip { padding-block: .6rem; }
 }
 
-/* The rail is only a sheet when it is one — off the sheet breakpoint the handle
-   is not part of the design. */
-@media (min-width: 1024px) { .rail-handle { display: none; } }
+/* ==========================================================================
+   NARROW — chart text, table density, section padding
+
+   The three bands below exist because CSS cannot read an SVG's render scale.
+   Each band raises the user-unit font sizes so that (size × column ÷ 640)
+   lands between 10 and 14 CSS px across the band's width range.
+   ========================================================================== */
+
+/* Only the two line charts are bumped. .chart-bars and .chart-grouped are
+   deliberately left at their base sizes at every width: their labels live in
+   fixed 190- and 132-unit gutters and their rows are pitched 14 and 16 units
+   apart, so raising the type does not make them legible — it makes them
+   overlap. Bumping .chart wholesale and then walking the bar charts back in
+   the narrowest band would still have collided in the band above it. See the
+   note at the foot of this file for what has to change instead. */
+
+/* 640–768px viewport · column ≈ 550–670px · scale ≈ .86–1.05 */
+@media (max-width: 47.99rem) {
+  .chart-traj, .chart-cmp { --ct-micro: 13px; --ct-label: 15px; --ct-value: 14px; --ct-strong: 15px; }
+}
+
+/* 512–640px · column ≈ 420–550px · scale ≈ .66–.86 */
+@media (max-width: 39.99rem) {
+  .chart-traj, .chart-cmp { --ct-micro: 17px; --ct-label: 18px; --ct-value: 18px; --ct-strong: 19px; }
+  /* Five year labels at 17 units would collide. Show the first, middle and
+     last — the axis is still fully labelled at its ends. */
+  .chart-traj .xlabels text:nth-child(even) { display: none; }
+  .chart-traj .xlabels text:first-child { text-anchor: start; }
+  .chart-traj .xlabels text:last-child { text-anchor: end; }
+}
+
+/* ≤512px · column ≈ 290–420px · scale ≈ .46–.66 */
+@media (max-width: 31.99rem) {
+  .chart-traj, .chart-cmp { --ct-micro: 23px; --ct-label: 24px; --ct-value: 23px; --ct-strong: 25px; }
+}
 
 @media (max-width: 34rem) {
+  main { padding-inline: 1rem; }
   .layout { padding-inline: 1rem; }
-  .sb-cohort { display: none; }
+  main > section { padding: 1.15rem; }
+  .verdict { padding: 1rem; }
+  .grade-letter { font-size: 2rem; }
+  .grade-lg .grade-letter { font-size: 2.3rem; }
   .stickybar { padding-inline: .75rem; }
+  .sb-cohort { display: none; }
+  /* Five columns will not fit 290px, and the two ways of pretending they do
+     are both worse than admitting it. Letting cells break anywhere shreds
+     "School of Science and Engineering" into a one-word-per-line column
+     eleven lines tall; letting the table find its own width pushes 120px
+     past the card and gives the whole document a horizontal scrollbar.
+
+     So at this width — and ONLY at this width, where the table is genuinely
+     wider than the screen — the list becomes a horizontally scrolling panel.
+     display:block here is correct for the same reason it was wrong before:
+     the inner table is wider than the box, so it fills it rather than
+     shrink-wrapping inside it, and every column stays aligned because it is
+     still one table. One row cut at the right edge is the affordance. */
+  .data { font-size: var(--t-small); }
+  .data th, .data td { padding: .5rem .4rem; }
+  .data thead th { font-size: var(--t-micro); letter-spacing: .02em; }
+  .data.scroll {
+    display: block; overflow-x: auto; overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .data.scroll th, .data.scroll td { white-space: nowrap; }
+  /* The name column stays put while the rest scrolls under it. Without this a
+     reader who swipes to reach Score is looking at a number with no school
+     attached to it. It wraps and is width-capped so it cannot eat the panel. */
+  .data.scroll tbody th, .data.scroll thead th:first-child {
+    position: sticky; left: 0; z-index: 1;
+    white-space: normal; width: 9.5rem; min-width: 8rem;
+    background: inherit;
+    box-shadow: 1px 0 0 var(--line-2);
+  }
+  /* background:inherit above resolves against the row, so the sticky cell
+     carries its own stripe instead of a hole. */
+  .data.scroll tbody tr { background: var(--surface); }
+  .data.scroll tbody tr:nth-child(even) { background: var(--stripe); }
+  .data.scroll tbody tr:hover { background: var(--hover); }
+  .data.scroll thead tr { background: var(--surface); }
+  /* Sticky headers cannot follow the page from inside a scroll container. */
+  .data.scroll thead th { position: static; }
+  .data.scroll thead th:first-child { position: sticky; }
+  .legend li > a { min-width: 2.75rem; min-height: 2.75rem; }
+  .standout { gap: .7rem; padding: .75rem .8rem; }
+  .standout-rank { min-width: 2.8rem; }
+  header.site { padding-inline: 1rem; }
+  footer.site { padding-inline: 1rem; }
+  nav[aria-label='Breadcrumb'] { padding-inline: 1rem; }
+  .layout nav[aria-label='Breadcrumb'] { padding-inline: 0; }
+}
+
+/* ==========================================================================
+   NARROW-VARIANT FIGURE SWITCH  (contract, awaiting markup)
+
+   Where a figure genuinely needs different geometry on a phone rather than
+   different type sizes, the generator can emit both and let this switch
+   choose. Both are in the HTML, so the choice survives JavaScript being off.
+   ========================================================================== */
+
+.chart-narrow, .figure-narrow { display: none; }
+@media (max-width: 39.99rem) {
+  .chart-wide, .figure-wide { display: none; }
+  .chart-narrow, .figure-narrow { display: block; }
 }
 
 @media print {
   .rail, .stickybar, .skip { display: none !important; }
   .layout { display: block; max-width: none; padding: 0; }
+  main > section { box-shadow: none; break-inside: avoid-page; }
+  .data thead th { position: static; }
+  a { text-decoration: none; }
 }
+
+/* ==========================================================================
+   WHAT CSS COULD NOT FIX  (handed to whoever owns src/render/charts.js)
+
+   .chart-bars (scoreBars) and .chart-grouped (groupedBars) cannot be made
+   legible on a phone from this file, and the reason is geometric, not
+   stylistic:
+
+     scoreBars pins the row label to a 190-unit gutter and stacks two lines
+     of text 14 units apart inside a 40-unit row. Raising the label past ~14
+     units makes "Student Achievement" run under the bar; raising the sub
+     line makes it collide with the label above. At 380px that caps the
+     rendered text at 5.9 CSS px.
+
+     groupedBars pitches bar rows 16 units apart and pins group labels to a
+     132-unit gutter, so nothing above ~15 units fits either.
+
+   Three ways out, best first:
+
+   1. Replace both with the .hbars component defined above. They are
+      horizontal bar charts; in HTML the text is real text that reflows,
+      scales with the reader's settings, and is selectable and findable. The
+      markup contract is written out at .hbars. This is the recommendation.
+
+   2. Emit a second SVG for narrow viewports — labels above their bars,
+      taller rows, a viewBox around 340 wide — carrying class="chart-narrow"
+      alongside the existing one carrying class="chart-wide". The switch is
+      already in this file and needs no JavaScript.
+
+   3. At minimum, make labelW/barH/rowH options rather than constants, so a
+      narrow variant is a call-site argument.
+   ========================================================================== */

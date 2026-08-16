@@ -33,21 +33,30 @@
 //     hubs (20 region + 253 county
 //           + 26 letter + home)              300
 //     about, download                         2
+//     search (search.html + 26 letter
+//       pages + search.js + the index)       29
 //     sitemap.xml                             1
 //     404 / style.css / app.js / _headers     4
+//     favicon.svg, og.png,
+//       apple-touch-icon.png                  3
 //     dashboard payload                       1
 //     bulk CSVs                               3
 //     ------------------------------------------
-//     floor before any per-entity file    10,541
+//     floor before any per-entity file    10,573
 //
-// That leaves 7,459 slots under the CI guard and 9,459 under the hard cap — and
+// That leaves 7,427 slots under the CI guard and 9,427 under the hard cap — and
 // there are 10,230 entities. So *one* file per entity does not fit in either
 // budget, let alone the two (CSV and JSON) an entity page could link.
-// 10,230 x 2 = 20,460 extra files is 31,001 total: past the hard cap by 55%.
+// 10,230 x 2 = 20,460 extra files is 31,033 total: past the hard cap by 55%.
+//
+// The same arithmetic is why there is ONE share image rather than one per entity:
+// 10,230 og:images is half the cap on its own. See writeBrandAssets below. It is
+// also why the search index is one lazy-loaded JSON file rather than 10,230
+// names inlined into every page — see src/render/search.js.
 //
 // The decision: per-entity CSV + JSON for the 1,199 districts only.
 //
-//     10,541 + (1,199 x 2 = 2,398) = 12,939 files, 5,061 under the CI guard.
+//     10,573 + (1,199 x 2 = 2,398) = 12,971 files, 5,029 under the CI guard.
 //
 // Districts win the slots because they are the low-cardinality half (1,199 vs
 // 9,031) and the half people download — a district's record is the unit a comms
@@ -95,7 +104,7 @@
 import { Worker, isMainThread, workerData, parentPort } from 'node:worker_threads'
 import { availableParallelism } from 'node:os'
 import { fileURLToPath } from 'node:url'
-import { gunzipSync } from 'node:zlib'
+import { deflateSync, gunzipSync } from 'node:zlib'
 import { existsSync, readFileSync } from 'node:fs'
 import { readdir, writeFile, stat, rm } from 'node:fs/promises'
 
@@ -109,7 +118,8 @@ import { buildViewModel, entitySlug, slugify } from './render/view-model.js'
 import { metricSpecs } from './render/metrics.js'
 import { renderEntity } from './render/page.js'
 import { renderRegionPage, renderCountyPage, renderLetterPage, renderHomePage, regionPath } from './render/hubs.js'
-import { shell } from './render/shell.js'
+import { searchIndexJson, searchClientJs, renderSearchPage, SEARCH_LETTERS } from './render/search.js'
+import { APPLE_TOUCH_ICON, BRAND, MARK_BARS, OG_IMAGE, faviconSvg, shell } from './render/shell.js'
 import { renderAboutPage } from './render/about.js'
 import { renderDownloadPage, datasetCsv, entityCsv, entityJson } from './render/downloads.js'
 
@@ -219,6 +229,122 @@ const viewModelFor = (t, entity, snapshotDate) =>
     snapshotDate,
     latestYear: t.latestYear,
   })
+
+/* ----------------------------------------------------------- brand assets -- */
+//
+// Three files, written once per build, that make a link to this site legible when
+// it leaves this site: a favicon, a share card, and a home-screen icon. All three
+// draw the same mark, whose colours and coordinates live in src/render/shell.js
+// so the tab and the card cannot drift apart.
+//
+// WHY A PNG WRITER AND NOT AN SVG. Every other drawing this project makes is an
+// SVG string, and the favicon still is — but no major unfurler rasterises SVG for
+// og:image. X, Facebook, LinkedIn, Slack and iMessage all want PNG/JPEG/WEBP/GIF,
+// so shipping an SVG card would be shipping a file that nothing ever renders. The
+// writer below is the whole of PNG that a flat, axis-aligned mark needs: a CRC, a
+// chunk framer, and zlib — which is already imported here to read the snapshot.
+// No dependency, no font, no rasteriser, ~40 lines. The mark is rectangles for
+// exactly that reason: it needs no anti-aliasing to look drawn on purpose.
+//
+// WHY NO WEB MANIFEST. A manifest earns its file when an app has a standalone
+// display mode, an install prompt, offline behaviour or maskable icons. This is a
+// document site whose whole purpose is being linked, quoted and pasted; installing
+// it standalone would hide the address bar people copy the URL out of. The two
+// things a manifest would carry that matter — a theme colour and an icon — are
+// already in the shell as <meta name="theme-color"> and <link rel="icon">, which
+// every browser honours without one.
+
+const CRC_TABLE = Uint32Array.from({ length: 256 }, (_, n) => {
+  let c = n
+  for (let k = 0; k < 8; k += 1) c = c & 1 ? (0xedb88320 ^ (c >>> 1)) >>> 0 : c >>> 1
+  return c
+})
+
+const crc32 = (buf) => {
+  let c = 0xffffffff
+  for (let i = 0; i < buf.length; i += 1) c = (CRC_TABLE[(c ^ buf[i]) & 0xff] ^ (c >>> 8)) >>> 0
+  return (c ^ 0xffffffff) >>> 0
+}
+
+/** length + type + data + CRC32 of (type + data). The PNG container, in full. */
+const pngChunk = (type, data) => {
+  const head = Buffer.alloc(8)
+  head.writeUInt32BE(data.length, 0)
+  head.write(type, 4, 'latin1')
+  const tail = Buffer.alloc(4)
+  tail.writeUInt32BE(crc32(Buffer.concat([head.subarray(4), data])), 0)
+  return Buffer.concat([head, data, tail])
+}
+
+/**
+ * A truecolour 8-bit PNG. `paint(x, y)` returns a 0xRRGGBB integer.
+ *
+ * Every scanline uses filter 0 (none): the filters exist to make gradients and
+ * photographs compress, and this image is two flat colours, which deflate encodes
+ * as run lengths whether or not it is filtered first.
+ */
+export function png(width, height, paint) {
+  const raw = Buffer.alloc(height * (width * 3 + 1))
+  let p = 0
+  for (let y = 0; y < height; y += 1) {
+    raw[p] = 0
+    p += 1
+    for (let x = 0; x < width; x += 1) {
+      const c = paint(x, y)
+      raw[p] = (c >> 16) & 0xff
+      raw[p + 1] = (c >> 8) & 0xff
+      raw[p + 2] = c & 0xff
+      p += 3
+    }
+  }
+
+  const ihdr = Buffer.alloc(13)
+  ihdr.writeUInt32BE(width, 0)
+  ihdr.writeUInt32BE(height, 4)
+  ihdr[8] = 8 // bit depth
+  ihdr[9] = 2 // colour type 2: truecolour, no alpha — the tile is opaque by design
+
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    pngChunk('IHDR', ihdr),
+    pngChunk('IDAT', deflateSync(raw, { level: 9 })),
+    pngChunk('IEND', Buffer.alloc(0)),
+  ])
+}
+
+const rgb = (hex) => parseInt(hex.slice(1), 16)
+
+/**
+ * The mark as a square raster: the light-scheme tile with the light-scheme glyph,
+ * because a PNG cannot answer prefers-color-scheme and an opaque blue tile reads
+ * on white chat bubbles and dark ones alike. Corners are square — every client
+ * that wants them rounded (iOS home screen, Slack, X) rounds them itself.
+ */
+export function markPng(size) {
+  const s = size / 32
+  const bars = MARK_BARS.map((b) => ({
+    x0: Math.round(b.x * s),
+    x1: Math.round((b.x + b.w) * s),
+    y0: Math.round(b.y * s),
+    y1: Math.round((b.y + b.h) * s),
+  }))
+  const tile = rgb(BRAND.tile)
+  const glyph = rgb(BRAND.glyph)
+  return png(size, size, (x, y) =>
+    bars.some((b) => x >= b.x0 && x < b.x1 && y >= b.y0 && y < b.y1) ? glyph : tile
+  )
+}
+
+/** Written to site/ root, where resetDir does not reach, so they survive a rebuild intact. */
+export async function writeBrandAssets(dir = 'site') {
+  const assets = [
+    ['favicon.svg', Buffer.from(faviconSvg(), 'utf8')],
+    [OG_IMAGE.path.replace(/^\//, ''), markPng(OG_IMAGE.width)],
+    [APPLE_TOUCH_ICON.path.replace(/^\//, ''), markPng(APPLE_TOUCH_ICON.size)],
+  ]
+  for (const [name, body] of assets) await writeFile(`${dir}/${name}`, body)
+  return assets.map(([name, body]) => ({ path: name, bytes: body.length }))
+}
 
 /* ------------------------------------------------------------------ worker -- */
 
@@ -348,6 +474,7 @@ export async function prerender({ concurrency } = {}) {
     resetDir('site/county'),
     resetDir('site/districts'),
     resetDir('site/data/entity'),
+    resetDir('site/search'),
   ])
 
   /* --- entity pages, striped across workers (see the PERFORMANCE note) ------ */
@@ -442,6 +569,7 @@ export async function prerender({ concurrency } = {}) {
     renderHomePage({
       regions: regions.map((r) => ({ id: r.id, name: r.name, districtCount: r.districtCount })),
       letters: ALPHABET.map((letter) => ({ letter, count: letterCounts.get(letter) })),
+      counts: { districts: districts.length, campuses: campuses.length },
       snapshotDate,
       stats: [
         ['Districts', districts.length, 'Every Texas public school district in this snapshot'],
@@ -461,6 +589,19 @@ export async function prerender({ concurrency } = {}) {
       ],
     })
   )
+
+  /* --- site-wide search: the lazy index, the client script, the no-JS pages -- */
+
+  // 27 static pages (the landing page plus one per letter) so a reader with
+  // JavaScript off still lands somewhere real — see src/render/search.js for why.
+  // The index itself is never inlined into a page; it is fetched on first
+  // keystroke from the URL the search control carries in data-search-index.
+  await write('data/search-index.json', searchIndexJson(entities))
+  await write('search.js', searchClientJs())
+  await write('search.html', renderSearchPage({ districts, campuses, snapshotDate }))
+  for (const l of SEARCH_LETTERS) {
+    await write(`search/${l}.html`, renderSearchPage({ districts, campuses, letter: l, snapshotDate }))
+  }
 
   /* --- bulk data, then the pages that link it -------------------------------- */
 
@@ -591,15 +732,23 @@ export async function prerender({ concurrency } = {}) {
     })
   )
 
+  /* --- favicon, share card, home-screen icon -------------------------------- */
+
+  // Deliberately not in the sitemap and not counted as pages: they are the site's
+  // identity, not documents. Three files, once, for all 10,230 entity pages.
+  const brand = await writeBrandAssets('site')
+
   /* --- sitemap -------------------------------------------------------------- */
 
   const paths = [
     '',
     'about.html',
     'download.html',
+    'search.html',
     ...regions.map((r) => `region/${r.id}.html`),
     ...counties.map((c) => `county/${c.slug}.html`),
     ...ALPHABET.map((l) => `districts/${l}.html`),
+    ...SEARCH_LETTERS.map((l) => `search/${l}.html`),
     ...entities.map(entityPath),
   ]
   await write('sitemap.xml', renderSitemap(paths))
@@ -618,8 +767,8 @@ export async function prerender({ concurrency } = {}) {
     .sort((a, b) => b.bytes - a.bytes)[0]
   const elapsed = (Date.now() - started) / 1000
 
-  report({ entityStats, regions, counties, entities, elapsed, total, largest, stride, files })
-  return { pages: entityStats.pages + written.length, files: total, elapsed, largest }
+  report({ entityStats, regions, counties, entities, elapsed, total, largest, stride, files, brand })
+  return { pages: entityStats.pages + written.length, files: total, elapsed, largest, brand }
 }
 
 async function countFiles(dir) {
@@ -632,7 +781,7 @@ async function countFiles(dir) {
 
 const mb = (b) => `${(b / 1e6).toFixed(1)} MB`
 
-function report({ entityStats, regions, counties, entities, elapsed, total, largest, stride }) {
+function report({ entityStats, regions, counties, entities, elapsed, total, largest, stride, brand = [] }) {
   const rows = [
     ['district pages', entityStats.district],
     ['campus pages', entityStats.campus],
@@ -642,6 +791,7 @@ function report({ entityStats, regions, counties, entities, elapsed, total, larg
     ['home / about / download', 3],
     ['per-district CSV + JSON', entityStats.dataFiles],
     ['bulk CSVs', 3],
+    ['favicon + share images', brand.length],
   ]
 
   console.log(`\n=== MEASUREMENT: prerender (design §11) ===`)
@@ -651,6 +801,9 @@ function report({ entityStats, regions, counties, entities, elapsed, total, larg
   console.log(`  ${'html'.padEnd(26)}${mb(entityStats.htmlBytes).padStart(7)}`)
   console.log(`  ${'per-district data'.padEnd(26)}${mb(entityStats.dataBytes).padStart(7)}`)
   console.log(`  ${'largest page'.padEnd(26)}${(largest.bytes / 1024).toFixed(1).padStart(7)} KB   /${largest.path.replace(/\.html$/, '')}`)
+  for (const b of brand) {
+    console.log(`  ${b.path.padEnd(26)}${(b.bytes / 1024).toFixed(1).padStart(7)} KB`)
+  }
   console.log(`  ${'elapsed'.padEnd(26)}${elapsed.toFixed(1).padStart(7)} s   ${stride} workers, ${((elapsed * stride * 1000) / entities.length).toFixed(0)} ms/entity/core`)
 }
 

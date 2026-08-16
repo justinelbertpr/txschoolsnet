@@ -1,2 +1,37 @@
-/data/*
+# site/data/ holds two kinds of file: content-hashed ones whose name changes
+# when the content does (payload-<hash>.json), and stable-named ones a build
+# simply overwrites in place (the bulk CSVs, the per-district CSV/JSON, and
+# search-index.json). A year-long immutable cache is only honest for the
+# first kind, so the rules below are scoped per file rather than one blanket
+# /data/* rule.
+#
+# This also has to be done as several non-overlapping patterns rather than a
+# narrower rule layered on top of /data/*: Cloudflare's _headers format does
+# not let a more specific rule override a broader one — when two rules both
+# match a request, their headers are combined and a header set by both is
+# joined with a comma (developers.cloudflare.com/workers/static-assets/headers/).
+# A second, shorter-lived Cache-Control on top of the immutable one would not
+# replace it; it would ship both values in one header.
+
+/data/entity/*
   Cache-Control: public, max-age=31536000, immutable
+
+/data/payload-*.json
+  Cache-Control: public, max-age=31536000, immutable
+
+/data/entities.csv
+  Cache-Control: public, max-age=31536000, immutable
+
+/data/ratings.csv
+  Cache-Control: public, max-age=31536000, immutable
+
+/data/profile.csv
+  Cache-Control: public, max-age=31536000, immutable
+
+# Rebuilt under the same name every run (it is not content-hashed), so a
+# year-long cache would leave a returning visitor searching a stale index —
+# potentially one missing or mis-slugging schools the current build renders
+# correctly. An hour is long enough to matter for CDN load, short enough that
+# a rebuild is never stale for long.
+/data/search-index.json
+  Cache-Control: public, max-age=3600

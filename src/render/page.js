@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs'
 
-import { cohortSwitch, esc, grade, shell, SITE_ORIGIN } from './shell.js'
+import { cohortSwitch, esc, grade, num, shell, SITE_ORIGIN } from './shell.js'
 import { SECTIONS } from './sections.js'
 
 /* -------------------------------------------------------------- the index -- */
@@ -57,10 +57,21 @@ const railCompare = (vm) =>
   </div>`
 
 /**
- * The district pinner. The list of districts to search is NOT inlined: it is the
- * dashboard payload, ~230 KB gzipped, and putting it on 10,230 pages would cost
- * more than every page's own content put together. The block names the file and
- * the client fetches it the first time someone types.
+ * The entity pinner. The list of schools and districts to search is NOT
+ * inlined: it is the dashboard payload, ~230 KB gzipped, and putting it on
+ * 10,230 pages would cost more than every page's own content put together.
+ * The block names the file and the client fetches it the first time someone
+ * types.
+ *
+ * Both levels are searchable from either kind of page — a campus and a
+ * district both publish the same 0-100 accountability score, so comparing an
+ * elementary school against another elementary school from a district page is
+ * a real use of this box, not a mistake. The wording below says so already;
+ * site/app.js used to have to correct it at runtime because the template said
+ * "district" while the payload it had just downloaded held all 9,031
+ * campuses too, and it still carries that correction as a guard for any
+ * caller that regresses to the old wording — but it detects a template that
+ * already mentions schools and leaves it alone, which is what this one does.
  *
  * Rendered only where there is a chart to pin a line onto, and only where the
  * payload's name is known — an input that can search nothing is worse than no
@@ -70,11 +81,11 @@ const railPins = (payload) =>
   !payload
     ? ''
     : `  <div class="rail-block rail-pins">
-    <h2 class="rail-title">Pin districts</h2>
-    <p class="rail-hint">Add a district to the chart.</p>
-    <input class="pin-search" type="search" placeholder="Search districts" aria-label="Search districts to pin" autocomplete="off">
+    <h2 class="rail-title">Pin to the chart</h2>
+    <p class="rail-hint">Add up to five schools or districts to the trajectory chart.</p>
+    <input class="pin-search" type="search" placeholder="Search schools and districts" aria-label="Search schools and districts to add to the chart" autocomplete="off">
     <ul class="pin-results" hidden></ul>
-    <ul class="pin-list" aria-label="Pinned districts"></ul>
+    <ul class="pin-list" aria-label="Pinned on the chart"></ul>
     <script type="application/json" data-pin-source>${JSON.stringify({ payload }).replace(/</g, '\\u003c')}</script>
   </div>`
 
@@ -128,13 +139,67 @@ export function stickyFor(vm) {
     .join('')
 }
 
+/* ------------------------------------------------------- the meta sentence -- */
+
+/**
+ * The one sentence that represents this page where the page itself is not: a
+ * search result, a link preview, a message thread. It is read by someone who has
+ * not arrived yet, so it has to stand alone.
+ *
+ * It carried the same defects the hero verdict did. "rated not rated", wherever
+ * TEA declined to rate an entity. A score with no scale — 85 out of what? A
+ * dangling "for " with no year when an entity had no history at all. And a peer
+ * comparison with no denominator: "above districts serving similar students"
+ * begs the question above how many, which is the boast this site exists not to
+ * make.
+ *
+ * Four branches, longest first: rated, scored but unrated, no score, no history.
+ * Every one names the entity first, and every one ends by saying the site is
+ * unofficial, because a snippet is exactly where a reader could mistake it for
+ * TEA's own.
+ */
+export function metaDescription(vm) {
+  const latest = vm.history?.[0]
+  const units = vm.level === 'district' ? 'districts' : 'schools'
+  const rated = latest?.rating && latest.rating !== 'Not Rated'
+
+  const head =
+    latest?.score != null && rated
+      ? `${vm.name} is rated ${latest.rating} by TEA — ${latest.score} out of 100 for ${latest.year}`
+      : latest?.score != null
+        ? `${vm.name} scored ${latest.score} out of 100 for ${latest.year}`
+        : latest?.year
+          ? `${vm.name}: TEA issued no overall rating for ${latest.year}`
+          : `${vm.name}: Texas school ratings, student outcomes and spending`
+
+  // Said after the score rather than instead of it: TEA published the number and
+  // withheld the letter, and both halves of that are the news.
+  const withheld = latest?.score != null && !rated ? ' TEA issued no overall rating.' : ''
+
+  // The peer average carries its n or it does not appear. A one-entity band is
+  // the entity compared with itself, which is why peerN must exceed one. Half a
+  // point is "level with": a tenth of a point above an average is not "above" it.
+  const compare =
+    latest?.score != null && vm.peerAvg != null && vm.peerN > 1
+      ? `, ${
+          Math.abs(latest.score - vm.peerAvg) < 0.5 ? 'level with' : latest.score > vm.peerAvg ? 'above' : 'below'
+        } the average of the ${num(vm.peerN)} ${units} serving a similar share of economically disadvantaged students`
+      : ''
+
+  // The abbreviation above is expanded here, where it also does the disclaimer's
+  // work: a snippet is exactly where a reader could mistake this for TEA's site.
+  const n = vm.history?.length ?? 0
+  const tail = `${
+    n ? ` ${n} ${n === 1 ? 'year' : 'years'} of ratings, domain scores, STAAR and spending.` : ''
+  } Unofficial — not the Texas Education Agency's own site.`
+
+  return `${head}${compare}.${withheld}${tail}`
+}
+
 /* -------------------------------------------------------------- the page --- */
 
 /** Compose the shell with whatever sections have data. Nothing else decides layout. */
 export function renderEntity(vm, { payload = payloadPath() } = {}) {
-  const latest = vm.history?.[0]
-  const kind = vm.level === 'district' ? 'district' : 'school'
-
   const crumbs = [
     { href: '/', label: 'Texas schools' },
     { href: `/region/${vm.regionId}`, label: vm.regionName },
@@ -143,11 +208,6 @@ export function renderEntity(vm, { payload = payloadPath() } = {}) {
   ].filter(Boolean)
   crumbs.at(-1).current = vm.name
 
-  const compare =
-    vm.peerAvg != null && latest?.score != null
-      ? ` — ${latest.score > vm.peerAvg ? 'above' : 'below'} ${kind === 'district' ? 'districts' : 'schools'} serving similar students`
-      : ''
-
   // Sections first, then the rail that indexes them: the index cannot be built
   // before the thing it indexes exists.
   const sections = SECTIONS.map((s) => s(vm))
@@ -155,9 +215,7 @@ export function renderEntity(vm, { payload = payloadPath() } = {}) {
 
   return shell({
     title: `${vm.name} — ratings, student outcomes and spending`,
-    description:
-      `${vm.name}: rated ${latest?.rating ?? 'not rated'}${latest?.score != null ? ` (${latest.score})` : ''} for ${latest?.year ?? ''}${compare}. ` +
-      `${vm.history?.length ?? 0} ${vm.history?.length === 1 ? 'year' : 'years'} of ratings, domain scores, STAAR results, demographics and per-student spending compared with peer ${kind === 'district' ? 'districts' : 'schools'}.`,
+    description: metaDescription(vm),
     canonical: `${SITE_ORIGIN}/${vm.level}/${vm.slug}`,
     crumbs,
     sections,

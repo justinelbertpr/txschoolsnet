@@ -34,6 +34,17 @@ const TYPES = {
   '.csv': 'text/csv; charset=utf-8',
   '.xml': 'application/xml; charset=utf-8',
   '.svg': 'image/svg+xml',
+  // favicon.svg's rel=icon and search.html both parse fine without these, but
+  // og.png and apple-touch-icon.png (src/prerender.js:writeBrandAssets) were
+  // served as application/octet-stream here, so an unfurler pointed at a
+  // preview URL would reject the share card. Production is unaffected —
+  // Cloudflare's static-asset handler types by extension regardless of this
+  // file — but there is no reason for the preview to disagree with it.
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.ico': 'image/x-icon',
 }
 
 // Parsed by the asset layer as configuration and "not itself served as a static

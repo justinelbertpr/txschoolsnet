@@ -125,7 +125,10 @@ describe('verdict', () => {
 
   it('states the change since the first year on record', () => {
     const html = verdict(empty({ history: [{ year: '2025-26', rating: 'B', score: 88 }, { year: '2023-24', rating: 'C', score: 79 }] }))
-    expect(html).toMatch(/up <strong>9 points<\/strong> since 2023-24/)
+    // The verdict rewrite (2026-08) moved "up"/"down" inside the <strong> with
+    // the point count, so the whole clause is emphasised as one claim rather
+    // than the number alone.
+    expect(html).toMatch(/is <strong>up 9 points<\/strong> since 2023-24/)
   })
 
   it('says unchanged rather than up zero points', () => {
@@ -354,7 +357,12 @@ describe('students', () => {
   it('states each share with its comparison against the active cohort', () => {
     const html = students(empty({ profile, cohorts: COHORTS, own: { ecoDis: 88.4, absenteeism: 22.6 } }))
     expect(html).toContain('88.4%')
-    expect(html).toMatch(/cmp-up[^>]*data-metric="ecoDis"/)
+    // Demographics are context, not performance. A school serving MORE
+    // economically disadvantaged students is not thereby doing better or worse,
+    // and this assertion previously demanded the green "up" treatment — encoding
+    // the defect it should have caught.
+    expect(html).toMatch(/cmp-neutral[^>]*data-metric="ecoDis"/)
+    expect(html).not.toMatch(/cmp-up[^>]*data-metric="ecoDis"/)
     expect(html).toContain('vs similar')
   })
 

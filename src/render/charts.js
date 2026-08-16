@@ -98,7 +98,7 @@ export function trajectoryChart({ years, series, w = 640, h = 240 }) {
  * Grouped bars: one group per subject, one bar per performance level.
  * Levels are nested (Masters ⊂ Meets ⊂ Approaches), so they share one 0-100 scale.
  */
-export function groupedBars({ groups, series, w = 640, gap = 10 }) {
+export function groupedBars({ groups, series, w = 640, gap = 10, compareKey = 'peer', compareLabel = 'Similar schools' }) {
   const labelH = 20
   const barH = 13
   const groupH = series.length * (barH + 3) + labelH + gap
@@ -120,7 +120,7 @@ export function groupedBars({ groups, series, w = 640, gap = 10 }) {
           const tick =
             cmp == null
               ? ''
-              : `<line x1="${(labelW + (cmp / 100) * barW).toFixed(1)}" x2="${(labelW + (cmp / 100) * barW).toFixed(1)}" y1="${yy - 2}" y2="${yy + barH + 2}" class="mark mark-peer"><title>Similar schools: ${cmp}%</title></line>`
+              : `<line x1="${(labelW + (cmp / 100) * barW).toFixed(1)}" x2="${(labelW + (cmp / 100) * barW).toFixed(1)}" y1="${yy - 2}" y2="${yy + barH + 2}" class="mark mark-${esc(compareKey)}"><title>${esc(compareLabel)}: ${cmp}%</title></line>`
           const gap = cmp == null ? '' : ` <tspan class="delta">${v >= cmp ? '+' : '−'}${Math.abs(v - cmp).toFixed(0)}</tspan>`
           return (
             `<rect x="${labelW}" y="${yy}" width="${len.toFixed(1)}" height="${barH}" rx="3.5" class="gb gb-${esc(s.key)}"><title>${esc(g)} · ${esc(s.label)}: ${v}%</title></rect>` +
