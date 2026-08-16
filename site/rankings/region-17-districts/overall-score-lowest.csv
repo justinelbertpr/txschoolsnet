@@ -1,0 +1,74 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-17-districts/overall-score-lowest
+# rows: 61 (excluding this header and the column row)
+# ranking: Region 17: Lubbock school districts with the lowest overall score in 2025-26
+# population: 61 districts of 61 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,61,0,077902,Lockney ISD,Floyd,D,66,387,https://txschools.net/district/lockney-isd-077902
+2,61,1,152806,Betty M Condra School for Education Innovation,Lubbock,D,69,168,https://txschools.net/district/betty-m-condra-school-for-education-innovation-152806
+2,61,1,085902,Post ISD,Garza,D,69,648,https://txschools.net/district/post-isd-085902
+4,61,0,152803,Triumph Public High Schools-Lubbock,Lubbock,C,72,118,https://txschools.net/district/triumph-public-high-schools-lubbock-152803
+5,61,3,110901,Anton ISD,Hockley,C,74,171,https://txschools.net/district/anton-isd-110901
+5,61,3,223901,Brownfield ISD,Terry,C,74,1587,https://txschools.net/district/brownfield-isd-223901
+5,61,3,054903,Ralls ISD,Crosby,C,74,318,https://txschools.net/district/ralls-isd-054903
+5,61,3,152903,Slaton ISD,Lubbock,C,74,1308,https://txschools.net/district/slaton-isd-152903
+9,61,2,058906,Lamesa ISD,Dawson,C,75,1373,https://txschools.net/district/lamesa-isd-058906
+9,61,2,083903,Seminole ISD,Gaines,C,75,3083,https://txschools.net/district/seminole-isd-083903
+9,61,2,153907,Wilson ISD,Lynn,C,75,120,https://txschools.net/district/wilson-isd-153907
+12,61,1,054901,Crosbyton CISD,Crosby,C,76,293,https://txschools.net/district/crosbyton-cisd-054901
+12,61,1,095905,Plainview ISD,Hale,C,76,3811,https://txschools.net/district/plainview-isd-095905
+14,61,2,152907,Frenship ISD,Lubbock,C,77,12042,https://txschools.net/district/frenship-isd-152907
+14,61,2,054902,Lorenzo ISD,Crosby,C,77,175,https://txschools.net/district/lorenzo-isd-054902
+14,61,2,251902,Plains ISD,Yoakum,C,77,413,https://txschools.net/district/plains-isd-251902
+17,61,4,251901,Denver City ISD,Yoakum,B,80,1395,https://txschools.net/district/denver-city-isd-251901
+17,61,4,095903,Hale Center ISD,Hale,B,80,553,https://txschools.net/district/hale-center-isd-095903
+17,61,4,110902,Levelland ISD,Hockley,B,80,2398,https://txschools.net/district/levelland-isd-110902
+17,61,4,040901,Morton ISD,Cochran,B,80,350,https://txschools.net/district/morton-isd-040901
+17,61,4,063903,Spur ISD,Dickens,B,80,210,https://txschools.net/district/spur-isd-063903
+22,61,3,140901,Amherst ISD,Lamb,B,81,102,https://txschools.net/district/amherst-isd-140901
+22,61,3,058902,Dawson ISD,Dawson,B,81,145,https://txschools.net/district/dawson-isd-058902
+22,61,3,009901,Muleshoe ISD,Bailey,B,81,1309,https://txschools.net/district/muleshoe-isd-009901
+22,61,3,083901,Seagraves ISD,Gaines,B,81,523,https://txschools.net/district/seagraves-isd-083901
+26,61,0,152901,Lubbock ISD,Lubbock,B,82,23029,https://txschools.net/district/lubbock-isd-152901
+27,61,0,152908,Roosevelt ISD,Lubbock,B,83,1115,https://txschools.net/district/roosevelt-isd-152908
+28,61,1,140905,Olton ISD,Lamb,B,84,592,https://txschools.net/district/olton-isd-140905
+28,61,1,051901,Paducah ISD,Cottle,B,84,137,https://txschools.net/district/paducah-isd-051901
+30,61,2,223902,Meadow ISD,Terry,B,85,199,https://txschools.net/district/meadow-isd-223902
+30,61,2,085903,Southland ISD,Garza,B,85,145,https://txschools.net/district/southland-isd-085903
+30,61,2,152504,Texas Tech University K-12,Lubbock,B,85,829,https://txschools.net/district/texas-tech-university-k-12-152504
+33,61,0,077901,Floydada Collegiate ISD,Floyd,B,86,644,https://txschools.net/district/floydada-collegiate-isd-077901
+34,61,3,152906,Lubbock-Cooper ISD,Lubbock,B,87,8094,https://txschools.net/district/lubbock-cooper-isd-152906
+34,61,3,152902,New Deal ISD,Lubbock,B,87,697,https://txschools.net/district/new-deal-isd-152902
+34,61,3,140908,Sudan ISD,Lamb,B,87,445,https://txschools.net/district/sudan-isd-140908
+34,61,3,153904,Tahoka ISD,Lynn,B,87,556,https://txschools.net/district/tahoka-isd-153904
+38,61,2,140904,Littlefield ISD,Lamb,B,88,1185,https://txschools.net/district/littlefield-isd-140904
+38,61,2,153903,O'Donnell ISD,Lynn,B,88,235,https://txschools.net/district/o-donnell-isd-153903
+38,61,2,040902,Whiteface CISD,Cochran,B,88,294,https://txschools.net/district/whiteface-cisd-040902
+41,61,1,095901,Abernathy ISD,Hale,B,89,775,https://txschools.net/district/abernathy-isd-095901
+41,61,1,152909,Shallowater ISD,Lubbock,B,89,1714,https://txschools.net/district/shallowater-isd-152909
+43,61,1,095902,Cotton Center ISD,Hale,A,90,97,https://txschools.net/district/cotton-center-isd-095902
+43,61,1,152910,Idalou ISD,Lubbock,A,90,1036,https://txschools.net/district/idalou-isd-152910
+45,61,3,173901,Motley County ISD,Motley,A,92,188,https://txschools.net/district/motley-county-isd-173901
+45,61,3,153905,New Home ISD,Lynn,A,92,685,https://txschools.net/district/new-home-isd-153905
+45,61,3,095904,Petersburg ISD,Hale,A,92,230,https://txschools.net/district/petersburg-isd-095904
+45,61,3,223904,Wellman-Union CISD,Terry,A,92,245,https://txschools.net/district/wellman-union-cisd-223904
+49,61,4,152802,Rise Academy,Lubbock,A,93,287,https://txschools.net/district/rise-academy-152802
+49,61,4,110905,Ropes ISD,Hockley,A,93,670,https://txschools.net/district/ropes-isd-110905
+49,61,4,110906,Smyer ISD,Hockley,A,93,433,https://txschools.net/district/smyer-isd-110906
+49,61,4,140907,Springlake-Earth ISD,Lamb,A,93,221,https://txschools.net/district/springlake-earth-isd-140907
+49,61,4,110907,Sundown ISD,Hockley,A,93,701,https://txschools.net/district/sundown-isd-110907
+54,61,2,135001,Guthrie CSD,King,A,94,99,https://txschools.net/district/guthrie-csd-135001
+54,61,2,058905,Klondike ISD,Dawson,A,94,269,https://txschools.net/district/klondike-isd-058905
+54,61,2,058909,Sands CISD,Dawson,A,94,225,https://txschools.net/district/sands-cisd-058909
+57,61,2,017901,Borden County ISD,Borden,A,96,238,https://txschools.net/district/borden-county-isd-017901
+57,61,2,132902,Jayton-Girard ISD,Kent,A,96,187,https://txschools.net/district/jayton-girard-isd-132902
+57,61,2,083902,Loop ISD,Gaines,A,96,143,https://txschools.net/district/loop-isd-083902
+60,61,0,110908,Whitharral ISD,Hockley,A,97,223,https://txschools.net/district/whitharral-isd-110908
+61,61,0,063906,Patton Springs ISD,Dickens,A,100,22,https://txschools.net/district/patton-springs-isd-063906

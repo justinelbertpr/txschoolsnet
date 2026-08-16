@@ -1,0 +1,27 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/grayson-county-districts/overall-score-gains
+# rows: 13 (excluding this header and the column row)
+# ranking: Grayson County school districts with the largest overall score gains since 2021-22
+# population: 13 districts of 13 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,13,0,091902,Collinsville ISD,Grayson,B,15,68,83,647,https://txschools.net/district/collinsville-isd-091902
+2,13,0,091913,Pottsboro ISD,Grayson,A,12,78,90,1363,https://txschools.net/district/pottsboro-isd-091913
+3,13,1,091907,Tioga ISD,Grayson,A,5,87,92,610,https://txschools.net/district/tioga-isd-091907
+3,13,1,091909,Whitesboro ISD,Grayson,C,5,73,78,1757,https://txschools.net/district/whitesboro-isd-091909
+5,13,0,091906,Sherman ISD,Grayson,C,4,69,73,7452,https://txschools.net/district/sherman-isd-091906
+6,13,1,091918,Tom Bean ISD,Grayson,B,3,77,80,763,https://txschools.net/district/tom-bean-isd-091918
+6,13,1,091910,Whitewright ISD,Grayson,B,3,85,88,791,https://txschools.net/district/whitewright-isd-091910
+8,13,0,091901,Bells ISD,Grayson,A,2,89,91,1011,https://txschools.net/district/bells-isd-091901
+9,13,0,091903,Denison ISD,Grayson,C,0,78,78,4742,https://txschools.net/district/denison-isd-091903
+10,13,0,091917,Gunter ISD,Grayson,B,-2,85,83,1153,https://txschools.net/district/gunter-isd-091917
+11,13,0,091914,S and S CISD,Grayson,C,-4,78,74,923,https://txschools.net/district/s-and-s-cisd-091914
+12,13,0,091908,Van Alstyne ISD,Grayson,B,-5,92,87,2856,https://txschools.net/district/van-alstyne-isd-091908
+13,13,0,091905,Howe ISD,Grayson,C,-6,83,77,1191,https://txschools.net/district/howe-isd-091905

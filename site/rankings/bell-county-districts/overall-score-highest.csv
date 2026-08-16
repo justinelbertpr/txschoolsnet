@@ -1,0 +1,25 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/bell-county-districts/overall-score-highest
+# rows: 12 (excluding this header and the column row)
+# ranking: Bell County school districts with the highest overall score in 2025-26
+# population: 12 districts of 12 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,12,0,014804,Orenda Charter School,Bell,A,93,1936,https://txschools.net/district/orenda-charter-school-014804
+2,12,0,014905,Holland ISD,Bell,A,90,669,https://txschools.net/district/holland-isd-014905
+3,12,1,014901,Academy ISD,Bell,B,83,1857,https://txschools.net/district/academy-isd-014901
+3,12,1,014910,Troy ISD,Bell,B,83,1723,https://txschools.net/district/troy-isd-014910
+5,12,1,014803,Priority Charter Schools,Bell,B,82,529,https://txschools.net/district/priority-charter-schools-014803
+5,12,1,014908,Salado ISD,Bell,B,82,2582,https://txschools.net/district/salado-isd-014908
+7,12,1,014907,Rogers ISD,Bell,B,81,856,https://txschools.net/district/rogers-isd-014907
+7,12,1,014909,Temple ISD,Bell,B,81,8704,https://txschools.net/district/temple-isd-014909
+9,12,0,014903,Belton ISD,Bell,B,80,13516,https://txschools.net/district/belton-isd-014903
+10,12,1,014902,Bartlett ISD,Bell,C,79,399,https://txschools.net/district/bartlett-isd-014902
+10,12,1,014906,Killeen ISD,Bell,C,79,41366,https://txschools.net/district/killeen-isd-014906
+12,12,0,014801,Richard Milburn Alter High School (Killeen),Bell,C,75,1525,https://txschools.net/district/richard-milburn-alter-high-school-killeen-014801

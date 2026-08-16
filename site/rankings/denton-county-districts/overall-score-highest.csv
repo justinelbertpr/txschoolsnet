@@ -1,0 +1,28 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/denton-county-districts/overall-score-highest
+# rows: 14 (excluding this header and the column row)
+# ranking: Denton County school districts with the highest overall score in 2025-26
+# population: 14 districts of 15 districts are ranked here.
+# population: 1 was not rated by TEA for 2025-26 and is not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,14,0,061910,Argyle ISD,Denton,A,92,6551,https://txschools.net/district/argyle-isd-061910
+2,14,0,061805,Trivium Academy,Denton,B,89,503,https://txschools.net/district/trivium-academy-061805
+3,14,0,061804,Leadership Prep School,Denton,B,85,1894,https://txschools.net/district/leadership-prep-school-061804
+4,14,0,061906,Ponder ISD,Denton,B,84,1737,https://txschools.net/district/ponder-isd-061906
+5,14,0,061902,Lewisville ISD,Denton,B,83,46328,https://txschools.net/district/lewisville-isd-061902
+6,14,1,061912,Lake Dallas ISD,Denton,B,82,3935,https://txschools.net/district/lake-dallas-isd-061912
+6,14,1,061911,Northwest ISD,Denton,B,82,32722,https://txschools.net/district/northwest-isd-061911
+8,14,0,061908,Sanger ISD,Denton,B,80,2951,https://txschools.net/district/sanger-isd-061908
+9,14,0,061905,Krum ISD,Denton,C,79,2573,https://txschools.net/district/krum-isd-061905
+10,14,0,061914,Little Elm ISD,Denton,C,78,7647,https://txschools.net/district/little-elm-isd-061914
+11,14,1,061907,Aubrey ISD,Denton,C,77,4885,https://txschools.net/district/aubrey-isd-061907
+11,14,1,061903,Pilot Point ISD,Denton,C,77,1728,https://txschools.net/district/pilot-point-isd-061903
+13,14,0,061901,Denton ISD,Denton,C,76,33101,https://txschools.net/district/denton-isd-061901
+14,14,0,061802,North Texas Collegiate Academy,Denton,D,65,797,https://txschools.net/district/north-texas-collegiate-academy-061802

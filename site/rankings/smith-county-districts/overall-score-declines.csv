@@ -1,0 +1,24 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/smith-county-districts/overall-score-declines
+# rows: 10 (excluding this header and the column row)
+# ranking: Smith County school districts with the largest overall score declines since 2021-22
+# population: 10 districts of 10 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,10,0,212904,Troup ISD,Smith,C,-11,89,78,1067,https://txschools.net/district/troup-isd-212904
+2,10,0,212910,Winona ISD,Smith,C,-10,83,73,1122,https://txschools.net/district/winona-isd-212910
+3,10,0,212901,Arp ISD,Smith,C,-3,79,76,918,https://txschools.net/district/arp-isd-212901
+4,10,0,212804,UT Tyler University Academy,Smith,A,-1,96,95,1224,https://txschools.net/district/ut-tyler-university-academy-212804
+5,10,0,212902,Bullard ISD,Smith,B,0,89,89,2853,https://txschools.net/district/bullard-isd-212902
+6,10,0,212801,Cumberland Academy,Smith,C,1,72,73,1519,https://txschools.net/district/cumberland-academy-212801
+7,10,1,212903,Lindale ISD,Smith,A,3,89,92,4613,https://txschools.net/district/lindale-isd-212903
+7,10,1,212906,Whitehouse ISD,Smith,A,3,87,90,4840,https://txschools.net/district/whitehouse-isd-212906
+9,10,0,212905,Tyler ISD,Smith,B,4,79,83,18800,https://txschools.net/district/tyler-isd-212905
+10,10,0,212909,Chapel Hill ISD,Smith,C,7,69,76,3186,https://txschools.net/district/chapel-hill-isd-212909

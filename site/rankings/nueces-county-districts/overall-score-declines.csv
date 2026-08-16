@@ -1,0 +1,29 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/nueces-county-districts/overall-score-declines
+# rows: 15 (excluding this header and the column row)
+# ranking: Nueces County school districts with the largest overall score declines since 2021-22
+# population: 15 districts of 15 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,15,0,178807,Corpus Christi Montessori School,Nueces,F,-26,75,49,132,https://txschools.net/district/corpus-christi-montessori-school-178807
+2,15,0,178915,West Oso ISD,Nueces,D,-10,79,69,1777,https://txschools.net/district/west-oso-isd-178915
+3,15,0,178801,Dr M L Garza-Gonzalez Charter School,Nueces,B,-8,88,80,154,https://txschools.net/district/dr-m-l-garza-gonzalez-charter-school-178801
+4,15,0,178905,Driscoll ISD,Nueces,B,-7,89,82,1030,https://txschools.net/district/driscoll-isd-178905
+5,15,0,178808,Seashore Charter Schools,Nueces,B,-5,85,80,422,https://txschools.net/district/seashore-charter-schools-178808
+6,15,1,178913,Banquete ISD,Nueces,B,-4,87,83,724,https://txschools.net/district/banquete-isd-178913
+6,15,1,178908,Port Aransas ISD,Nueces,B,-4,90,86,577,https://txschools.net/district/port-aransas-isd-178908
+8,15,1,178906,London ISD,Nueces,A,-3,93,90,1922,https://txschools.net/district/london-isd-178906
+8,15,1,178912,Tuloso-Midway ISD,Nueces,B,-3,84,81,3659,https://txschools.net/district/tuloso-midway-isd-178912
+10,15,0,178903,Calallen ISD,Nueces,B,-2,86,84,3677,https://txschools.net/district/calallen-isd-178903
+11,15,0,178909,Robstown ISD,Nueces,D,2,67,69,2478,https://txschools.net/district/robstown-isd-178909
+12,15,1,178902,Bishop CISD,Nueces,A,3,88,91,1427,https://txschools.net/district/bishop-cisd-178902
+12,15,1,178914,Flour Bluff ISD,Nueces,B,3,85,88,5375,https://txschools.net/district/flour-bluff-isd-178914
+14,15,0,178904,Corpus Christi ISD,Nueces,B,6,77,83,31976,https://txschools.net/district/corpus-christi-isd-178904
+15,15,0,178901,Agua Dulce ISD,Nueces,B,12,74,86,387,https://txschools.net/district/agua-dulce-isd-178901

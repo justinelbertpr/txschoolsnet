@@ -1,0 +1,102 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-11-districts/overall-score-lowest
+# rows: 88 (excluding this header and the column row)
+# ranking: Region 11: Fort Worth school districts with the lowest overall score in 2025-26
+# population: 88 districts of 91 districts are ranked here.
+# population: 3 were not rated by TEA for 2025-26 and are not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,88,0,072910,Morgan Mill ISD,Erath,F,53,132,https://txschools.net/district/morgan-mill-isd-072910
+2,88,0,220811,East Fort Worth Montessori Academy,Tarrant,D,64,106,https://txschools.net/district/east-fort-worth-montessori-academy-220811
+3,88,0,061802,North Texas Collegiate Academy,Denton,D,65,797,https://txschools.net/district/north-texas-collegiate-academy-061802
+4,88,1,049901,Gainesville ISD,Cooke,D,69,3054,https://txschools.net/district/gainesville-isd-049901
+4,88,1,220910,Lake Worth ISD,Tarrant,D,69,3165,https://txschools.net/district/lake-worth-isd-220910
+6,88,0,220801,Treetops School International,Tarrant,C,70,186,https://txschools.net/district/treetops-school-international-220801
+7,88,0,126908,Venus ISD,Johnson,C,73,2191,https://txschools.net/district/venus-isd-126908
+8,88,1,249903,Bridgeport ISD,Wise,C,74,2028,https://txschools.net/district/bridgeport-isd-249903
+8,88,1,249904,Chico ISD,Wise,C,74,580,https://txschools.net/district/chico-isd-249904
+10,88,2,220904,Everman ISD,Tarrant,C,75,4704,https://txschools.net/district/everman-isd-220904
+10,88,2,072901,Three Way ISD,Erath,C,75,224,https://txschools.net/district/three-way-isd-072901
+10,88,2,220920,White Settlement ISD,Tarrant,C,75,6684,https://txschools.net/district/white-settlement-isd-220920
+13,88,1,249905,Decatur ISD,Wise,C,76,3801,https://txschools.net/district/decatur-isd-249905
+13,88,1,061901,Denton ISD,Denton,C,76,33101,https://txschools.net/district/denton-isd-061901
+15,88,8,126901,Alvarado ISD,Johnson,C,77,3703,https://txschools.net/district/alvarado-isd-126901
+15,88,8,061907,Aubrey ISD,Denton,C,77,4885,https://txschools.net/district/aubrey-isd-061907
+15,88,8,249902,Boyd ISD,Wise,C,77,1443,https://txschools.net/district/boyd-isd-249902
+15,88,8,220918,Eagle Mt-Saginaw ISD,Tarrant,C,77,24147,https://txschools.net/district/eagle-mt-saginaw-isd-220918
+15,88,8,220905,Fort Worth ISD,Tarrant,C,77,67315,https://txschools.net/district/fort-worth-isd-220905
+15,88,8,126911,Godley ISD,Johnson,C,77,3315,https://txschools.net/district/godley-isd-126911
+15,88,8,061903,Pilot Point ISD,Denton,C,77,1728,https://txschools.net/district/pilot-point-isd-061903
+15,88,8,184901,Poolville ISD,Parker,C,77,764,https://txschools.net/district/poolville-isd-184901
+15,88,8,184902,Springtown ISD,Parker,C,77,4227,https://txschools.net/district/springtown-isd-184902
+24,88,7,220901,Arlington ISD,Tarrant,C,78,51102,https://txschools.net/district/arlington-isd-220901
+24,88,7,220915,Azle ISD,Tarrant,C,78,7166,https://txschools.net/district/azle-isd-220915
+24,88,7,213801,Brazos River Charter School,Somervell,C,78,60,https://txschools.net/district/brazos-river-charter-school-213801
+24,88,7,049905,Callisburg ISD,Cooke,C,78,1139,https://txschools.net/district/callisburg-isd-049905
+24,88,7,126903,Cleburne ISD,Johnson,C,78,6776,https://txschools.net/district/cleburne-isd-126903
+24,88,7,061914,Little Elm ISD,Denton,C,78,7647,https://txschools.net/district/little-elm-isd-061914
+24,88,7,220817,Newman International Academy of Arlington,Tarrant,C,78,2697,https://txschools.net/district/newman-international-academy-of-arlington-220817
+24,88,7,049908,Walnut Bend ISD,Cooke,C,78,59,https://txschools.net/district/walnut-bend-isd-049908
+32,88,2,220902,Birdville ISD,Tarrant,C,79,22044,https://txschools.net/district/birdville-isd-220902
+32,88,2,061905,Krum ISD,Denton,C,79,2573,https://txschools.net/district/krum-isd-061905
+32,88,2,126907,Rio Vista ISD,Johnson,C,79,1031,https://txschools.net/district/rio-vista-isd-126907
+35,88,3,220912,Crowley ISD,Tarrant,B,80,17052,https://txschools.net/district/crowley-isd-220912
+35,88,3,061908,Sanger ISD,Denton,B,80,2951,https://txschools.net/district/sanger-isd-061908
+35,88,3,049909,Sivells Bend ISD,Cooke,B,80,56,https://txschools.net/district/sivells-bend-isd-049909
+35,88,3,184903,Weatherford ISD,Parker,B,80,8118,https://txschools.net/district/weatherford-isd-184903
+39,88,2,111901,Granbury ISD,Hood,B,81,7850,https://txschools.net/district/granbury-isd-111901
+39,88,2,220914,Kennedale ISD,Tarrant,B,81,2659,https://txschools.net/district/kennedale-isd-220914
+39,88,2,049903,Valley View ISD,Cooke,B,81,875,https://txschools.net/district/valley-view-isd-049903
+42,88,4,061912,Lake Dallas ISD,Denton,B,82,3935,https://txschools.net/district/lake-dallas-isd-061912
+42,88,4,184904,Millsap ISD,Parker,B,82,1068,https://txschools.net/district/millsap-isd-184904
+42,88,4,061911,Northwest ISD,Denton,B,82,32722,https://txschools.net/district/northwest-isd-061911
+42,88,4,072801,Premier High Schools,Erath,B,82,8825,https://txschools.net/district/premier-high-schools-072801
+42,88,4,249908,Slidell ISD,Wise,B,82,515,https://txschools.net/district/slidell-isd-249908
+47,88,3,126902,Burleson ISD,Johnson,B,83,12560,https://txschools.net/district/burleson-isd-126902
+47,88,3,061902,Lewisville ISD,Denton,B,83,46328,https://txschools.net/district/lewisville-isd-061902
+47,88,3,111902,Lipan ISD,Hood,B,83,492,https://txschools.net/district/lipan-isd-111902
+47,88,3,249906,Paradise ISD,Wise,B,83,1372,https://txschools.net/district/paradise-isd-249906
+51,88,4,249901,Alvord ISD,Wise,B,84,875,https://txschools.net/district/alvord-isd-249901
+51,88,4,072802,Erath Excels Academy Inc,Erath,B,84,111,https://txschools.net/district/erath-excels-academy-inc-072802
+51,88,4,126904,Grandview ISD,Johnson,B,84,1417,https://txschools.net/district/grandview-isd-126904
+51,88,4,220907,Keller ISD,Tarrant,B,84,30440,https://txschools.net/district/keller-isd-220907
+51,88,4,061906,Ponder ISD,Denton,B,84,1737,https://txschools.net/district/ponder-isd-061906
+56,88,1,220802,Arlington Classics Academy,Tarrant,B,85,1552,https://txschools.net/district/arlington-classics-academy-220802
+56,88,1,184908,Peaster ISD,Parker,B,85,1715,https://txschools.net/district/peaster-isd-184908
+58,88,3,220809,Fort Worth Academy of Fine Arts,Tarrant,B,86,668,https://txschools.net/district/fort-worth-academy-of-fine-arts-220809
+58,88,3,126905,Joshua ISD,Johnson,B,86,5998,https://txschools.net/district/joshua-isd-126905
+58,88,3,126906,Keene ISD,Johnson,B,86,1131,https://txschools.net/district/keene-isd-126906
+58,88,3,049907,Lindsay ISD,Cooke,B,86,504,https://txschools.net/district/lindsay-isd-049907
+62,88,4,072904,Bluff Dale ISD,Erath,B,87,226,https://txschools.net/district/bluff-dale-isd-072904
+62,88,4,220916,Hurst-Euless-Bedford ISD,Tarrant,B,87,23159,https://txschools.net/district/hurst-euless-bedford-isd-220916
+62,88,4,220908,Mansfield ISD,Tarrant,B,87,34654,https://txschools.net/district/mansfield-isd-220908
+62,88,4,182903,Mineral Wells ISD,Palo Pinto,B,87,3244,https://txschools.net/district/mineral-wells-isd-182903
+62,88,4,182905,Strawn ISD,Palo Pinto,B,87,172,https://txschools.net/district/strawn-isd-182905
+67,88,1,220917,Castleberry ISD,Tarrant,B,88,3755,https://txschools.net/district/castleberry-isd-220917
+67,88,1,213901,Glen Rose ISD,Somervell,B,88,2091,https://txschools.net/district/glen-rose-isd-213901
+69,88,3,184911,Garner ISD,Parker,B,89,352,https://txschools.net/district/garner-isd-184911
+69,88,3,072909,Lingleville ISD,Erath,B,89,264,https://txschools.net/district/lingleville-isd-072909
+69,88,3,049902,Muenster ISD,Cooke,B,89,551,https://txschools.net/district/muenster-isd-049902
+69,88,3,061805,Trivium Academy,Denton,B,89,503,https://txschools.net/district/trivium-academy-061805
+73,88,1,072903,Stephenville ISD,Erath,A,90,3503,https://txschools.net/district/stephenville-isd-072903
+73,88,1,111903,Tolar ISD,Hood,A,90,898,https://txschools.net/district/tolar-isd-111903
+75,88,5,184909,Brock ISD,Parker,A,91,2181,https://txschools.net/district/brock-isd-184909
+75,88,5,184801,Crosstimbers Academy,Parker,A,91,114,https://txschools.net/district/crosstimbers-academy-184801
+75,88,5,049906,Era ISD,Cooke,A,91,517,https://txschools.net/district/era-isd-049906
+75,88,5,182901,Gordon ISD,Palo Pinto,A,91,240,https://txschools.net/district/gordon-isd-182901
+75,88,5,220906,Grapevine-Colleyville ISD,Tarrant,A,91,13343,https://txschools.net/district/grapevine-colleyville-isd-220906
+75,88,5,182904,Santo ISD,Palo Pinto,A,91,570,https://txschools.net/district/santo-isd-182904
+81,88,4,184907,Aledo ISD,Parker,A,92,8590,https://txschools.net/district/aledo-isd-184907
+81,88,4,061910,Argyle ISD,Denton,A,92,6551,https://txschools.net/district/argyle-isd-061910
+81,88,4,072902,Dublin ISD,Erath,A,92,1078,https://txschools.net/district/dublin-isd-072902
+81,88,4,182902,Graford ISD,Palo Pinto,A,92,329,https://txschools.net/district/graford-isd-182902
+81,88,4,182906,Palo Pinto ISD,Palo Pinto,A,92,92,https://txschools.net/district/palo-pinto-isd-182906
+86,88,0,220919,Carroll ISD,Tarrant,A,93,7866,https://txschools.net/district/carroll-isd-220919
+87,88,0,072908,Huckabay ISD,Erath,A,96,345,https://txschools.net/district/huckabay-isd-072908
+88,88,0,220810,Westlake Academy Charter School,Tarrant,A,98,908,https://txschools.net/district/westlake-academy-charter-school-220810

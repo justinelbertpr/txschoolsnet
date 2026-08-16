@@ -1,0 +1,74 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-06-districts/overall-score-gains
+# rows: 58 (excluding this header and the column row)
+# ranking: Region 06: Huntsville school districts with the largest overall score gains since 2021-22
+# population: 58 districts of 60 districts are ranked here.
+# population: 1 was not rated by TEA for 2025-26 and is not ranked.
+# population: 1 has no figure at the start of the window and is not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,58,0,187903,Goodrich ISD,Polk,B,19,67,86,270,https://txschools.net/district/goodrich-isd-187903
+2,58,1,008903,Brazos ISD,Austin,B,8,80,88,824,https://txschools.net/district/brazos-isd-008903
+2,58,1,170904,Willis ISD,Montgomery,C,8,69,77,9579,https://txschools.net/district/willis-isd-170904
+4,58,3,093901,Anderson-Shiro CISD,Grimes,A,7,84,91,944,https://txschools.net/district/anderson-shiro-cisd-093901
+4,58,3,239901,Brenham ISD,Washington,B,7,73,80,4712,https://txschools.net/district/brenham-isd-239901
+4,58,3,239903,Burton ISD,Washington,A,7,83,90,650,https://txschools.net/district/burton-isd-239903
+4,58,3,236901,New Waverly ISD,Walker,B,7,79,86,1064,https://txschools.net/district/new-waverly-isd-236901
+8,58,1,198901,Bremond ISD,Robertson,A,6,85,91,461,https://txschools.net/district/bremond-isd-198901
+8,58,1,204901,Coldspring-Oakhurst CISD,San Jacinto,C,6,69,75,1587,https://txschools.net/district/coldspring-oakhurst-cisd-204901
+10,58,7,008901,Bellville ISD,Austin,C,5,72,77,2316,https://txschools.net/district/bellville-isd-008901
+10,58,7,198903,Franklin ISD,Robertson,A,5,88,93,1438,https://txschools.net/district/franklin-isd-198903
+10,58,7,236902,Huntsville ISD,Walker,C,5,67,72,11504,https://txschools.net/district/huntsville-isd-236902
+10,58,7,093903,Iola ISD,Grimes,A,5,85,90,656,https://txschools.net/district/iola-isd-093903
+10,58,7,187907,Livingston ISD,Polk,C,5,73,78,3988,https://txschools.net/district/livingston-isd-187907
+10,58,7,145907,Oakwood ISD,Leon,C,5,71,76,205,https://txschools.net/district/oakwood-isd-145907
+10,58,7,166904,Rockdale ISD,Milam,C,5,73,78,1452,https://txschools.net/district/rockdale-isd-166904
+10,58,7,026902,Somerville ISD,Burleson,C,5,66,71,527,https://txschools.net/district/somerville-isd-026902
+18,58,0,198906,Mumford ISD,Robertson,A,4,90,94,600,https://txschools.net/district/mumford-isd-198906
+19,58,5,187901,Big Sandy ISD,Polk,A,3,89,92,526,https://txschools.net/district/big-sandy-isd-187901
+19,58,5,021901,College Station ISD,Brazos,B,3,83,86,13892,https://txschools.net/district/college-station-isd-021901
+19,58,5,187906,Leggett ISD,Polk,C,3,69,72,204,https://txschools.net/district/leggett-isd-187906
+19,58,5,113903,Lovelady ISD,Houston,B,3,82,85,526,https://txschools.net/district/lovelady-isd-113903
+19,58,5,166903,Milano ISD,Milam,B,3,86,89,394,https://txschools.net/district/milano-isd-166903
+19,58,5,145906,Normangee ISD,Leon,B,3,80,83,655,https://txschools.net/district/normangee-isd-145906
+25,58,5,021803,Brazos School for Inquiry & Creativity,Brazos,C,2,73,75,310,https://txschools.net/district/brazos-school-for-inquiry-creativity-021803
+25,58,5,170902,Conroe ISD,Montgomery,B,2,83,85,72218,https://txschools.net/district/conroe-isd-170902
+25,58,5,170906,Magnolia ISD,Montgomery,B,2,85,87,15329,https://txschools.net/district/magnolia-isd-170906
+25,58,5,170903,Montgomery ISD,Montgomery,B,2,86,88,9699,https://txschools.net/district/montgomery-isd-170903
+25,58,5,093905,Richards ISD,Grimes,C,2,72,74,261,https://txschools.net/district/richards-isd-093905
+25,58,5,228903,Trinity ISD,Trinity,D,2,67,69,1150,https://txschools.net/district/trinity-isd-228903
+31,58,1,154903,North Zulch ISD,Madison,A,1,94,95,335,https://txschools.net/district/north-zulch-isd-154903
+31,58,1,008902,Sealy ISD,Austin,C,1,74,75,3014,https://txschools.net/district/sealy-isd-008902
+33,58,2,021902,Bryan ISD,Brazos,C,0,77,77,15653,https://txschools.net/district/bryan-isd-021902
+33,58,2,093904,Navasota ISD,Grimes,C,0,77,77,3127,https://txschools.net/district/navasota-isd-093904
+33,58,2,187910,Onalaska ISD,Polk,B,0,81,81,1206,https://txschools.net/district/onalaska-isd-187910
+36,58,2,113902,Grapeland ISD,Houston,C,-1,77,76,578,https://txschools.net/district/grapeland-isd-113902
+36,58,2,170908,New Caney ISD,Montgomery,C,-1,80,79,19642,https://txschools.net/district/new-caney-isd-170908
+36,58,2,170907,Splendora ISD,Montgomery,C,-1,74,73,5882,https://txschools.net/district/splendora-isd-170907
+39,58,5,026901,Caldwell ISD,Burleson,B,-2,85,83,1828,https://txschools.net/district/caldwell-isd-026901
+39,58,5,145902,Centerville ISD,Leon,C,-2,79,77,633,https://txschools.net/district/centerville-isd-145902
+39,58,5,113901,Crockett ISD,Houston,D,-2,70,68,1098,https://txschools.net/district/crockett-isd-113901
+39,58,5,198905,Hearne ISD,Robertson,D,-2,66,64,719,https://txschools.net/district/hearne-isd-198905
+39,58,5,145911,Leon ISD,Leon,B,-2,87,85,790,https://txschools.net/district/leon-isd-145911
+39,58,5,154901,Madisonville CISD,Madison,B,-2,91,89,2339,https://txschools.net/district/madisonville-cisd-154901
+45,58,0,187904,Corrigan-Camden ISD,Polk,B,-3,85,82,800,https://txschools.net/district/corrigan-camden-isd-187904
+46,58,1,145901,Buffalo ISD,Leon,B,-4,89,85,971,https://txschools.net/district/buffalo-isd-145901
+46,58,1,113905,Latexo ISD,Houston,C,-4,80,76,551,https://txschools.net/district/latexo-isd-113905
+48,58,1,236802,Sam Houston State University Charter School,Walker,B,-6,91,85,343,https://txschools.net/district/sam-houston-state-university-charter-school-236802
+48,58,1,026903,Snook ISD,Burleson,B,-6,86,80,585,https://txschools.net/district/snook-isd-026903
+50,58,2,166901,Cameron ISD,Milam,D,-8,77,69,1389,https://txschools.net/district/cameron-isd-166901
+50,58,2,166902,Gause ISD,Milam,B,-8,90,82,149,https://txschools.net/district/gause-isd-166902
+50,58,2,204904,Shepherd ISD,San Jacinto,C,-8,82,74,1967,https://txschools.net/district/shepherd-isd-204904
+53,58,0,228901,Groveton ISD,Trinity,C,-10,83,73,740,https://txschools.net/district/groveton-isd-228901
+54,58,1,021805,Arrow Academy,Brazos,B,-11,91,80,427,https://txschools.net/district/arrow-academy-021805
+54,58,1,228904,Centerville ISD,Trinity,D,-11,80,69,143,https://txschools.net/district/centerville-isd-228904
+56,58,1,198902,Calvert ISD,Robertson,D,-12,81,69,143,https://txschools.net/district/calvert-isd-198902
+56,58,1,113906,Kennard ISD,Houston,C,-12,91,79,254,https://txschools.net/district/kennard-isd-113906
+58,58,0,228905,Apple Springs ISD,Trinity,D,-20,89,69,156,https://txschools.net/district/apple-springs-isd-228905

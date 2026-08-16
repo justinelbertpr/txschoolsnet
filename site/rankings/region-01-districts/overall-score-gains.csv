@@ -1,0 +1,58 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-01-districts/overall-score-gains
+# rows: 42 (excluding this header and the column row)
+# ranking: Region 01: Edinburg school districts with the largest overall score gains since 2021-22
+# population: 42 districts of 45 districts are ranked here.
+# population: 1 was not rated by TEA for 2025-26 and is not ranked.
+# population: 2 have no figure at the start of the window and are not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,42,0,108914,La Villa ISD,Hidalgo,B,12,68,80,459,https://txschools.net/district/la-villa-isd-108914
+2,42,0,253901,Zapata County ISD,Zapata,B,10,76,86,3199,https://txschools.net/district/zapata-county-isd-253901
+3,42,0,214903,Roma ISD,Starr,A,9,83,92,5916,https://txschools.net/district/roma-isd-214903
+4,42,0,108802,Horizon Montessori Public Schools,Hidalgo,B,6,74,80,1034,https://txschools.net/district/horizon-montessori-public-schools-108802
+5,42,1,031913,Santa Maria ISD,Cameron,B,5,81,86,502,https://txschools.net/district/santa-maria-isd-031913
+5,42,1,031914,Santa Rosa ISD,Cameron,B,5,82,87,811,https://txschools.net/district/santa-rosa-isd-031914
+7,42,0,240901,Laredo ISD,Webb,A,4,86,90,19461,https://txschools.net/district/laredo-isd-240901
+8,42,2,108902,Donna ISD,Hidalgo,B,3,78,81,12436,https://txschools.net/district/donna-isd-108902
+8,42,2,031906,Los Fresnos CISD,Cameron,A,3,87,90,10284,https://txschools.net/district/los-fresnos-cisd-031906
+8,42,2,031912,San Benito CISD,Cameron,C,3,76,79,8620,https://txschools.net/district/san-benito-cisd-031912
+11,42,4,031903,Harlingen CISD,Cameron,B,2,85,87,16187,https://txschools.net/district/harlingen-cisd-031903
+11,42,4,245902,Lyford CISD,Willacy,B,2,82,84,1366,https://txschools.net/district/lyford-cisd-245902
+11,42,4,214902,San Isidro ISD,Starr,B,2,80,82,151,https://txschools.net/district/san-isidro-isd-214902
+11,42,4,031916,South Texas ISD,Cameron,A,2,93,95,4741,https://txschools.net/district/south-texas-isd-031916
+11,42,4,108913,Weslaco ISD,Hidalgo,B,2,85,87,16012,https://txschools.net/district/weslaco-isd-108913
+16,42,4,108905,Hidalgo ISD,Hidalgo,B,1,81,82,2788,https://txschools.net/district/hidalgo-isd-108905
+16,42,4,108906,McAllen ISD,Hidalgo,B,1,88,89,19405,https://txschools.net/district/mcallen-isd-108906
+16,42,4,108908,Mission CISD,Hidalgo,B,1,82,83,13186,https://txschools.net/district/mission-cisd-108908
+16,42,4,108909,Pharr-San Juan-Alamo ISD,Hidalgo,A,1,89,90,29043,https://txschools.net/district/pharr-san-juan-alamo-isd-108909
+16,42,4,108804,Triumph Public High Schools-Rio Grande Valley,Hidalgo,B,1,88,89,477,https://txschools.net/district/triumph-public-high-schools-rio-grande-valley-108804
+21,42,2,245903,Raymondville ISD,Willacy,A,0,91,91,1901,https://txschools.net/district/raymondville-isd-245903
+21,42,2,214901,Rio Grande City Grulla ISD,Starr,B,0,86,86,9157,https://txschools.net/district/rio-grande-city-grulla-isd-214901
+21,42,2,240903,United ISD,Webb,A,0,90,90,39764,https://txschools.net/district/united-isd-240903
+24,42,1,108907,Mercedes ISD,Hidalgo,C,-1,74,73,3940,https://txschools.net/district/mercedes-isd-108907
+24,42,1,245904,San Perlita ISD,Willacy,B,-1,86,85,174,https://txschools.net/district/san-perlita-isd-245904
+26,42,3,108904,Edinburg CISD,Hidalgo,B,-2,87,85,32466,https://txschools.net/district/edinburg-cisd-108904
+26,42,3,031909,Point Isabel ISD,Cameron,B,-2,84,82,1718,https://txschools.net/district/point-isabel-isd-031909
+26,42,3,108916,Valley View ISD,Hidalgo,A,-2,93,91,3304,https://txschools.net/district/valley-view-isd-108916
+26,42,3,108808,Vanguard Academy,Hidalgo,A,-2,92,90,6739,https://txschools.net/district/vanguard-academy-108808
+30,42,3,031901,Brownsville ISD,Cameron,B,-3,90,87,34296,https://txschools.net/district/brownsville-isd-031901
+30,42,3,108912,La Joya ISD,Hidalgo,B,-3,83,80,21606,https://txschools.net/district/la-joya-isd-108912
+30,42,3,108910,Progreso ISD,Hidalgo,B,-3,83,80,1291,https://txschools.net/district/progreso-isd-108910
+30,42,3,031911,Rio Hondo ISD,Cameron,C,-3,80,77,1312,https://txschools.net/district/rio-hondo-isd-031911
+34,42,0,240904,Webb CISD,Webb,C,-4,80,76,206,https://txschools.net/district/webb-cisd-240904
+35,42,1,108911,Sharyland ISD,Hidalgo,B,-5,93,88,9653,https://txschools.net/district/sharyland-isd-108911
+35,42,1,240801,Triumph Public High Schools Central Texas,Webb,B,-5,93,88,362,https://txschools.net/district/triumph-public-high-schools-central-texas-240801
+37,42,2,124901,Jim Hogg County ISD,Jim Hogg,C,-6,85,79,927,https://txschools.net/district/jim-hogg-county-isd-124901
+37,42,2,031905,La Feria ISD,Cameron,C,-6,81,75,2754,https://txschools.net/district/la-feria-isd-031905
+37,42,2,245901,Lasara ISD,Willacy,B,-6,86,80,330,https://txschools.net/district/lasara-isd-245901
+40,42,0,108807,IDEA Public Schools,Hidalgo,B,-8,90,82,79607,https://txschools.net/district/idea-public-schools-108807
+41,42,0,108903,Edcouch-Elsa ISD,Hidalgo,D,-9,78,69,4162,https://txschools.net/district/edcouch-elsa-isd-108903
+42,42,0,108809,Excellence In Leadership Academy,Hidalgo,D,-12,81,69,168,https://txschools.net/district/excellence-in-leadership-academy-108809

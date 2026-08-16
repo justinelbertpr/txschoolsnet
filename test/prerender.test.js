@@ -21,6 +21,13 @@ import {
   humanDate,
   cleanAchievement,
   hubPlan,
+  countyRankingScopes,
+  rankingIndex,
+  rankingLinksFor,
+  rankingBoardsFor,
+  rankingCsvFile,
+  rankingRows,
+  rankingMeta,
 } from '../src/prerender.js'
 import { renderEntity } from '../src/render/page.js'
 import { entitySlug } from '../src/render/view-model.js'
@@ -261,5 +268,304 @@ describe('renderEntity — description year count', () => {
     expect(html).not.toMatch(/\b0 years? of ratings\b/)
     expect(html).toContain('<h1>Cayuga ISD</h1>')
     expect(html).toContain('not rated')
+  })
+})
+
+/* ---------------------------------------------------------------- rankings */
+//
+// The ranking pages are written by src/render/rankings-page.js and their rows
+// computed by src/render/rankings.js. What is asserted here is only the wiring
+// this step owns: which populations are offered a ranking at all, and the link
+// index that lets an entity page point at a ranking without ever constructing a
+// URL for it. The index is the load-bearing piece — it is what makes a link to a
+// page that was not built impossible rather than merely unlikely.
+
+describe('countyRankingScopes', () => {
+  const county = (name, rated, unrated = 0) => ({
+    name,
+    slug: name.toLowerCase(),
+    rows: [
+      ...Array.from({ length: rated }, (_, i) => ({ level: 'district', id: `${name}${i}`, score: 80, countyId: '057' })),
+      ...Array.from({ length: unrated }, () => ({ level: 'district', score: null, countyId: '057' })),
+      { level: 'campus', score: 90, countyId: '057' },
+    ],
+  })
+
+  it('offers a ranking only where there are enough rated districts to rank', () => {
+    const scopes = countyRankingScopes([county('Harris', 55), county('Loving', 1)])
+    expect(scopes.map((s) => s.label)).toEqual(['Harris County'])
+  })
+
+  it('counts rated districts, not campuses and not unrated districts', () => {
+    // 9 rated districts, plus one unrated and one campus, is 9 — below the bar.
+    expect(countyRankingScopes([county('Borderline', 9, 4)])).toEqual([])
+    expect(countyRankingScopes([county('Borderline', 10, 4)])).toHaveLength(1)
+  })
+
+  it('keys the scope on countyId but spells the URL like the county hub', () => {
+    const [s] = countyRankingScopes([county('Dallas', 40)])
+    expect(s.id).toBe('057')
+    expect(s.countySlug).toBe('dallas')
+    expect(s.href).toBe('/county/dallas')
+  })
+})
+
+describe('rankingIndex', () => {
+  // `title` matters as much as `href` now: sections.js:rankedBoard uses it to
+  // label a link with the board's own heading rather than composing a
+  // completeness claim ("Every ... ranked by ...") that a truncated board
+  // cannot back — see the fix for defect #1 below.
+  const board = (over = {}) => ({
+    end: 'top',
+    level: 'district',
+    metric: { key: 'score' },
+    scope: { kind: 'state' },
+    href: '/rankings/texas-districts/overall-score-highest',
+    title: 'Texas school districts with the highest overall score',
+    ...over,
+  })
+
+  const region = board({
+    scope: { kind: 'region', id: '10' },
+    href: '/rankings/region-10-districts/overall-score-highest',
+    title: 'Region 10 school districts with the highest overall score',
+  })
+  const county = board({
+    scope: { kind: 'county', id: '057', countySlug: 'dallas' },
+    href: '/rankings/dallas-county-districts/overall-score-highest',
+    title: 'Dallas County school districts with the highest overall score',
+  })
+
+  it('indexes by level, then scope, then metric key, carrying the href and the title', () => {
+    const idx = rankingIndex([board(), region, county])
+    expect(idx.district.state.score.top.href).toBe('/rankings/texas-districts/overall-score-highest')
+    expect(idx.district.state.score.top.title).toBe('Texas school districts with the highest overall score')
+    expect(idx.district['region:10'].score.top.href).toBe('/rankings/region-10-districts/overall-score-highest')
+    expect(idx.district['county:dallas'].score.top.href).toBe('/rankings/dallas-county-districts/overall-score-highest')
+  })
+
+  // Was: "points a placement at the end of the list that starts at 1st" —
+  // the index kept only the 'top' href, on the theory that a reader always
+  // wants the list starting at 1st. That is the exact defect a verified audit
+  // found: rankings-page.js prints only the first LIST_LIMIT rows of a long
+  // board, so an entity ranked past that slice does not appear on the 'top'
+  // page at all, and the site was linking every entity there regardless.
+  // sections.js:rankedBoard needs BOTH hrefs to pick the one that actually
+  // contains a given entity, so the index now keeps both rather than
+  // discarding 'bottom' before any caller can choose.
+  it('indexes both ends of an ordering, not only the one that starts at 1st', () => {
+    const idx = rankingIndex([
+      board(),
+      board({
+        end: 'bottom',
+        href: '/rankings/texas-districts/overall-score-lowest',
+        title: 'Texas school districts with the lowest overall score',
+      }),
+    ])
+    expect(idx.district.state.score.top.href).toBe('/rankings/texas-districts/overall-score-highest')
+    expect(idx.district.state.score.bottom.href).toBe('/rankings/texas-districts/overall-score-lowest')
+  })
+
+  it('keys a county on the slug its hub uses, not on the id the ranking partitions by', () => {
+    // /county/dallas and the ranking of Dallas County have to agree on one
+    // spelling, or every county link on every entity page silently misses.
+    expect(Object.keys(rankingIndex([county]).district)).toEqual(['county:dallas'])
+  })
+
+  it('separates the levels, so a campus never links a ranking of districts', () => {
+    const idx = rankingIndex([
+      board(),
+      board({
+        level: 'campus',
+        href: '/rankings/texas-campuses/overall-score-highest',
+        title: 'Texas campuses with the highest overall score',
+      }),
+    ])
+    expect(idx.campus.state.score.top.href).toBe('/rankings/texas-campuses/overall-score-highest')
+    expect(idx.district.state.score.top.href).not.toBe(idx.campus.state.score.top.href)
+  })
+})
+
+describe('rankingLinksFor', () => {
+  const end = (href, title = 'title') => ({ href, title })
+  const idx = {
+    district: {
+      state: { score: { top: end('/rankings/texas-districts/overall-score-highest') } },
+      'region:10': { score: { top: end('/rankings/region-10-districts/overall-score-highest') } },
+      'county:dallas': { score: { top: end('/rankings/dallas-county-districts/overall-score-highest') } },
+    },
+  }
+  const dallas = { level: 'district', regionId: '10', county: 'Dallas' }
+
+  it('hands over the three cohorts a static page can exist for', () => {
+    const links = rankingLinksFor(idx, dallas)
+    expect(links.state.score.top.href).toBe('/rankings/texas-districts/overall-score-highest')
+    expect(links.region.score.top.href).toBe('/rankings/region-10-districts/overall-score-highest')
+    expect(links.county.score.top.href).toBe('/rankings/dallas-county-districts/overall-score-highest')
+  })
+
+  it('never carries a peer band, because no static page can exist for one', () => {
+    // "Districts within 10 points of this district's eco-dis share" is a
+    // different population for every district; there is nothing to link.
+    expect(rankingLinksFor(idx, dallas).peer).toBeUndefined()
+  })
+
+  it('zero-pads a region id the way the URL scheme does', () => {
+    const padded = { district: { 'region:07': { score: { top: end('/rankings/region-07-districts/overall-score-highest') } } } }
+    expect(rankingLinksFor(padded, { level: 'district', regionId: 7 }).region.score.top.href).toContain('region-07')
+  })
+
+  it('leaves out the scopes that got no ranking, rather than guessing one', () => {
+    const links = rankingLinksFor(idx, { level: 'district', regionId: '99', county: 'Loving' })
+    expect(links.region).toBeNull()
+    expect(links.county).toBeNull()
+    expect(links.state.score.top.href).toBeTruthy()
+  })
+
+  it('returns null when nothing applies, so the page renders exactly as it did before', () => {
+    expect(rankingLinksFor(idx, { level: 'campus', regionId: '10', county: 'Dallas' })).toBeNull()
+    expect(rankingLinksFor({}, dallas)).toBeNull()
+    expect(rankingLinksFor(null, dallas)).toBeNull()
+  })
+})
+
+describe('rankingBoardsFor', () => {
+  // A hub used to be handed only the 'top'/'gains' half of every board it
+  // covers — "only the good ones are shown", the same complaint this whole
+  // feature exists to answer, reproduced one layer up on /region/10 and the
+  // front page. Fixed by no longer dropping 'bottom' before the hub sees it.
+  const kept = [
+    {
+      end: 'top', level: 'district', n: 110, title: 'Region 10 districts with the highest overall score',
+      href: '/rankings/region-10-districts/overall-score-highest',
+      metric: { key: 'score' }, scope: { kind: 'region', id: '10' },
+    },
+    {
+      end: 'bottom', level: 'district', n: 110, title: 'Region 10 districts with the lowest overall score',
+      href: '/rankings/region-10-districts/overall-score-lowest',
+      metric: { key: 'score' }, scope: { kind: 'region', id: '10' },
+    },
+    {
+      end: 'top', level: 'district', n: 40, title: 'Texas districts with the highest overall score',
+      href: '/rankings/texas-districts/overall-score-highest',
+      metric: { key: 'score' }, scope: { kind: 'state' },
+    },
+  ]
+
+  it('carries both ends of a board covering its scope, not just the flattering one', () => {
+    const items = rankingBoardsFor(kept, 'region:10')
+    expect(items.map((i) => i.href)).toEqual([
+      '/rankings/region-10-districts/overall-score-highest',
+      '/rankings/region-10-districts/overall-score-lowest',
+    ])
+  })
+
+  it('still filters to the scope asked for', () => {
+    expect(rankingBoardsFor(kept, 'region:10').every((i) => i.href.includes('region-10'))).toBe(true)
+    expect(rankingBoardsFor(kept, 'state')).toHaveLength(1)
+  })
+
+  it('states the population beside every board it links, both ends alike', () => {
+    for (const item of rankingBoardsFor(kept, 'region:10')) expect(item.meta).toBe('110 districts')
+  })
+})
+
+describe('rankingCsvFile', () => {
+  it('swaps the html extension for csv, same path otherwise', () => {
+    expect(rankingCsvFile('rankings/texas-districts/overall-score-highest.html')).toBe(
+      'rankings/texas-districts/overall-score-highest.csv'
+    )
+  })
+
+  it('does not touch a path with no .html extension', () => {
+    expect(rankingCsvFile('rankings/texas-districts/overall-score-highest')).toBe(
+      'rankings/texas-districts/overall-score-highest'
+    )
+  })
+})
+
+describe('rankingRows', () => {
+  const rows = [
+    { id: 'a', name: 'A', value: 90, rank: 1, tied: 0, context: { enrollment: 500 } },
+    { id: 'b', name: 'B', value: 70, rank: 2, tied: 0, context: { enrollment: 100 } },
+    { id: 'c', name: 'C', value: 80, rank: 3, tied: 0, context: { enrollment: 200 } },
+  ]
+
+  it('orders by value, highest first at the top end and lowest first at the bottom', () => {
+    expect(rankingRows({ rows }, 'top').map((r) => r.value)).toEqual([90, 80, 70])
+    expect(rankingRows({ rows }, 'bottom').map((r) => r.value)).toEqual([70, 80, 90])
+  })
+
+  it('drops the incoming placement, so a rank counted from the other end cannot survive', () => {
+    // rankings.js ranks best-first, which is the opposite order for a metric
+    // where less is better. Carrying that rank onto the "lowest" page would
+    // print 1st beside the last row.
+    for (const r of rankingRows({ rows }, 'bottom')) expect(r.rank).toBeUndefined()
+  })
+
+  it('lifts enrollment to the top level, where the table reads it', () => {
+    expect(rankingRows({ rows }, 'top')[0].enrollment).toBe(500)
+  })
+
+  it('leaves the demographic shares in context, so a ranking can never be of them', () => {
+    const ctx = [{ id: 'a', value: 90, context: { ecoDisPct: 88, enrollment: 500 } }]
+    const [row] = rankingRows({ rows: ctx }, 'top')
+    expect(row.ecoDisPct).toBeUndefined()
+    expect(row.context.ecoDisPct).toBe(88)
+  })
+})
+
+describe('rankingMeta', () => {
+  const result = (excluded, n = 1_184) => ({
+    rows: Array.from({ length: n }, () => ({})),
+    population: { n, excluded },
+    window: null,
+  })
+
+  it('states a population that reconciles: what was ranked plus what it names', () => {
+    const meta = rankingMeta(result({ notRated: 15, noValue: 4, level: 9_031, scope: 400 }), '2025-26')
+    const named = meta.excluded.reduce((a, x) => a + x.n, 0)
+    expect(named).toBe(19)
+    expect(meta.eligible).toBe(1_184 + 19)
+  })
+
+  it('never names the entities the page was not about', () => {
+    const meta = rankingMeta(result({ level: 9_031, scope: 400 }), '2025-26')
+    // "9,031 campuses are not ranked" under a table of districts is noise, not
+    // a disclosure; the exclusions named are the ones that shrank this pool.
+    expect(meta.excluded).toEqual([])
+    expect(meta.eligible).toBe(1_184)
+  })
+
+  it('agrees with its own count, singular and plural', () => {
+    expect(rankingMeta(result({ notRated: 1 }), '2025-26').excluded[0].reason).toContain('was not rated')
+    expect(rankingMeta(result({ notRated: 2 }), '2025-26').excluded[0].reason).toContain('were not rated')
+  })
+
+  it('names the year for a level and the window for a change', () => {
+    expect(rankingMeta(result({}), '2025-26').window).toBe('in 2025-26')
+    const change = { ...result({}), window: { from: '2021-22', to: '2025-26' } }
+    expect(rankingMeta(change, '2025-26').window).toBe('since 2021-22')
+    expect(rankingMeta(change, '2025-26').fromLabel).toBe('2021-22')
+  })
+})
+
+describe('rankingRows: the context column', () => {
+  // rankings-page.js picks the context column by asking whether the rows carry a
+  // districtName. A district's own districtName is itself, so passing it through
+  // printed the same name in two adjacent columns of every district ranking.
+  const row = (over) => ({ id: 'a', name: 'A ISD', value: 90, county: 'Dallas', context: {}, ...over })
+
+  it('gives a district its county, not its own name a second time', () => {
+    const [r] = rankingRows({ rows: [row({ level: 'district', districtName: 'A ISD', districtId: '057905' })] }, 'top')
+    expect(r.districtName).toBeNull()
+    expect(r.districtSlug).toBeNull()
+    expect(r.countySlug).toBe('dallas')
+  })
+
+  it('gives a campus the district it belongs to, linked', () => {
+    const [r] = rankingRows({ rows: [row({ level: 'campus', districtName: 'A ISD', districtId: '057905' })] }, 'top')
+    expect(r.districtName).toBe('A ISD')
+    expect(r.districtSlug).toBe('a-isd-057905')
   })
 })

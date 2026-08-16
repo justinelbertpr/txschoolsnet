@@ -95,6 +95,50 @@ const linkList = (items, label = null) =>
     { label }
   )
 
+/* -------------------------------------------------------------- rankings -- */
+
+/**
+ * The ranked lists that cover this page's population.
+ *
+ * A hub already orders its districts by score, but the ordering is a table on a
+ * page about a place, not a list anyone can cite: /region/10 is 112 districts
+ * sorted by score with no heading that says so and nothing above 112. These
+ * links point at the pages that ARE the list — statewide, by region, by county —
+ * so "the top 20 districts in Texas" has somewhere to be read off.
+ *
+ * Nothing here decides which rankings exist. The caller (src/prerender.js)
+ * passes only boards it actually wrote, each with the population count it was
+ * computed over, so a hub can neither invent a ranking nor link a page that was
+ * not built. With no boards passed the section does not render at all, which is
+ * what keeps every existing hub byte-identical.
+ *
+ * items: [{ href, label, meta }] — `meta` is the caller's population line
+ * ("1,199 districts"), carried through navList's count slot, because a link to a
+ * ranking with no n is the same unlabelled boast a rank with no n is.
+ */
+const rankingList = (items, ariaLabel) =>
+  navList(
+    (items ?? [])
+      .filter((r) => r && r.href && r.label)
+      .map((r) => ({ href: r.href, label: r.label, meta: r.meta ?? null })),
+    { label: ariaLabel }
+  )
+
+const rankingsSection = ({ rankings, rankingsIndex, heading, lede, ariaLabel, more = null }) => {
+  const items = (rankings ?? []).filter((r) => r && r.href && r.label)
+  if (!items.length && !rankingsIndex) return null
+  const tail = rankingsIndex
+    ? `<p class="note"><a href="${esc(rankingsIndex)}">${esc(more ?? 'Every ranking this site publishes')}</a> —
+       each one states the population it ranks, how many entities are in it, and what was left out.</p>`
+    : ''
+  return section(
+    'rankings',
+    heading,
+    `${items.length ? rankingList(items, ariaLabel) : ''}\n  ${tail}`,
+    lede
+  )
+}
+
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('')
 
 const azNav = (current = null) =>
@@ -211,11 +255,12 @@ const dedupe = (rows) => {
 
 /**
  * renderRegionPage({ regionId, regionName, districts, counties, snapshotDate,
- *                    stateAvg, stateN })
+ *                    stateAvg, stateN, rankings, rankingsIndex })
  *
  * districts may include campus rows; they are counted, not tabled. stateAvg /
  * stateN are optional — without them the page shows the region average alone and
- * claims no comparison.
+ * claims no comparison. `rankings` are the ranked lists scoped to THIS region
+ * (see rankingsSection); absent, the section does not render.
  */
 export function renderRegionPage({
   regionId,
@@ -225,6 +270,8 @@ export function renderRegionPage({
   snapshotDate = null,
   stateAvg = null,
   stateN = null,
+  rankings = [],
+  rankingsIndex = null,
 }) {
   const id = regionPath(regionId)
   const name = regionName || `Region ${id}`
@@ -276,6 +323,16 @@ export function renderRegionPage({
         'What this region contains',
         `${stats}\n  ${averageLine({ mine: avg, unit: 'districts', cohort: name, stateAvg, stateN })}`
       ),
+      rankingsSection({
+        rankings,
+        rankingsIndex,
+        heading: `${name} ranked`,
+        ariaLabel: `Rankings for ${name}`,
+        lede: `The districts below this heading are ordered by score in one table on one page. These
+               are the ranked lists for ${esc(name)} on their own — each with its population, its n and
+               its exclusions stated — for when the ordering is the thing you came for.`,
+        more: 'Rankings for every region, county and the whole state',
+      }),
       section(
         'counties',
         `${plural(cos.length, 'county')} in this region`,
@@ -305,7 +362,10 @@ export function renderRegionPage({
 
 /**
  * renderCountyPage({ countyName, countySlug, regionName, regionId, districts,
- *                    snapshotDate, stateAvg, stateN })
+ *                    snapshotDate, stateAvg, stateN, rankings, rankingsIndex })
+ *
+ * "Best districts in my county" is the question a parent arrives with, and it
+ * had no page. `rankings` are the ranked lists scoped to THIS county.
  */
 export function renderCountyPage({
   countyName,
@@ -316,6 +376,8 @@ export function renderCountyPage({
   snapshotDate = null,
   stateAvg = null,
   stateN = null,
+  rankings = [],
+  rankingsIndex = null,
 }) {
   const name = String(countyName ?? '').replace(/ County$/i, '')
   const slug = countySlug || slugify(name)
@@ -377,6 +439,15 @@ export function renderCountyPage({
           stateN,
         })}`
       ),
+      rankingsSection({
+        rankings,
+        rankingsIndex,
+        heading: `${name} County ranked`,
+        ariaLabel: `Rankings for ${name} County`,
+        lede: `Ranked lists covering ${esc(name)} County alone, each stating the population it ranks and
+               how many districts are in it.`,
+        more: 'Rankings for every county, region and the whole state',
+      }),
       section(
         'districts',
         `${plural(ds.length, 'district')} in ${name} County`,
@@ -499,6 +570,14 @@ const homeCounts = (stats, counts) => {
  * browsing tools for a reader with no particular school in mind, and they were
  * standing between everyone else and the only control that answers the question
  * they came with.
+ *
+ * The rankings come SECOND: after the hero, above the stat grid. Search keeps
+ * the fold — it is still the first and only thing between the site header and
+ * the first scroll on a phone, and nothing was inserted above it. But a reader
+ * who does not have one school in mind has two questions, "which school is
+ * this" and "which are the best ones", and until the ranked lists existed the
+ * second had no answer anywhere on the site at any scope. A list of six links
+ * is what stands between that reader and a stat grid they did not ask for.
  */
 export function renderHomePage({
   regions = [],
@@ -506,6 +585,8 @@ export function renderHomePage({
   stats = null,
   counts = null,
   snapshotDate = null,
+  rankings = [],
+  rankingsIndex = null,
 }) {
   const rs = (regions ?? [])
     .map((r) => ({
@@ -563,6 +644,16 @@ export function renderHomePage({
           economically disadvantaged students. This site is <strong>unofficial</strong> and is not
           operated by, endorsed by, or affiliated with TEA &mdash;
           <a href="/about">what this is and how it works</a>.`,
+      }),
+      rankingsSection({
+        rankings,
+        rankingsIndex,
+        heading: 'Texas schools, ranked',
+        ariaLabel: 'Ranked lists',
+        lede: `Ranked lists TEA does not publish: every district placed against every other, and against
+               the ones in its own region and county. Each list states the population it ranks, how many
+               entities it holds and what was excluded.`,
+        more: 'Every ranking — statewide, by region, by county',
       }),
       items.length
         ? section(

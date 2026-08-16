@@ -1,0 +1,36 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/tarrant-county-districts/overall-score-lowest
+# rows: 22 (excluding this header and the column row)
+# ranking: Tarrant County school districts with the lowest overall score in 2025-26
+# population: 22 districts of 23 districts are ranked here.
+# population: 1 was not rated by TEA for 2025-26 and is not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,22,0,220811,East Fort Worth Montessori Academy,Tarrant,D,64,106,https://txschools.net/district/east-fort-worth-montessori-academy-220811
+2,22,0,220910,Lake Worth ISD,Tarrant,D,69,3165,https://txschools.net/district/lake-worth-isd-220910
+3,22,0,220801,Treetops School International,Tarrant,C,70,186,https://txschools.net/district/treetops-school-international-220801
+4,22,1,220904,Everman ISD,Tarrant,C,75,4704,https://txschools.net/district/everman-isd-220904
+4,22,1,220920,White Settlement ISD,Tarrant,C,75,6684,https://txschools.net/district/white-settlement-isd-220920
+6,22,1,220918,Eagle Mt-Saginaw ISD,Tarrant,C,77,24147,https://txschools.net/district/eagle-mt-saginaw-isd-220918
+6,22,1,220905,Fort Worth ISD,Tarrant,C,77,67315,https://txschools.net/district/fort-worth-isd-220905
+8,22,2,220901,Arlington ISD,Tarrant,C,78,51102,https://txschools.net/district/arlington-isd-220901
+8,22,2,220915,Azle ISD,Tarrant,C,78,7166,https://txschools.net/district/azle-isd-220915
+8,22,2,220817,Newman International Academy of Arlington,Tarrant,C,78,2697,https://txschools.net/district/newman-international-academy-of-arlington-220817
+11,22,0,220902,Birdville ISD,Tarrant,C,79,22044,https://txschools.net/district/birdville-isd-220902
+12,22,0,220912,Crowley ISD,Tarrant,B,80,17052,https://txschools.net/district/crowley-isd-220912
+13,22,0,220914,Kennedale ISD,Tarrant,B,81,2659,https://txschools.net/district/kennedale-isd-220914
+14,22,0,220907,Keller ISD,Tarrant,B,84,30440,https://txschools.net/district/keller-isd-220907
+15,22,0,220802,Arlington Classics Academy,Tarrant,B,85,1552,https://txschools.net/district/arlington-classics-academy-220802
+16,22,0,220809,Fort Worth Academy of Fine Arts,Tarrant,B,86,668,https://txschools.net/district/fort-worth-academy-of-fine-arts-220809
+17,22,1,220916,Hurst-Euless-Bedford ISD,Tarrant,B,87,23159,https://txschools.net/district/hurst-euless-bedford-isd-220916
+17,22,1,220908,Mansfield ISD,Tarrant,B,87,34654,https://txschools.net/district/mansfield-isd-220908
+19,22,0,220917,Castleberry ISD,Tarrant,B,88,3755,https://txschools.net/district/castleberry-isd-220917
+20,22,0,220906,Grapevine-Colleyville ISD,Tarrant,A,91,13343,https://txschools.net/district/grapevine-colleyville-isd-220906
+21,22,0,220919,Carroll ISD,Tarrant,A,93,7866,https://txschools.net/district/carroll-isd-220919
+22,22,0,220810,Westlake Academy Charter School,Tarrant,A,98,908,https://txschools.net/district/westlake-academy-charter-school-220810

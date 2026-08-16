@@ -1,0 +1,23 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/cameron-county-districts/overall-score-highest
+# rows: 10 (excluding this header and the column row)
+# ranking: Cameron County school districts with the highest overall score in 2025-26
+# population: 10 districts of 10 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,10,0,031916,South Texas ISD,Cameron,A,95,4741,https://txschools.net/district/south-texas-isd-031916
+2,10,0,031906,Los Fresnos CISD,Cameron,A,90,10284,https://txschools.net/district/los-fresnos-cisd-031906
+3,10,2,031901,Brownsville ISD,Cameron,B,87,34296,https://txschools.net/district/brownsville-isd-031901
+3,10,2,031903,Harlingen CISD,Cameron,B,87,16187,https://txschools.net/district/harlingen-cisd-031903
+3,10,2,031914,Santa Rosa ISD,Cameron,B,87,811,https://txschools.net/district/santa-rosa-isd-031914
+6,10,0,031913,Santa Maria ISD,Cameron,B,86,502,https://txschools.net/district/santa-maria-isd-031913
+7,10,0,031909,Point Isabel ISD,Cameron,B,82,1718,https://txschools.net/district/point-isabel-isd-031909
+8,10,0,031912,San Benito CISD,Cameron,C,79,8620,https://txschools.net/district/san-benito-cisd-031912
+9,10,0,031911,Rio Hondo ISD,Cameron,C,77,1312,https://txschools.net/district/rio-hondo-isd-031911
+10,10,0,031905,La Feria ISD,Cameron,C,75,2754,https://txschools.net/district/la-feria-isd-031905

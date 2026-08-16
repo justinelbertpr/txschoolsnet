@@ -1,0 +1,29 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/collin-county-districts/overall-score-lowest
+# rows: 16 (excluding this header and the column row)
+# ranking: Collin County school districts with the lowest overall score in 2025-26
+# population: 16 districts of 16 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,16,0,043902,Anna ISD,Collin,C,74,6686,https://txschools.net/district/anna-isd-043902
+2,16,0,043917,Blue Ridge ISD,Collin,C,77,1056,https://txschools.net/district/blue-ridge-isd-043917
+3,16,0,043918,Community ISD,Collin,B,80,5764,https://txschools.net/district/community-isd-043918
+4,16,0,043911,Princeton ISD,Collin,B,81,11375,https://txschools.net/district/princeton-isd-043911
+5,16,0,043904,Farmersville ISD,Collin,B,84,2523,https://txschools.net/district/farmersville-isd-043904
+6,16,1,043903,Celina ISD,Collin,B,85,6337,https://txschools.net/district/celina-isd-043903
+6,16,1,043910,Plano ISD,Collin,B,85,43805,https://txschools.net/district/plano-isd-043910
+8,16,0,043907,McKinney ISD,Collin,B,87,23667,https://txschools.net/district/mckinney-isd-043907
+9,16,0,043901,Allen ISD,Collin,A,90,20092,https://txschools.net/district/allen-isd-043901
+10,16,3,043905,Frisco ISD,Collin,A,91,62627,https://txschools.net/district/frisco-isd-043905
+10,16,3,043802,Imagine Lone Star International Academy,Collin,A,91,269,https://txschools.net/district/imagine-lone-star-international-academy-043802
+10,16,3,043908,Melissa ISD,Collin,A,91,8560,https://txschools.net/district/melissa-isd-043908
+10,16,3,043912,Prosper ISD,Collin,A,91,33583,https://txschools.net/district/prosper-isd-043912
+14,16,0,043914,Wylie ISD,Collin,A,92,19400,https://txschools.net/district/wylie-isd-043914
+15,16,0,043919,Lovejoy ISD,Collin,A,94,3841,https://txschools.net/district/lovejoy-isd-043919
+16,16,0,043801,Imagine International Academy of North Texas,Collin,A,95,1438,https://txschools.net/district/imagine-international-academy-of-north-texas-043801

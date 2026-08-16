@@ -1,0 +1,26 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/bowie-county-districts/overall-score-highest
+# rows: 13 (excluding this header and the column row)
+# ranking: Bowie County school districts with the highest overall score in 2025-26
+# population: 13 districts of 13 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,13,0,019912,Pleasant Grove ISD,Bowie,A,91,2348,https://txschools.net/district/pleasant-grove-isd-019912
+2,13,2,019914,Leary ISD,Bowie,A,90,106,https://txschools.net/district/leary-isd-019914
+2,13,2,019903,Maud ISD,Bowie,A,90,459,https://txschools.net/district/maud-isd-019903
+2,13,2,019911,Red Lick ISD,Bowie,A,90,515,https://txschools.net/district/red-lick-isd-019911
+5,13,0,019910,Malta ISD,Bowie,B,89,208,https://txschools.net/district/malta-isd-019910
+6,13,0,019905,New Boston ISD,Bowie,B,87,1060,https://txschools.net/district/new-boston-isd-019905
+7,13,1,019906,Redwater ISD,Bowie,B,86,1092,https://txschools.net/district/redwater-isd-019906
+7,13,1,019909,Simms ISD,Bowie,B,86,462,https://txschools.net/district/simms-isd-019909
+9,13,0,019901,DeKalb ISD,Bowie,B,83,928,https://txschools.net/district/dekalb-isd-019901
+10,13,0,019902,Hooks ISD,Bowie,B,82,883,https://txschools.net/district/hooks-isd-019902
+11,13,0,019907,Texarkana ISD,Bowie,C,76,7623,https://txschools.net/district/texarkana-isd-019907
+12,13,0,019908,Liberty-Eylau ISD,Bowie,D,66,1784,https://txschools.net/district/liberty-eylau-isd-019908
+13,13,0,019913,Hubbard ISD,Bowie,F,52,54,https://txschools.net/district/hubbard-isd-019913

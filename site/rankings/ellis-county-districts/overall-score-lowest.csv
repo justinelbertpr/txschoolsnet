@@ -1,0 +1,24 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/ellis-county-districts/overall-score-lowest
+# rows: 11 (excluding this header and the column row)
+# ranking: Ellis County school districts with the lowest overall score in 2025-26
+# population: 11 districts of 11 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,11,0,070909,Milford ISD,Ellis,C,75,277,https://txschools.net/district/milford-isd-070909
+2,11,0,070801,Faith Family Academy,Ellis,C,77,2883,https://txschools.net/district/faith-family-academy-070801
+3,11,2,070903,Ennis ISD,Ellis,C,78,6621,https://txschools.net/district/ennis-isd-070903
+3,11,2,070915,Maypearl ISD,Ellis,C,78,1217,https://txschools.net/district/maypearl-isd-070915
+3,11,2,070911,Red Oak ISD,Ellis,C,78,6569,https://txschools.net/district/red-oak-isd-070911
+6,11,2,070901,Avalon ISD,Ellis,B,80,316,https://txschools.net/district/avalon-isd-070901
+6,11,2,070907,Italy ISD,Ellis,B,80,599,https://txschools.net/district/italy-isd-070907
+6,11,2,070912,Waxahachie ISD,Ellis,B,80,11092,https://txschools.net/district/waxahachie-isd-070912
+9,11,0,070905,Ferris ISD,Ellis,B,83,3031,https://txschools.net/district/ferris-isd-070905
+10,11,0,070910,Palmer ISD,Ellis,B,87,1382,https://txschools.net/district/palmer-isd-070910
+11,11,0,070908,Midlothian ISD,Ellis,B,89,11537,https://txschools.net/district/midlothian-isd-070908

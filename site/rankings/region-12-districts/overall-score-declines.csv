@@ -1,0 +1,95 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-12-districts/overall-score-declines
+# rows: 80 (excluding this header and the column row)
+# ranking: Region 12: Waco school districts with the largest overall score declines since 2021-22
+# population: 80 districts of 81 districts are ranked here.
+# population: 1 has no figure at the start of the window and is not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,80,0,109908,Malone ISD,Hill,F,-27,71,44,64,https://txschools.net/district/malone-isd-109908
+2,80,0,161924,Hallsburg ISD,McLennan,F,-23,82,59,106,https://txschools.net/district/hallsburg-isd-161924
+3,80,0,167902,Mullin ISD,Mills,C,-19,90,71,176,https://txschools.net/district/mullin-isd-167902
+4,80,0,109903,Covington ISD,Hill,C,-14,86,72,351,https://txschools.net/district/covington-isd-109903
+5,80,1,161923,Bosqueville ISD,McLennan,C,-10,86,76,718,https://txschools.net/district/bosqueville-isd-161923
+5,80,1,161802,Rapoport Academy Public School,McLennan,C,-10,86,76,914,https://txschools.net/district/rapoport-academy-public-school-161802
+7,80,0,109902,Bynum ISD,Hill,B,-9,95,86,174,https://txschools.net/district/bynum-isd-109902
+8,80,2,081906,Dew ISD,Freestone,C,-7,83,76,170,https://txschools.net/district/dew-isd-081906
+8,80,2,097902,Hamilton ISD,Hamilton,C,-7,85,78,794,https://txschools.net/district/hamilton-isd-097902
+8,80,2,073903,Marlin ISD,Falls,D,-7,73,66,796,https://txschools.net/district/marlin-isd-073903
+11,80,1,147901,Coolidge ISD,Limestone,B,-6,90,84,311,https://txschools.net/district/coolidge-isd-147901
+11,80,1,161906,La Vega ISD,McLennan,C,-6,78,72,3079,https://txschools.net/district/la-vega-isd-161906
+13,80,2,161919,Bruceville-Eddy ISD,McLennan,C,-5,75,70,505,https://txschools.net/district/bruceville-eddy-isd-161919
+13,80,2,147902,Groesbeck ISD,Limestone,C,-5,81,76,1457,https://txschools.net/district/groesbeck-isd-147902
+13,80,2,018904,Valley Mills ISD,Bosque,C,-5,82,77,664,https://txschools.net/district/valley-mills-isd-018904
+16,80,0,018905,Walnut Springs ISD,Bosque,C,-4,75,71,152,https://txschools.net/district/walnut-springs-isd-018905
+17,80,3,081902,Fairfield ISD,Freestone,C,-3,82,79,1526,https://txschools.net/district/fairfield-isd-081902
+17,80,3,161909,McGregor ISD,McLennan,C,-3,80,77,1448,https://txschools.net/district/mcgregor-isd-161909
+17,80,3,018903,Morgan ISD,Bosque,C,-3,73,70,138,https://txschools.net/district/morgan-isd-018903
+17,80,3,161914,Waco ISD,McLennan,D,-3,69,66,12892,https://txschools.net/district/waco-isd-161914
+21,80,2,175903,Corsicana ISD,Navarro,C,-2,75,73,5910,https://txschools.net/district/corsicana-isd-175903
+21,80,2,141902,Lometa ISD,Lampasas,B,-2,82,80,293,https://txschools.net/district/lometa-isd-141902
+21,80,2,175911,Rice ISD,Navarro,B,-2,89,87,1094,https://txschools.net/district/rice-isd-175911
+24,80,3,109901,Abbott ISD,Hill,A,-1,95,94,285,https://txschools.net/district/abbott-isd-109901
+24,80,3,161920,China Spring ISD,McLennan,B,-1,89,88,2980,https://txschools.net/district/china-spring-isd-161920
+24,80,3,161907,Lorena ISD,McLennan,A,-1,92,91,1740,https://txschools.net/district/lorena-isd-161907
+24,80,3,161912,Riesel ISD,McLennan,B,-1,90,89,683,https://txschools.net/district/riesel-isd-161912
+28,80,3,141901,Lampasas ISD,Lampasas,B,0,84,84,3625,https://txschools.net/district/lampasas-isd-141901
+28,80,3,161903,Midway ISD,McLennan,A,0,90,90,8704,https://txschools.net/district/midway-isd-161903
+28,80,3,014907,Rogers ISD,Bell,B,0,81,81,856,https://txschools.net/district/rogers-isd-014907
+28,80,3,073904,Westphalia ISD,Falls,A,0,92,92,148,https://txschools.net/district/westphalia-isd-073904
+32,80,7,166907,Buckholts ISD,Milam,C,1,74,75,107,https://txschools.net/district/buckholts-isd-166907
+32,80,7,073901,Chilton ISD,Falls,A,1,90,91,574,https://txschools.net/district/chilton-isd-073901
+32,80,7,175904,Dawson ISD,Navarro,B,1,81,82,608,https://txschools.net/district/dawson-isd-175904
+32,80,7,161807,Harmony Public Schools - North Texas,McLennan,B,1,87,88,11297,https://txschools.net/district/harmony-public-schools-north-texas-161807
+32,80,7,175907,Kerens ISD,Navarro,B,1,84,85,692,https://txschools.net/district/kerens-isd-175907
+32,80,7,161908,Mart ISD,McLennan,B,1,82,83,597,https://txschools.net/district/mart-isd-161908
+32,80,7,014908,Salado ISD,Bell,B,1,81,82,2582,https://txschools.net/district/salado-isd-014908
+32,80,7,081904,Teague ISD,Freestone,B,1,86,87,1166,https://txschools.net/district/teague-isd-081904
+40,80,8,014903,Belton ISD,Bell,B,2,78,80,13516,https://txschools.net/district/belton-isd-014903
+40,80,8,167901,Goldthwaite ISD,Mills,B,2,87,89,504,https://txschools.net/district/goldthwaite-isd-167901
+40,80,8,097903,Hico ISD,Hamilton,B,2,78,80,614,https://txschools.net/district/hico-isd-097903
+40,80,8,014905,Holland ISD,Bell,A,2,88,90,669,https://txschools.net/district/holland-isd-014905
+40,80,8,109905,Hubbard ISD,Hill,C,2,75,77,398,https://txschools.net/district/hubbard-isd-109905
+40,80,8,147903,Mexia ISD,Limestone,C,2,74,76,1780,https://txschools.net/district/mexia-isd-147903
+40,80,8,014910,Troy ISD,Bell,B,2,81,83,1723,https://txschools.net/district/troy-isd-014910
+40,80,8,109911,Whitney ISD,Hill,C,2,76,78,1433,https://txschools.net/district/whitney-isd-109911
+40,80,8,081905,Wortham ISD,Freestone,C,2,70,72,501,https://txschools.net/district/wortham-isd-081905
+49,80,4,014901,Academy ISD,Bell,B,3,80,83,1857,https://txschools.net/district/academy-isd-014901
+49,80,4,161918,Axtell ISD,McLennan,B,3,83,86,842,https://txschools.net/district/axtell-isd-161918
+49,80,4,175905,Frost ISD,Navarro,C,3,73,76,459,https://txschools.net/district/frost-isd-175905
+49,80,4,050902,Gatesville ISD,Coryell,C,3,75,78,2547,https://txschools.net/district/gatesville-isd-050902
+49,80,4,109907,Itasca ISD,Hill,C,3,69,72,652,https://txschools.net/district/itasca-isd-109907
+54,80,2,109912,Aquilla ISD,Hill,B,4,85,89,322,https://txschools.net/district/aquilla-isd-109912
+54,80,2,018901,Clifton ISD,Bosque,B,4,77,81,938,https://txschools.net/district/clifton-isd-018901
+54,80,2,161916,West ISD,McLennan,B,4,85,89,1338,https://txschools.net/district/west-isd-161916
+57,80,5,161901,Crawford ISD,McLennan,B,5,83,88,585,https://txschools.net/district/crawford-isd-161901
+57,80,5,050901,Evant ISD,Coryell,D,5,64,69,192,https://txschools.net/district/evant-isd-050901
+57,80,5,014906,Killeen ISD,Bell,C,5,74,79,41366,https://txschools.net/district/killeen-isd-014906
+57,80,5,175910,Mildred ISD,Navarro,B,5,81,86,801,https://txschools.net/district/mildred-isd-175910
+57,80,5,109910,Mount Calm ISD,Hill,C,5,74,79,176,https://txschools.net/district/mount-calm-isd-109910
+57,80,5,161922,Robinson ISD,McLennan,A,5,85,90,2401,https://txschools.net/district/robinson-isd-161922
+63,80,6,161921,Connally ISD,McLennan,D,6,63,69,2031,https://txschools.net/district/connally-isd-161921
+63,80,6,050910,Copperas Cove ISD,Coryell,B,6,79,85,7619,https://txschools.net/district/copperas-cove-isd-050910
+63,80,6,018906,Iredell ISD,Bosque,A,6,87,93,137,https://txschools.net/district/iredell-isd-018906
+63,80,6,018902,Meridian ISD,Bosque,C,6,65,71,354,https://txschools.net/district/meridian-isd-018902
+63,80,6,050904,Oglesby ISD,Coryell,B,6,81,87,257,https://txschools.net/district/oglesby-isd-050904
+63,80,6,014804,Orenda Charter School,Bell,A,6,87,93,1936,https://txschools.net/district/orenda-charter-school-014804
+63,80,6,167904,Priddy ISD,Mills,A,6,85,91,90,https://txschools.net/district/priddy-isd-167904
+70,80,4,161925,Gholson ISD,McLennan,B,7,82,89,227,https://txschools.net/district/gholson-isd-161925
+70,80,4,109904,Hillsboro ISD,Hill,B,7,82,89,1913,https://txschools.net/district/hillsboro-isd-109904
+70,80,4,018907,Kopperl ISD,Bosque,D,7,55,62,163,https://txschools.net/district/kopperl-isd-018907
+70,80,4,073905,Rosebud-Lott ISD,Falls,B,7,76,83,763,https://txschools.net/district/rosebud-lott-isd-073905
+70,80,4,014909,Temple ISD,Bell,B,7,74,81,8704,https://txschools.net/district/temple-isd-014909
+75,80,0,109913,Blum ISD,Hill,A,8,82,90,335,https://txschools.net/district/blum-isd-109913
+76,80,1,018908,Cranfills Gap ISD,Bosque,B,10,78,88,116,https://txschools.net/district/cranfills-gap-isd-018908
+76,80,1,161910,Moody ISD,McLennan,B,10,78,88,761,https://txschools.net/district/moody-isd-161910
+78,80,0,050909,Jonesboro ISD,Coryell,C,12,67,79,317,https://txschools.net/district/jonesboro-isd-050909
+79,80,0,014803,Priority Charter Schools,Bell,B,13,69,82,529,https://txschools.net/district/priority-charter-schools-014803
+80,80,0,109914,Penelope ISD,Hill,A,14,78,92,215,https://txschools.net/district/penelope-isd-109914

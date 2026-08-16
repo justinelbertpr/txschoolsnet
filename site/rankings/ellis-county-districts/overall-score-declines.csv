@@ -1,0 +1,25 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/ellis-county-districts/overall-score-declines
+# rows: 11 (excluding this header and the column row)
+# ranking: Ellis County school districts with the largest overall score declines since 2021-22
+# population: 11 districts of 11 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,11,0,070909,Milford ISD,Ellis,C,-6,81,75,277,https://txschools.net/district/milford-isd-070909
+2,11,0,070911,Red Oak ISD,Ellis,C,-4,82,78,6569,https://txschools.net/district/red-oak-isd-070911
+3,11,0,070910,Palmer ISD,Ellis,B,0,87,87,1382,https://txschools.net/district/palmer-isd-070910
+4,11,0,070915,Maypearl ISD,Ellis,C,1,77,78,1217,https://txschools.net/district/maypearl-isd-070915
+5,11,1,070903,Ennis ISD,Ellis,C,2,76,78,6621,https://txschools.net/district/ennis-isd-070903
+5,11,1,070905,Ferris ISD,Ellis,B,2,81,83,3031,https://txschools.net/district/ferris-isd-070905
+7,11,0,070912,Waxahachie ISD,Ellis,B,3,77,80,11092,https://txschools.net/district/waxahachie-isd-070912
+8,11,0,070901,Avalon ISD,Ellis,B,5,75,80,316,https://txschools.net/district/avalon-isd-070901
+9,11,0,070908,Midlothian ISD,Ellis,B,8,81,89,11537,https://txschools.net/district/midlothian-isd-070908
+10,11,0,070907,Italy ISD,Ellis,B,15,65,80,599,https://txschools.net/district/italy-isd-070907
+11,11,0,070801,Faith Family Academy,Ellis,C,18,59,77,2883,https://txschools.net/district/faith-family-academy-070801

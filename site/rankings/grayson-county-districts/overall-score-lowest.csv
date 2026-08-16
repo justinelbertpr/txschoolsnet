@@ -1,0 +1,26 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/grayson-county-districts/overall-score-lowest
+# rows: 13 (excluding this header and the column row)
+# ranking: Grayson County school districts with the lowest overall score in 2025-26
+# population: 13 districts of 13 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,13,0,091906,Sherman ISD,Grayson,C,73,7452,https://txschools.net/district/sherman-isd-091906
+2,13,0,091914,S and S CISD,Grayson,C,74,923,https://txschools.net/district/s-and-s-cisd-091914
+3,13,0,091905,Howe ISD,Grayson,C,77,1191,https://txschools.net/district/howe-isd-091905
+4,13,1,091903,Denison ISD,Grayson,C,78,4742,https://txschools.net/district/denison-isd-091903
+4,13,1,091909,Whitesboro ISD,Grayson,C,78,1757,https://txschools.net/district/whitesboro-isd-091909
+6,13,0,091918,Tom Bean ISD,Grayson,B,80,763,https://txschools.net/district/tom-bean-isd-091918
+7,13,1,091902,Collinsville ISD,Grayson,B,83,647,https://txschools.net/district/collinsville-isd-091902
+7,13,1,091917,Gunter ISD,Grayson,B,83,1153,https://txschools.net/district/gunter-isd-091917
+9,13,0,091908,Van Alstyne ISD,Grayson,B,87,2856,https://txschools.net/district/van-alstyne-isd-091908
+10,13,0,091910,Whitewright ISD,Grayson,B,88,791,https://txschools.net/district/whitewright-isd-091910
+11,13,0,091913,Pottsboro ISD,Grayson,A,90,1363,https://txschools.net/district/pottsboro-isd-091913
+12,13,0,091901,Bells ISD,Grayson,A,91,1011,https://txschools.net/district/bells-isd-091901
+13,13,0,091907,Tioga ISD,Grayson,A,92,610,https://txschools.net/district/tioga-isd-091907

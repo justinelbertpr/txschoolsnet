@@ -1,0 +1,59 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-08-districts/overall-score-highest
+# rows: 46 (excluding this header and the column row)
+# ranking: Region 08: Mt Pleasant school districts with the highest overall score in 2025-26
+# population: 46 districts of 46 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,46,0,194902,Avery ISD,Red River,A,93,295,https://txschools.net/district/avery-isd-194902
+2,46,0,034906,McLeod ISD,Cass,A,92,420,https://txschools.net/district/mcleod-isd-034906
+3,46,2,032902,Pittsburg ISD,Camp,A,91,2228,https://txschools.net/district/pittsburg-isd-032902
+3,46,2,019912,Pleasant Grove ISD,Bowie,A,91,2348,https://txschools.net/district/pleasant-grove-isd-019912
+3,46,2,112909,Saltillo ISD,Hopkins,A,91,236,https://txschools.net/district/saltillo-isd-112909
+6,46,2,019914,Leary ISD,Bowie,A,90,106,https://txschools.net/district/leary-isd-019914
+6,46,2,019903,Maud ISD,Bowie,A,90,459,https://txschools.net/district/maud-isd-019903
+6,46,2,019911,Red Lick ISD,Bowie,A,90,515,https://txschools.net/district/red-lick-isd-019911
+9,46,0,019910,Malta ISD,Bowie,B,89,208,https://txschools.net/district/malta-isd-019910
+10,46,1,034909,Bloomburg ISD,Cass,B,88,202,https://txschools.net/district/bloomburg-isd-034909
+10,46,1,225902,Mount Pleasant ISD,Titus,B,88,5019,https://txschools.net/district/mount-pleasant-isd-225902
+12,46,4,034901,Atlanta ISD,Cass,B,87,1918,https://txschools.net/district/atlanta-isd-034901
+12,46,4,034902,Avinger ISD,Cass,B,87,103,https://txschools.net/district/avinger-isd-034902
+12,46,4,074907,Honey Grove ISD,Fannin,B,87,674,https://txschools.net/district/honey-grove-isd-074907
+12,46,4,019905,New Boston ISD,Bowie,B,87,1060,https://txschools.net/district/new-boston-isd-019905
+12,46,4,112910,Sulphur Bluff ISD,Hopkins,B,87,195,https://txschools.net/district/sulphur-bluff-isd-112910
+17,46,5,112908,Como-Pickton CISD,Hopkins,B,86,751,https://txschools.net/district/como-pickton-cisd-112908
+17,46,5,112907,Miller Grove ISD,Hopkins,B,86,314,https://txschools.net/district/miller-grove-isd-112907
+17,46,5,080901,Mount Vernon ISD,Franklin,B,86,1514,https://txschools.net/district/mount-vernon-isd-080901
+17,46,5,112906,North Hopkins ISD,Hopkins,B,86,517,https://txschools.net/district/north-hopkins-isd-112906
+17,46,5,019906,Redwater ISD,Bowie,B,86,1092,https://txschools.net/district/redwater-isd-019906
+17,46,5,019909,Simms ISD,Bowie,B,86,462,https://txschools.net/district/simms-isd-019909
+23,46,0,034903,Hughes Springs ISD,Cass,B,85,1044,https://txschools.net/district/hughes-springs-isd-034903
+24,46,1,225906,Chapel Hill ISD,Titus,B,84,943,https://txschools.net/district/chapel-hill-isd-225906
+24,46,1,194903,Rivercrest ISD,Red River,B,84,665,https://txschools.net/district/rivercrest-isd-194903
+26,46,2,139905,Chisum ISD,Lamar,B,83,1167,https://txschools.net/district/chisum-isd-139905
+26,46,2,019901,DeKalb ISD,Bowie,B,83,928,https://txschools.net/district/dekalb-isd-019901
+26,46,2,172905,Pewitt CISD,Morris,B,83,794,https://txschools.net/district/pewitt-cisd-172905
+29,46,1,019902,Hooks ISD,Bowie,B,82,883,https://txschools.net/district/hooks-isd-019902
+29,46,1,139912,Prairiland ISD,Lamar,B,82,1060,https://txschools.net/district/prairiland-isd-139912
+31,46,0,034905,Linden-Kildare CISD,Cass,B,81,585,https://txschools.net/district/linden-kildare-cisd-034905
+32,46,0,139909,Paris ISD,Lamar,B,80,3728,https://txschools.net/district/paris-isd-139909
+33,46,2,060902,Cooper ISD,Delta,C,79,879,https://txschools.net/district/cooper-isd-060902
+33,46,2,172902,Daingerfield-Lone Star ISD,Morris,C,79,988,https://txschools.net/district/daingerfield-lone-star-isd-172902
+33,46,2,034907,Queen City ISD,Cass,C,79,860,https://txschools.net/district/queen-city-isd-034907
+36,46,1,112905,Cumby Collegiate ISD,Hopkins,C,78,485,https://txschools.net/district/cumby-collegiate-isd-112905
+36,46,1,225907,Harts Bluff ISD,Titus,C,78,873,https://txschools.net/district/harts-bluff-isd-225907
+38,46,2,155901,Jefferson ISD,Marion,C,77,1105,https://txschools.net/district/jefferson-isd-155901
+38,46,2,139911,North Lamar ISD,Lamar,C,77,2362,https://txschools.net/district/north-lamar-isd-139911
+38,46,2,112901,Sulphur Springs ISD,Hopkins,C,77,4060,https://txschools.net/district/sulphur-springs-isd-112901
+41,46,1,194905,Detroit ISD,Red River,C,76,469,https://txschools.net/district/detroit-isd-194905
+41,46,1,019907,Texarkana ISD,Bowie,C,76,7623,https://txschools.net/district/texarkana-isd-019907
+43,46,0,194904,Clarksville ISD,Red River,D,69,504,https://txschools.net/district/clarksville-isd-194904
+44,46,0,060914,Fannindel ISD,Delta,D,68,152,https://txschools.net/district/fannindel-isd-060914
+45,46,0,019908,Liberty-Eylau ISD,Bowie,D,66,1784,https://txschools.net/district/liberty-eylau-isd-019908
+46,46,0,019913,Hubbard ISD,Bowie,F,52,54,https://txschools.net/district/hubbard-isd-019913

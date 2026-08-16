@@ -1,0 +1,48 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/region-18-districts/overall-score-lowest
+# rows: 35 (excluding this header and the column row)
+# ranking: Region 18: Midland school districts with the lowest overall score in 2025-26
+# population: 35 districts of 35 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,35,0,114801,Pathway Academy,Howard,F,49,130,https://txschools.net/district/pathway-academy-114801
+2,35,1,189901,Marfa ISD,Presidio,D,63,339,https://txschools.net/district/marfa-isd-189901
+2,35,1,022004,Terlingua CSD,Brewster,D,63,140,https://txschools.net/district/terlingua-csd-022004
+4,35,0,186901,Buena Vista ISD,Pecos,D,64,235,https://txschools.net/district/buena-vista-isd-186901
+5,35,0,248901,Kermit ISD,Winkler,D,67,1255,https://txschools.net/district/kermit-isd-248901
+6,35,1,195901,Pecos-Barstow-Toyah ISD,Reeves,C,71,2945,https://txschools.net/district/pecos-barstow-toyah-isd-195901
+6,35,1,192901,Reagan County ISD,Reagan,C,71,840,https://txschools.net/district/reagan-county-isd-192901
+8,35,0,231901,McCamey ISD,Upton,C,73,469,https://txschools.net/district/mccamey-isd-231901
+9,35,1,068802,Compass Academy Charter School,Ector,C,74,1759,https://txschools.net/district/compass-academy-charter-school-068802
+9,35,1,122901,Ft Davis ISD,Jeff Davis,C,74,818,https://txschools.net/district/ft-davis-isd-122901
+11,35,2,238904,Grandfalls-Royalty ISD,Ward,C,75,121,https://txschools.net/district/grandfalls-royalty-isd-238904
+11,35,2,165901,Midland ISD,Midland,C,75,29048,https://txschools.net/district/midland-isd-165901
+11,35,2,238902,Monahans-Wickett-Pyote ISD,Ward,C,75,2180,https://txschools.net/district/monahans-wickett-pyote-isd-238902
+14,35,3,114902,Coahoma ISD,Howard,C,77,1157,https://txschools.net/district/coahoma-isd-114902
+14,35,3,068901,Ector County ISD,Ector,C,77,31866,https://txschools.net/district/ector-county-isd-068901
+14,35,3,186902,Fort Stockton ISD,Pecos,C,77,11681,https://txschools.net/district/fort-stockton-isd-186902
+14,35,3,165902,Greenwood ISD,Midland,C,77,3621,https://txschools.net/district/greenwood-isd-165902
+18,35,0,189902,Presidio ISD,Presidio,C,78,1063,https://txschools.net/district/presidio-isd-189902
+19,35,2,022901,Alpine ISD,Brewster,C,79,956,https://txschools.net/district/alpine-isd-022901
+19,35,2,002901,Andrews ISD,Andrews,C,79,4159,https://txschools.net/district/andrews-isd-002901
+19,35,2,186903,Iraan-Sheffield Collegiate ISD,Pecos,C,79,514,https://txschools.net/district/iraan-sheffield-collegiate-isd-186903
+22,35,1,114904,Forsan ISD,Howard,B,81,674,https://txschools.net/district/forsan-isd-114904
+22,35,1,165802,Midland Academy Charter School,Midland,B,81,431,https://txschools.net/district/midland-academy-charter-school-165802
+24,35,1,114901,Big Spring ISD,Howard,B,82,3107,https://txschools.net/district/big-spring-isd-114901
+24,35,1,055901,Culberson County-Allamoore ISD,Culberson,B,82,377,https://txschools.net/district/culberson-county-allamoore-isd-055901
+26,35,0,022902,Marathon ISD,Brewster,B,83,46,https://txschools.net/district/marathon-isd-022902
+27,35,0,156902,Stanton ISD,Martin,B,84,1069,https://txschools.net/district/stanton-isd-156902
+28,35,0,248902,Wink-Loving ISD,Winkler,B,85,434,https://txschools.net/district/wink-loving-isd-248902
+29,35,2,195902,Balmorhea ISD,Reeves,B,86,149,https://txschools.net/district/balmorhea-isd-195902
+29,35,2,022903,San Vicente ISD,Brewster,B,86,14,https://txschools.net/district/san-vicente-isd-022903
+29,35,2,122902,Valentine ISD,Jeff Davis,B,86,28,https://txschools.net/district/valentine-isd-122902
+32,35,0,222901,Terrell County ISD,Terrell,B,87,108,https://txschools.net/district/terrell-county-isd-222901
+33,35,0,231902,Rankin ISD,Upton,A,91,300,https://txschools.net/district/rankin-isd-231902
+34,35,0,087901,Glasscock County ISD,Glasscock,A,96,290,https://txschools.net/district/glasscock-county-isd-087901
+35,35,0,156905,Grady ISD,Martin,A,97,242,https://txschools.net/district/grady-isd-156905

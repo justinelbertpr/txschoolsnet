@@ -1,0 +1,25 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/hill-county-districts/overall-score-lowest
+# rows: 12 (excluding this header and the column row)
+# ranking: Hill County school districts with the lowest overall score in 2025-26
+# population: 12 districts of 12 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,12,0,109908,Malone ISD,Hill,F,44,64,https://txschools.net/district/malone-isd-109908
+2,12,1,109903,Covington ISD,Hill,C,72,351,https://txschools.net/district/covington-isd-109903
+2,12,1,109907,Itasca ISD,Hill,C,72,652,https://txschools.net/district/itasca-isd-109907
+4,12,0,109905,Hubbard ISD,Hill,C,77,398,https://txschools.net/district/hubbard-isd-109905
+5,12,0,109911,Whitney ISD,Hill,C,78,1433,https://txschools.net/district/whitney-isd-109911
+6,12,0,109910,Mount Calm ISD,Hill,C,79,176,https://txschools.net/district/mount-calm-isd-109910
+7,12,0,109902,Bynum ISD,Hill,B,86,174,https://txschools.net/district/bynum-isd-109902
+8,12,1,109912,Aquilla ISD,Hill,B,89,322,https://txschools.net/district/aquilla-isd-109912
+8,12,1,109904,Hillsboro ISD,Hill,B,89,1913,https://txschools.net/district/hillsboro-isd-109904
+10,12,0,109913,Blum ISD,Hill,A,90,335,https://txschools.net/district/blum-isd-109913
+11,12,0,109914,Penelope ISD,Hill,A,92,215,https://txschools.net/district/penelope-isd-109914
+12,12,0,109901,Abbott ISD,Hill,A,94,285,https://txschools.net/district/abbott-isd-109901

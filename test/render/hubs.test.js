@@ -275,3 +275,101 @@ describe('regionPath', () => {
     expect(renderRegionPage(region({ regionId: 7 }))).toContain('https://txschools.net/region/07')
   })
 })
+
+/* ------------------------------------------------------------- rankings -- */
+//
+// A hub already orders its districts by score, but the ordering is a table on a
+// page about a place — /region/10 was 112 districts sorted by score and never
+// labelled as an ordering at all. These links point at the pages that ARE the
+// list. Nothing here decides which rankings exist: the caller passes only boards
+// it wrote, so a hub can neither invent a ranking nor link a page that is not
+// there.
+
+describe('ranking links on the hubs', () => {
+  const boards = [
+    { href: '/rankings/region-10-districts/overall-score-highest', label: 'Region 10 districts by overall score', meta: '110 districts' },
+    { href: '/rankings/region-10-districts/overall-score-gains', label: 'Region 10 districts by gain since 2021-22', meta: '108 districts' },
+  ]
+
+  const withRankings = {
+    region: () => renderRegionPage({ ...region(), rankings: boards, rankingsIndex: '/rankings' }),
+    county: () => renderCountyPage({ ...county(), rankings: boards, rankingsIndex: '/rankings' }),
+    home: () => renderHomePage({ regions: [{ id: '10', name: 'Region 10' }], rankings: boards, rankingsIndex: '/rankings' }),
+  }
+
+  for (const [kind, render] of Object.entries(withRankings)) {
+    it(`${kind}: links every ranking it is given, and the index`, () => {
+      const html = render()
+      expect(html).toContain('<section id="rankings">')
+      expect(html).toContain('href="/rankings/region-10-districts/overall-score-highest"')
+      expect(html).toContain('href="/rankings">')
+    })
+
+    it(`${kind}: states the population beside every ranked list it links`, () => {
+      // A link to a ranking with no n is the same unlabelled boast a rank with
+      // no n is.
+      expect(render()).toContain('110 districts')
+    })
+  }
+
+  it('renders no rankings section at all when none were built', () => {
+    expect(renderRegionPage(region())).not.toContain('<section id="rankings">')
+    expect(renderCountyPage(county())).not.toContain('<section id="rankings">')
+    expect(renderHomePage({})).not.toContain('<section id="rankings">')
+  })
+
+  it('still points a county with no ranking of its own at the ones that exist', () => {
+    // 231 of 253 counties hold fewer than ten rated districts, so no ranking is
+    // published for them. The hub says where the rankings are rather than
+    // pretending there are none.
+    const html = renderCountyPage({ ...county(), rankings: [], rankingsIndex: '/rankings' })
+    expect(html).toContain('<section id="rankings">')
+    expect(html).toContain('href="/rankings">')
+  })
+
+  it('home: keeps search above the rankings, which stay above the browsing tools', () => {
+    // Search is still the first control after the site header; nothing was
+    // inserted above it. The rankings sit between it and the stat grid.
+    const html = renderHomePage({
+      regions: [{ id: '10', name: 'Region 10' }],
+      stats: { Districts: 1199 },
+      rankings: boards,
+      rankingsIndex: '/rankings',
+    })
+    expect(html.indexOf('home-search')).toBeLessThan(html.indexOf('Texas schools, ranked'))
+    expect(html.indexOf('Texas schools, ranked')).toBeLessThan(html.indexOf('Texas at a glance'))
+    expect(html.indexOf('Texas at a glance')).toBeLessThan(html.indexOf('education service regions'))
+  })
+
+  it('names the population each hub ranks in its own heading', () => {
+    expect(withRankings.region()).toContain('Region 10: Richardson ranked')
+    expect(withRankings.county()).toContain('Dallas County ranked')
+  })
+
+  // Fixed in src/prerender.js:rankingBoardsFor, which used to drop every
+  // 'bottom'-end board (b.end !== 'top') before a hub ever saw it — so the
+  // front page, every region and every county linked "highest"/"gains" only,
+  // never "lowest"/"declines". Nothing in THIS file ever filtered by end; a
+  // hub renders whatever boards it is handed, in order, which is exactly what
+  // makes prerender.js the whole fix. These fixtures document that contract
+  // from the hub's side: handed both ends of a metric, a hub links both.
+  const bothEnds = [
+    { href: '/rankings/region-10-districts/overall-score-highest', label: 'Region 10 districts with the highest overall score', meta: '110 districts' },
+    { href: '/rankings/region-10-districts/overall-score-lowest', label: 'Region 10 districts with the lowest overall score', meta: '110 districts' },
+  ]
+
+  it('links a board\'s "lowest" end right alongside its "highest" one, not only the flattering half', () => {
+    const html = renderRegionPage({ ...region(), rankings: bothEnds, rankingsIndex: '/rankings' })
+    expect(html).toContain('href="/rankings/region-10-districts/overall-score-highest"')
+    expect(html).toContain('href="/rankings/region-10-districts/overall-score-lowest"')
+  })
+
+  it('does the same on the county hub and the front page', () => {
+    const county_ = renderCountyPage({ ...county(), rankings: bothEnds, rankingsIndex: '/rankings' })
+    const home = renderHomePage({ regions: [{ id: '10', name: 'Region 10' }], rankings: bothEnds, rankingsIndex: '/rankings' })
+    for (const html of [county_, home]) {
+      expect(html).toContain('overall-score-highest')
+      expect(html).toContain('overall-score-lowest')
+    }
+  })
+})

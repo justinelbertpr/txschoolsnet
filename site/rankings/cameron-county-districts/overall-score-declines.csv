@@ -1,0 +1,24 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/cameron-county-districts/overall-score-declines
+# rows: 10 (excluding this header and the column row)
+# ranking: Cameron County school districts with the largest overall score declines since 2021-22
+# population: 10 districts of 10 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,10,0,031905,La Feria ISD,Cameron,C,-6,81,75,2754,https://txschools.net/district/la-feria-isd-031905
+2,10,1,031901,Brownsville ISD,Cameron,B,-3,90,87,34296,https://txschools.net/district/brownsville-isd-031901
+2,10,1,031911,Rio Hondo ISD,Cameron,C,-3,80,77,1312,https://txschools.net/district/rio-hondo-isd-031911
+4,10,0,031909,Point Isabel ISD,Cameron,B,-2,84,82,1718,https://txschools.net/district/point-isabel-isd-031909
+5,10,1,031903,Harlingen CISD,Cameron,B,2,85,87,16187,https://txschools.net/district/harlingen-cisd-031903
+5,10,1,031916,South Texas ISD,Cameron,A,2,93,95,4741,https://txschools.net/district/south-texas-isd-031916
+7,10,1,031906,Los Fresnos CISD,Cameron,A,3,87,90,10284,https://txschools.net/district/los-fresnos-cisd-031906
+7,10,1,031912,San Benito CISD,Cameron,C,3,76,79,8620,https://txschools.net/district/san-benito-cisd-031912
+9,10,1,031913,Santa Maria ISD,Cameron,B,5,81,86,502,https://txschools.net/district/santa-maria-isd-031913
+9,10,1,031914,Santa Rosa ISD,Cameron,B,5,82,87,811,https://txschools.net/district/santa-rosa-isd-031914

@@ -1,0 +1,29 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/el-paso-county-districts/overall-score-lowest
+# rows: 16 (excluding this header and the column row)
+# ranking: El Paso County school districts with the lowest overall score in 2025-26
+# population: 16 districts of 16 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,16,0,071810,El Paso Leadership Academy,El Paso,F,58,665,https://txschools.net/district/el-paso-leadership-academy-071810
+2,16,0,071904,San Elizario ISD,El Paso,C,71,2776,https://txschools.net/district/san-elizario-isd-071904
+3,16,0,071907,Canutillo ISD,El Paso,C,78,5604,https://txschools.net/district/canutillo-isd-071907
+4,16,1,071903,Fabens ISD,El Paso,B,80,1812,https://txschools.net/district/fabens-isd-071903
+4,16,1,071908,Tornillo ISD,El Paso,B,80,694,https://txschools.net/district/tornillo-isd-071908
+6,16,0,071902,El Paso ISD,El Paso,B,82,46113,https://txschools.net/district/el-paso-isd-071902
+7,16,0,071801,Burnham Wood Charter School District,El Paso,B,83,1895,https://txschools.net/district/burnham-wood-charter-school-district-071801
+8,16,2,071807,La Fe Preparatory School,El Paso,B,85,185,https://txschools.net/district/la-fe-preparatory-school-071807
+8,16,2,071803,Triumph Public High Schools-West Texas,El Paso,B,85,348,https://txschools.net/district/triumph-public-high-schools-west-texas-071803
+8,16,2,071809,Vista Del Futuro Charter School,El Paso,B,85,346,https://txschools.net/district/vista-del-futuro-charter-school-071809
+11,16,1,071906,Anthony ISD,El Paso,B,86,681,https://txschools.net/district/anthony-isd-071906
+11,16,1,071901,Clint ISD,El Paso,B,86,9829,https://txschools.net/district/clint-isd-071901
+13,16,0,071909,Socorro ISD,El Paso,B,87,45850,https://txschools.net/district/socorro-isd-071909
+14,16,1,071806,Harmony Public Schools - West Texas,El Paso,B,88,6738,https://txschools.net/district/harmony-public-schools-west-texas-071806
+14,16,1,071905,Ysleta ISD,El Paso,B,88,32593,https://txschools.net/district/ysleta-isd-071905
+16,16,0,071804,El Paso Academy,El Paso,A,92,294,https://txschools.net/district/el-paso-academy-071804

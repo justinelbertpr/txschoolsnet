@@ -1,0 +1,55 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/dallas-county-districts/overall-score-gains
+# rows: 40 (excluding this header and the column row)
+# ranking: Dallas County school districts with the largest overall score gains since 2021-22
+# population: 40 districts of 42 districts are ranked here.
+# population: 2 were not rated by TEA for 2025-26 and are not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,40,0,057806,Advantage Academy,Dallas,C,21,56,77,909,https://txschools.net/district/advantage-academy-057806
+2,40,0,057829,A' Academy,Dallas,C,17,62,79,1703,https://txschools.net/district/a-academy-057829
+3,40,0,057847,Village Tech Schools,Dallas,B,12,70,82,1330,https://txschools.net/district/village-tech-schools-057847
+4,40,0,057830,Inspired Vision Academy,Dallas,C,10,61,71,1103,https://txschools.net/district/inspired-vision-academy-057830
+5,40,1,057905,Dallas ISD,Dallas,B,9,76,85,134302,https://txschools.net/district/dallas-isd-057905
+5,40,1,057828,Winfree Academy Charter Schools,Dallas,B,9,76,85,1051,https://txschools.net/district/winfree-academy-charter-schools-057828
+7,40,2,057841,Cityscape Schools,Dallas,C,8,66,74,1218,https://txschools.net/district/cityscape-schools-057841
+7,40,2,057916,Richardson ISD,Dallas,B,8,75,83,36142,https://txschools.net/district/richardson-isd-057916
+7,40,2,057808,Universal Academy,Dallas,A,8,85,93,2051,https://txschools.net/district/universal-academy-057808
+10,40,0,057846,Legacy Preparatory,Dallas,B,7,78,85,914,https://txschools.net/district/legacy-preparatory-057846
+11,40,1,057909,Garland ISD,Dallas,B,6,80,86,49060,https://txschools.net/district/garland-isd-057909
+11,40,1,057850,Pioneer Technology & Arts Academy,Dallas,C,6,73,79,2400,https://txschools.net/district/pioneer-technology-arts-academy-057850
+13,40,0,057834,Evolution Academy Charter School,Dallas,A,5,85,90,639,https://txschools.net/district/evolution-academy-charter-school-057834
+14,40,3,057904,Cedar Hill ISD,Dallas,C,4,68,72,5876,https://txschools.net/district/cedar-hill-isd-057904
+14,40,3,057910,Grand Prairie ISD,Dallas,B,4,76,80,25445,https://txschools.net/district/grand-prairie-isd-057910
+14,40,3,057919,Sunnyvale ISD,Dallas,A,4,90,94,2313,https://txschools.net/district/sunnyvale-isd-057919
+14,40,3,057804,Texans Can Academies,Dallas,B,4,77,81,2880,https://txschools.net/district/texans-can-academies-057804
+18,40,1,057912,Irving ISD,Dallas,C,2,76,78,29182,https://txschools.net/district/irving-isd-057912
+18,40,1,057845,UME Preparatory Academy,Dallas,B,2,87,89,1766,https://txschools.net/district/ume-preparatory-academy-057845
+20,40,3,057922,Coppell ISD,Dallas,A,1,92,93,13047,https://txschools.net/district/coppell-isd-057922
+20,40,3,057911,Highland Park ISD,Dallas,A,1,94,95,6215,https://txschools.net/district/highland-park-isd-057911
+20,40,3,057848,International Leadership of Texas (ILTexas),Dallas,B,1,80,81,26257,https://txschools.net/district/international-leadership-of-texas-iltexas-057848
+20,40,3,057914,Mesquite ISD,Dallas,B,1,79,80,36585,https://txschools.net/district/mesquite-isd-057914
+24,40,0,057903,Carrollton-Farmers Branch ISD,Dallas,B,0,81,81,22831,https://txschools.net/district/carrollton-farmers-branch-isd-057903
+25,40,0,057844,Manara Academy,Dallas,B,-1,83,82,658,https://txschools.net/district/manara-academy-057844
+26,40,2,057833,Education Center International Academy,Dallas,D,-2,69,67,144,https://txschools.net/district/education-center-international-academy-057833
+26,40,2,057913,Lancaster ISD,Dallas,B,-2,82,80,6431,https://txschools.net/district/lancaster-isd-057913
+26,40,2,057836,St Anthony School,Dallas,B,-2,89,87,321,https://txschools.net/district/st-anthony-school-057836
+29,40,2,057907,Duncanville ISD,Dallas,C,-3,75,72,10988,https://txschools.net/district/duncanville-isd-057907
+29,40,2,057807,Life School,Dallas,B,-3,83,80,5560,https://txschools.net/district/life-school-057807
+29,40,2,057803,Uplift Education,Dallas,B,-3,83,80,23539,https://txschools.net/district/uplift-education-057803
+32,40,0,057813,Trinity Basin Preparatory,Dallas,C,-5,80,75,6741,https://txschools.net/district/trinity-basin-preparatory-057813
+33,40,1,057839,La Academia De Estrellas,Dallas,C,-6,82,76,1021,https://txschools.net/district/la-academia-de-estrellas-057839
+33,40,1,057827,Nova Academy Southeast,Dallas,B,-6,87,81,181,https://txschools.net/district/nova-academy-southeast-057827
+35,40,0,057906,Desoto ISD,Dallas,C,-8,79,71,5564,https://txschools.net/district/desoto-isd-057906
+36,40,1,057835,Golden Rule Charter School,Dallas,D,-11,79,68,1285,https://txschools.net/district/golden-rule-charter-school-057835
+36,40,1,057819,Jean Massieu Academy,Dallas,D,-11,80,69,172,https://txschools.net/district/jean-massieu-academy-057819
+38,40,1,057831,Gateway Charter Academy,Dallas,D,-16,85,69,430,https://txschools.net/district/gateway-charter-academy-057831
+38,40,1,057802,Pegasus School of Liberal Arts and Sciences,Dallas,D,-16,82,66,277,https://txschools.net/district/pegasus-school-of-liberal-arts-and-sciences-057802
+40,40,0,057809,Nova Academy,Dallas,F,-24,71,47,67,https://txschools.net/district/nova-academy-057809

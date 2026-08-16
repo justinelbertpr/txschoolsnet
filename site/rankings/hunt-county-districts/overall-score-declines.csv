@@ -1,0 +1,24 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/hunt-county-districts/overall-score-declines
+# rows: 10 (excluding this header and the column row)
+# ranking: Hunt County school districts with the largest overall score declines since 2021-22
+# population: 10 districts of 10 districts are ranked here.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
+1,10,1,116901,Caddo Mills ISD,Hunt,B,-1,88,87,3325,https://txschools.net/district/caddo-mills-isd-116901
+1,10,1,116903,Commerce ISD,Hunt,D,-1,68,67,1526,https://txschools.net/district/commerce-isd-116903
+3,10,0,116906,Lone Oak ISD,Hunt,B,0,85,85,1090,https://txschools.net/district/lone-oak-isd-116906
+4,10,1,116905,Greenville ISD,Hunt,C,1,71,72,5435,https://txschools.net/district/greenville-isd-116905
+4,10,1,116909,Wolfe City ISD,Hunt,B,1,82,83,694,https://txschools.net/district/wolfe-city-isd-116909
+6,10,0,116915,Bland ISD,Hunt,B,2,85,87,777,https://txschools.net/district/bland-isd-116915
+7,10,0,116916,Boles ISD,Hunt,B,3,79,82,530,https://txschools.net/district/boles-isd-116916
+8,10,1,116902,Celeste ISD,Hunt,B,6,82,88,471,https://txschools.net/district/celeste-isd-116902
+8,10,1,116908,Quinlan ISD,Hunt,C,6,73,79,2974,https://txschools.net/district/quinlan-isd-116908
+10,10,0,116910,Campbell ISD,Hunt,D,7,62,69,298,https://txschools.net/district/campbell-isd-116910

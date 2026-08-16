@@ -1,0 +1,1192 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# dataset: ranking board
+# page: https://txschools.net/rankings/texas-districts/science-meets-grade-level-lowest
+# rows: 1177 (excluding this header and the column row)
+# ranking: Texas school districts with the lowest Science — Meets in 2025-26
+# population: 1,177 districts of 1,199 districts are ranked here.
+# population: 15 were not rated by TEA for 2025-26 and are not ranked.
+# population: 7 reported no figure for this measure and are not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = TEA did not publish that figure. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,1177,4,133905,Divide ISD,Kerr,B,-1,41,https://txschools.net/district/divide-isd-133905
+1,1177,4,063906,Patton Springs ISD,Dickens,A,-1,22,https://txschools.net/district/patton-springs-isd-063906
+1,1177,4,066005,Ramirez CSD,Duval,D,-1,24,https://txschools.net/district/ramirez-csd-066005
+1,1177,4,022903,San Vicente ISD,Brewster,B,-1,14,https://txschools.net/district/san-vicente-isd-022903
+1,1177,4,049908,Walnut Bend ISD,Cooke,C,-1,59,https://txschools.net/district/walnut-bend-isd-049908
+6,1177,2,101842,Comquest Academy,Harris,B,0,35,https://txschools.net/district/comquest-academy-101842
+6,1177,2,101877,Elevate Collegiate Charter School,Harris,C,0,224,https://txschools.net/district/elevate-collegiate-charter-school-101877
+6,1177,2,101881,Up Excellence Academy,Harris,F,0,116,https://txschools.net/district/up-excellence-academy-101881
+9,1177,1,152806,Betty M Condra School for Education Innovation,Lubbock,D,5,168,https://txschools.net/district/betty-m-condra-school-for-education-innovation-152806
+9,1177,1,101875,Bloom Academy Charter School,Harris,F,5,364,https://txschools.net/district/bloom-academy-charter-school-101875
+11,1177,0,238904,Grandfalls-Royalty ISD,Ward,C,6,121,https://txschools.net/district/grandfalls-royalty-isd-238904
+12,1177,1,057833,Education Center International Academy,Dallas,D,8,144,https://txschools.net/district/education-center-international-academy-057833
+12,1177,1,015844,Essence Preparatory Charter School,Bexar,F,8,438,https://txschools.net/district/essence-preparatory-charter-school-015844
+14,1177,0,198902,Calvert ISD,Robertson,D,9,143,https://txschools.net/district/calvert-isd-198902
+15,1177,0,015839,Promesa Academy Charter School,Bexar,D,10,275,https://txschools.net/district/promesa-academy-charter-school-015839
+16,1177,0,028906,Prairie Lea ISD,Caldwell,F,12,276,https://txschools.net/district/prairie-lea-isd-028906
+17,1177,0,090905,Grandview-Hopkins ISD,Gray,C,13,44,https://txschools.net/district/grandview-hopkins-isd-090905
+18,1177,3,072802,Erath Excels Academy Inc,Erath,B,14,111,https://txschools.net/district/erath-excels-academy-inc-072802
+18,1177,3,019913,Hubbard ISD,Bowie,F,14,54,https://txschools.net/district/hubbard-isd-019913
+18,1177,3,109908,Malone ISD,Hill,F,14,64,https://txschools.net/district/malone-isd-109908
+18,1177,3,057804,Texans Can Academies,Dallas,B,14,2880,https://txschools.net/district/texans-can-academies-057804
+22,1177,2,161924,Hallsburg ISD,McLennan,F,15,106,https://txschools.net/district/hallsburg-isd-161924
+22,1177,2,014801,Richard Milburn Alter High School (Killeen),Bell,C,15,1525,https://txschools.net/district/richard-milburn-alter-high-school-killeen-014801
+22,1177,2,177901,Roscoe Collegiate ISD,Nolan,F,15,14905,https://txschools.net/district/roscoe-collegiate-isd-177901
+25,1177,3,084804,Ambassadors Preparatory Academy,Galveston,A,16,140,https://txschools.net/district/ambassadors-preparatory-academy-084804
+25,1177,3,073903,Marlin ISD,Falls,D,16,796,https://txschools.net/district/marlin-isd-073903
+25,1177,3,101814,The Varnett Public School,Harris,D,16,1084,https://txschools.net/district/the-varnett-public-school-101814
+25,1177,3,059902,Walcott ISD,Deaf Smith,B,16,138,https://txschools.net/district/walcott-isd-059902
+29,1177,1,057806,Advantage Academy,Dallas,C,17,909,https://txschools.net/district/advantage-academy-057806
+29,1177,1,101856,Draw Academy,Harris,C,17,695,https://txschools.net/district/draw-academy-101856
+31,1177,2,015802,George Gervin Academy,Bexar,B,18,744,https://txschools.net/district/george-gervin-academy-015802
+31,1177,2,168902,Loraine ISD,Mitchell,C,18,133,https://txschools.net/district/loraine-isd-168902
+31,1177,2,061802,North Texas Collegiate Academy,Denton,D,18,797,https://txschools.net/district/north-texas-collegiate-academy-061802
+34,1177,2,178807,Corpus Christi Montessori School,Nueces,F,19,132,https://txschools.net/district/corpus-christi-montessori-school-178807
+34,1177,2,101868,The Pro-Vision Academy,Harris,B,19,239,https://txschools.net/district/the-pro-vision-academy-101868
+34,1177,2,101840,Two Dimensions Preparatory Academy,Harris,D,19,342,https://txschools.net/district/two-dimensions-preparatory-academy-101840
+37,1177,2,101872,Etoile Academy Charter School,Harris,F,20,1064,https://txschools.net/district/etoile-academy-charter-school-101872
+37,1177,2,022004,Terlingua CSD,Brewster,D,20,140,https://txschools.net/district/terlingua-csd-022004
+37,1177,2,071809,Vista Del Futuro Charter School,El Paso,B,20,346,https://txschools.net/district/vista-del-futuro-charter-school-071809
+40,1177,3,101853,Bakerripley Community Schools,Harris,B,21,1908,https://txschools.net/district/bakerripley-community-schools-101853
+40,1177,3,070801,Faith Family Academy,Ellis,C,21,2883,https://txschools.net/district/faith-family-academy-070801
+40,1177,3,101804,George I Sanchez Charter,Harris,C,21,941,https://txschools.net/district/george-i-sanchez-charter-101804
+40,1177,3,090902,Lefors ISD,Gray,C,21,177,https://txschools.net/district/lefors-isd-090902
+44,1177,3,021805,Arrow Academy,Brazos,B,22,427,https://txschools.net/district/arrow-academy-021805
+44,1177,3,040901,Morton ISD,Cochran,B,22,350,https://txschools.net/district/morton-isd-040901
+44,1177,3,042905,Panther Creek CISD,Coleman,B,22,139,https://txschools.net/district/panther-creek-cisd-042905
+44,1177,3,015842,Royal Public Schools,Bexar,F,22,394,https://txschools.net/district/royal-public-schools-015842
+48,1177,2,125906,La Gloria ISD,Jim Wells,D,23,126,https://txschools.net/district/la-gloria-isd-125906
+48,1177,2,227907,Manor ISD,Travis,D,23,9826,https://txschools.net/district/manor-isd-227907
+48,1177,2,057836,St Anthony School,Dallas,B,23,321,https://txschools.net/district/st-anthony-school-057836
+51,1177,4,148902,Follett ISD,Lipscomb,C,24,170,https://txschools.net/district/follett-isd-148902
+51,1177,4,169906,Gold Burg ISD,Montague,C,24,149,https://txschools.net/district/gold-burg-isd-169906
+51,1177,4,102901,Karnack ISD,Harrison,D,24,121,https://txschools.net/district/karnack-isd-102901
+51,1177,4,254902,La Pryor ISD,Zavala,D,24,445,https://txschools.net/district/la-pryor-isd-254902
+51,1177,4,067908,Rising Star ISD,Eastland,B,24,160,https://txschools.net/district/rising-star-isd-067908
+56,1177,5,196901,Austwell-Tivoli ISD,Refugio,C,25,122,https://txschools.net/district/austwell-tivoli-isd-196901
+56,1177,5,235901,Bloomington ISD,Victoria,D,25,705,https://txschools.net/district/bloomington-isd-235901
+56,1177,5,161921,Connally ISD,McLennan,D,25,2031,https://txschools.net/district/connally-isd-161921
+56,1177,5,144903,Dime Box ISD,Lee,B,25,169,https://txschools.net/district/dime-box-isd-144903
+56,1177,5,070909,Milford ISD,Ellis,C,25,277,https://txschools.net/district/milford-isd-070909
+56,1177,5,241904,Wharton ISD,Wharton,F,25,1707,https://txschools.net/district/wharton-isd-241904
+62,1177,7,024901,Brooks County ISD,Brooks,D,26,1074,https://txschools.net/district/brooks-county-isd-024901
+62,1177,7,166907,Buckholts ISD,Milam,C,26,107,https://txschools.net/district/buckholts-isd-166907
+62,1177,7,057834,Evolution Academy Charter School,Dallas,A,26,639,https://txschools.net/district/evolution-academy-charter-school-057834
+62,1177,7,186902,Fort Stockton ISD,Pecos,C,26,11681,https://txschools.net/district/fort-stockton-isd-186902
+62,1177,7,057830,Inspired Vision Academy,Dallas,C,26,1103,https://txschools.net/district/inspired-vision-academy-057830
+62,1177,7,057819,Jean Massieu Academy,Dallas,D,26,172,https://txschools.net/district/jean-massieu-academy-057819
+62,1177,7,084802,Odyssey Academy Inc,Galveston,C,26,1778,https://txschools.net/district/odyssey-academy-inc-084802
+62,1177,7,057828,Winfree Academy Charter Schools,Dallas,B,26,1051,https://txschools.net/district/winfree-academy-charter-schools-057828
+70,1177,4,194904,Clarksville ISD,Red River,D,27,504,https://txschools.net/district/clarksville-isd-194904
+70,1177,4,176903,Deweyville ISD,Newton,C,27,574,https://txschools.net/district/deweyville-isd-176903
+70,1177,4,011902,Elgin ISD,Bastrop,D,27,6221,https://txschools.net/district/elgin-isd-011902
+70,1177,4,013801,St Mary's Academy Charter School,Bee,C,27,329,https://txschools.net/district/st-mary-s-academy-charter-school-013801
+70,1177,4,210904,Tenaha ISD,Shelby,C,27,402,https://txschools.net/district/tenaha-isd-210904
+75,1177,11,178801,Dr M L Garza-Gonzalez Charter School,Nueces,B,28,154,https://txschools.net/district/dr-m-l-garza-gonzalez-charter-school-178801
+75,1177,11,015905,Edgewood ISD,Bexar,D,28,7670,https://txschools.net/district/edgewood-isd-015905
+75,1177,11,121904,Jasper ISD,Jasper,C,28,1947,https://txschools.net/district/jasper-isd-121904
+75,1177,11,137901,Kingsville ISD,Kleberg,D,28,2341,https://txschools.net/district/kingsville-isd-137901
+75,1177,11,220910,Lake Worth ISD,Tarrant,D,28,3165,https://txschools.net/district/lake-worth-isd-220910
+75,1177,11,018902,Meridian ISD,Bosque,C,28,354,https://txschools.net/district/meridian-isd-018902
+75,1177,11,101855,Meyerpark Charter,Harris,C,28,259,https://txschools.net/district/meyerpark-charter-101855
+75,1177,11,114801,Pathway Academy,Howard,F,28,130,https://txschools.net/district/pathway-academy-114801
+75,1177,11,182905,Strawn ISD,Palo Pinto,B,28,172,https://txschools.net/district/strawn-isd-182905
+75,1177,11,152803,Triumph Public High Schools-Lubbock,Lubbock,C,28,118,https://txschools.net/district/triumph-public-high-schools-lubbock-152803
+75,1177,11,232903,Uvalde CISD,Uvalde,F,28,3815,https://txschools.net/district/uvalde-cisd-232903
+75,1177,11,240904,Webb CISD,Webb,C,28,206,https://txschools.net/district/webb-cisd-240904
+87,1177,9,110901,Anton ISD,Hockley,C,29,171,https://txschools.net/district/anton-isd-110901
+87,1177,9,060914,Fannindel ISD,Delta,D,29,152,https://txschools.net/district/fannindel-isd-060914
+87,1177,9,245901,Lasara ISD,Willacy,B,29,330,https://txschools.net/district/lasara-isd-245901
+87,1177,9,015806,Legacy Traditional Schools - Texas,Bexar,B,29,1855,https://txschools.net/district/legacy-traditional-schools-texas-015806
+87,1177,9,231901,McCamey ISD,Upton,C,29,469,https://txschools.net/district/mccamey-isd-231901
+87,1177,9,018903,Morgan ISD,Bosque,C,29,138,https://txschools.net/district/morgan-isd-018903
+87,1177,9,201908,Overton ISD,Rusk,C,29,534,https://txschools.net/district/overton-isd-201908
+87,1177,9,167904,Priddy ISD,Mills,A,29,90,https://txschools.net/district/priddy-isd-167904
+87,1177,9,161914,Waco ISD,McLennan,D,29,12892,https://txschools.net/district/waco-isd-161914
+87,1177,9,101873,Yellowstone College Preparatory,Harris,D,29,361,https://txschools.net/district/yellowstone-college-preparatory-101873
+97,1177,5,146905,Hull-Daisetta ISD,Liberty,D,30,425,https://txschools.net/district/hull-daisetta-isd-146905
+97,1177,5,237905,Royal ISD,Waller,D,30,3086,https://txschools.net/district/royal-isd-237905
+97,1177,5,205907,Taft ISD,San Patricio,C,30,786,https://txschools.net/district/taft-isd-205907
+97,1177,5,227805,Texas Empowerment Academy,Travis,F,30,760,https://txschools.net/district/texas-empowerment-academy-227805
+97,1177,5,001908,Westwood ISD,Anderson,D,30,1300,https://txschools.net/district/westwood-isd-001908
+97,1177,5,025906,Zephyr ISD,Brown,B,30,217,https://txschools.net/district/zephyr-isd-025906
+103,1177,15,101871,A' Unlimited Potential,Harris,B,31,190,https://txschools.net/district/a-unlimited-potential-101871
+103,1177,15,123910,Beaumont ISD,Jefferson,D,31,15838,https://txschools.net/district/beaumont-isd-123910
+103,1177,15,148905,Darrouzett ISD,Lipscomb,D,31,97,https://txschools.net/district/darrouzett-isd-148905
+103,1177,15,035902,Hart ISD,Castro,B,31,208,https://txschools.net/district/hart-isd-035902
+103,1177,15,198905,Hearne ISD,Robertson,D,31,719,https://txschools.net/district/hearne-isd-198905
+103,1177,15,018906,Iredell ISD,Bosque,A,31,137,https://txschools.net/district/iredell-isd-018906
+103,1177,15,058906,Lamesa ISD,Dawson,C,31,1373,https://txschools.net/district/lamesa-isd-058906
+103,1177,15,107908,Murchison ISD,Henderson,D,31,187,https://txschools.net/district/murchison-isd-107908
+103,1177,15,051901,Paducah ISD,Cottle,B,31,137,https://txschools.net/district/paducah-isd-051901
+103,1177,15,057802,Pegasus School of Liberal Arts and Sciences,Dallas,D,31,277,https://txschools.net/district/pegasus-school-of-liberal-arts-and-sciences-057802
+103,1177,15,123907,Port Arthur ISD,Jefferson,C,31,7664,https://txschools.net/district/port-arthur-isd-123907
+103,1177,15,192901,Reagan County ISD,Reagan,C,31,840,https://txschools.net/district/reagan-county-isd-192901
+103,1177,15,178909,Robstown ISD,Nueces,D,31,2478,https://txschools.net/district/robstown-isd-178909
+103,1177,15,071803,Triumph Public High Schools-West Texas,El Paso,B,31,348,https://txschools.net/district/triumph-public-high-schools-west-texas-071803
+103,1177,15,219903,Tulia ISD,Swisher,C,31,730,https://txschools.net/district/tulia-isd-219903
+103,1177,15,181906,West Orange-Cove CISD,Orange,C,31,2502,https://txschools.net/district/west-orange-cove-cisd-181906
+119,1177,16,034902,Avinger ISD,Cass,B,32,103,https://txschools.net/district/avinger-isd-034902
+119,1177,16,101847,Beatrice Mayes Institute Charter School,Harris,C,32,628,https://txschools.net/district/beatrice-mayes-institute-charter-school-101847
+119,1177,16,125902,Ben Bolt-Palito Blanco ISD,Jim Wells,B,32,420,https://txschools.net/district/ben-bolt-palito-blanco-isd-125902
+119,1177,16,185901,Bovina ISD,Parmer,D,32,370,https://txschools.net/district/bovina-isd-185901
+119,1177,16,166901,Cameron ISD,Milam,D,32,1389,https://txschools.net/district/cameron-isd-166901
+119,1177,16,146901,Cleveland ISD,Liberty,D,32,12648,https://txschools.net/district/cleveland-isd-146901
+119,1177,16,057831,Gateway Charter Academy,Dallas,D,32,430,https://txschools.net/district/gateway-charter-academy-057831
+119,1177,16,084908,Hitchcock ISD,Galveston,D,32,1937,https://txschools.net/district/hitchcock-isd-084908
+119,1177,16,057839,La Academia De Estrellas,Dallas,C,32,1021,https://txschools.net/district/la-academia-de-estrellas-057839
+119,1177,16,019908,Liberty-Eylau ISD,Bowie,D,32,1784,https://txschools.net/district/liberty-eylau-isd-019908
+119,1177,16,057844,Manara Academy,Dallas,B,32,658,https://txschools.net/district/manara-academy-057844
+119,1177,16,095904,Petersburg ISD,Hale,A,32,230,https://txschools.net/district/petersburg-isd-095904
+119,1177,16,085902,Post ISD,Garza,D,32,648,https://txschools.net/district/post-isd-085902
+119,1177,16,128903,Runge ISD,Karnes,C,32,172,https://txschools.net/district/runge-isd-128903
+119,1177,16,015830,Somerset Academies of Texas,Bexar,B,32,2682,https://txschools.net/district/somerset-academies-of-texas-015830
+119,1177,16,026902,Somerville ISD,Burleson,C,32,527,https://txschools.net/district/somerville-isd-026902
+119,1177,16,227803,Wayside Schools,Travis,C,32,1923,https://txschools.net/district/wayside-schools-227803
+136,1177,21,103901,Channing ISD,Hartley,B,33,118,https://txschools.net/district/channing-isd-103901
+136,1177,21,078901,Crowell ISD,Foard,B,33,172,https://txschools.net/district/crowell-isd-078901
+136,1177,21,057906,Desoto ISD,Dallas,C,33,5564,https://txschools.net/district/desoto-isd-057906
+136,1177,21,082902,Dilley ISD,Frio,C,33,830,https://txschools.net/district/dilley-isd-082902
+136,1177,21,220811,East Fort Worth Montessori Academy,Tarrant,D,33,106,https://txschools.net/district/east-fort-worth-montessori-academy-220811
+136,1177,21,108903,Edcouch-Elsa ISD,Hidalgo,D,33,4162,https://txschools.net/district/edcouch-elsa-isd-108903
+136,1177,21,143906,Ezzell ISD,Lavaca,B,33,124,https://txschools.net/district/ezzell-isd-143906
+136,1177,21,169910,Forestburg ISD,Montague,B,33,172,https://txschools.net/district/forestburg-isd-169910
+136,1177,21,057835,Golden Rule Charter School,Dallas,D,33,1285,https://txschools.net/district/golden-rule-charter-school-057835
+136,1177,21,102904,Hallsville ISD,Harrison,C,33,26808,https://txschools.net/district/hallsville-isd-102904
+136,1177,21,037904,Jacksonville ISD,Cherokee,D,33,4572,https://txschools.net/district/jacksonville-isd-037904
+136,1177,21,107910,Lapoynor ISD,Henderson,C,33,465,https://txschools.net/district/lapoynor-isd-107910
+136,1177,21,189901,Marfa ISD,Presidio,D,33,339,https://txschools.net/district/marfa-isd-189901
+136,1177,21,125905,Premont ISD,Jim Wells,C,33,761,https://txschools.net/district/premont-isd-125905
+136,1177,21,014803,Priority Charter Schools,Bell,B,33,529,https://txschools.net/district/priority-charter-schools-014803
+136,1177,21,076904,Rotan ISD,Fisher,C,33,265,https://txschools.net/district/rotan-isd-076904
+136,1177,21,232902,Sabinal ISD,Uvalde,C,33,447,https://txschools.net/district/sabinal-isd-232902
+136,1177,21,214902,San Isidro ISD,Starr,B,33,151,https://txschools.net/district/san-isidro-isd-214902
+136,1177,21,178808,Seashore Charter Schools,Nueces,B,33,422,https://txschools.net/district/seashore-charter-schools-178808
+136,1177,21,015807,Southwest Preparatory School,Bexar,C,33,849,https://txschools.net/district/southwest-preparatory-school-015807
+136,1177,21,101864,The Lawson Academy,Harris,B,33,317,https://txschools.net/district/the-lawson-academy-101864
+136,1177,21,227824,Valere Public Schools,Travis,C,33,812,https://txschools.net/district/valere-public-schools-227824
+158,1177,6,057907,Duncanville ISD,Dallas,C,34,10988,https://txschools.net/district/duncanville-isd-057907
+158,1177,6,015911,East Central ISD,Bexar,C,34,11798,https://txschools.net/district/east-central-isd-015911
+158,1177,6,161906,La Vega ISD,McLennan,C,34,3079,https://txschools.net/district/la-vega-isd-161906
+158,1177,6,077902,Lockney ISD,Floyd,D,34,387,https://txschools.net/district/lockney-isd-077902
+158,1177,6,011905,McDade ISD,Bastrop,C,34,373,https://txschools.net/district/mcdade-isd-011905
+158,1177,6,108907,Mercedes ISD,Hidalgo,C,34,3940,https://txschools.net/district/mercedes-isd-108907
+158,1177,6,013902,Pawnee ISD,Bee,C,34,252,https://txschools.net/district/pawnee-isd-013902
+165,1177,15,227825,Austin Achieve Public Schools,Travis,C,35,2852,https://txschools.net/district/austin-achieve-public-schools-227825
+165,1177,15,070901,Avalon ISD,Ellis,B,35,316,https://txschools.net/district/avalon-isd-070901
+165,1177,15,186901,Buena Vista ISD,Pecos,D,35,235,https://txschools.net/district/buena-vista-isd-186901
+165,1177,15,057841,Cityscape Schools,Dallas,C,35,1218,https://txschools.net/district/cityscape-schools-057841
+165,1177,15,116903,Commerce ISD,Hunt,D,35,1526,https://txschools.net/district/commerce-isd-116903
+165,1177,15,227910,Del Valle ISD,Travis,D,35,11766,https://txschools.net/district/del-valle-isd-227910
+165,1177,15,116905,Greenville ISD,Hunt,C,35,5435,https://txschools.net/district/greenville-isd-116905
+165,1177,15,015825,Lighthouse Public Schools,Bexar,C,35,481,https://txschools.net/district/lighthouse-public-schools-015825
+165,1177,15,227826,Montessori for All,Travis,D,35,556,https://txschools.net/district/montessori-for-all-227826
+165,1177,15,045903,Rice CISD,Colorado,C,35,1287,https://txschools.net/district/rice-cisd-045903
+165,1177,15,093905,Richards ISD,Grimes,C,35,261,https://txschools.net/district/richards-isd-093905
+165,1177,15,115902,Sierra Blanca ISD,Hudspeth,C,35,97,https://txschools.net/district/sierra-blanca-isd-115902
+165,1177,15,221905,Trent ISD,Taylor,B,35,118,https://txschools.net/district/trent-isd-221905
+165,1177,15,108804,Triumph Public High Schools-Rio Grande Valley,Hidalgo,B,35,477,https://txschools.net/district/triumph-public-high-schools-rio-grande-valley-108804
+165,1177,15,227806,University of Texas University Charter School,Travis,B,35,695,https://txschools.net/district/university-of-texas-university-charter-school-227806
+165,1177,15,200904,Winters ISD,Runnels,B,35,499,https://txschools.net/district/winters-isd-200904
+181,1177,14,014902,Bartlett ISD,Bell,C,36,399,https://txschools.net/district/bartlett-isd-014902
+181,1177,14,015838,Compass Rose Public Schools,Bexar,C,36,4032,https://txschools.net/district/compass-rose-public-schools-015838
+181,1177,14,109903,Covington ISD,Hill,C,36,351,https://txschools.net/district/covington-isd-109903
+181,1177,14,095903,Hale Center ISD,Hale,B,36,553,https://txschools.net/district/hale-center-isd-095903
+181,1177,14,015808,Inspire Academies,Bexar,C,36,1158,https://txschools.net/district/inspire-academies-015808
+181,1177,14,187906,Leggett ISD,Polk,C,36,204,https://txschools.net/district/leggett-isd-187906
+181,1177,14,147903,Mexia ISD,Limestone,C,36,1780,https://txschools.net/district/mexia-isd-147903
+181,1177,14,108915,Monte Alto ISD,Hidalgo,B,36,764,https://txschools.net/district/monte-alto-isd-108915
+181,1177,14,209902,Moran ISD,Shackelford,C,36,86,https://txschools.net/district/moran-isd-209902
+181,1177,14,057827,Nova Academy Southeast,Dallas,B,36,181,https://txschools.net/district/nova-academy-southeast-057827
+181,1177,14,015907,San Antonio ISD,Bexar,C,36,42508,https://txschools.net/district/san-antonio-isd-015907
+181,1177,14,015908,South San Antonio ISD,Bexar,C,36,7083,https://txschools.net/district/south-san-antonio-isd-015908
+181,1177,14,230904,Union Hill ISD,Upshur,C,36,254,https://txschools.net/district/union-hill-isd-230904
+181,1177,14,089905,Waelder ISD,Gonzales,B,36,588,https://txschools.net/district/waelder-isd-089905
+181,1177,14,250905,Yantis ISD,Wood,C,36,309,https://txschools.net/district/yantis-isd-250905
+196,1177,16,101810,Academy of Accelerated Learning Inc,Harris,B,37,711,https://txschools.net/district/academy-of-accelerated-learning-inc-101810
+196,1177,16,116910,Campbell ISD,Hunt,D,37,298,https://txschools.net/district/campbell-isd-116910
+196,1177,16,057904,Cedar Hill ISD,Dallas,C,37,5876,https://txschools.net/district/cedar-hill-isd-057904
+196,1177,16,071810,El Paso Leadership Academy,El Paso,F,37,665,https://txschools.net/district/el-paso-leadership-academy-071810
+196,1177,16,071903,Fabens ISD,El Paso,B,37,1812,https://txschools.net/district/fabens-isd-071903
+196,1177,16,220905,Fort Worth ISD,Tarrant,C,37,67315,https://txschools.net/district/fort-worth-isd-220905
+196,1177,16,103902,Hartley ISD,Hartley,A,37,242,https://txschools.net/district/hartley-isd-103902
+196,1177,16,237902,Hempstead ISD,Waller,C,37,1563,https://txschools.net/district/hempstead-isd-237902
+196,1177,16,102902,Marshall ISD,Harrison,D,37,4726,https://txschools.net/district/marshall-isd-102902
+196,1177,16,109910,Mount Calm ISD,Hill,C,37,176,https://txschools.net/district/mount-calm-isd-109910
+196,1177,16,048903,Paint Rock ISD,Concho,B,37,330,https://txschools.net/district/paint-rock-isd-048903
+196,1177,16,007906,Poteet ISD,Atascosa,D,37,1867,https://txschools.net/district/poteet-isd-007906
+196,1177,16,233901,San Felipe-Del Rio CISD,Val Verde,C,37,9494,https://txschools.net/district/san-felipe-del-rio-cisd-233901
+196,1177,16,226801,Texas Leadership Public Schools,Tom Green,B,37,4070,https://txschools.net/district/texas-leadership-public-schools-226801
+196,1177,16,158906,Van Vleck ISD,Matagorda,C,37,1048,https://txschools.net/district/van-vleck-isd-158906
+196,1177,16,057847,Village Tech Schools,Dallas,B,37,1330,https://txschools.net/district/village-tech-schools-057847
+196,1177,16,196902,Woodsboro ISD,Refugio,C,37,383,https://txschools.net/district/woodsboro-isd-196902
+213,1177,22,101902,Aldine ISD,Harris,C,38,52115,https://txschools.net/district/aldine-isd-101902
+213,1177,22,140901,Amherst ISD,Lamb,B,38,102,https://txschools.net/district/amherst-isd-140901
+213,1177,22,195902,Balmorhea ISD,Reeves,B,38,149,https://txschools.net/district/balmorhea-isd-195902
+213,1177,22,011901,Bastrop ISD,Bastrop,C,38,13325,https://txschools.net/district/bastrop-isd-011901
+213,1177,22,081906,Dew ISD,Freestone,C,38,170,https://txschools.net/district/dew-isd-081906
+213,1177,22,166902,Gause ISD,Milam,B,38,149,https://txschools.net/district/gause-isd-166902
+213,1177,22,101878,Houston Classical Charter School,Harris,A,38,430,https://txschools.net/district/houston-classical-charter-school-101878
+213,1177,22,128902,Kenedy ISD,Karnes,B,38,733,https://txschools.net/district/kenedy-isd-128902
+213,1177,22,071807,La Fe Preparatory School,El Paso,B,38,185,https://txschools.net/district/la-fe-preparatory-school-071807
+213,1177,22,201904,Leveretts Chapel ISD,Rusk,C,38,233,https://txschools.net/district/leveretts-chapel-isd-201904
+213,1177,22,082903,Pearsall ISD,Frio,C,38,1900,https://txschools.net/district/pearsall-isd-082903
+213,1177,22,072801,Premier High Schools,Erath,B,38,8825,https://txschools.net/district/premier-high-schools-072801
+213,1177,22,054903,Ralls ISD,Crosby,C,38,318,https://txschools.net/district/ralls-isd-054903
+213,1177,22,067907,Ranger ISD,Eastland,D,38,262,https://txschools.net/district/ranger-isd-067907
+213,1177,22,069901,Rocksprings ISD,Edwards,B,38,201,https://txschools.net/district/rocksprings-isd-069901
+213,1177,22,203901,San Augustine ISD,San Augustine,C,38,585,https://txschools.net/district/san-augustine-isd-203901
+213,1177,22,071904,San Elizario ISD,El Paso,C,38,2776,https://txschools.net/district/san-elizario-isd-071904
+213,1177,22,042903,Santa Anna ISD,Coleman,C,38,245,https://txschools.net/district/santa-anna-isd-042903
+213,1177,22,031913,Santa Maria ISD,Cameron,B,38,502,https://txschools.net/district/santa-maria-isd-031913
+213,1177,22,107907,Trinidad ISD,Henderson,B,38,175,https://txschools.net/district/trinidad-isd-107907
+213,1177,22,057813,Trinity Basin Preparatory,Dallas,C,38,6741,https://txschools.net/district/trinity-basin-preparatory-057813
+213,1177,22,018905,Walnut Springs ISD,Bosque,C,38,152,https://txschools.net/district/walnut-springs-isd-018905
+213,1177,22,224902,Woodson ISD,Throckmorton,B,38,158,https://txschools.net/district/woodson-isd-224902
+236,1177,18,066901,Benavides ISD,Duval,D,39,352,https://txschools.net/district/benavides-isd-066901
+236,1177,18,109902,Bynum ISD,Hill,B,39,174,https://txschools.net/district/bynum-isd-109902
+236,1177,18,228904,Centerville ISD,Trinity,D,39,143,https://txschools.net/district/centerville-isd-228904
+236,1177,18,172902,Daingerfield-Lone Star ISD,Morris,C,39,988,https://txschools.net/district/daingerfield-lone-star-isd-172902
+236,1177,18,194905,Detroit ISD,Red River,C,39,469,https://txschools.net/district/detroit-isd-194905
+236,1177,18,220904,Everman ISD,Tarrant,C,39,4704,https://txschools.net/district/everman-isd-220904
+236,1177,18,066903,Freer ISD,Duval,B,39,663,https://txschools.net/district/freer-isd-066903
+236,1177,18,084902,Galveston ISD,Galveston,B,39,6664,https://txschools.net/district/galveston-isd-084902
+236,1177,18,246907,Jarrell ISD,Williamson,C,39,4514,https://txschools.net/district/jarrell-isd-246907
+236,1177,18,015916,Judson ISD,Bexar,C,39,22556,https://txschools.net/district/judson-isd-015916
+236,1177,18,018907,Kopperl ISD,Bosque,D,39,163,https://txschools.net/district/kopperl-isd-018907
+236,1177,18,174904,Nacogdoches ISD,Nacogdoches,C,39,5513,https://txschools.net/district/nacogdoches-isd-174904
+236,1177,18,163903,Natalia ISD,Medina,C,39,1301,https://txschools.net/district/natalia-isd-163903
+236,1177,18,037908,New Summerfield ISD,Cherokee,B,39,512,https://txschools.net/district/new-summerfield-isd-037908
+236,1177,18,031912,San Benito CISD,Cameron,C,39,8620,https://txschools.net/district/san-benito-cisd-031912
+236,1177,18,101919,Spring ISD,Harris,C,39,32328,https://txschools.net/district/spring-isd-101919
+236,1177,18,177902,Sweetwater ISD,Nolan,C,39,1738,https://txschools.net/district/sweetwater-isd-177902
+236,1177,18,224901,Throckmorton Collegiate ISD,Throckmorton,B,39,145,https://txschools.net/district/throckmorton-collegiate-isd-224901
+236,1177,18,081905,Wortham ISD,Freestone,C,39,501,https://txschools.net/district/wortham-isd-081905
+255,1177,21,101903,Alief ISD,Harris,C,40,36376,https://txschools.net/district/alief-isd-101903
+255,1177,21,178913,Banquete ISD,Nueces,B,40,724,https://txschools.net/district/banquete-isd-178913
+255,1177,21,249903,Bridgeport ISD,Wise,C,40,2028,https://txschools.net/district/bridgeport-isd-249903
+255,1177,21,025908,Brookesmith ISD,Brown,C,40,508,https://txschools.net/district/brookesmith-isd-025908
+255,1177,21,210901,Center ISD,Shelby,C,40,2258,https://txschools.net/district/center-isd-210901
+255,1177,21,246914,Coupland ISD,Williamson,C,40,315,https://txschools.net/district/coupland-isd-246914
+255,1177,21,054901,Crosbyton CISD,Crosby,C,40,293,https://txschools.net/district/crosbyton-cisd-054901
+255,1177,21,058902,Dawson ISD,Dawson,B,40,145,https://txschools.net/district/dawson-isd-058902
+255,1177,21,243902,Electra ISD,Wichita,C,40,418,https://txschools.net/district/electra-isd-243902
+255,1177,21,050901,Evant ISD,Coryell,D,40,192,https://txschools.net/district/evant-isd-050901
+255,1177,21,108809,Excellence In Leadership Academy,Hidalgo,D,40,168,https://txschools.net/district/excellence-in-leadership-academy-108809
+255,1177,21,161925,Gholson ISD,McLennan,B,40,227,https://txschools.net/district/gholson-isd-161925
+255,1177,21,047903,Gustine ISD,Comanche,B,40,166,https://txschools.net/district/gustine-isd-047903
+255,1177,21,015904,Harlandale ISD,Bexar,C,40,11096,https://txschools.net/district/harlandale-isd-015904
+255,1177,21,059901,Hereford ISD,Deaf Smith,C,40,3836,https://txschools.net/district/hereford-isd-059901
+255,1177,21,185904,Lazbuddie ISD,Parmer,A,40,127,https://txschools.net/district/lazbuddie-isd-185904
+255,1177,21,057846,Legacy Preparatory,Dallas,B,40,914,https://txschools.net/district/legacy-preparatory-057846
+255,1177,21,141902,Lometa ISD,Lampasas,B,40,293,https://txschools.net/district/lometa-isd-141902
+255,1177,21,152902,New Deal ISD,Lubbock,B,40,697,https://txschools.net/district/new-deal-isd-152902
+255,1177,21,146907,Tarkington ISD,Liberty,C,40,1864,https://txschools.net/district/tarkington-isd-146907
+255,1177,21,129906,Terrell ISD,Kaufman,C,40,5178,https://txschools.net/district/terrell-isd-129906
+255,1177,21,240801,Triumph Public High Schools Central Texas,Webb,B,40,362,https://txschools.net/district/triumph-public-high-schools-central-texas-240801
+277,1177,18,057829,A' Academy,Dallas,C,41,1703,https://txschools.net/district/a-academy-057829
+277,1177,18,205901,Aransas Pass ISD,San Patricio,C,41,1595,https://txschools.net/district/aransas-pass-isd-205901
+277,1177,18,161923,Bosqueville ISD,McLennan,C,41,718,https://txschools.net/district/bosqueville-isd-161923
+277,1177,18,113901,Crockett ISD,Houston,D,41,1098,https://txschools.net/district/crockett-isd-113901
+277,1177,18,212801,Cumberland Academy,Smith,C,41,1519,https://txschools.net/district/cumberland-academy-212801
+277,1177,18,068901,Ector County ISD,Ector,C,41,31866,https://txschools.net/district/ector-county-isd-068901
+277,1177,18,071804,El Paso Academy,El Paso,A,41,294,https://txschools.net/district/el-paso-academy-071804
+277,1177,18,084903,High Island ISD,Galveston,B,41,122,https://txschools.net/district/high-island-isd-084903
+277,1177,18,108914,La Villa ISD,Hidalgo,B,41,459,https://txschools.net/district/la-villa-isd-108914
+277,1177,18,028902,Lockhart ISD,Caldwell,C,41,6757,https://txschools.net/district/lockhart-isd-028902
+277,1177,18,145907,Oakwood ISD,Leon,C,41,205,https://txschools.net/district/oakwood-isd-145907
+277,1177,18,195901,Pecos-Barstow-Toyah ISD,Reeves,C,41,2945,https://txschools.net/district/pecos-barstow-toyah-isd-195901
+277,1177,18,013903,Pettus ISD,Bee,B,41,378,https://txschools.net/district/pettus-isd-013903
+277,1177,18,015843,Prelude Preparatory Charter School,Bexar,B,41,165,https://txschools.net/district/prelude-preparatory-charter-school-015843
+277,1177,18,206901,San Saba ISD,San Saba,C,41,686,https://txschools.net/district/san-saba-isd-206901
+277,1177,18,094901,Seguin ISD,Guadalupe,C,41,7160,https://txschools.net/district/seguin-isd-094901
+277,1177,18,015912,Southwest ISD,Bexar,C,41,14839,https://txschools.net/district/southwest-isd-015912
+277,1177,18,014909,Temple ISD,Bell,B,41,8704,https://txschools.net/district/temple-isd-014909
+277,1177,18,071908,Tornillo ISD,El Paso,B,41,694,https://txschools.net/district/tornillo-isd-071908
+296,1177,29,125901,Alice ISD,Jim Wells,B,42,4198,https://txschools.net/district/alice-isd-125901
+296,1177,29,025904,Blanket ISD,Brown,B,42,151,https://txschools.net/district/blanket-isd-025904
+296,1177,29,176901,Burkeville ISD,Newton,C,42,245,https://txschools.net/district/burkeville-isd-176901
+296,1177,29,064903,Carrizo Springs CISD,Dimmit,C,42,1796,https://txschools.net/district/carrizo-springs-cisd-064903
+296,1177,29,220917,Castleberry ISD,Tarrant,B,42,3755,https://txschools.net/district/castleberry-isd-220917
+296,1177,29,233903,Comstock ISD,Val Verde,C,42,166,https://txschools.net/district/comstock-isd-233903
+296,1177,29,060902,Cooper ISD,Delta,C,42,879,https://txschools.net/district/cooper-isd-060902
+296,1177,29,129901,Crandall ISD,Kaufman,C,42,7455,https://txschools.net/district/crandall-isd-129901
+296,1177,29,052901,Crane ISD,Crane,D,42,1228,https://txschools.net/district/crane-isd-052901
+296,1177,29,220912,Crowley ISD,Tarrant,B,42,17052,https://txschools.net/district/crowley-isd-220912
+296,1177,29,254901,Crystal City ISD,Zavala,C,42,1480,https://txschools.net/district/crystal-city-isd-254901
+296,1177,29,251901,Denver City ISD,Yoakum,B,42,1395,https://txschools.net/district/denver-city-isd-251901
+296,1177,29,049901,Gainesville ISD,Cooke,D,42,3054,https://txschools.net/district/gainesville-isd-049901
+296,1177,29,067904,Gorman ISD,Eastland,C,42,210,https://txschools.net/district/gorman-isd-067904
+296,1177,29,127903,Hamlin Collegiate ISD,Jones,B,42,383,https://txschools.net/district/hamlin-collegiate-isd-127903
+296,1177,29,057848,International Leadership of Texas (ILTexas),Dallas,B,42,26257,https://txschools.net/district/international-leadership-of-texas-iltexas-057848
+296,1177,29,108912,La Joya ISD,Hidalgo,B,42,21606,https://txschools.net/district/la-joya-isd-108912
+296,1177,29,057913,Lancaster ISD,Dallas,B,42,6431,https://txschools.net/district/lancaster-isd-057913
+296,1177,29,241906,Louise ISD,Wharton,B,42,510,https://txschools.net/district/louise-isd-241906
+296,1177,29,007904,Lytle ISD,Atascosa,D,42,1803,https://txschools.net/district/lytle-isd-007904
+296,1177,29,167902,Mullin ISD,Mills,C,42,176,https://txschools.net/district/mullin-isd-167902
+296,1177,29,093904,Navasota ISD,Grimes,C,42,3127,https://txschools.net/district/navasota-isd-093904
+296,1177,29,244905,Northside ISD,Wilbarger,B,42,246,https://txschools.net/district/northside-isd-244905
+296,1177,29,083901,Seagraves ISD,Gaines,B,42,523,https://txschools.net/district/seagraves-isd-083901
+296,1177,29,101802,Ser-Ninos Charter School,Harris,C,42,1206,https://txschools.net/district/ser-ninos-charter-school-101802
+296,1177,29,084906,Texas City ISD,Galveston,C,42,7379,https://txschools.net/district/texas-city-isd-084906
+296,1177,29,228903,Trinity ISD,Trinity,D,42,1150,https://txschools.net/district/trinity-isd-228903
+296,1177,29,126908,Venus ISD,Johnson,C,42,2191,https://txschools.net/district/venus-isd-126908
+296,1177,29,234907,Wills Point ISD,Van Zandt,C,42,2882,https://txschools.net/district/wills-point-isd-234907
+296,1177,29,153907,Wilson ISD,Lynn,C,42,120,https://txschools.net/district/wilson-isd-153907
+326,1177,34,221901,Abilene ISD,Taylor,C,43,14260,https://txschools.net/district/abilene-isd-221901
+326,1177,34,043917,Blue Ridge ISD,Collin,C,43,1056,https://txschools.net/district/blue-ridge-isd-043917
+326,1177,34,021803,Brazos School for Inquiry & Creativity,Brazos,C,43,310,https://txschools.net/district/brazos-school-for-inquiry-creativity-021803
+326,1177,34,223901,Brownfield ISD,Terry,C,43,1587,https://txschools.net/district/brownfield-isd-223901
+326,1177,34,021902,Bryan ISD,Brazos,C,43,15653,https://txschools.net/district/bryan-isd-021902
+326,1177,34,071801,Burnham Wood Charter School District,El Paso,B,43,1895,https://txschools.net/district/burnham-wood-charter-school-district-071801
+326,1177,34,101905,Channelview ISD,Harris,B,43,9086,https://txschools.net/district/channelview-isd-101905
+326,1177,34,071901,Clint ISD,El Paso,B,43,9829,https://txschools.net/district/clint-isd-071901
+326,1177,34,168901,Colorado ISD,Mitchell,C,43,901,https://txschools.net/district/colorado-isd-168901
+326,1177,34,175903,Corsicana ISD,Navarro,C,43,5910,https://txschools.net/district/corsicana-isd-175903
+326,1177,34,142901,Cotulla ISD,La Salle,C,43,1130,https://txschools.net/district/cotulla-isd-142901
+326,1177,34,146902,Dayton ISD,Liberty,C,43,5777,https://txschools.net/district/dayton-isd-146902
+326,1177,34,129902,Forney ISD,Kaufman,C,43,19643,https://txschools.net/district/forney-isd-129902
+326,1177,34,146904,Hardin ISD,Liberty,C,43,1175,https://txschools.net/district/hardin-isd-146904
+326,1177,34,108802,Horizon Montessori Public Schools,Hidalgo,B,43,1034,https://txschools.net/district/horizon-montessori-public-schools-108802
+326,1177,34,015822,Jubilee Academies,Bexar,B,43,5019,https://txschools.net/district/jubilee-academies-015822
+326,1177,34,134901,Junction ISD,Kimble,C,43,552,https://txschools.net/district/junction-isd-134901
+326,1177,34,092902,Kilgore ISD,Gregg,C,43,3576,https://txschools.net/district/kilgore-isd-092902
+326,1177,34,232901,Knippa ISD,Uvalde,A,43,408,https://txschools.net/district/knippa-isd-232901
+326,1177,34,201903,Laneville ISD,Rusk,D,43,104,https://txschools.net/district/laneville-isd-201903
+326,1177,34,101874,Legacy School of Sport Sciences,Harris,D,43,550,https://txschools.net/district/legacy-school-of-sport-sciences-101874
+326,1177,34,054902,Lorenzo ISD,Crosby,C,43,175,https://txschools.net/district/lorenzo-isd-054902
+326,1177,34,096904,Memphis ISD,Hall,B,43,331,https://txschools.net/district/memphis-isd-096904
+326,1177,34,140905,Olton ISD,Lamb,B,43,592,https://txschools.net/district/olton-isd-140905
+326,1177,34,104907,Paint Creek ISD,Haskell,A,43,116,https://txschools.net/district/paint-creek-isd-104907
+326,1177,34,039903,Petrolia CISD,Clay,C,43,485,https://txschools.net/district/petrolia-cisd-039903
+326,1177,34,095905,Plainview ISD,Hale,C,43,3811,https://txschools.net/district/plainview-isd-095905
+326,1177,34,166904,Rockdale ISD,Milam,C,43,1452,https://txschools.net/district/rockdale-isd-166904
+326,1177,34,105902,San Marcos CISD,Hays,C,43,8134,https://txschools.net/district/san-marcos-cisd-105902
+326,1177,34,049903,Valley View ISD,Cooke,B,43,875,https://txschools.net/district/valley-view-isd-049903
+326,1177,34,108808,Vanguard Academy,Hidalgo,A,43,6739,https://txschools.net/district/vanguard-academy-108808
+326,1177,34,244903,Vernon ISD,Wilbarger,C,43,1685,https://txschools.net/district/vernon-isd-244903
+326,1177,34,235902,Victoria ISD,Victoria,C,43,12534,https://txschools.net/district/victoria-isd-235902
+326,1177,34,143904,Vysehrad ISD,Lavaca,D,43,46,https://txschools.net/district/vysehrad-isd-143904
+326,1177,34,178915,West Oso ISD,Nueces,D,43,1777,https://txschools.net/district/west-oso-isd-178915
+361,1177,27,101849,Accelerated Intermediate Academy,Harris,A,44,166,https://txschools.net/district/accelerated-intermediate-academy-101849
+361,1177,27,071906,Anthony ISD,El Paso,B,44,681,https://txschools.net/district/anthony-isd-071906
+361,1177,27,013901,Beeville ISD,Bee,C,44,2871,https://txschools.net/district/beeville-isd-013901
+361,1177,27,204901,Coldspring-Oakhurst CISD,San Jacinto,C,44,1587,https://txschools.net/district/coldspring-oakhurst-cisd-204901
+361,1177,27,112905,Cumby Collegiate ISD,Hopkins,C,44,485,https://txschools.net/district/cumby-collegiate-isd-112905
+361,1177,27,108902,Donna ISD,Hidalgo,B,44,12436,https://txschools.net/district/donna-isd-108902
+361,1177,27,171901,Dumas ISD,Moore,B,44,4232,https://txschools.net/district/dumas-isd-171901
+361,1177,27,074905,Ector ISD,Fannin,B,44,234,https://txschools.net/district/ector-isd-074905
+361,1177,27,089901,Gonzales ISD,Gonzales,C,44,2514,https://txschools.net/district/gonzales-isd-089901
+361,1177,27,057912,Irving ISD,Dallas,C,44,29182,https://txschools.net/district/irving-isd-057912
+361,1177,27,155901,Jefferson ISD,Marion,C,44,1105,https://txschools.net/district/jefferson-isd-155901
+361,1177,27,121905,Kirbyville CISD,Jasper,C,44,1443,https://txschools.net/district/kirbyville-cisd-121905
+361,1177,27,110902,Levelland ISD,Hockley,B,44,2398,https://txschools.net/district/levelland-isd-110902
+361,1177,27,022902,Marathon ISD,Brewster,B,44,46,https://txschools.net/district/marathon-isd-022902
+361,1177,27,161909,McGregor ISD,McLennan,C,44,1448,https://txschools.net/district/mcgregor-isd-161909
+361,1177,27,009901,Muleshoe ISD,Bailey,B,44,1309,https://txschools.net/district/muleshoe-isd-009901
+361,1177,27,057850,Pioneer Technology & Arts Academy,Dallas,C,44,2400,https://txschools.net/district/pioneer-technology-arts-academy-057850
+361,1177,27,189902,Presidio ISD,Presidio,C,44,1063,https://txschools.net/district/presidio-isd-189902
+361,1177,27,031911,Rio Hondo ISD,Cameron,C,44,1312,https://txschools.net/district/rio-hondo-isd-031911
+361,1177,27,008902,Sealy ISD,Austin,C,44,3014,https://txschools.net/district/sealy-isd-008902
+361,1177,27,246911,Taylor ISD,Williamson,B,44,2882,https://txschools.net/district/taylor-isd-246911
+361,1177,27,081904,Teague ISD,Freestone,B,44,1166,https://txschools.net/district/teague-isd-081904
+361,1177,27,019907,Texarkana ISD,Bowie,C,44,7623,https://txschools.net/district/texarkana-isd-019907
+361,1177,27,212904,Troup ISD,Smith,C,44,1067,https://txschools.net/district/troup-isd-212904
+361,1177,27,102903,Waskom ISD,Harrison,C,44,764,https://txschools.net/district/waskom-isd-102903
+361,1177,27,180904,Wildorado ISD,Oldham,A,44,198,https://txschools.net/district/wildorado-isd-180904
+361,1177,27,212910,Winona ISD,Smith,C,44,1122,https://txschools.net/district/winona-isd-212910
+361,1177,27,253901,Zapata County ISD,Zapata,B,44,3199,https://txschools.net/district/zapata-county-isd-253901
+389,1177,35,228905,Apple Springs ISD,Trinity,D,45,156,https://txschools.net/district/apple-springs-isd-228905
+389,1177,35,241901,Boling ISD,Wharton,C,45,1143,https://txschools.net/district/boling-isd-241901
+389,1177,35,074903,Bonham ISD,Fannin,C,45,1939,https://txschools.net/district/bonham-isd-074903
+389,1177,35,136901,Brackett ISD,Kinney,C,45,490,https://txschools.net/district/brackett-isd-136901
+389,1177,35,126903,Cleburne ISD,Johnson,C,45,6776,https://txschools.net/district/cleburne-isd-126903
+389,1177,35,047901,Comanche ISD,Comanche,B,45,1327,https://txschools.net/district/comanche-isd-047901
+389,1177,35,055901,Culberson County-Allamoore ISD,Culberson,B,45,377,https://txschools.net/district/culberson-county-allamoore-isd-055901
+389,1177,35,035901,Dimmitt ISD,Castro,C,45,1072,https://txschools.net/district/dimmitt-isd-035901
+389,1177,35,175905,Frost ISD,Navarro,C,45,459,https://txschools.net/district/frost-isd-175905
+389,1177,35,092901,Gladewater ISD,Gregg,C,45,1577,https://txschools.net/district/gladewater-isd-092901
+389,1177,35,057910,Grand Prairie ISD,Dallas,B,45,25445,https://txschools.net/district/grand-prairie-isd-057910
+389,1177,35,250902,Hawkins ISD,Wood,C,45,776,https://txschools.net/district/hawkins-isd-250902
+389,1177,35,101925,Huffman ISD,Harris,C,45,3698,https://txschools.net/district/huffman-isd-101925
+389,1177,35,070907,Italy ISD,Ellis,B,45,599,https://txschools.net/district/italy-isd-070907
+389,1177,35,050909,Jonesboro ISD,Coryell,C,45,317,https://txschools.net/district/jonesboro-isd-050909
+389,1177,35,248901,Kermit ISD,Winkler,D,45,1255,https://txschools.net/district/kermit-isd-248901
+389,1177,35,027904,Marble Falls ISD,Burnet,C,45,4054,https://txschools.net/district/marble-falls-isd-027904
+389,1177,35,205904,Mathis ISD,San Patricio,B,45,1364,https://txschools.net/district/mathis-isd-205904
+389,1177,35,090903,McLean ISD,Gray,B,45,177,https://txschools.net/district/mclean-isd-090903
+389,1177,35,170908,New Caney ISD,Montgomery,C,45,19642,https://txschools.net/district/new-caney-isd-170908
+389,1177,35,098903,Pringle-Morse CISD,Hansford,C,45,126,https://txschools.net/district/pringle-morse-cisd-098903
+389,1177,35,108910,Progreso ISD,Hidalgo,B,45,1291,https://txschools.net/district/progreso-isd-108910
+389,1177,35,196903,Refugio ISD,Refugio,B,45,591,https://txschools.net/district/refugio-isd-196903
+389,1177,35,152802,Rise Academy,Lubbock,A,45,287,https://txschools.net/district/rise-academy-152802
+389,1177,35,117903,Sanford-Fritch ISD,Hutchinson,C,45,714,https://txschools.net/district/sanford-fritch-isd-117903
+389,1177,35,101924,Sheldon ISD,Harris,C,45,10576,https://txschools.net/district/sheldon-isd-101924
+389,1177,35,091906,Sherman ISD,Grayson,C,45,7452,https://txschools.net/district/sherman-isd-091906
+389,1177,35,049909,Sivells Bend ISD,Cooke,B,45,56,https://txschools.net/district/sivells-bend-isd-049909
+389,1177,35,152903,Slaton ISD,Lubbock,C,45,1308,https://txschools.net/district/slaton-isd-152903
+389,1177,35,170907,Splendora ISD,Montgomery,C,45,5882,https://txschools.net/district/splendora-isd-170907
+389,1177,35,171902,Sunray Collegiate ISD,Moore,B,45,548,https://txschools.net/district/sunray-collegiate-isd-171902
+389,1177,35,227819,University of Texas Elem Charter School,Travis,C,45,305,https://txschools.net/district/university-of-texas-elem-charter-school-227819
+389,1177,35,057803,Uplift Education,Dallas,B,45,23539,https://txschools.net/district/uplift-education-057803
+389,1177,35,227829,Valor Education,Travis,B,45,4738,https://txschools.net/district/valor-education-227829
+389,1177,35,037909,Wells ISD,Cherokee,B,45,235,https://txschools.net/district/wells-isd-037909
+389,1177,35,229903,Woodville ISD,Tyler,D,45,1169,https://txschools.net/district/woodville-isd-229903
+425,1177,26,036901,Anahuac ISD,Chambers,C,46,1533,https://txschools.net/district/anahuac-isd-036901
+425,1177,26,043902,Anna ISD,Collin,C,46,6686,https://txschools.net/district/anna-isd-043902
+425,1177,26,220901,Arlington ISD,Tarrant,C,46,51102,https://txschools.net/district/arlington-isd-220901
+425,1177,26,145902,Centerville ISD,Leon,C,46,633,https://txschools.net/district/centerville-isd-145902
+425,1177,26,065901,Clarendon ISD,Donley,C,46,403,https://txschools.net/district/clarendon-isd-065901
+425,1177,26,070903,Ennis ISD,Ellis,C,46,6621,https://txschools.net/district/ennis-isd-070903
+425,1177,26,187903,Goodrich ISD,Polk,B,46,270,https://txschools.net/district/goodrich-isd-187903
+425,1177,26,101821,Houston Heights High School,Harris,A,46,152,https://txschools.net/district/houston-heights-high-school-101821
+425,1177,26,236902,Huntsville ISD,Walker,C,46,11504,https://txschools.net/district/huntsville-isd-236902
+425,1177,26,034905,Linden-Kildare CISD,Cass,B,46,585,https://txschools.net/district/linden-kildare-cisd-034905
+425,1177,26,160905,Lohn ISD,McCulloch,B,46,109,https://txschools.net/district/lohn-isd-160905
+425,1177,26,003903,Lufkin ISD,Angelina,C,46,6678,https://txschools.net/district/lufkin-isd-003903
+425,1177,26,245902,Lyford CISD,Willacy,B,46,1366,https://txschools.net/district/lyford-cisd-245902
+425,1177,26,182903,Mineral Wells ISD,Palo Pinto,B,46,3244,https://txschools.net/district/mineral-wells-isd-182903
+425,1177,26,001907,Palestine ISD,Anderson,C,46,3144,https://txschools.net/district/palestine-isd-001907
+425,1177,26,182906,Palo Pinto ISD,Palo Pinto,A,46,92,https://txschools.net/district/palo-pinto-isd-182906
+425,1177,26,031909,Point Isabel ISD,Cameron,B,46,1718,https://txschools.net/district/point-isabel-isd-031909
+425,1177,26,015801,Por Vida Academy,Bexar,B,46,167,https://txschools.net/district/por-vida-academy-015801
+425,1177,26,236802,Sam Houston State University Charter School,Walker,B,46,343,https://txschools.net/district/sam-houston-state-university-charter-school-236802
+425,1177,26,205906,Sinton ISD,San Patricio,B,46,1959,https://txschools.net/district/sinton-isd-205906
+425,1177,26,249908,Slidell ISD,Wise,B,46,515,https://txschools.net/district/slidell-isd-249908
+425,1177,26,208902,Snyder ISD,Scurry,C,46,2220,https://txschools.net/district/snyder-isd-208902
+425,1177,26,229905,Spurger ISD,Tyler,B,46,375,https://txschools.net/district/spurger-isd-229905
+425,1177,26,211902,Stratford ISD,Sherman,B,46,487,https://txschools.net/district/stratford-isd-211902
+425,1177,26,033904,White Deer ISD,Carson,B,46,302,https://txschools.net/district/white-deer-isd-033904
+425,1177,26,109911,Whitney ISD,Hill,C,46,1433,https://txschools.net/district/whitney-isd-109911
+425,1177,26,243905,Wichita Falls ISD,Wichita,C,46,12435,https://txschools.net/district/wichita-falls-isd-243905
+452,1177,30,101815,Alief Montessori Community School,Harris,B,47,416,https://txschools.net/district/alief-montessori-community-school-101815
+452,1177,30,109912,Aquilla ISD,Hill,B,47,322,https://txschools.net/district/aquilla-isd-109912
+452,1177,30,119901,Bryson ISD,Jack,B,47,262,https://txschools.net/district/bryson-isd-119901
+452,1177,30,121903,Buna ISD,Jasper,C,47,1412,https://txschools.net/district/buna-isd-121903
+452,1177,30,057903,Carrollton-Farmers Branch ISD,Dallas,B,47,22831,https://txschools.net/district/carrollton-farmers-branch-isd-057903
+452,1177,30,133901,Center Point ISD,Kerr,C,47,492,https://txschools.net/district/center-point-isd-133901
+452,1177,30,212909,Chapel Hill ISD,Smith,C,47,3186,https://txschools.net/district/chapel-hill-isd-212909
+452,1177,30,073901,Chilton ISD,Falls,A,47,574,https://txschools.net/district/chilton-isd-073901
+452,1177,30,091903,Denison ISD,Grayson,C,47,4742,https://txschools.net/district/denison-isd-091903
+452,1177,30,120901,Edna ISD,Jackson,B,47,1538,https://txschools.net/district/edna-isd-120901
+452,1177,30,081902,Fairfield ISD,Freestone,C,47,1526,https://txschools.net/district/fairfield-isd-081902
+452,1177,30,234904,Grand Saline ISD,Van Zandt,B,47,1205,https://txschools.net/district/grand-saline-isd-234904
+452,1177,30,201902,Henderson ISD,Rusk,B,47,3151,https://txschools.net/district/henderson-isd-201902
+452,1177,30,109905,Hubbard ISD,Hill,C,47,398,https://txschools.net/district/hubbard-isd-109905
+452,1177,30,133904,Ingram ISD,Kerr,A,47,1365,https://txschools.net/district/ingram-isd-133904
+452,1177,30,109907,Itasca ISD,Hill,C,47,652,https://txschools.net/district/itasca-isd-109907
+452,1177,30,124901,Jim Hogg County ISD,Jim Hogg,C,47,927,https://txschools.net/district/jim-hogg-county-isd-124901
+452,1177,30,128901,Karnes City ISD,Karnes,B,47,928,https://txschools.net/district/karnes-city-isd-128901
+452,1177,30,014906,Killeen ISD,Bell,C,47,41366,https://txschools.net/district/killeen-isd-014906
+452,1177,30,061914,Little Elm ISD,Denton,C,47,7647,https://txschools.net/district/little-elm-isd-061914
+452,1177,30,127905,Lueders-Avoca ISD,Jones,D,47,103,https://txschools.net/district/lueders-avoca-isd-127905
+452,1177,30,019910,Malta ISD,Bowie,B,47,208,https://txschools.net/district/malta-isd-019910
+452,1177,30,072910,Morgan Mill ISD,Erath,F,47,132,https://txschools.net/district/morgan-mill-isd-072910
+452,1177,30,220817,Newman International Academy of Arlington,Tarrant,C,47,2697,https://txschools.net/district/newman-international-academy-of-arlington-220817
+452,1177,30,050904,Oglesby ISD,Coryell,B,47,257,https://txschools.net/district/oglesby-isd-050904
+452,1177,30,090904,Pampa ISD,Gray,C,47,3036,https://txschools.net/district/pampa-isd-090904
+452,1177,30,061903,Pilot Point ISD,Denton,C,47,1728,https://txschools.net/district/pilot-point-isd-061903
+452,1177,30,041902,Robert Lee ISD,Coke,B,47,253,https://txschools.net/district/robert-lee-isd-041902
+452,1177,30,101838,Southwest Public Schools,Harris,B,47,1727,https://txschools.net/district/southwest-public-schools-101838
+452,1177,30,229904,Warren ISD,Tyler,C,47,1178,https://txschools.net/district/warren-isd-229904
+452,1177,30,220920,White Settlement ISD,Tarrant,C,47,6684,https://txschools.net/district/white-settlement-isd-220920
+483,1177,31,158901,Bay City ISD,Matagorda,C,48,3312,https://txschools.net/district/bay-city-isd-158901
+483,1177,31,034909,Bloomburg ISD,Cass,B,48,202,https://txschools.net/district/bloomburg-isd-034909
+483,1177,31,109913,Blum ISD,Hill,A,48,335,https://txschools.net/district/blum-isd-109913
+483,1177,31,027903,Burnet CISD,Burnet,C,48,3224,https://txschools.net/district/burnet-cisd-027903
+483,1177,31,227817,Cedars International Academy,Travis,B,48,543,https://txschools.net/district/cedars-international-academy-227817
+483,1177,31,101906,Crosby ISD,Harris,B,48,7183,https://txschools.net/district/crosby-isd-101906
+483,1177,31,056901,Dalhart ISD,Dallam,C,48,1801,https://txschools.net/district/dalhart-isd-056901
+483,1177,31,057905,Dallas ISD,Dallas,B,48,134302,https://txschools.net/district/dallas-isd-057905
+483,1177,31,220918,Eagle Mt-Saginaw ISD,Tarrant,C,48,24147,https://txschools.net/district/eagle-mt-saginaw-isd-220918
+483,1177,31,210906,Excelsior ISD,Shelby,C,48,112,https://txschools.net/district/excelsior-isd-210906
+483,1177,31,101911,Goose Creek CISD,Harris,B,48,23308,https://txschools.net/district/goose-creek-cisd-101911
+483,1177,31,147902,Groesbeck ISD,Limestone,C,48,1457,https://txschools.net/district/groesbeck-isd-147902
+483,1177,31,015828,Harmony Public Schools - South Texas,Bexar,B,48,4991,https://txschools.net/district/harmony-public-schools-south-texas-015828
+483,1177,31,246906,Hutto ISD,Williamson,C,48,11069,https://txschools.net/district/hutto-isd-246906
+483,1177,31,108807,IDEA Public Schools,Hidalgo,B,48,79607,https://txschools.net/district/idea-public-schools-108807
+483,1177,31,129903,Kaufman ISD,Kaufman,B,48,4208,https://txschools.net/district/kaufman-isd-129903
+483,1177,31,181908,Little Cypress-Mauriceville CISD,Orange,C,48,3342,https://txschools.net/district/little-cypress-mauriceville-cisd-181908
+483,1177,31,019903,Maud ISD,Bowie,A,48,459,https://txschools.net/district/maud-isd-019903
+483,1177,31,057914,Mesquite ISD,Dallas,B,48,36585,https://txschools.net/district/mesquite-isd-057914
+483,1177,31,062906,Meyersville ISD,Dewitt,B,48,167,https://txschools.net/district/meyersville-isd-062906
+483,1177,31,205905,Odem-Edroy ISD,San Patricio,B,48,892,https://txschools.net/district/odem-edroy-isd-205905
+483,1177,31,230903,Ore City ISD,Upshur,C,48,786,https://txschools.net/district/ore-city-isd-230903
+483,1177,31,099903,Quanah ISD,Hardeman,B,48,396,https://txschools.net/district/quanah-isd-099903
+483,1177,31,034907,Queen City ISD,Cass,C,48,860,https://txschools.net/district/queen-city-isd-034907
+483,1177,31,161802,Rapoport Academy Public School,McLennan,C,48,914,https://txschools.net/district/rapoport-academy-public-school-161802
+483,1177,31,092906,Sabine ISD,Gregg,B,48,1567,https://txschools.net/district/sabine-isd-092906
+483,1177,31,066902,San Diego ISD,Duval,B,48,1416,https://txschools.net/district/san-diego-isd-066902
+483,1177,31,101859,Step Charter School,Harris,B,48,723,https://txschools.net/district/step-charter-school-101859
+483,1177,31,101861,The Rhodes School for Performing Arts,Harris,B,48,405,https://txschools.net/district/the-rhodes-school-for-performing-arts-101861
+483,1177,31,100908,West Hardin County CISD,Hardin,C,48,506,https://txschools.net/district/west-hardin-county-cisd-100908
+483,1177,31,168903,Westbrook ISD,Mitchell,A,48,217,https://txschools.net/district/westbrook-isd-168903
+483,1177,31,003906,Zavalla ISD,Angelina,B,48,308,https://txschools.net/district/zavalla-isd-003906
+515,1177,35,002901,Andrews ISD,Andrews,C,49,4159,https://txschools.net/district/andrews-isd-002901
+515,1177,35,230901,Big Sandy ISD,Upshur,C,49,643,https://txschools.net/district/big-sandy-isd-230901
+515,1177,35,007901,Charlotte ISD,Atascosa,B,49,422,https://txschools.net/district/charlotte-isd-007901
+515,1177,35,229901,Colmesneil ISD,Tyler,C,49,388,https://txschools.net/district/colmesneil-isd-229901
+515,1177,35,020907,Columbia-Brazoria ISD,Brazoria,C,49,2942,https://txschools.net/district/columbia-brazoria-isd-020907
+515,1177,35,045902,Columbus ISD,Colorado,B,49,1594,https://txschools.net/district/columbus-isd-045902
+515,1177,35,130902,Comfort ISD,Kendall,C,49,1012,https://txschools.net/district/comfort-isd-130902
+515,1177,35,163901,Devine ISD,Medina,C,49,1975,https://txschools.net/district/devine-isd-163901
+515,1177,35,234909,Fruitvale ISD,Van Zandt,B,49,390,https://txschools.net/district/fruitvale-isd-234909
+515,1177,35,088902,Goliad ISD,Goliad,B,49,1191,https://txschools.net/district/goliad-isd-088902
+515,1177,35,252901,Graham ISD,Young,C,49,2139,https://txschools.net/district/graham-isd-252901
+515,1177,35,007902,Jourdanton ISD,Atascosa,C,49,1561,https://txschools.net/district/jourdanton-isd-007902
+515,1177,35,129904,Kemp ISD,Kaufman,D,49,2017,https://txschools.net/district/kemp-isd-129904
+515,1177,35,220914,Kennedale ISD,Tarrant,B,49,2659,https://txschools.net/district/kennedale-isd-220914
+515,1177,35,227820,KIPP Texas Public Schools,Travis,B,49,31596,https://txschools.net/district/kipp-texas-public-schools-227820
+515,1177,35,061905,Krum ISD,Denton,C,49,2573,https://txschools.net/district/krum-isd-061905
+515,1177,35,057807,Life School,Dallas,B,49,5560,https://txschools.net/district/life-school-057807
+515,1177,35,140904,Littlefield ISD,Lamb,B,49,1185,https://txschools.net/district/littlefield-isd-140904
+515,1177,35,152901,Lubbock ISD,Lubbock,B,49,23029,https://txschools.net/district/lubbock-isd-152901
+515,1177,35,107906,Malakoff ISD,Henderson,B,49,1522,https://txschools.net/district/malakoff-isd-107906
+515,1177,35,164901,Menard ISD,Menard,B,49,249,https://txschools.net/district/menard-isd-164901
+515,1177,35,184904,Millsap ISD,Parker,B,49,1068,https://txschools.net/district/millsap-isd-184904
+515,1177,35,108908,Mission CISD,Hidalgo,B,49,13186,https://txschools.net/district/mission-cisd-108908
+515,1177,35,238902,Monahans-Wickett-Pyote ISD,Ward,C,49,2180,https://txschools.net/district/monahans-wickett-pyote-isd-238902
+515,1177,35,080901,Mount Vernon ISD,Franklin,B,49,1514,https://txschools.net/district/mount-vernon-isd-080901
+515,1177,35,139909,Paris ISD,Lamar,B,49,3728,https://txschools.net/district/paris-isd-139909
+515,1177,35,043911,Princeton ISD,Collin,B,49,11375,https://txschools.net/district/princeton-isd-043911
+515,1177,35,070911,Red Oak ISD,Ellis,C,49,6569,https://txschools.net/district/red-oak-isd-070911
+515,1177,35,188902,River Road ISD,Potter,B,49,1183,https://txschools.net/district/river-road-isd-188902
+515,1177,35,226903,San Angelo ISD,Tom Green,C,49,12500,https://txschools.net/district/san-angelo-isd-226903
+515,1177,35,100904,Silsbee ISD,Hardin,C,49,2377,https://txschools.net/district/silsbee-isd-100904
+515,1177,35,085903,Southland ISD,Garza,B,49,145,https://txschools.net/district/southland-isd-085903
+515,1177,35,140907,Springlake-Earth ISD,Lamb,A,49,221,https://txschools.net/district/springlake-earth-isd-140907
+515,1177,35,212905,Tyler ISD,Smith,B,49,18800,https://txschools.net/district/tyler-isd-212905
+515,1177,35,181907,Vidor ISD,Orange,C,49,4095,https://txschools.net/district/vidor-isd-181907
+515,1177,35,170904,Willis ISD,Montgomery,C,49,9579,https://txschools.net/district/willis-isd-170904
+551,1177,31,037901,Alto ISD,Cherokee,C,50,524,https://txschools.net/district/alto-isd-037901
+551,1177,31,126901,Alvarado ISD,Johnson,C,50,3703,https://txschools.net/district/alvarado-isd-126901
+551,1177,31,034901,Atlanta ISD,Cass,B,50,1918,https://txschools.net/district/atlanta-isd-034901
+551,1177,31,200901,Ballinger ISD,Runnels,B,50,781,https://txschools.net/district/ballinger-isd-200901
+551,1177,31,039904,Bellevue ISD,Clay,A,50,242,https://txschools.net/district/bellevue-isd-039904
+551,1177,31,249902,Boyd ISD,Wise,C,50,1443,https://txschools.net/district/boyd-isd-249902
+551,1177,31,041901,Bronte ISD,Coke,A,50,224,https://txschools.net/district/bronte-isd-041901
+551,1177,31,049905,Callisburg ISD,Cooke,C,50,1139,https://txschools.net/district/callisburg-isd-049905
+551,1177,31,003907,Central ISD,Angelina,C,50,1491,https://txschools.net/district/central-isd-003907
+551,1177,31,178904,Corpus Christi ISD,Nueces,B,50,31976,https://txschools.net/district/corpus-christi-isd-178904
+551,1177,31,061901,Denton ISD,Denton,C,50,33101,https://txschools.net/district/denton-isd-061901
+551,1177,31,108904,Edinburg CISD,Hidalgo,B,50,32466,https://txschools.net/district/edinburg-cisd-108904
+551,1177,31,071902,El Paso ISD,El Paso,B,50,46113,https://txschools.net/district/el-paso-isd-071902
+551,1177,31,097902,Hamilton ISD,Hamilton,C,50,794,https://txschools.net/district/hamilton-isd-097902
+551,1177,31,129905,Mabank ISD,Kaufman,B,50,4098,https://txschools.net/district/mabank-isd-129905
+551,1177,31,165901,Midland ISD,Midland,C,50,29048,https://txschools.net/district/midland-isd-165901
+551,1177,31,176902,Newton ISD,Newton,C,50,946,https://txschools.net/district/newton-isd-176902
+551,1177,31,089903,Nixon-Smiley CISD,Gonzales,C,50,994,https://txschools.net/district/nixon-smiley-cisd-089903
+551,1177,31,184901,Poolville ISD,Parker,C,50,764,https://txschools.net/district/poolville-isd-184901
+551,1177,31,015814,Positive Solutions Charter School,Bexar,B,50,91,https://txschools.net/district/positive-solutions-charter-school-015814
+551,1177,31,206902,Richland Springs ISD,San Saba,C,50,101,https://txschools.net/district/richland-springs-isd-206902
+551,1177,31,004901,Rockport-Fulton ISD,Aransas,C,50,2831,https://txschools.net/district/rockport-fulton-isd-004901
+551,1177,31,199902,Royse City ISD,Rockwall,C,50,10141,https://txschools.net/district/royse-city-isd-199902
+551,1177,31,031914,Santa Rosa ISD,Cameron,B,50,811,https://txschools.net/district/santa-rosa-isd-031914
+551,1177,31,204904,Shepherd ISD,San Jacinto,C,50,1967,https://txschools.net/district/shepherd-isd-204904
+551,1177,31,218901,Sonora ISD,Sutton,C,50,642,https://txschools.net/district/sonora-isd-218901
+551,1177,31,112910,Sulphur Bluff ISD,Hopkins,B,50,195,https://txschools.net/district/sulphur-bluff-isd-112910
+551,1177,31,143905,Sweet Home ISD,Lavaca,C,50,164,https://txschools.net/district/sweet-home-isd-143905
+551,1177,31,072901,Three Way ISD,Erath,C,50,224,https://txschools.net/district/three-way-isd-072901
+551,1177,31,220801,Treetops School International,Tarrant,C,50,186,https://txschools.net/district/treetops-school-international-220801
+551,1177,31,074912,Trenton ISD,Fannin,B,50,730,https://txschools.net/district/trenton-isd-074912
+551,1177,31,184903,Weatherford ISD,Parker,B,50,8118,https://txschools.net/district/weatherford-isd-184903
+583,1177,30,020902,Angleton ISD,Brazoria,B,51,7241,https://txschools.net/district/angleton-isd-020902
+583,1177,30,107901,Athens ISD,Henderson,C,51,2938,https://txschools.net/district/athens-isd-107901
+583,1177,30,061907,Aubrey ISD,Denton,C,51,4885,https://txschools.net/district/aubrey-isd-061907
+583,1177,30,116916,Boles ISD,Hunt,B,51,530,https://txschools.net/district/boles-isd-116916
+583,1177,30,020905,Brazosport ISD,Brazoria,B,51,10843,https://txschools.net/district/brazosport-isd-020905
+583,1177,30,239901,Brenham ISD,Washington,B,51,4712,https://txschools.net/district/brenham-isd-239901
+583,1177,30,174901,Chireno ISD,Nacogdoches,B,51,343,https://txschools.net/district/chireno-isd-174901
+583,1177,30,050910,Copperas Cove ISD,Coryell,B,51,7619,https://txschools.net/district/copperas-cove-isd-050910
+583,1177,30,241903,El Campo ISD,Wharton,B,51,3206,https://txschools.net/district/el-campo-isd-241903
+583,1177,30,070905,Ferris ISD,Ellis,B,51,3031,https://txschools.net/district/ferris-isd-070905
+583,1177,30,120902,Ganado ISD,Jackson,B,51,720,https://txschools.net/district/ganado-isd-120902
+583,1177,30,183904,Gary ISD,Panola,D,51,478,https://txschools.net/district/gary-isd-183904
+583,1177,30,244901,Harrold ISD,Wilbarger,B,51,159,https://txschools.net/district/harrold-isd-244901
+583,1177,30,108905,Hidalgo ISD,Hidalgo,B,51,2788,https://txschools.net/district/hidalgo-isd-108905
+583,1177,30,163904,Hondo ISD,Medina,C,51,1720,https://txschools.net/district/hondo-isd-163904
+583,1177,30,101828,Houston Gateway Academy Inc,Harris,B,51,2364,https://txschools.net/district/houston-gateway-academy-inc-101828
+583,1177,30,003904,Huntington ISD,Angelina,B,51,1496,https://txschools.net/district/huntington-isd-003904
+583,1177,30,210902,Joaquin ISD,Shelby,A,51,695,https://txschools.net/district/joaquin-isd-210902
+583,1177,30,175907,Kerens ISD,Navarro,B,51,692,https://txschools.net/district/kerens-isd-175907
+583,1177,30,113905,Latexo ISD,Houston,C,51,551,https://txschools.net/district/latexo-isd-113905
+583,1177,30,146906,Liberty ISD,Liberty,C,51,2406,https://txschools.net/district/liberty-isd-146906
+583,1177,30,225902,Mount Pleasant ISD,Titus,B,51,5019,https://txschools.net/district/mount-pleasant-isd-225902
+583,1177,30,139911,North Lamar ISD,Lamar,C,51,2362,https://txschools.net/district/north-lamar-isd-139911
+583,1177,30,158905,Palacios ISD,Matagorda,B,51,1266,https://txschools.net/district/palacios-isd-158905
+583,1177,30,119903,Perrin-Whitt CISD,Jack,A,51,306,https://txschools.net/district/perrin-whitt-cisd-119903
+583,1177,30,083903,Seminole ISD,Gaines,C,51,3083,https://txschools.net/district/seminole-isd-083903
+583,1177,30,019909,Simms ISD,Bowie,B,51,462,https://txschools.net/district/simms-isd-019909
+583,1177,30,063903,Spur ISD,Dickens,B,51,210,https://txschools.net/district/spur-isd-063903
+583,1177,30,152504,Texas Tech University K-12,Lubbock,B,51,829,https://txschools.net/district/texas-tech-university-k-12-152504
+583,1177,30,237904,Waller ISD,Waller,B,51,10846,https://txschools.net/district/waller-isd-237904
+583,1177,30,062903,Yoakum ISD,Dewitt,B,51,1409,https://txschools.net/district/yoakum-isd-062903
+614,1177,30,022901,Alpine ISD,Brewster,C,52,956,https://txschools.net/district/alpine-isd-022901
+614,1177,30,031901,Brownsville ISD,Cameron,B,52,34296,https://txschools.net/district/brownsville-isd-031901
+614,1177,30,249904,Chico ISD,Wise,C,52,580,https://txschools.net/district/chico-isd-249904
+614,1177,30,243906,City View ISD,Wichita,B,52,1169,https://txschools.net/district/city-view-isd-243906
+614,1177,30,114902,Coahoma ISD,Howard,C,52,1157,https://txschools.net/district/coahoma-isd-114902
+614,1177,30,018908,Cranfills Gap ISD,Bosque,B,52,116,https://txschools.net/district/cranfills-gap-isd-018908
+614,1177,30,003905,Diboll ISD,Angelina,B,52,1513,https://txschools.net/district/diboll-isd-003905
+614,1177,30,185903,Friona ISD,Parmer,C,52,979,https://txschools.net/district/friona-isd-185903
+614,1177,30,057909,Garland ISD,Dallas,B,52,49060,https://txschools.net/district/garland-isd-057909
+614,1177,30,246904,Georgetown ISD,Williamson,B,52,13951,https://txschools.net/district/georgetown-isd-246904
+614,1177,30,246905,Granger ISD,Williamson,C,52,573,https://txschools.net/district/granger-isd-246905
+614,1177,30,226907,Grape Creek ISD,Tom Green,C,52,1192,https://txschools.net/district/grape-creek-isd-226907
+614,1177,30,113902,Grapeland ISD,Houston,C,52,578,https://txschools.net/district/grapeland-isd-113902
+614,1177,30,015835,Great Hearts Texas,Bexar,B,52,14038,https://txschools.net/district/great-hearts-texas-015835
+614,1177,30,039902,Henrietta ISD,Clay,B,52,862,https://txschools.net/district/henrietta-isd-039902
+614,1177,30,105801,Katherine Anne Porter School,Hays,D,52,76,https://txschools.net/district/katherine-anne-porter-school-105801
+614,1177,30,031905,La Feria ISD,Cameron,C,52,2754,https://txschools.net/district/la-feria-isd-031905
+614,1177,30,074909,Leonard ISD,Fannin,B,52,840,https://txschools.net/district/leonard-isd-074909
+614,1177,30,158904,Matagorda ISD,Matagorda,C,52,118,https://txschools.net/district/matagorda-isd-158904
+614,1177,30,034906,McLeod ISD,Cass,A,52,420,https://txschools.net/district/mcleod-isd-034906
+614,1177,30,223902,Meadow ISD,Terry,B,52,199,https://txschools.net/district/meadow-isd-223902
+614,1177,30,101917,Pasadena ISD,Harris,B,52,44046,https://txschools.net/district/pasadena-isd-101917
+614,1177,30,251902,Plains ISD,Yoakum,C,52,413,https://txschools.net/district/plains-isd-251902
+614,1177,30,169909,Prairie Valley ISD,Montague,B,52,138,https://txschools.net/district/prairie-valley-isd-169909
+614,1177,30,126907,Rio Vista ISD,Johnson,C,52,1031,https://txschools.net/district/rio-vista-isd-126907
+614,1177,30,061908,Sanger ISD,Denton,B,52,2951,https://txschools.net/district/sanger-isd-061908
+614,1177,30,156902,Stanton ISD,Martin,B,52,1069,https://txschools.net/district/stanton-isd-156902
+614,1177,30,201910,Tatum ISD,Rusk,B,52,1327,https://txschools.net/district/tatum-isd-201910
+614,1177,30,221801,Texas College Preparatory Academies,Taylor,B,52,17201,https://txschools.net/district/texas-college-preparatory-academies-221801
+614,1177,30,070912,Waxahachie ISD,Ellis,B,52,11092,https://txschools.net/district/waxahachie-isd-070912
+614,1177,30,201914,West Rusk County Consolidated ISD,Rusk,C,52,1006,https://txschools.net/district/west-rusk-county-consolidated-isd-201914
+645,1177,33,220915,Azle ISD,Tarrant,C,53,7166,https://txschools.net/district/azle-isd-220915
+645,1177,33,101870,Beta Academy,Harris,B,53,1674,https://txschools.net/district/beta-academy-101870
+645,1177,33,161919,Bruceville-Eddy ISD,McLennan,C,53,505,https://txschools.net/district/bruceville-eddy-isd-161919
+645,1177,33,201913,Carlisle ISD,Rusk,B,53,656,https://txschools.net/district/carlisle-isd-201913
+645,1177,33,043918,Community ISD,Collin,B,53,5764,https://txschools.net/district/community-isd-043918
+645,1177,33,095902,Cotton Center ISD,Hale,A,53,97,https://txschools.net/district/cotton-center-isd-095902
+645,1177,33,020910,Damon ISD,Brazoria,B,53,87,https://txschools.net/district/damon-isd-020910
+645,1177,33,036903,East Chambers ISD,Chambers,B,53,1563,https://txschools.net/district/east-chambers-isd-036903
+645,1177,33,182901,Gordon ISD,Palo Pinto,A,53,240,https://txschools.net/district/gordon-isd-182901
+645,1177,33,127904,Hawley ISD,Jones,B,53,773,https://txschools.net/district/hawley-isd-127904
+645,1177,33,186903,Iraan-Sheffield Collegiate ISD,Pecos,C,53,514,https://txschools.net/district/iraan-sheffield-collegiate-isd-186903
+645,1177,33,133903,Kerrville ISD,Kerr,B,53,4402,https://txschools.net/district/kerrville-isd-133903
+645,1177,33,138902,Knox City-O'Brien CISD,Knox,A,53,183,https://txschools.net/district/knox-city-o-brien-cisd-138902
+645,1177,33,100903,Kountze ISD,Hardin,C,53,1163,https://txschools.net/district/kountze-isd-100903
+645,1177,33,193902,Leakey ISD,Real,C,53,308,https://txschools.net/district/leakey-isd-193902
+645,1177,33,145911,Leon ISD,Leon,B,53,790,https://txschools.net/district/leon-isd-145911
+645,1177,33,072909,Lingleville ISD,Erath,B,53,264,https://txschools.net/district/lingleville-isd-072909
+645,1177,33,187907,Livingston ISD,Polk,C,53,3988,https://txschools.net/district/livingston-isd-187907
+645,1177,33,161908,Mart ISD,McLennan,B,53,597,https://txschools.net/district/mart-isd-161908
+645,1177,33,025905,May ISD,Brown,C,53,257,https://txschools.net/district/may-isd-025905
+645,1177,33,221904,Merkel ISD,Taylor,C,53,1127,https://txschools.net/district/merkel-isd-221904
+645,1177,33,187910,Onalaska ISD,Polk,B,53,1206,https://txschools.net/district/onalaska-isd-187910
+645,1177,33,179901,Perryton ISD,Ochiltree,B,53,1698,https://txschools.net/district/perryton-isd-179901
+645,1177,33,092904,Pine Tree ISD,Gregg,B,53,4435,https://txschools.net/district/pine-tree-isd-092904
+645,1177,33,116908,Quinlan ISD,Hunt,C,53,2974,https://txschools.net/district/quinlan-isd-116908
+645,1177,33,037907,Rusk ISD,Cherokee,B,53,1980,https://txschools.net/district/rusk-isd-037907
+645,1177,33,075903,Schulenburg ISD,Fayette,C,53,644,https://txschools.net/district/schulenburg-isd-075903
+645,1177,33,015917,Southside ISD,Bexar,B,53,6091,https://txschools.net/district/southside-isd-015917
+645,1177,33,184902,Springtown ISD,Parker,C,53,4227,https://txschools.net/district/springtown-isd-184902
+645,1177,33,057808,Universal Academy,Dallas,A,53,2051,https://txschools.net/district/universal-academy-057808
+645,1177,33,108913,Weslaco ISD,Hidalgo,B,53,16012,https://txschools.net/district/weslaco-isd-108913
+645,1177,33,062905,Westhoff ISD,Dewitt,B,53,100,https://txschools.net/district/westhoff-isd-062905
+645,1177,33,250907,Winnsboro ISD,Wood,B,53,1395,https://txschools.net/district/winnsboro-isd-250907
+645,1177,33,062904,Yorktown ISD,Dewitt,B,53,552,https://txschools.net/district/yorktown-isd-062904
+679,1177,26,180903,Adrian ISD,Oldham,A,54,136,https://txschools.net/district/adrian-isd-180903
+679,1177,26,101803,Aristoi Classical Academy,Harris,B,54,1713,https://txschools.net/district/aristoi-classical-academy-101803
+679,1177,26,014903,Belton ISD,Bell,B,54,13516,https://txschools.net/district/belton-isd-014903
+679,1177,26,148901,Booker ISD,Lipscomb,B,54,335,https://txschools.net/district/booker-isd-148901
+679,1177,26,187904,Corrigan-Camden ISD,Polk,B,54,800,https://txschools.net/district/corrigan-camden-isd-187904
+679,1177,26,062901,Cuero ISD,Dewitt,C,54,1802,https://txschools.net/district/cuero-isd-062901
+679,1177,26,067903,Eastland ISD,Eastland,B,54,939,https://txschools.net/district/eastland-isd-067903
+679,1177,26,049906,Era ISD,Cooke,A,54,517,https://txschools.net/district/era-isd-049906
+679,1177,26,101910,Galena Park ISD,Harris,B,54,20108,https://txschools.net/district/galena-park-isd-101910
+679,1177,26,165902,Greenwood ISD,Midland,C,54,3621,https://txschools.net/district/greenwood-isd-165902
+679,1177,26,102905,Harleton ISD,Harrison,B,54,702,https://txschools.net/district/harleton-isd-102905
+679,1177,26,101846,Harmony Public Schools - Houston South,Harris,A,54,4100,https://txschools.net/district/harmony-public-schools-houston-south-101846
+679,1177,26,071806,Harmony Public Schools - West Texas,El Paso,B,54,6738,https://txschools.net/district/harmony-public-schools-west-texas-071806
+679,1177,26,105906,Hays CISD,Hays,B,54,24938,https://txschools.net/district/hays-cisd-105906
+679,1177,26,101912,Houston ISD,Harris,B,54,167793,https://txschools.net/district/houston-isd-101912
+679,1177,26,058905,Klondike ISD,Dawson,A,54,269,https://txschools.net/district/klondike-isd-058905
+679,1177,26,019914,Leary ISD,Bowie,A,54,106,https://txschools.net/district/leary-isd-019914
+679,1177,26,234905,Martins Mill ISD,Van Zandt,B,54,447,https://txschools.net/district/martins-mill-isd-234905
+679,1177,26,172905,Pewitt CISD,Morris,B,54,794,https://txschools.net/district/pewitt-cisd-172905
+679,1177,26,227904,Pflugerville ISD,Travis,B,54,25028,https://txschools.net/district/pflugerville-isd-227904
+679,1177,26,007905,Pleasanton ISD,Atascosa,C,54,3301,https://txschools.net/district/pleasanton-isd-007905
+679,1177,26,190903,Rains ISD,Rains,C,54,1664,https://txschools.net/district/rains-isd-190903
+679,1177,26,214901,Rio Grande City Grulla ISD,Starr,B,54,9157,https://txschools.net/district/rio-grande-city-grulla-isd-214901
+679,1177,26,152908,Roosevelt ISD,Lubbock,B,54,1115,https://txschools.net/district/roosevelt-isd-152908
+679,1177,26,112901,Sulphur Springs ISD,Hopkins,C,54,4060,https://txschools.net/district/sulphur-springs-isd-112901
+679,1177,26,018904,Valley Mills ISD,Bosque,C,54,664,https://txschools.net/district/valley-mills-isd-018904
+679,1177,26,174906,Woden ISD,Nacogdoches,B,54,824,https://txschools.net/district/woden-isd-174906
+706,1177,29,188901,Amarillo ISD,Potter,B,55,28172,https://txschools.net/district/amarillo-isd-188901
+706,1177,29,017901,Borden County ISD,Borden,A,55,238,https://txschools.net/district/borden-county-isd-017901
+706,1177,29,181901,Bridge City ISD,Orange,C,55,3072,https://txschools.net/district/bridge-city-isd-181901
+706,1177,29,071907,Canutillo ISD,El Paso,C,55,5604,https://txschools.net/district/canutillo-isd-071907
+706,1177,29,183902,Carthage ISD,Panola,B,55,2602,https://txschools.net/district/carthage-isd-183902
+706,1177,29,042901,Coleman ISD,Coleman,B,55,740,https://txschools.net/district/coleman-isd-042901
+706,1177,29,112908,Como-Pickton CISD,Hopkins,B,55,751,https://txschools.net/district/como-pickton-cisd-112908
+706,1177,29,175904,Dawson ISD,Navarro,B,55,608,https://txschools.net/district/dawson-isd-175904
+706,1177,29,105804,Doral Academy of Texas,Hays,B,55,450,https://txschools.net/district/doral-academy-of-texas-105804
+706,1177,29,048901,Eden CISD,Concho,B,55,217,https://txschools.net/district/eden-cisd-048901
+706,1177,29,246902,Florence ISD,Williamson,B,55,1125,https://txschools.net/district/florence-isd-246902
+706,1177,29,077901,Floydada Collegiate ISD,Floyd,B,55,644,https://txschools.net/district/floydada-collegiate-isd-077901
+706,1177,29,115901,Ft Hancock ISD,Hudspeth,C,55,390,https://txschools.net/district/ft-hancock-isd-115901
+706,1177,29,228901,Groveton ISD,Trinity,C,55,740,https://txschools.net/district/groveton-isd-228901
+706,1177,29,135001,Guthrie CSD,King,A,55,99,https://txschools.net/district/guthrie-csd-135001
+706,1177,29,240901,Laredo ISD,Webb,A,55,19461,https://txschools.net/district/laredo-isd-240901
+706,1177,29,028903,Luling ISD,Caldwell,C,55,1431,https://txschools.net/district/luling-isd-028903
+706,1177,29,108909,Pharr-San Juan-Alamo ISD,Hidalgo,A,55,29043,https://txschools.net/district/pharr-san-juan-alamo-isd-108909
+706,1177,29,175911,Rice ISD,Navarro,B,55,1094,https://txschools.net/district/rice-isd-175911
+706,1177,29,057916,Richardson ISD,Dallas,B,55,36142,https://txschools.net/district/richardson-isd-057916
+706,1177,29,194903,Rivercrest ISD,Red River,B,55,665,https://txschools.net/district/rivercrest-isd-194903
+706,1177,29,245904,San Perlita ISD,Willacy,B,55,174,https://txschools.net/district/san-perlita-isd-245904
+706,1177,29,084909,Santa Fe ISD,Galveston,B,55,4326,https://txschools.net/district/santa-fe-isd-084909
+706,1177,29,129910,Scurry-Rosser ISD,Kaufman,B,55,1052,https://txschools.net/district/scurry-rosser-isd-129910
+706,1177,29,011904,Smithville ISD,Bastrop,C,55,1864,https://txschools.net/district/smithville-isd-011904
+706,1177,29,153904,Tahoka ISD,Lynn,B,55,556,https://txschools.net/district/tahoka-isd-153904
+706,1177,29,091918,Tom Bean ISD,Grayson,B,55,763,https://txschools.net/district/tom-bean-isd-091918
+706,1177,29,057845,UME Preparatory Academy,Dallas,B,55,1766,https://txschools.net/district/ume-preparatory-academy-057845
+706,1177,29,223904,Wellman-Union CISD,Terry,A,55,245,https://txschools.net/district/wellman-union-cisd-223904
+706,1177,29,248902,Wink-Loving ISD,Winkler,B,55,434,https://txschools.net/district/wink-loving-isd-248902
+736,1177,18,109901,Abbott ISD,Hill,A,56,285,https://txschools.net/district/abbott-isd-109901
+736,1177,18,212901,Arp ISD,Smith,C,56,918,https://txschools.net/district/arp-isd-212901
+736,1177,18,227901,Austin ISD,Travis,B,56,69000,https://txschools.net/district/austin-isd-227901
+736,1177,18,107902,Brownsboro ISD,Henderson,B,56,2583,https://txschools.net/district/brownsboro-isd-107902
+736,1177,18,091902,Collinsville ISD,Grayson,B,56,647,https://txschools.net/district/collinsville-isd-091902
+736,1177,18,126911,Godley ISD,Johnson,C,56,3315,https://txschools.net/district/godley-isd-126911
+736,1177,18,031903,Harlingen CISD,Cameron,B,56,16187,https://txschools.net/district/harlingen-cisd-031903
+736,1177,18,065902,Hedley ISD,Donley,B,56,85,https://txschools.net/district/hedley-isd-065902
+736,1177,18,019902,Hooks ISD,Bowie,B,56,883,https://txschools.net/district/hooks-isd-019902
+736,1177,18,043802,Imagine Lone Star International Academy,Collin,A,56,269,https://txschools.net/district/imagine-lone-star-international-academy-043802
+736,1177,18,205903,Ingleside ISD,San Patricio,B,56,1983,https://txschools.net/district/ingleside-isd-205903
+736,1177,18,092903,Longview ISD,Gregg,B,56,7906,https://txschools.net/district/longview-isd-092903
+736,1177,18,070915,Maypearl ISD,Ellis,C,56,1217,https://txschools.net/district/maypearl-isd-070915
+736,1177,18,175910,Mildred ISD,Navarro,B,56,801,https://txschools.net/district/mildred-isd-175910
+736,1177,18,125903,Orange Grove ISD,Jim Wells,B,56,1585,https://txschools.net/district/orange-grove-isd-125903
+736,1177,18,073905,Rosebud-Lott ISD,Falls,B,56,763,https://txschools.net/district/rosebud-lott-isd-073905
+736,1177,18,108911,Sharyland ISD,Hidalgo,B,56,9653,https://txschools.net/district/sharyland-isd-108911
+736,1177,18,013905,Skidmore-Tynan ISD,Bee,B,56,769,https://txschools.net/district/skidmore-tynan-isd-013905
+736,1177,18,178912,Tuloso-Midway ISD,Nueces,B,56,3659,https://txschools.net/district/tuloso-midway-isd-178912
+755,1177,34,161918,Axtell ISD,McLennan,B,57,842,https://txschools.net/district/axtell-isd-161918
+755,1177,34,138904,Benjamin ISD,Knox,B,57,96,https://txschools.net/district/benjamin-isd-138904
+755,1177,34,114901,Big Spring ISD,Howard,B,57,3107,https://txschools.net/district/big-spring-isd-114901
+755,1177,34,220902,Birdville ISD,Tarrant,C,57,22044,https://txschools.net/district/birdville-isd-220902
+755,1177,34,160901,Brady ISD,McCulloch,B,57,857,https://txschools.net/district/brady-isd-160901
+755,1177,34,215901,Breckenridge ISD,Stephens,B,57,1288,https://txschools.net/district/breckenridge-isd-215901
+755,1177,34,026901,Caldwell ISD,Burleson,B,57,1828,https://txschools.net/district/caldwell-isd-026901
+755,1177,34,029901,Calhoun County ISD,Calhoun,B,57,3381,https://txschools.net/district/calhoun-county-isd-029901
+755,1177,34,068802,Compass Academy Charter School,Ector,C,57,1759,https://txschools.net/district/compass-academy-charter-school-068802
+755,1177,34,053001,Crockett County Consolidated CSD,Crockett,B,57,615,https://txschools.net/district/crockett-county-consolidated-csd-053001
+755,1177,34,019901,DeKalb ISD,Bowie,B,57,928,https://txschools.net/district/dekalb-isd-019901
+755,1177,34,121906,Evadale ISD,Jasper,A,57,450,https://txschools.net/district/evadale-isd-121906
+755,1177,34,247901,Floresville ISD,Wilson,B,57,3893,https://txschools.net/district/floresville-isd-247901
+755,1177,34,242906,Fort Elliott CISD,Wheeler,B,57,133,https://txschools.net/district/fort-elliott-cisd-242906
+755,1177,34,050902,Gatesville ISD,Coryell,C,57,2547,https://txschools.net/district/gatesville-isd-050902
+755,1177,34,227816,Harmony Public Schools - Central Texas,Travis,B,57,5679,https://txschools.net/district/harmony-public-schools-central-texas-227816
+755,1177,34,161807,Harmony Public Schools - North Texas,McLennan,B,57,11297,https://txschools.net/district/harmony-public-schools-north-texas-161807
+755,1177,34,225907,Harts Bluff ISD,Titus,C,57,873,https://txschools.net/district/harts-bluff-isd-225907
+755,1177,34,072908,Huckabay ISD,Erath,A,57,345,https://txschools.net/district/huckabay-isd-072908
+755,1177,34,119902,Jacksboro ISD,Jack,B,57,1032,https://txschools.net/district/jacksboro-isd-119902
+755,1177,34,242905,Kelton ISD,Wheeler,B,57,129,https://txschools.net/district/kelton-isd-242905
+755,1177,34,141901,Lampasas ISD,Lampasas,B,57,3625,https://txschools.net/district/lampasas-isd-141901
+755,1177,34,173901,Motley County ISD,Motley,A,57,188,https://txschools.net/district/motley-county-isd-173901
+755,1177,34,094903,Navarro ISD,Guadalupe,B,57,3039,https://txschools.net/district/navarro-isd-094903
+755,1177,34,015915,Northside ISD,Bexar,C,57,98031,https://txschools.net/district/northside-isd-015915
+755,1177,34,061906,Ponder ISD,Denton,B,57,1737,https://txschools.net/district/ponder-isd-061906
+755,1177,34,137903,Riviera ISD,Kleberg,B,57,406,https://txschools.net/district/riviera-isd-137903
+755,1177,34,015827,School of Science and Technology,Bexar,B,57,5855,https://txschools.net/district/school-of-science-and-technology-015827
+755,1177,34,242902,Shamrock ISD,Wheeler,C,57,350,https://txschools.net/district/shamrock-isd-242902
+755,1177,34,210903,Shelbyville ISD,Shelby,B,57,862,https://txschools.net/district/shelbyville-isd-210903
+755,1177,34,110906,Smyer ISD,Hockley,A,57,433,https://txschools.net/district/smyer-isd-110906
+755,1177,34,079910,Stafford MSD,Fort Bend,B,57,3529,https://txschools.net/district/stafford-msd-079910
+755,1177,34,127906,Stamford ISD,Jones,B,57,546,https://txschools.net/district/stamford-isd-127906
+755,1177,34,240903,United ISD,Webb,A,57,39764,https://txschools.net/district/united-isd-240903
+755,1177,34,122902,Valentine ISD,Jeff Davis,B,57,28,https://txschools.net/district/valentine-isd-122902
+790,1177,28,249901,Alvord ISD,Wise,B,58,875,https://txschools.net/district/alvord-isd-249901
+790,1177,28,010902,Bandera ISD,Bandera,C,58,2159,https://txschools.net/district/bandera-isd-010902
+790,1177,28,008901,Bellville ISD,Austin,C,58,2316,https://txschools.net/district/bellville-isd-008901
+790,1177,28,016902,Blanco ISD,Blanco,B,58,1106,https://txschools.net/district/blanco-isd-016902
+790,1177,28,025902,Brownwood ISD,Brown,B,58,3293,https://txschools.net/district/brownwood-isd-025902
+790,1177,28,145901,Buffalo ISD,Leon,B,58,971,https://txschools.net/district/buffalo-isd-145901
+790,1177,28,116902,Celeste ISD,Hunt,B,58,471,https://txschools.net/district/celeste-isd-116902
+790,1177,28,249905,Decatur ISD,Wise,C,58,3801,https://txschools.net/district/decatur-isd-249905
+790,1177,28,084901,Dickinson ISD,Galveston,B,58,12569,https://txschools.net/district/dickinson-isd-084901
+790,1177,28,178905,Driscoll ISD,Nueces,B,58,1030,https://txschools.net/district/driscoll-isd-178905
+790,1177,28,234903,Edgewood ISD,Van Zandt,B,58,997,https://txschools.net/district/edgewood-isd-234903
+790,1177,28,184911,Garner ISD,Parker,B,58,352,https://txschools.net/district/garner-isd-184911
+790,1177,28,219901,Happy ISD,Swisher,A,58,238,https://txschools.net/district/happy-isd-219901
+790,1177,28,152910,Idalou ISD,Lubbock,A,58,1036,https://txschools.net/district/idalou-isd-152910
+790,1177,28,075902,La Grange ISD,Fayette,B,58,1839,https://txschools.net/district/la-grange-isd-075902
+790,1177,28,144902,Lexington ISD,Lee,B,58,1014,https://txschools.net/district/lexington-isd-144902
+790,1177,28,031906,Los Fresnos CISD,Cameron,A,58,10284,https://txschools.net/district/los-fresnos-cisd-031906
+790,1177,28,094904,Marion ISD,Guadalupe,B,58,1741,https://txschools.net/district/marion-isd-094904
+790,1177,28,163908,Medina Valley ISD,Medina,B,58,10442,https://txschools.net/district/medina-valley-isd-163908
+790,1177,28,197902,Miami ISD,Roberts,A,58,179,https://txschools.net/district/miami-isd-197902
+790,1177,28,250903,Mineola ISD,Wood,B,58,1790,https://txschools.net/district/mineola-isd-250903
+790,1177,28,161910,Moody ISD,McLennan,B,58,761,https://txschools.net/district/moody-isd-161910
+790,1177,28,169902,Nocona ISD,Montague,B,58,764,https://txschools.net/district/nocona-isd-169902
+790,1177,28,062902,Nordheim ISD,Dewitt,B,58,111,https://txschools.net/district/nordheim-isd-062902
+790,1177,28,139912,Prairiland ISD,Lamar,B,58,1060,https://txschools.net/district/prairiland-isd-139912
+790,1177,28,101806,Raul Yzaguirre Schools for Success,Harris,B,58,2180,https://txschools.net/district/raul-yzaguirre-schools-for-success-101806
+790,1177,28,216901,Sterling City ISD,Sterling,A,58,312,https://txschools.net/district/sterling-city-isd-216901
+790,1177,28,234906,Van ISD,Van Zandt,B,58,2265,https://txschools.net/district/van-isd-234906
+790,1177,28,040902,Whiteface CISD,Cochran,B,58,294,https://txschools.net/district/whiteface-cisd-040902
+819,1177,24,178901,Agua Dulce ISD,Nueces,B,59,387,https://txschools.net/district/agua-dulce-isd-178901
+819,1177,24,030903,Baird ISD,Callahan,B,59,345,https://txschools.net/district/baird-isd-030903
+819,1177,24,175902,Blooming Grove ISD,Navarro,C,59,961,https://txschools.net/district/blooming-grove-isd-175902
+819,1177,24,225906,Chapel Hill ISD,Titus,B,59,943,https://txschools.net/district/chapel-hill-isd-225906
+819,1177,24,206903,Cherokee ISD,San Saba,B,59,127,https://txschools.net/district/cherokee-isd-206903
+819,1177,24,159901,Eagle Pass ISD,Maverick,B,59,13415,https://txschools.net/district/eagle-pass-isd-159901
+819,1177,24,001903,Elkhart ISD,Anderson,B,59,1175,https://txschools.net/district/elkhart-isd-001903
+819,1177,24,152907,Frenship ISD,Lubbock,C,59,12042,https://txschools.net/district/frenship-isd-152907
+819,1177,24,111901,Granbury ISD,Hood,B,59,7850,https://txschools.net/district/granbury-isd-111901
+819,1177,24,205902,Gregory-Portland ISD,San Patricio,B,59,5116,https://txschools.net/district/gregory-portland-isd-205902
+819,1177,24,086902,Harper ISD,Gillespie,B,59,566,https://txschools.net/district/harper-isd-086902
+819,1177,24,220907,Keller ISD,Tarrant,B,59,30440,https://txschools.net/district/keller-isd-220907
+819,1177,24,061912,Lake Dallas ISD,Denton,B,59,3935,https://txschools.net/district/lake-dallas-isd-061912
+819,1177,24,116906,Lone Oak ISD,Hunt,B,59,1090,https://txschools.net/district/lone-oak-isd-116906
+819,1177,24,174909,Martinsville ISD,Nacogdoches,B,59,315,https://txschools.net/district/martinsville-isd-174909
+819,1177,24,039905,Midway ISD,Clay,B,59,128,https://txschools.net/district/midway-isd-039905
+819,1177,24,123908,Port Neches-Groves ISD,Jefferson,B,59,5289,https://txschools.net/district/port-neches-groves-isd-123908
+819,1177,24,245903,Raymondville ISD,Willacy,A,59,1901,https://txschools.net/district/raymondville-isd-245903
+819,1177,24,110905,Ropes ISD,Hockley,A,59,670,https://txschools.net/district/ropes-isd-110905
+819,1177,24,026903,Snook ISD,Burleson,B,59,585,https://txschools.net/district/snook-isd-026903
+819,1177,24,071909,Socorro ISD,El Paso,B,59,45850,https://txschools.net/district/socorro-isd-071909
+819,1177,24,098904,Spearman ISD,Hansford,B,59,652,https://txschools.net/district/spearman-isd-098904
+819,1177,24,210905,Timpson ISD,Shelby,B,59,718,https://txschools.net/district/timpson-isd-210905
+819,1177,24,202905,West Sabine ISD,Sabine,C,59,659,https://txschools.net/district/west-sabine-isd-202905
+819,1177,24,101845,Yes Prep Public Schools Inc,Harris,B,59,20806,https://txschools.net/district/yes-prep-public-schools-inc-101845
+844,1177,24,127901,Anson ISD,Jones,C,60,702,https://txschools.net/district/anson-isd-127901
+844,1177,24,121902,Brookeland ISD,Jasper,B,60,391,https://txschools.net/district/brookeland-isd-121902
+844,1177,24,126902,Burleson ISD,Johnson,B,60,12560,https://txschools.net/district/burleson-isd-126902
+844,1177,24,072902,Dublin ISD,Erath,A,60,1078,https://txschools.net/district/dublin-isd-072902
+844,1177,24,043904,Farmersville ISD,Collin,B,60,2523,https://txschools.net/district/farmersville-isd-043904
+844,1177,24,149901,George West ISD,Live Oak,A,60,1036,https://txschools.net/district/george-west-isd-149901
+844,1177,24,182902,Graford ISD,Palo Pinto,A,60,329,https://txschools.net/district/graford-isd-182902
+844,1177,24,123914,Hamshire-Fannett ISD,Jefferson,B,60,1947,https://txschools.net/district/hamshire-fannett-isd-123914
+844,1177,24,208901,Hermleigh ISD,Scurry,B,60,265,https://txschools.net/district/hermleigh-isd-208901
+844,1177,24,074907,Honey Grove ISD,Fannin,B,60,674,https://txschools.net/district/honey-grove-isd-074907
+844,1177,24,101913,Humble ISD,Harris,B,60,47734,https://txschools.net/district/humble-isd-101913
+844,1177,24,126906,Keene ISD,Johnson,B,60,1131,https://txschools.net/district/keene-isd-126906
+844,1177,24,112907,Miller Grove ISD,Hopkins,B,60,314,https://txschools.net/district/miller-grove-isd-112907
+844,1177,24,138903,Munday CISD,Knox,B,60,375,https://txschools.net/district/munday-cisd-138903
+844,1177,24,046901,New Braunfels ISD,Comal,B,60,9710,https://txschools.net/district/new-braunfels-isd-046901
+844,1177,24,070910,Palmer ISD,Ellis,B,60,1382,https://txschools.net/district/palmer-isd-070910
+844,1177,24,032902,Pittsburg ISD,Camp,A,60,2228,https://txschools.net/district/pittsburg-isd-032902
+844,1177,24,076903,Roby CISD,Fisher,A,60,313,https://txschools.net/district/roby-cisd-076903
+844,1177,24,104903,Rule ISD,Haskell,B,60,143,https://txschools.net/district/rule-isd-104903
+844,1177,24,112909,Saltillo ISD,Hopkins,A,60,236,https://txschools.net/district/saltillo-isd-112909
+844,1177,24,207901,Schleicher ISD,Schleicher,B,60,383,https://txschools.net/district/schleicher-isd-207901
+844,1177,24,047905,Sidney ISD,Comanche,A,60,115,https://txschools.net/district/sidney-isd-047905
+844,1177,24,174801,Stephen F Austin State University Charter School,Nacogdoches,A,60,254,https://txschools.net/district/stephen-f-austin-state-university-charter-school-174801
+844,1177,24,140908,Sudan ISD,Lamb,B,60,445,https://txschools.net/district/sudan-isd-140908
+844,1177,24,061805,Trivium Academy,Denton,B,60,503,https://txschools.net/district/trivium-academy-061805
+869,1177,26,187901,Big Sandy ISD,Polk,A,61,526,https://txschools.net/district/big-sandy-isd-187901
+869,1177,26,116901,Caddo Mills ISD,Hunt,B,61,3325,https://txschools.net/district/caddo-mills-isd-116901
+869,1177,26,018901,Clifton ISD,Bosque,B,61,938,https://txschools.net/district/clifton-isd-018901
+869,1177,26,123805,Ehrhart School,Jefferson,A,61,593,https://txschools.net/district/ehrhart-school-123805
+869,1177,26,107905,Eustace ISD,Henderson,B,61,1685,https://txschools.net/district/eustace-isd-107905
+869,1177,26,220809,Fort Worth Academy of Fine Arts,Tarrant,B,61,668,https://txschools.net/district/fort-worth-academy-of-fine-arts-220809
+869,1177,26,086901,Fredericksburg ISD,Gillespie,B,61,2956,https://txschools.net/district/fredericksburg-isd-086901
+869,1177,26,174903,Garrison ISD,Nacogdoches,A,61,739,https://txschools.net/district/garrison-isd-174903
+869,1177,26,126904,Grandview ISD,Johnson,B,61,1417,https://txschools.net/district/grandview-isd-126904
+869,1177,26,101858,Harmony Public Schools - Houston North,Harris,B,61,8807,https://txschools.net/district/harmony-public-schools-houston-north-101858
+869,1177,26,097903,Hico ISD,Hamilton,B,61,614,https://txschools.net/district/hico-isd-097903
+869,1177,26,243903,Iowa Park CISD,Wichita,B,61,1974,https://txschools.net/district/iowa-park-cisd-243903
+869,1177,26,061804,Leadership Prep School,Denton,B,61,1894,https://txschools.net/district/leadership-prep-school-061804
+869,1177,26,113903,Lovelady ISD,Houston,B,61,526,https://txschools.net/district/lovelady-isd-113903
+869,1177,26,154901,Madisonville CISD,Madison,B,61,2339,https://txschools.net/district/madisonville-cisd-154901
+869,1177,26,220908,Mansfield ISD,Tarrant,B,61,34654,https://txschools.net/district/mansfield-isd-220908
+869,1177,26,108906,McAllen ISD,Hidalgo,B,61,19405,https://txschools.net/district/mcallen-isd-108906
+869,1177,26,001906,Neches ISD,Anderson,B,61,338,https://txschools.net/district/neches-isd-001906
+869,1177,26,015910,North East ISD,Bexar,B,61,53464,https://txschools.net/district/north-east-isd-015910
+869,1177,26,112906,North Hopkins ISD,Hopkins,B,61,517,https://txschools.net/district/north-hopkins-isd-112906
+869,1177,26,061911,Northwest ISD,Denton,B,61,32722,https://txschools.net/district/northwest-isd-061911
+869,1177,26,227804,NYOS Charter School,Travis,B,61,1808,https://txschools.net/district/nyos-charter-school-227804
+869,1177,26,094902,Schertz-Cibolo-U City ISD,Guadalupe,B,61,14764,https://txschools.net/district/schertz-cibolo-u-city-isd-094902
+869,1177,26,015831,School of Science and Technology Discovery,Bexar,A,61,6366,https://txschools.net/district/school-of-science-and-technology-discovery-015831
+869,1177,26,020906,Sweeny ISD,Brazoria,C,61,1691,https://txschools.net/district/sweeny-isd-020906
+869,1177,26,226905,Water Valley ISD,Tom Green,A,61,305,https://txschools.net/district/water-valley-isd-226905
+869,1177,26,071905,Ysleta ISD,El Paso,B,61,32593,https://txschools.net/district/ysleta-isd-071905
+896,1177,26,250906,Alba-Golden ISD,Wood,B,62,772,https://txschools.net/district/alba-golden-isd-250906
+896,1177,26,169901,Bowie ISD,Montague,B,62,1457,https://txschools.net/district/bowie-isd-169901
+896,1177,26,243901,Burkburnett ISD,Wichita,C,62,3142,https://txschools.net/district/burkburnett-isd-243901
+896,1177,26,038901,Childress ISD,Childress,B,62,901,https://txschools.net/district/childress-isd-038901
+896,1177,26,161920,China Spring ISD,McLennan,B,62,2980,https://txschools.net/district/china-spring-isd-161920
+896,1177,26,147901,Coolidge ISD,Limestone,B,62,311,https://txschools.net/district/coolidge-isd-147901
+896,1177,26,015815,Heritage Academy,Bexar,A,62,574,https://txschools.net/district/heritage-academy-015815
+896,1177,26,109904,Hillsboro ISD,Hill,B,62,1913,https://txschools.net/district/hillsboro-isd-109904
+896,1177,26,118902,Irion County ISD,Irion,A,62,307,https://txschools.net/district/irion-county-isd-118902
+896,1177,26,101916,La Porte ISD,Harris,B,62,6900,https://txschools.net/district/la-porte-isd-101916
+896,1177,26,227912,Lago Vista ISD,Travis,C,62,1864,https://txschools.net/district/lago-vista-isd-227912
+896,1177,26,061902,Lewisville ISD,Denton,B,62,46328,https://txschools.net/district/lewisville-isd-061902
+896,1177,26,150901,Llano ISD,Llano,B,62,2009,https://txschools.net/district/llano-isd-150901
+896,1177,26,043907,McKinney ISD,Collin,B,62,23667,https://txschools.net/district/mckinney-isd-043907
+896,1177,26,169908,Montague ISD,Montague,A,62,170,https://txschools.net/district/montague-isd-169908
+896,1177,26,019905,New Boston ISD,Bowie,B,62,1060,https://txschools.net/district/new-boston-isd-019905
+896,1177,26,069902,Nueces Canyon CISD,Edwards,B,62,198,https://txschools.net/district/nueces-canyon-cisd-069902
+896,1177,26,003801,Pineywoods Community Academy,Angelina,B,62,1060,https://txschools.net/district/pineywoods-community-academy-003801
+896,1177,26,043910,Plano ISD,Collin,B,62,43805,https://txschools.net/district/plano-isd-043910
+896,1177,26,091914,S and S CISD,Grayson,C,62,923,https://txschools.net/district/s-and-s-cisd-091914
+896,1177,26,001909,Slocum ISD,Anderson,B,62,330,https://txschools.net/district/slocum-isd-001909
+896,1177,26,015909,Somerset ISD,Bexar,B,62,4169,https://txschools.net/district/somerset-isd-015909
+896,1177,26,096905,Turkey-Quitaque ISD,Hall,A,62,175,https://txschools.net/district/turkey-quitaque-isd-096905
+896,1177,26,108916,Valley View ISD,Hidalgo,A,62,3304,https://txschools.net/district/valley-view-isd-108916
+896,1177,26,044902,Wellington ISD,Collingsworth,B,62,516,https://txschools.net/district/wellington-isd-044902
+896,1177,26,091910,Whitewright ISD,Grayson,B,62,791,https://txschools.net/district/whitewright-isd-091910
+896,1177,26,116909,Wolfe City ISD,Hunt,B,62,694,https://txschools.net/district/wolfe-city-isd-116909
+923,1177,21,014901,Academy ISD,Bell,B,63,1857,https://txschools.net/district/academy-isd-014901
+923,1177,21,209901,Albany ISD,Shackelford,B,63,449,https://txschools.net/district/albany-isd-209901
+923,1177,21,234902,Canton ISD,Van Zandt,B,63,2249,https://txschools.net/district/canton-isd-234902
+923,1177,21,084910,Clear Creek ISD,Galveston,B,63,38634,https://txschools.net/district/clear-creek-isd-084910
+923,1177,21,092801,East Texas Charter Schools,Gregg,A,63,125,https://txschools.net/district/east-texas-charter-schools-092801
+923,1177,21,015836,Eleanor Kolitz Hebrew Language Academy,Bexar,B,63,464,https://txschools.net/district/eleanor-kolitz-hebrew-language-academy-015836
+923,1177,21,102906,Elysian Fields ISD,Harrison,B,63,753,https://txschools.net/district/elysian-fields-isd-102906
+923,1177,21,185902,Farwell ISD,Parmer,B,63,570,https://txschools.net/district/farwell-isd-185902
+923,1177,21,079907,Fort Bend ISD,Fort Bend,B,63,77929,https://txschools.net/district/fort-bend-isd-079907
+923,1177,21,005902,Holliday ISD,Archer,A,63,1127,https://txschools.net/district/holliday-isd-005902
+923,1177,21,101915,Klein ISD,Harris,B,63,51154,https://txschools.net/district/klein-isd-101915
+923,1177,21,219905,Kress ISD,Swisher,B,63,278,https://txschools.net/district/kress-isd-219905
+923,1177,21,079901,Lamar CISD,Fort Bend,B,63,48645,https://txschools.net/district/lamar-cisd-079901
+923,1177,21,111902,Lipan ISD,Hood,B,63,492,https://txschools.net/district/lipan-isd-111902
+923,1177,21,010901,Medina ISD,Bandera,B,63,239,https://txschools.net/district/medina-isd-010901
+923,1177,21,154903,North Zulch ISD,Madison,A,63,335,https://txschools.net/district/north-zulch-isd-154903
+923,1177,21,181905,Orangefield ISD,Orange,B,63,1727,https://txschools.net/district/orangefield-isd-181905
+923,1177,21,250904,Quitman ISD,Wood,B,63,1216,https://txschools.net/district/quitman-isd-250904
+923,1177,21,019906,Redwater ISD,Bowie,B,63,1092,https://txschools.net/district/redwater-isd-019906
+923,1177,21,123913,Sabine Pass ISD,Jefferson,B,63,373,https://txschools.net/district/sabine-pass-isd-123913
+923,1177,21,074911,Savoy ISD,Fannin,C,63,301,https://txschools.net/district/savoy-isd-074911
+923,1177,21,149902,Three Rivers ISD,Live Oak,C,63,541,https://txschools.net/district/three-rivers-isd-149902
+945,1177,18,020901,Alvin ISD,Brazoria,B,64,29994,https://txschools.net/district/alvin-isd-020901
+945,1177,18,101819,Amigos Por Vida-Friends for Life Pub Chtr Sch,Harris,A,64,802,https://txschools.net/district/amigos-por-vida-friends-for-life-pub-chtr-sch-101819
+945,1177,18,117901,Borger ISD,Hutchinson,C,64,2147,https://txschools.net/district/borger-isd-117901
+945,1177,18,178903,Calallen ISD,Nueces,B,64,3677,https://txschools.net/district/calallen-isd-178903
+945,1177,18,191901,Canyon ISD,Randall,B,64,11527,https://txschools.net/district/canyon-isd-191901
+945,1177,18,001902,Cayuga ISD,Anderson,B,64,574,https://txschools.net/district/cayuga-isd-001902
+945,1177,18,174902,Cushing ISD,Nacogdoches,B,64,561,https://txschools.net/district/cushing-isd-174902
+945,1177,18,115903,Dell City ISD,Hudspeth,B,64,75,https://txschools.net/district/dell-city-isd-115903
+945,1177,18,100905,Hardin-Jefferson ISD,Hardin,B,64,2828,https://txschools.net/district/hardin-jefferson-isd-100905
+945,1177,18,003902,Hudson ISD,Angelina,B,64,2755,https://txschools.net/district/hudson-isd-003902
+945,1177,18,220916,Hurst-Euless-Bedford ISD,Tarrant,B,64,23159,https://txschools.net/district/hurst-euless-bedford-isd-220916
+945,1177,18,049907,Lindsay ISD,Cooke,B,64,504,https://txschools.net/district/lindsay-isd-049907
+945,1177,18,137902,Ricardo ISD,Kleberg,B,64,667,https://txschools.net/district/ricardo-isd-137902
+945,1177,18,161922,Robinson ISD,McLennan,A,64,2401,https://txschools.net/district/robinson-isd-161922
+945,1177,18,182904,Santo ISD,Palo Pinto,A,64,570,https://txschools.net/district/santo-isd-182904
+945,1177,18,101920,Spring Branch ISD,Harris,B,64,31584,https://txschools.net/district/spring-branch-isd-101920
+945,1177,18,014910,Troy ISD,Bell,B,64,1723,https://txschools.net/district/troy-isd-014910
+945,1177,18,232904,Utopia ISD,Uvalde,A,64,190,https://txschools.net/district/utopia-isd-232904
+945,1177,18,091909,Whitesboro ISD,Grayson,C,64,1757,https://txschools.net/district/whitesboro-isd-091909
+964,1177,18,043903,Celina ISD,Collin,B,65,6337,https://txschools.net/district/celina-isd-043903
+964,1177,18,170902,Conroe ISD,Montgomery,B,65,72218,https://txschools.net/district/conroe-isd-170902
+964,1177,18,030901,Cross Plains ISD,Callahan,B,65,357,https://txschools.net/district/cross-plains-isd-030901
+964,1177,18,101907,Cypress-Fairbanks ISD,Harris,B,65,114430,https://txschools.net/district/cypress-fairbanks-isd-101907
+964,1177,18,025909,Early ISD,Brown,B,65,1087,https://txschools.net/district/early-isd-025909
+964,1177,18,128904,Falls City ISD,Karnes,A,65,452,https://txschools.net/district/falls-city-isd-128904
+964,1177,18,114904,Forsan ISD,Howard,B,65,674,https://txschools.net/district/forsan-isd-114904
+964,1177,18,144901,Giddings ISD,Lee,B,65,1798,https://txschools.net/district/giddings-isd-144901
+964,1177,18,104901,Haskell CISD,Haskell,B,65,545,https://txschools.net/district/haskell-cisd-104901
+964,1177,18,246913,Leander ISD,Williamson,B,65,41854,https://txschools.net/district/leander-isd-246913
+964,1177,18,152906,Lubbock-Cooper ISD,Lubbock,B,65,8094,https://txschools.net/district/lubbock-cooper-isd-152906
+964,1177,18,070908,Midlothian ISD,Ellis,B,65,11537,https://txschools.net/district/midlothian-isd-070908
+964,1177,18,230906,New Diana ISD,Upshur,B,65,1150,https://txschools.net/district/new-diana-isd-230906
+964,1177,18,184908,Peaster ISD,Parker,B,65,1715,https://txschools.net/district/peaster-isd-184908
+964,1177,18,231902,Rankin ISD,Upton,A,65,300,https://txschools.net/district/rankin-isd-231902
+964,1177,18,169911,Saint Jo ISD,Montague,B,65,298,https://txschools.net/district/saint-jo-isd-169911
+964,1177,18,058909,Sands CISD,Dawson,A,65,225,https://txschools.net/district/sands-cisd-058909
+964,1177,18,091907,Tioga ISD,Grayson,A,65,610,https://txschools.net/district/tioga-isd-091907
+964,1177,18,242903,Wheeler ISD,Wheeler,B,65,341,https://txschools.net/district/wheeler-isd-242903
+983,1177,13,067902,Cisco ISD,Eastland,B,66,861,https://txschools.net/district/cisco-isd-067902
+983,1177,13,101908,Deer Park ISD,Harris,B,66,12001,https://txschools.net/district/deer-park-isd-101908
+983,1177,13,030906,Eula ISD,Callahan,B,66,486,https://txschools.net/district/eula-isd-030906
+983,1177,13,230902,Gilmer ISD,Upshur,B,66,2923,https://txschools.net/district/gilmer-isd-230902
+983,1177,13,188903,Highland Park ISD,Potter,B,66,723,https://txschools.net/district/highland-park-isd-188903
+983,1177,13,091905,Howe ISD,Grayson,C,66,1191,https://txschools.net/district/howe-isd-091905
+983,1177,13,093903,Iola ISD,Grimes,A,66,656,https://txschools.net/district/iola-isd-093903
+983,1177,13,016901,Johnson City ISD,Blanco,B,66,677,https://txschools.net/district/johnson-city-isd-016901
+983,1177,13,246908,Liberty Hill ISD,Williamson,B,66,10446,https://txschools.net/district/liberty-hill-isd-246908
+983,1177,13,165802,Midland Academy Charter School,Midland,B,66,431,https://txschools.net/district/midland-academy-charter-school-165802
+983,1177,13,153905,New Home ISD,Lynn,A,66,685,https://txschools.net/district/new-home-isd-153905
+983,1177,13,110907,Sundown ISD,Hockley,A,66,701,https://txschools.net/district/sundown-isd-110907
+983,1177,13,170802,Thrive Center for Success,Montgomery,B,66,177,https://txschools.net/district/thrive-center-for-success-170802
+983,1177,13,230908,Union Grove ISD,Upshur,B,66,710,https://txschools.net/district/union-grove-isd-230908
+997,1177,15,093901,Anderson-Shiro CISD,Grimes,A,67,944,https://txschools.net/district/anderson-shiro-cisd-093901
+997,1177,15,217901,Aspermont ISD,Stonewall,A,67,210,https://txschools.net/district/aspermont-isd-217901
+997,1177,15,183901,Beckville ISD,Panola,B,67,652,https://txschools.net/district/beckville-isd-183901
+997,1177,15,178902,Bishop CISD,Nueces,A,67,1427,https://txschools.net/district/bishop-cisd-178902
+997,1177,15,123807,Bob Hope School,Jefferson,A,67,2587,https://txschools.net/district/bob-hope-school-123807
+997,1177,15,074904,Dodd City ISD,Fannin,A,67,319,https://txschools.net/district/dodd-city-isd-074904
+997,1177,15,122901,Ft Davis ISD,Jeff Davis,C,67,818,https://txschools.net/district/ft-davis-isd-122901
+997,1177,15,247903,La Vernia ISD,Wilson,B,67,3505,https://txschools.net/district/la-vernia-isd-247903
+997,1177,15,100907,Lumberton ISD,Hardin,B,67,4039,https://txschools.net/district/lumberton-isd-100907
+997,1177,15,145906,Normangee ISD,Leon,B,67,655,https://txschools.net/district/normangee-isd-145906
+997,1177,15,235904,Nursery ISD,Victoria,B,67,179,https://txschools.net/district/nursery-isd-235904
+997,1177,15,249906,Paradise ISD,Wise,B,67,1372,https://txschools.net/district/paradise-isd-249906
+997,1177,15,014907,Rogers ISD,Bell,B,67,856,https://txschools.net/district/rogers-isd-014907
+997,1177,15,247906,Stockdale ISD,Wilson,B,67,879,https://txschools.net/district/stockdale-isd-247906
+997,1177,15,212804,UT Tyler University Academy,Smith,A,67,1224,https://txschools.net/district/ut-tyler-university-academy-212804
+997,1177,15,226908,Veribest ISD,Tom Green,B,67,258,https://txschools.net/district/veribest-isd-226908
+1013,1177,19,015901,Alamo Heights ISD,Bexar,B,68,4723,https://txschools.net/district/alamo-heights-isd-015901
+1013,1177,19,021901,College Station ISD,Brazos,B,68,13892,https://txschools.net/district/college-station-isd-021901
+1013,1177,19,107904,Cross Roads ISD,Henderson,B,68,541,https://txschools.net/district/cross-roads-isd-107904
+1013,1177,19,047902,De Leon ISD,Comanche,A,68,616,https://txschools.net/district/de-leon-isd-047902
+1013,1177,19,014905,Holland ISD,Bell,A,68,669,https://txschools.net/district/holland-isd-014905
+1013,1177,19,034903,Hughes Springs ISD,Cass,B,68,1044,https://txschools.net/district/hughes-springs-isd-034903
+1013,1177,19,126905,Joshua ISD,Johnson,B,68,5998,https://txschools.net/district/joshua-isd-126905
+1013,1177,19,015913,Lackland ISD,Bexar,B,68,966,https://txschools.net/district/lackland-isd-015913
+1013,1177,19,170906,Magnolia ISD,Montgomery,B,68,15329,https://txschools.net/district/magnolia-isd-170906
+1013,1177,19,161903,Midway ISD,McLennan,A,68,8704,https://txschools.net/district/midway-isd-161903
+1013,1177,19,166903,Milano ISD,Milam,B,68,394,https://txschools.net/district/milano-isd-166903
+1013,1177,19,170903,Montgomery ISD,Montgomery,B,68,9699,https://txschools.net/district/montgomery-isd-170903
+1013,1177,19,123905,Nederland ISD,Jefferson,A,68,5359,https://txschools.net/district/nederland-isd-123905
+1013,1177,19,109914,Penelope ISD,Hill,A,68,215,https://txschools.net/district/penelope-isd-109914
+1013,1177,19,012901,Seymour ISD,Baylor,B,68,598,https://txschools.net/district/seymour-isd-012901
+1013,1177,19,152909,Shallowater ISD,Lubbock,B,68,1714,https://txschools.net/district/shallowater-isd-152909
+1013,1177,19,072903,Stephenville ISD,Erath,A,68,3503,https://txschools.net/district/stephenville-isd-072903
+1013,1177,19,123803,Tekoa Academy of Accelerated Studies STEM School,Jefferson,A,68,395,https://txschools.net/district/tekoa-academy-of-accelerated-studies-stem-school-123803
+1013,1177,19,158902,Tidehaven ISD,Matagorda,A,68,1038,https://txschools.net/district/tidehaven-isd-158902
+1013,1177,19,161916,West ISD,McLennan,B,68,1338,https://txschools.net/district/west-isd-161916
+1033,1177,14,099902,Chillicothe ISD,Hardeman,B,69,172,https://txschools.net/district/chillicothe-isd-099902
+1033,1177,14,226901,Christoval ISD,Tom Green,B,69,628,https://txschools.net/district/christoval-isd-226901
+1033,1177,14,030902,Clyde CISD,Callahan,B,69,1421,https://txschools.net/district/clyde-cisd-030902
+1033,1177,14,174911,Douglass ISD,Nacogdoches,A,69,405,https://txschools.net/district/douglass-isd-174911
+1033,1177,14,220906,Grapevine-Colleyville ISD,Tarrant,A,69,13343,https://txschools.net/district/grapevine-colleyville-isd-220906
+1033,1177,14,091917,Gunter ISD,Grayson,B,69,1153,https://txschools.net/district/gunter-isd-091917
+1033,1177,14,120905,Industrial ISD,Jackson,B,69,1153,https://txschools.net/district/industrial-isd-120905
+1033,1177,14,132902,Jayton-Girard ISD,Kent,A,69,187,https://txschools.net/district/jayton-girard-isd-132902
+1033,1177,14,178906,London ISD,Nueces,A,69,1922,https://txschools.net/district/london-isd-178906
+1033,1177,14,201907,Mount Enterprise ISD,Rusk,B,69,482,https://txschools.net/district/mount-enterprise-isd-201907
+1033,1177,14,015805,New Frontiers Public Schools Inc,Bexar,B,69,335,https://txschools.net/district/new-frontiers-public-schools-inc-015805
+1033,1177,14,236901,New Waverly ISD,Walker,B,69,1064,https://txschools.net/district/new-waverly-isd-236901
+1033,1177,14,014908,Salado ISD,Bell,B,69,2582,https://txschools.net/district/salado-isd-014908
+1033,1177,14,023902,Silverton ISD,Briscoe,A,69,194,https://txschools.net/district/silverton-isd-023902
+1033,1177,14,092907,Spring Hill ISD,Gregg,A,69,1941,https://txschools.net/district/spring-hill-isd-092907
+1048,1177,14,025901,Bangs ISD,Brown,B,70,768,https://txschools.net/district/bangs-isd-025901
+1048,1177,14,116915,Bland ISD,Hunt,B,70,777,https://txschools.net/district/bland-isd-116915
+1048,1177,14,188904,Bushland ISD,Potter,B,70,1424,https://txschools.net/district/bushland-isd-188904
+1048,1177,14,184801,Crosstimbers Academy,Parker,A,70,114,https://txschools.net/district/crosstimbers-academy-184801
+1048,1177,14,020904,Danbury ISD,Brazoria,B,70,645,https://txschools.net/district/danbury-isd-020904
+1048,1177,14,241902,East Bernard ISD,Wharton,B,70,987,https://txschools.net/district/east-bernard-isd-241902
+1048,1177,14,101862,Harmony Public Schools - Houston West,Harris,A,70,6906,https://txschools.net/district/harmony-public-schools-houston-west-101862
+1048,1177,14,113906,Kennard ISD,Houston,C,70,254,https://txschools.net/district/kennard-isd-113906
+1048,1177,14,049902,Muenster ISD,Cooke,B,70,551,https://txschools.net/district/muenster-isd-049902
+1048,1177,14,200906,Olfen ISD,Runnels,B,70,137,https://txschools.net/district/olfen-isd-200906
+1048,1177,14,117904,Plemons-Stinnett-Phillips CISD,Hutchinson,A,70,529,https://txschools.net/district/plemons-stinnett-phillips-cisd-117904
+1048,1177,14,166905,Thorndale ISD,Milam,B,70,662,https://txschools.net/district/thorndale-isd-166905
+1048,1177,14,226906,Wall ISD,Tom Green,B,70,1306,https://txschools.net/district/wall-isd-226906
+1048,1177,14,110908,Whitharral ISD,Hockley,A,70,223,https://txschools.net/district/whitharral-isd-110908
+1048,1177,14,221912,Wylie ISD,Taylor,B,70,5617,https://txschools.net/district/wylie-isd-221912
+1063,1177,14,005901,Archer City ISD,Archer,A,71,486,https://txschools.net/district/archer-city-isd-005901
+1063,1177,14,239903,Burton ISD,Washington,A,71,650,https://txschools.net/district/burton-isd-239903
+1063,1177,14,139905,Chisum ISD,Lamar,B,71,1167,https://txschools.net/district/chisum-isd-139905
+1063,1177,14,046902,Comal ISD,Comal,B,71,30341,https://txschools.net/district/comal-isd-046902
+1063,1177,14,161901,Crawford ISD,McLennan,B,71,585,https://txschools.net/district/crawford-isd-161901
+1063,1177,14,178914,Flour Bluff ISD,Nueces,B,71,5375,https://txschools.net/district/flour-bluff-isd-178914
+1063,1177,14,001904,Frankston ISD,Anderson,B,71,785,https://txschools.net/district/frankston-isd-001904
+1063,1177,14,101914,Katy ISD,Harris,B,71,95136,https://txschools.net/district/katy-isd-101914
+1063,1177,14,200902,Miles ISD,Runnels,A,71,497,https://txschools.net/district/miles-isd-200902
+1063,1177,14,153903,O'Donnell ISD,Lynn,B,71,235,https://txschools.net/district/o-donnell-isd-153903
+1063,1177,14,252903,Olney ISD,Young,B,71,701,https://txschools.net/district/olney-isd-252903
+1063,1177,14,019911,Red Lick ISD,Bowie,A,71,515,https://txschools.net/district/red-lick-isd-019911
+1063,1177,14,199901,Rockwall ISD,Rockwall,A,71,19077,https://txschools.net/district/rockwall-isd-199901
+1063,1177,14,045905,Weimar ISD,Colorado,A,71,735,https://txschools.net/district/weimar-isd-045905
+1063,1177,14,105905,Wimberley ISD,Hays,B,71,2633,https://txschools.net/district/wimberley-isd-105905
+1078,1177,12,015834,Basis Texas,Bexar,A,72,9480,https://txschools.net/district/basis-texas-015834
+1078,1177,12,184909,Brock ISD,Parker,A,72,2181,https://txschools.net/district/brock-isd-184909
+1078,1177,12,212902,Bullard ISD,Smith,B,72,2853,https://txschools.net/district/bullard-isd-212902
+1078,1177,12,230905,Harmony ISD,Upshur,B,72,855,https://txschools.net/district/harmony-isd-230905
+1078,1177,12,202903,Hemphill ISD,Sabine,A,72,728,https://txschools.net/district/hemphill-isd-202903
+1078,1177,12,083902,Loop ISD,Gaines,A,72,143,https://txschools.net/district/loop-isd-083902
+1078,1177,12,161907,Lorena ISD,McLennan,A,72,1740,https://txschools.net/district/lorena-isd-161907
+1078,1177,12,014804,Orenda Charter School,Bell,A,72,1936,https://txschools.net/district/orenda-charter-school-014804
+1078,1177,12,020908,Pearland ISD,Brazoria,A,72,20555,https://txschools.net/district/pearland-isd-020908
+1078,1177,12,091913,Pottsboro ISD,Grayson,A,72,1363,https://txschools.net/district/pottsboro-isd-091913
+1078,1177,12,246909,Round Rock ISD,Williamson,B,72,45865,https://txschools.net/district/round-rock-isd-246909
+1078,1177,12,227506,University of Texas at Austin HS,Travis,C,72,1211,https://txschools.net/district/university-of-texas-at-austin-hs-227506
+1078,1177,12,212906,Whitehouse ISD,Smith,A,72,4840,https://txschools.net/district/whitehouse-isd-212906
+1091,1177,16,095901,Abernathy ISD,Hale,B,73,775,https://txschools.net/district/abernathy-isd-095901
+1091,1177,16,072904,Bluff Dale ISD,Erath,B,73,226,https://txschools.net/district/bluff-dale-isd-072904
+1091,1177,16,229906,Chester ISD,Tyler,B,73,186,https://txschools.net/district/chester-isd-229906
+1091,1177,16,075906,Fayetteville ISD,Fayette,A,73,308,https://txschools.net/district/fayetteville-isd-075906
+1091,1177,16,198903,Franklin ISD,Robertson,A,73,1438,https://txschools.net/district/franklin-isd-198903
+1091,1177,16,033901,Groom ISD,Carson,B,73,112,https://txschools.net/district/groom-isd-033901
+1091,1177,16,143901,Hallettsville ISD,Lavaca,B,73,1129,https://txschools.net/district/hallettsville-isd-143901
+1091,1177,16,212903,Lindale ISD,Smith,A,73,4613,https://txschools.net/district/lindale-isd-212903
+1091,1177,16,157901,Mason ISD,Mason,A,73,675,https://txschools.net/district/mason-isd-157901
+1091,1177,16,162904,McMullen County ISD,McMullen,A,73,286,https://txschools.net/district/mcmullen-county-isd-162904
+1091,1177,16,079906,Needville ISD,Fort Bend,A,73,3673,https://txschools.net/district/needville-isd-079906
+1091,1177,16,252902,Newcastle ISD,Young,B,73,231,https://txschools.net/district/newcastle-isd-252902
+1091,1177,16,043912,Prosper ISD,Collin,A,73,33583,https://txschools.net/district/prosper-isd-043912
+1091,1177,16,214903,Roma ISD,Starr,A,73,5916,https://txschools.net/district/roma-isd-214903
+1091,1177,16,056902,Texline ISD,Dallam,A,73,224,https://txschools.net/district/texline-isd-056902
+1091,1177,16,246912,Thrall ISD,Williamson,A,73,916,https://txschools.net/district/thrall-isd-246912
+1091,1177,16,092908,White Oak ISD,Gregg,B,73,1429,https://txschools.net/district/white-oak-isd-092908
+1108,1177,8,194902,Avery ISD,Red River,A,74,295,https://txschools.net/district/avery-isd-194902
+1108,1177,8,106901,Canadian ISD,Hemphill,A,74,675,https://txschools.net/district/canadian-isd-106901
+1108,1177,8,075901,Flatonia ISD,Fayette,A,74,675,https://txschools.net/district/flatonia-isd-075901
+1108,1177,8,043908,Melissa ISD,Collin,A,74,8560,https://txschools.net/district/melissa-isd-043908
+1108,1177,8,074917,Sam Rayburn ISD,Fannin,B,74,477,https://txschools.net/district/sam-rayburn-isd-074917
+1108,1177,8,137904,Santa Gertrudis ISD,Kleberg,A,74,813,https://txschools.net/district/santa-gertrudis-isd-137904
+1108,1177,8,031916,South Texas ISD,Cameron,A,74,4741,https://txschools.net/district/south-texas-isd-031916
+1108,1177,8,111903,Tolar ISD,Hood,A,74,898,https://txschools.net/district/tolar-isd-111903
+1108,1177,8,091908,Van Alstyne ISD,Grayson,B,74,2856,https://txschools.net/district/van-alstyne-isd-091908
+1117,1177,7,043901,Allen ISD,Collin,A,75,20092,https://txschools.net/district/allen-isd-043901
+1117,1177,7,220802,Arlington Classics Academy,Tarrant,B,75,1552,https://txschools.net/district/arlington-classics-academy-220802
+1117,1177,7,101837,Calvin Nelms Charter Schools,Harris,A,75,414,https://txschools.net/district/calvin-nelms-charter-schools-101837
+1117,1177,7,084911,Friendswood ISD,Galveston,A,75,6116,https://txschools.net/district/friendswood-isd-084911
+1117,1177,7,131001,Kenedy County Wide CSD,Kenedy,B,75,123,https://txschools.net/district/kenedy-county-wide-csd-131001
+1117,1177,7,143902,Moulton ISD,Lavaca,B,75,258,https://txschools.net/district/moulton-isd-143902
+1117,1177,7,178908,Port Aransas ISD,Nueces,B,75,577,https://txschools.net/district/port-aransas-isd-178908
+1117,1177,7,043914,Wylie ISD,Collin,A,75,19400,https://txschools.net/district/wylie-isd-043914
+1125,1177,7,091901,Bells ISD,Grayson,A,76,1011,https://txschools.net/district/bells-isd-091901
+1125,1177,7,130901,Boerne ISD,Kendall,A,76,11132,https://txschools.net/district/boerne-isd-130901
+1125,1177,7,213901,Glen Rose ISD,Somervell,B,76,2091,https://txschools.net/district/glen-rose-isd-213901
+1125,1177,7,208903,Ira ISD,Scurry,A,76,307,https://txschools.net/district/ira-isd-208903
+1125,1177,7,227913,Lake Travis ISD,Travis,A,76,10748,https://txschools.net/district/lake-travis-isd-227913
+1125,1177,7,246801,Meridian World School LLC,Williamson,A,76,1757,https://txschools.net/district/meridian-world-school-llc-246801
+1125,1177,7,183801,Panola Charter School,Panola,A,76,174,https://txschools.net/district/panola-charter-school-183801
+1125,1177,7,161912,Riesel ISD,McLennan,B,76,683,https://txschools.net/district/riesel-isd-161912
+1133,1177,7,184907,Aledo ISD,Parker,A,77,8590,https://txschools.net/district/aledo-isd-184907
+1133,1177,7,177903,Blackwell CISD,Nolan,A,77,171,https://txschools.net/district/blackwell-cisd-177903
+1133,1177,7,174908,Central Heights ISD,Nacogdoches,A,77,1106,https://txschools.net/district/central-heights-isd-174908
+1133,1177,7,105904,Dripping Springs ISD,Hays,B,77,8793,https://txschools.net/district/dripping-springs-isd-105904
+1133,1177,7,156905,Grady ISD,Martin,A,77,242,https://txschools.net/district/grady-isd-156905
+1133,1177,7,247904,Poth ISD,Wilson,A,77,967,https://txschools.net/district/poth-isd-247904
+1133,1177,7,057919,Sunnyvale ISD,Dallas,A,77,2313,https://txschools.net/district/sunnyvale-isd-057919
+1133,1177,7,101921,Tomball ISD,Harris,A,77,23202,https://txschools.net/district/tomball-isd-101921
+1141,1177,2,008903,Brazos ISD,Austin,B,78,824,https://txschools.net/district/brazos-isd-008903
+1141,1177,2,203902,Broaddus ISD,San Augustine,A,78,380,https://txschools.net/district/broaddus-isd-203902
+1141,1177,2,043801,Imagine International Academy of North Texas,Collin,A,78,1438,https://txschools.net/district/imagine-international-academy-of-north-texas-043801
+1144,1177,9,036902,Barbers Hill ISD,Chambers,A,79,8069,https://txschools.net/district/barbers-hill-isd-036902
+1144,1177,9,163902,D'Hanis ISD,Medina,A,79,297,https://txschools.net/district/d-hanis-isd-163902
+1144,1177,9,043905,Frisco ISD,Collin,A,79,62627,https://txschools.net/district/frisco-isd-043905
+1144,1177,9,167901,Goldthwaite ISD,Mills,B,79,504,https://txschools.net/district/goldthwaite-isd-167901
+1144,1177,9,221911,Jim Ned CISD,Taylor,A,79,1625,https://txschools.net/district/jim-ned-cisd-221911
+1144,1177,9,019912,Pleasant Grove ISD,Bowie,A,79,2348,https://txschools.net/district/pleasant-grove-isd-019912
+1144,1177,9,160904,Rochelle ISD,McCulloch,A,79,166,https://txschools.net/district/rochelle-isd-160904
+1144,1177,9,075908,Round Top-Carmine ISD,Fayette,B,79,237,https://txschools.net/district/round-top-carmine-isd-075908
+1144,1177,9,143903,Shiner ISD,Lavaca,A,79,700,https://txschools.net/district/shiner-isd-143903
+1144,1177,9,222901,Terrell County ISD,Terrell,B,79,108,https://txschools.net/district/terrell-county-isd-222901
+1154,1177,1,057922,Coppell ISD,Dallas,A,80,13047,https://txschools.net/district/coppell-isd-057922
+1154,1177,1,033902,Panhandle ISD,Carson,A,80,576,https://txschools.net/district/panhandle-isd-033902
+1156,1177,5,061910,Argyle ISD,Denton,A,81,6551,https://txschools.net/district/argyle-isd-061910
+1156,1177,5,015914,Ft Sam Houston ISD,Bexar,A,81,1543,https://txschools.net/district/ft-sam-houston-isd-015914
+1156,1177,5,087901,Glasscock County ISD,Glasscock,A,81,290,https://txschools.net/district/glasscock-county-isd-087901
+1156,1177,5,098901,Gruver ISD,Hansford,A,81,419,https://txschools.net/district/gruver-isd-098901
+1156,1177,5,177905,Highland ISD,Nolan,A,81,211,https://txschools.net/district/highland-isd-177905
+1156,1177,5,057911,Highland Park ISD,Dallas,A,81,6215,https://txschools.net/district/highland-park-isd-057911
+1162,1177,4,198901,Bremond ISD,Robertson,A,82,461,https://txschools.net/district/bremond-isd-198901
+1162,1177,4,006902,Claude ISD,Armstrong,A,82,311,https://txschools.net/district/claude-isd-006902
+1162,1177,4,198906,Mumford ISD,Robertson,A,82,600,https://txschools.net/district/mumford-isd-198906
+1162,1177,4,035903,Nazareth ISD,Castro,A,82,239,https://txschools.net/district/nazareth-isd-035903
+1162,1177,4,180902,Vega ISD,Oldham,A,82,354,https://txschools.net/district/vega-isd-180902
+1167,1177,1,227814,Chaparral Star Academy,Travis,A,83,385,https://txschools.net/district/chaparral-star-academy-227814
+1167,1177,1,043919,Lovejoy ISD,Collin,A,83,3841,https://txschools.net/district/lovejoy-isd-043919
+1169,1177,1,015906,Randolph Field ISD,Bexar,A,84,1402,https://txschools.net/district/randolph-field-isd-015906
+1169,1177,1,220810,Westlake Academy Charter School,Tarrant,A,84,908,https://txschools.net/district/westlake-academy-charter-school-220810
+1171,1177,2,220919,Carroll ISD,Tarrant,A,85,7866,https://txschools.net/district/carroll-isd-220919
+1171,1177,2,227909,Eanes ISD,Travis,A,85,7524,https://txschools.net/district/eanes-isd-227909
+1171,1177,2,005904,Windthorst ISD,Archer,A,85,491,https://txschools.net/district/windthorst-isd-005904
+1174,1177,1,213801,Brazos River Charter School,Somervell,C,86,60,https://txschools.net/district/brazos-river-charter-school-213801
+1174,1177,1,133902,Hunt ISD,Kerr,A,86,211,https://txschools.net/district/hunt-isd-133902
+1176,1177,1,146903,Devers ISD,Liberty,A,93,198,https://txschools.net/district/devers-isd-146903
+1176,1177,1,073904,Westphalia ISD,Falls,A,93,148,https://txschools.net/district/westphalia-isd-073904

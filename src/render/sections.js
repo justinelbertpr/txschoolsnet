@@ -5,10 +5,15 @@
 // Order here IS the page order. Adding a section is one function plus one entry
 // in SECTIONS at the bottom.
 
-import { cmp, esc, fmtDelta, grade, legend, num, ordinal, pct, section, statGrid, table, usd } from './shell.js'
+import { cmp, esc, fmtDelta, grade, legend, navList, num, ordinal, pct, section, statGrid, table, usd } from './shell.js'
 import { trajectoryChart, scoreBars, stackedShare, comparisonChart, groupedBars } from './charts.js'
 import { RACE, EXPERIENCE, STAAR_LEVELS, GRADUATION, COMPLETION, CCMR } from './labels.js'
 import { closestCounted, countedDomains, isContextMetric } from './metrics.js'
+// LIST_LIMIT only — a number, not a renderer, so importing it does not pull
+// this file into rankings-page.js's own layout choices. It is what decides
+// which of the two boards for a metric actually lists this entity: see
+// rankedBoard below.
+import { LIST_LIMIT } from './rankings-page.js'
 
 /* ------------------------------------------------------------------ words -- */
 
@@ -29,6 +34,101 @@ const points = (n) => `${num(n)} ${n === 1 ? 'point' : 'points'}`
 // Half a point is the threshold for "level with" everywhere on this site, so it
 // is one function rather than three copies of the same conditional.
 const versus = (mine, avg) => (Math.abs(mine - avg) < 0.5 ? 'level with' : mine > avg ? 'above' : 'below')
+
+/* --------------------------------------------------- links to the rankings -- */
+
+/**
+ * A rank printed on this page is a claim about a population, and until now the
+ * reader had no way to see that population. "Ranks 400th of 1,184 Texas
+ * districts" named 1,183 other districts and linked none of them; a reporter who
+ * wanted to know who was 1st had to download ratings.csv and sort it. Every rank
+ * this file prints now carries a link to the list it came out of.
+ *
+ * ------------------------------------------------------------- WHY A LOOKUP
+ *
+ * These sections build no ranking URLs. `vm.rankingLinks` is a map the build step
+ * hands in (src/prerender.js), keyed by cohort, then by metric key, then by
+ * end ('top' | 'bottom'), holding the { href, title } of a ranking page that
+ * WAS ACTUALLY WRITTEN. Consequences, and all three are the point:
+ *
+ *   A link only exists where the page exists. An entity page can never point at
+ *   a ranking that was not built — no scheme to keep in step with the renderer,
+ *   no 404 when a board is dropped, and a build with no rankings at all renders
+ *   exactly the markup it rendered before, byte for byte.
+ *
+ *   The peer band can never be linked. `vm.rankingLinks` carries state, region
+ *   and county only, because those are the cohorts a static page can exist for.
+ *   The peer band is defined relative to THIS entity's economically
+ *   disadvantaged share — "districts within 10 points of Cayuga ISD" is a
+ *   different population for every one of 1,199 districts, so there is no page
+ *   to link and a standout in that cohort is left as plain text rather than
+ *   linked to a statewide list it was not measured against.
+ *
+ *   A link only exists where the BOARD actually lists this entity. rankings-
+ *   page.js prints only the first LIST_LIMIT rows of a long ordering — the
+ *   statewide campus boards run to roughly 8,500 entities and print 1,500 of
+ *   them — so an entity ranked past that slice is not on the 'top' (highest-
+ *   value-first) page at all, and one ranked past it from the OTHER end is
+ *   not on the 'bottom' page either. Linking the wrong end, or an end that
+ *   contains neither, sends the reader to a table that does not have this
+ *   entity's own row in it: a verified defect on ~82% of campus pages before
+ *   this existed. rankedBoard below is what closes it — it compares the
+ *   entity's own rank and population against LIST_LIMIT and returns the one
+ *   board (of the two that exist for a metric) whose printed rows actually
+ *   include this entity, or null when neither slice does.
+ */
+const finite = (v) => typeof v === 'number' && Number.isFinite(v)
+
+/**
+ * Which end of an ordering — 'top' (highest value first) or 'bottom' (lowest
+ * value first) — actually prints this entity's row, given its rank OUT OF a
+ * population and LIST_LIMIT (src/render/rankings-page.js), the same cutoff
+ * renderRankingPage prints a page's rows to. Returns null for the (large, for
+ * a statewide campus board) middle band that is on neither page.
+ *
+ * `rank` here is the GOODNESS rank metrics.js:rankAll computes — 1st is
+ * always the best result, whichever direction "best" runs. The two published
+ * boards are not goodness-ordered, though: 'top' is sorted by VALUE, highest
+ * first, and 'bottom' by value, lowest first (rankings-page.js's own rule —
+ * "highest"/"lowest" name the number, never the result, which is why chronic
+ * absence has a "highest" page that is its worst end). For a higher-is-better
+ * metric the two agree, so goodness rank IS value-descending position. For a
+ * lower-is-better one (chronic absence, dropout) the best row — rank 1 — has
+ * the SMALLEST value, so it sits at the very end of the 'top' ordering and at
+ * position 1 of the 'bottom' one; the formulas below swap accordingly rather
+ * than assuming every metric reads the way score does.
+ */
+export const rankingEnd = (rank, of, lowerIsBetter = false) => {
+  if (!finite(rank) || !finite(of) || of <= 0 || rank < 1 || rank > of) return null
+  const posFromTop = lowerIsBetter ? of - rank + 1 : rank
+  const posFromBottom = lowerIsBetter ? rank : of - rank + 1
+  if (posFromTop <= LIST_LIMIT) return 'top'
+  if (posFromBottom <= LIST_LIMIT) return 'bottom'
+  return null
+}
+
+/**
+ * The one board (of the two that exist for a metric+cohort) whose printed
+ * rows actually contain this entity, or null when neither does — see the
+ * note above. `{ href, title }`, where `title` is the board's own heading
+ * ("Texas school districts with the highest overall score"), read off the
+ * index rather than composed here, so a caller can label a link with a claim
+ * the linked page actually makes instead of inventing its own completeness
+ * claim ("Every ... ranked by ...") that a 1,500-row slice cannot back.
+ */
+export const rankedBoard = (vm, metric, cohort, rank, of, lowerIsBetter = false) => {
+  const end = rankingEnd(rank, of, lowerIsBetter)
+  const board = end && vm?.rankingLinks?.[cohort]?.[metric]?.[end]
+  return board && typeof board.href === 'string' && board.href ? { ...board, end } : null
+}
+
+/** The href alone, for a caller that only wants to know whether to link. */
+export const rankingHref = (vm, metric, cohort, rank, of, lowerIsBetter = false) =>
+  rankedBoard(vm, metric, cohort, rank, of, lowerIsBetter)?.href ?? null
+
+/** Wraps text in a link when there is one, and returns it untouched when not. */
+const linked = (href, html, label = null) =>
+  href ? `<a href="${esc(href)}"${label ? ` aria-label="${esc(label)}"` : ''}>${html}</a>` : html
 
 /* ------------------------------------------------------- context, not good -- */
 
@@ -149,11 +249,33 @@ function verdictSummary(vm) {
 
   /* --- the rank, which is a denominator claim rather than a verdict --- */
 
+  // Both placements link to the list they came out of, where one was built —
+  // and where this entity's own rank actually places it in that list's
+  // printed rows (rankedBoard; see the note above rankingEnd). The link text
+  // is the whole claim — "400th of 1,184 Texas districts" — rather than a
+  // bare "see the ranking" tacked on the end, so the destination is described
+  // by the thing the reader is already looking at. The aria-label is the
+  // linked board's OWN heading, read off the index rather than composed here
+  // — it used to say "Every Texas school ranked by overall score", which is
+  // false the moment the board is a 1,500-row slice of ~8,500 (every
+  // statewide campus board); a board's own title never claims more than it
+  // shows.
+  // Built inside the branch, not above it: ordinal() has no answer for a null
+  // rank and throws, and an entity TEA did not rate has no placement at all.
   const share = (n) => (n > 0 ? ` (tied with ${plural(n, 'other')})` : '')
-  const rank =
-    vm.rank && vm.rankOf
-      ? `Ranks ${ordinal(vm.rank)} of ${num(vm.rankOf)} Texas ${units}${share(vm.rankTied)}, and ${ordinal(vm.regionRank)} of ${num(vm.regionRankOf)} in ${esc(vm.regionName)}${share(vm.regionRankTied)}.`
-      : null
+  const stateBoard = rankedBoard(vm, 'score', 'state', vm.rank, vm.rankOf)
+  const regionBoard = rankedBoard(vm, 'score', 'region', vm.regionRank, vm.regionRankOf)
+  const rank = !(vm.rank && vm.rankOf)
+    ? null
+    : `Ranks ${linked(
+        stateBoard?.href ?? null,
+        `${ordinal(vm.rank)} of ${num(vm.rankOf)} Texas ${units}`,
+        stateBoard?.title ?? null
+      )}${share(vm.rankTied)}, and ${linked(
+        regionBoard?.href ?? null,
+        `${ordinal(vm.regionRank)} of ${num(vm.regionRankOf)} in ${esc(vm.regionName)}`,
+        regionBoard?.title ?? null
+      )}${share(vm.regionRankTied)}.`
 
   return { summary: `${head}${against} ${trend}`, rank }
 }
@@ -266,6 +388,67 @@ export function trajectory(vm) {
       head: ['Year', 'Rating', { label: 'Score', num: true }, { label: 'Similar', num: true }, { label: 'State', num: true }],
       rows,
     })}`
+  )
+}
+
+/* ------------------------------------------------------- change rankings -- */
+
+/**
+ * Boards that rank CHANGE over time — "the largest gains", "the largest
+ * declines" — rather than where an entity stands today. Until this existed, 0
+ * of 10,230 entity pages linked one of these, even though rankingIndex has
+ * carried them all along for the 7 metrics with real multi-year history: the
+ * overall score, the five score domains, and per-student spending (metric
+ * keys prefixed `change:`, built by src/prerender.js:rankingMetrics). That
+ * was the core gap: a page above can already say "you're 400th of 1,184
+ * today" but had nowhere to send a reader asking "and is that getting
+ * better?"
+ *
+ * There is no rank NUMBER to state here — metrics.js:rankAll, which computes
+ * vm.rank/vm.standouts, ranks each metric's current LEVEL only; it computes
+ * no placement on a metric's CHANGE, so this page cannot yet say "you're #1
+ * in Texas for improvement" even where that happens to be true. What it CAN
+ * do honestly is point at the board, exactly like every other ranking link on
+ * this page: only through vm.rankingLinks, so a board that was never built
+ * cannot be linked, and the lede below says plainly that a placement on these
+ * specific lists is not something this page knows yet — the "state what the
+ * site does not know" rule applied to a gap in the page's OWN data, not just
+ * TEA's.
+ */
+const CHANGE_PREFIX = 'change:'
+
+const changeBoardItems = (metrics) => {
+  const items = []
+  for (const [key, ends] of Object.entries(metrics ?? {})) {
+    if (!key.startsWith(CHANGE_PREFIX)) continue
+    if (ends?.top?.href) items.push({ href: ends.top.href, label: ends.top.title ?? key })
+    if (ends?.bottom?.href) items.push({ href: ends.bottom.href, label: ends.bottom.title ?? key })
+  }
+  return items
+}
+
+export function changeRankings(vm) {
+  const groups = [
+    { label: `Texas ${vm.level === 'district' ? 'districts' : 'schools'}`, items: changeBoardItems(vm.rankingLinks?.state) },
+    { label: vm.regionName ?? null, items: changeBoardItems(vm.rankingLinks?.region) },
+    { label: vm.county ? `${vm.county} County` : null, items: changeBoardItems(vm.rankingLinks?.county) },
+  ].filter((g) => g.label && g.items.length)
+
+  if (!groups.length) return null
+
+  const one = vm.level === 'district' ? 'district' : 'school'
+  const body = groups
+    .map((g) => `<h3>${esc(g.label)}</h3>\n  ${navList(g.items, `${g.label} ranked by change over time`)}`)
+    .join('\n  ')
+
+  return section(
+    'change-rankings',
+    `How this ${one}'s change over time is ranked`,
+    body,
+    `TEA publishes most measures for one year only, so a change ranking exists just where the same
+     figure is published across years — the overall score, the five score domains, and per-student
+     spending. This page does not yet state where ${esc(vm.name)} itself places on these lists, only
+     that the lists exist; open one to find this ${esc(one)}'s own row.`
   )
 }
 
@@ -537,16 +720,49 @@ export function standouts(vm) {
   const rows = placements
     .map((r) => {
       const claim = claimSentence(vm, r)
+      // The whole ranking, not just this entity's place in it — and, since a
+      // long board prints only its first LIST_LIMIT rows, only when this
+      // entity's own row is actually one of them (rankedBoard). A placement
+      // measured against the peer band has no page to point at either way
+      // (see the note above rankingEnd) and simply carries no link, rather
+      // than borrowing a statewide list it was not measured against.
+      const board = rankedBoard(vm, r.metric, r.cohort, r.rank, r.of, r.lowerIsBetter)
+      // "full ranking" only when the board really is the whole thing: a
+      // board covering more than LIST_LIMIT entities prints a slice, and
+      // calling a slice "full" is the same false completeness claim the
+      // verdict's rank line used to make. The link text says so; the
+      // aria-label carries the board's own title either way, so a screen
+      // reader hears what the destination actually claims rather than a
+      // word this list chose for it.
+      const complete = !!board && finite(r.of) && r.of <= LIST_LIMIT
+      const linkText = !board ? '' : complete ? 'full ranking' : `ranking (${board.end} ${num(LIST_LIMIT)} shown)`
+      const ariaLabel = !board
+        ? ''
+        : complete
+        ? `Full ranking: ${esc(r.label)}, ${esc(r.cohortLabel)}`
+        : esc(board.title ?? '')
+      const full = board
+        ? ` &middot; <a href="${esc(board.href)}" aria-label="${ariaLabel}">${linkText}</a>`
+        : ''
       return `<li class="standout">
       <div class="standout-rank"><span class="standout-n">${r.rank}</span><span class="standout-of">of ${num(r.of)}</span></div>
       <div class="standout-body">
         <p class="standout-metric">${esc(r.label)}${r.lowerIsBetter ? ' <span class="standout-dir">(lowest is best)</span>' : ''}</p>
-        <p class="standout-scope">${esc(r.cohortLabel)} &middot; of the ${num(r.of)} that report this measure${r.tied > 0 ? ` &middot; tied with ${num(r.tied)}` : ''}</p>
+        <p class="standout-scope">${esc(r.cohortLabel)} &middot; of the ${num(r.of)} that report this measure${r.tied > 0 ? ` &middot; tied with ${num(r.tied)}` : ''}${full}</p>
       </div>
       <button type="button" class="copy" data-claim="${esc(claim)}" aria-label="Copy this statement">Copy</button>
     </li>`
     })
     .join('\n    ')
+
+  // The section's own escape hatch out of the selection. "These are selected
+  // high placements" is only an honest disclosure if the unselected ones are
+  // reachable, and until the ranking pages existed they were not reachable from
+  // anywhere on the site.
+  const allRankings = vm.rankingsIndex
+    ? ` <a href="${esc(vm.rankingsIndex)}">Every ranking this site publishes</a>, including the ones
+  no ${unit(vm)} would put in a press release.`
+    : ''
 
   return section(
     'standouts',
@@ -557,7 +773,7 @@ export function standouts(vm) {
   <p class="note"><strong>These are selected high placements, not a summary.</strong> Every figure above
   this section is the full picture, including where this ${vm.level} ranks poorly. Each statement below
   states its cohort and its denominator so it can be checked — a rank without an n is a boast, not a
-  fact. Ties are shown because a shared ceiling is not a sole first place.</p>`,
+  fact. Ties are shown because a shared ceiling is not a sole first place.${allRankings}</p>`,
     `Out of ${num(vm.ranks.length)} rankings computed across every published metric and every comparison group, these are the placements that stand out. Press Copy for a citable sentence.`
   )
 }
@@ -598,4 +814,4 @@ const downloadLinks = (vm) =>
      <code>${esc(vm.id)}</code>.</p>`
 
 /** Page order. */
-export const SECTIONS = [verdict, trajectory, domains, outcomes, students, spending, teachers, standouts, campuses, source]
+export const SECTIONS = [verdict, trajectory, changeRankings, domains, outcomes, students, spending, teachers, standouts, campuses, source]

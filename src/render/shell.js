@@ -139,6 +139,10 @@ export const navList = (items, { label = null } = {}) =>
 const PRIMARY_NAV = [
   { href: '/', label: 'Home', match: (p) => p === '/' || p === '' },
   { href: '/districts/a', label: 'Districts A–Z', match: (p) => p.startsWith('/districts/') },
+  // /rankings was reachable only from region/county hubs and a few entity-page
+  // links, never from the persistent nav itself — added here so it is one
+  // click from every page, the way Download and About already are.
+  { href: '/rankings', label: 'Rankings', match: (p) => p === '/rankings' || p.startsWith('/rankings/') },
   { href: '/download', label: 'Download data', match: (p) => p === '/download' },
   { href: '/about', label: 'About', match: (p) => p === '/about' },
 ]
@@ -386,9 +390,25 @@ export const legend = (items) =>
     .map((i) => `<li><span class="swatch swatch-${esc(i.key)}"></span>${esc(i.label)}</li>`)
     .join('')}</ul>`
 
-export const table = ({ caption, head, rows, className = 'data' }) =>
-  `<table class="${className}">
+/**
+ * The scrollable variant ('data scroll') wraps the <table> in a real element
+ * rather than putting overflow-x on the table itself: a display:table box
+ * does not clip its own excess width (it grows past a declared width
+ * instead — verified in site/style.css's TABLES note), and display:block,
+ * the old fix for that, strips the table/row/cell roles a screen reader
+ * depends on. The wrapper is real, keyboard-operable (tabindex="0") and
+ * announced (role="region" + aria-label) rather than a scroller a keyboard
+ * user cannot reach and a screen reader never mentions. style.css's
+ * .tbl-scroll rules are inert outside the narrow viewport where the table
+ * actually overflows, so this costs nothing at any other width.
+ */
+export const table = ({ caption, head, rows, className = 'data' }) => {
+  const inner = `<table class="${className}">
     <caption class="sr-only">${esc(caption)}</caption>
     <thead><tr>${head.map((h) => `<th${h.num ? ' class="num"' : ''}>${esc(h.label ?? h)}</th>`).join('')}</tr></thead>
     <tbody>${rows.join('')}</tbody>
   </table>`
+  return className.split(/\s+/).includes('scroll')
+    ? `<div class="tbl-scroll" tabindex="0" role="region" aria-label="${esc(caption)}">${inner}</div>`
+    : inner
+}

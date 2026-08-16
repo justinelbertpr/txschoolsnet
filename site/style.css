@@ -60,6 +60,11 @@
   --ink: #16181d;          /* 17.8:1 on surface */
   --ink-2: #4a5058;        /* 8.1:1 on surface, 7.0:1 on ground */
   --ink-3: #5f6675;        /* 5.8:1 on surface, 5.0:1 on ground — AA at any size */
+  /* .navlist a only. Picked for 3:1+ against --ink (the prose it sits next
+     to), not just against the plane behind it — a link colour this close in
+     lightness to body text needs that second number too, or it reads as the
+     same grey as everything around it. 4.98:1 on surface · 3.57:1 on --ink. */
+  --navlink: #687080;
   --line: #dcdfe5;
   --line-2: #e9ebef;
   --hover: #f4f6f9;        /* row hover: must differ from BOTH planes */
@@ -140,6 +145,7 @@
     --ink: #f2f4f7;
     --ink-2: #b3bac4;
     --ink-3: #8b939e;
+    --navlink: #7d858f;   /* 4.66:1 on surface · 3.39:1 on --ink */
     --line: #2b313a;
     --line-2: #21262e;
     --accent: #93b4f9;     /* 8.40:1 on surface — the light blue's sibling */
@@ -166,7 +172,7 @@
   --shadow-raised: 0 1px 2px rgb(0 0 0 / .5), 0 10px 30px -10px rgb(0 0 0 / .6);
   --shadow-card: 0 1px 2px rgb(0 0 0 / .35);
   --ink: #f2f4f7; --ink-2: #b3bac4;
-  --ink-3: #8b939e; --line: #2b313a; --line-2: #21262e; --accent: #93b4f9;
+  --ink-3: #8b939e; --navlink: #7d858f; --line: #2b313a; --line-2: #21262e; --accent: #93b4f9;
   --c-entity: #60a5fa; --c-peer: #fb923c; --c-state: #2dd4bf; --c-tea: #f0abfc;
   --s0: #60a5fa; --s1: #fb923c; --s2: #2dd4bf; --s3: #c084fc;
   --s4: #fbbf24; --s5: #f472b6; --s6: #94a3b8;
@@ -247,8 +253,15 @@ header.site {
   list-style: none; display: flex; flex-wrap: wrap; gap: .25rem 1.15rem;
   margin: 0; padding: 0; font-size: var(--t-meta);
 }
+/* Underline is the non-colour cue WCAG 1.4.1 asks for, and it is what makes
+   these read as links at all on a touch device, where :hover never fires —
+   previously ".navlist a" carried no decoration until hover/current, so the
+   256 links on /rankings and the home page's featured lists read as plain
+   sentences. --navlink is picked for contrast against the prose beside it,
+   not only against the plane behind it: see the token's own note above. */
 .navlist a {
-  color: var(--ink-2); text-decoration: none;
+  color: var(--navlink); text-decoration: underline; text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
   padding-block: .15rem; border-bottom: 2px solid transparent;
 }
 .navlist a:hover { color: var(--ink); border-bottom-color: var(--line); }
@@ -1186,23 +1199,82 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
 
      So at this width — and ONLY at this width, where the table is genuinely
      wider than the screen — the list becomes a horizontally scrolling panel.
-     display:block here is correct for the same reason it was wrong before:
-     the inner table is wider than the box, so it fills it rather than
-     shrink-wrapping inside it, and every column stays aligned because it is
-     still one table. One row cut at the right edge is the affordance. */
+     One row cut at the right edge, faded, is the affordance. */
   .data { font-size: var(--t-small); }
   .data th, .data td { padding: .5rem .4rem; }
   .data thead th { font-size: var(--t-micro); letter-spacing: .02em; }
-  .data.scroll {
+
+  /* ---- the scroll container --------------------------------------------
+     Where shell.js:table() wrapped this table in .tbl-scroll, THAT div
+     carries the overflow: a display:table box does not clip its own excess
+     width (it grows past a declared width instead — try it: overflow-x:auto
+     on the <table> itself does nothing), so the table keeps display:table,
+     and every row/cell/columnheader role a screen reader relies on, at every
+     width. tabindex="0" + role="region" on the wrapper (set in shell.js) is
+     what makes the scroll keyboard-reachable and announced, rather than a
+     scroller only a mouse can find.
+
+     HANDOFF — rankings-page.js builds "<table class=\"data scroll\">" by hand
+     rather than calling shell.js:table(), so its ranking-board pages get no
+     .tbl-scroll wrapper. The fallback below (display:block directly on the
+     table) is the one defect this pass could not close there: it keeps the
+     table visually scrollable instead of blowing out the whole page
+     sideways, but it still strips the table's roles, exactly like the bug
+     this replaces everywhere else. Wrapping rankingTable()'s return value
+     the same way shell.js:table() now does —
+       <div class="tbl-scroll" tabindex="0" role="region" aria-label="…">
+         <table class="data scroll">…</table>
+       </div>
+     — drops it straight into the fix below with no further CSS changes. */
+  .tbl-scroll {
+    overflow-x: auto; overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    margin: 1.25rem 0 0; border-radius: var(--radius);
+    /* Edge fade: the one non-interactive, always-true cue that there is more
+       table to the right. currentColor (the surrounding ink) so it is
+       correct in both themes without a token of its own; the plain rgb
+       shadow first is what a browser without color-mix() paints instead of
+       nothing, since an unsupported value invalidates the whole shorthand. */
+    box-shadow: inset -14px 0 10px -10px rgb(0 0 0 / .18);
+    box-shadow: inset -14px 0 10px -10px color-mix(in srgb, currentColor 20%, transparent);
+  }
+  .tbl-scroll .data.scroll { margin-top: 0; }
+  .data.scroll:not(.tbl-scroll .data.scroll) {
     display: block; overflow-x: auto; overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
+    box-shadow: inset -14px 0 10px -10px rgb(0 0 0 / .18);
+    box-shadow: inset -14px 0 10px -10px color-mix(in srgb, currentColor 20%, transparent);
   }
+  .tbl-scroll th, .tbl-scroll td,
   .data.scroll th, .data.scroll td { white-space: nowrap; }
-  /* The name column stays put while the rest scrolls under it. Without this a
-     reader who swipes to reach Score is looking at a number with no school
-     attached to it. It wraps and is width-capped so it cannot eat the panel. */
-  .data.scroll tbody th, .data.scroll thead th:first-child {
-    position: sticky; left: 0; z-index: 1;
+
+  /* ---- which column(s) pin ----------------------------------------------
+     Every .data.scroll table pins its name column so a reader who swipes to
+     reach Score is still looking at a school. Ranking-board tables
+     (rankings-page.js) print an extra Rank column before it — a rank with no
+     value beside it, or a value with no rank, is not the fact the page
+     claims to state — so THERE both Rank and the name pin, Rank in a narrow
+     lane of its own and the name right after it. --rk-w is 0 (name pins at
+     the left edge) unless a table actually has that leading Rank column, in
+     which case it becomes the lane's width and the name pins past it.
+     Header and body always pin the SAME column this way; the previous rule
+     pinned "thead th:first-child" (Rank's header cell) over "tbody th"
+     (the name cell, second in a ranking table) — the header lied about the
+     column under it, and rank and score could never be on screen together. */
+  .data.scroll { --rk-w: 0px; }
+  .data.scroll:has(thead th.num:first-child) { --rk-w: 4rem; }
+  .data.scroll thead th.num:first-child,
+  .data.scroll tbody td.num:first-child {
+    position: sticky; left: 0; z-index: 2;
+    width: var(--rk-w); min-width: var(--rk-w);
+    white-space: normal;
+    background: inherit;
+    box-shadow: 1px 0 0 var(--line-2);
+  }
+  .data.scroll tbody th,
+  .data.scroll thead th:first-child:not(.num),
+  .data.scroll thead th.num:first-child + th {
+    position: sticky; left: var(--rk-w); z-index: 1;
     white-space: normal; width: 9.5rem; min-width: 8rem;
     background: inherit;
     box-shadow: 1px 0 0 var(--line-2);
@@ -1215,7 +1287,18 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
   .data.scroll thead tr { background: var(--surface); }
   /* Sticky headers cannot follow the page from inside a scroll container. */
   .data.scroll thead th { position: static; }
-  .data.scroll thead th:first-child { position: sticky; }
+  .data.scroll thead th:first-child:not(.num),
+  .data.scroll thead th.num:first-child,
+  .data.scroll thead th.num:first-child + th { position: sticky; }
+
+  /* HANDOFF (rankings-page.js): on a scope where every row repeats the same
+     county/region/district name, that column carries no information and
+     just crowds the score off screen. Give its <th> and each row's <td>
+     class="col-scope" and this rule narrows it instead — nothing above can
+     target it by position since where it falls in the column order isn't
+     fixed (it only exists when columnPlan().where is true). */
+  .data .col-scope { max-width: 5rem; font-size: var(--t-micro); color: var(--ink-3); }
+
   .legend li > a { min-width: 2.75rem; min-height: 2.75rem; }
   .standout { gap: .7rem; padding: .75rem .8rem; }
   .standout-rank { min-width: 2.8rem; }
@@ -1244,6 +1327,7 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
   .layout { display: block; max-width: none; padding: 0; }
   main > section { box-shadow: none; break-inside: avoid-page; }
   .data thead th { position: static; }
+  .tbl-scroll { overflow: visible; box-shadow: none; }
   a { text-decoration: none; }
 }
 
@@ -1278,3 +1362,195 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
    3. At minimum, make labelW/barH/rowH options rather than constants, so a
       narrow variant is a call-site argument.
    ========================================================================== */
+
+/* ==========================================================================
+   ▼▼▼ RANKINGS TOOL — APPENDED BLOCK (owner: site/rankings.js) ▼▼▼
+   Everything from here to the end of the file belongs to the interactive
+   ranking tool at /rankings. Nothing above this line is touched by it.
+
+   The tool builds its own controls at runtime, so the selectors below only
+   ever match markup that JavaScript created — except .rk-scroll, .rk-table
+   and .rk-headline, which the prerendered default ranking also uses so that
+   the served list and the upgraded one look identical. That is the point:
+   the reader should not be able to tell which one they are looking at.
+
+   The table itself is .data, styled far above. Only what is genuinely new
+   is defined here.
+   ========================================================================== */
+
+/* ---- controls ---------------------------------------------------------- */
+
+.rk-controls {
+  background: var(--ground);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  padding: 1rem 1.1rem 1.1rem;
+  margin: 1.25rem 0 0;
+}
+
+.rk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: .85rem 1rem;
+}
+
+.rk-field { display: flex; flex-direction: column; gap: .3rem; margin: 0; }
+.rk-field > label {
+  font-size: var(--t-label); font-weight: 650; letter-spacing: .03em;
+  text-transform: uppercase; color: var(--ink-3);
+}
+.rk-hint { font-size: var(--t-micro); color: var(--ink-3); }
+
+/* One appearance for every control. `font: inherit` matters more than it
+   looks: a <select> otherwise renders at the UA's 13.3px regardless of the
+   reader's font size, which is the single most common way a filter bar ends
+   up unreadable for someone who has scaled their text up. */
+.rk-controls select,
+.rk-btn {
+  font: inherit;
+  font-size: var(--t-meta);
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: .45rem .6rem;
+  min-height: 2.5rem;          /* 40px on a mouse */
+  max-width: 100%;
+}
+.rk-controls select { width: 100%; }
+.rk-btn { cursor: pointer; font-weight: 550; padding-inline: .85rem; }
+.rk-btn:hover { border-color: var(--ink-3); }
+.rk-controls select:focus-visible,
+.rk-btn:focus-visible,
+.rk-check input:focus-visible,
+.rk-scroll:focus-visible,
+.rk-sort:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .rk-btn { transition: border-color .18s, background .18s; }
+}
+
+/* 44px on anything touched with a finger, per WCAG 2.5.8's enhanced target
+   size. Applied on pointer, not on width: a small window on a laptop is
+   still a mouse, and a large tablet is still a finger. */
+@media (pointer: coarse) {
+  .rk-controls select,
+  .rk-btn { min-height: 2.75rem; }
+  .rk-check { min-height: 2.75rem; }
+}
+
+.rk-row {
+  display: flex; flex-wrap: wrap; align-items: center;
+  gap: .6rem 1.25rem;
+  margin-top: .9rem;
+}
+.rk-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-left: auto; }
+
+.rk-check {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: var(--t-meta); color: var(--ink-2);
+  cursor: pointer;
+}
+.rk-check input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); flex: none; }
+
+.rk-avail {
+  margin: .9rem 0 0;
+  font-size: var(--t-meta); color: var(--ink-3);
+  max-width: var(--measure);
+}
+
+/* The button that stands in for the controls until the payload has been
+   fetched. It is a real control, not a placeholder: keyboard-reachable, and
+   it says what pressing it does. */
+.rk-wake { margin: 1.25rem 0 0; }
+
+/* ---- the answer -------------------------------------------------------- */
+
+/* The live region. Never display:none — a hidden live region announces
+   nothing — and never empty of meaning: it always holds the population
+   sentence of the list currently on screen. */
+.rankings-status {
+  margin: 1rem 0 0;
+  font-size: var(--t-meta);
+  color: var(--ink-3);
+  min-height: 1.25rem;
+}
+.rankings-status:empty { margin: 0; min-height: 0; }
+
+.rk-headline {
+  margin: 1.25rem 0 0;
+  font-size: var(--t-lead);
+  font-family: var(--font-display);
+  color: var(--ink);
+  max-width: var(--measure-display);
+  text-wrap: pretty;
+}
+
+/* A wide table on a narrow screen scrolls inside its own box; the page body
+   never scrolls sideways. tabindex="0" on this element is what makes that
+   scroll reachable from a keyboard, and is why it has a focus ring. */
+.rk-scroll { overflow-x: auto; margin-top: .25rem; }
+.rk-table { margin-top: .75rem; }
+.rk-table td, .rk-table th { white-space: nowrap; }
+.rk-table .rk-name { white-space: normal; min-width: 12rem; }
+.rk-table .rk-sub { color: var(--ink-2); }
+.rk-table .rk-grade { font-weight: 650; }   /* letter only — never colour-coded */
+.rk-table .rk-value { font-weight: 650; }
+.rk-table .rk-context { color: var(--ink-2); }
+
+/* The sort control is the whole header cell, so the target is the size of
+   the thing it looks like. */
+.rk-sort {
+  display: flex; align-items: center; gap: .3rem;
+  width: 100%;                 /* the target is the header cell, not the word */
+  font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;
+  background: none; border: 0; padding: .35rem 0; margin: 0;
+  cursor: pointer;
+}
+.rk-sort:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.rk-arrow { font-size: .7em; }
+.data th[aria-sort='ascending'] .rk-sort,
+.data th[aria-sort='descending'] .rk-sort { color: var(--ink); }
+.num .rk-sort { justify-content: flex-end; }
+
+/* After the base rule, not before it: an equal-specificity declaration earlier
+   in the file loses, which is exactly how this rule failed the first time. */
+@media (pointer: coarse) {
+  .rk-sort { padding-block: .85rem; }   /* 44px tall with the 11px header text */
+}
+
+/* A shared rank is marked, not hidden. The mark is a character, not a
+   colour, so it survives greyscale, colour-vision deficiency and print —
+   the same reason the grades on this site are not colour-coded. */
+.rk-tie {
+  margin-left: .15rem;
+  color: var(--ink-3);
+  font-weight: 650;
+}
+
+.rk-notes {
+  list-style: none; padding: 0;
+  margin: 1rem 0 0;
+  max-width: var(--measure);
+  font-size: var(--t-meta); color: var(--ink-2);
+}
+.rk-notes li { margin-top: .4rem; padding-left: 1rem; text-indent: -1rem; }
+.rk-notes li::before { content: '—'; color: var(--ink-3); margin-right: .45rem; }
+
+.rk-empty {
+  margin: 1rem 0 0; padding: 1rem;
+  background: var(--ground); border: 1px solid var(--line); border-radius: var(--radius);
+  color: var(--ink-2); font-size: var(--t-meta);
+}
+
+@media print {
+  .rk-controls, .rankings-status { display: none !important; }
+  .rk-scroll { overflow: visible; }
+  .rk-table td, .rk-table th { white-space: normal; }
+}
+
+/* ▲▲▲ END RANKINGS TOOL APPENDED BLOCK ▲▲▲ */
