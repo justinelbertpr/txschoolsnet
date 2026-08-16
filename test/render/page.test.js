@@ -152,7 +152,11 @@ describe('railFor', () => {
     expect(html).toContain(`<script type="application/json" data-pin-source>{"payload":"${PAYLOAD}"}</script>`)
     expect(html).toContain('class="pin-search"')
     expect(html).toContain('<ul class="pin-results" hidden></ul>')
-    expect(html).toContain('<ul class="pin-list" aria-label="Pinned districts"></ul>')
+    // The pinner searches schools AND districts from either kind of page (a
+    // campus and a district publish the same 0-100 score) — see the comment
+    // on src/render/page.js:railPins — so the served wording says so rather
+    // than making the narrower claim site/app.js used to have to correct.
+    expect(html).toContain('<ul class="pin-list" aria-label="Pinned on the chart"></ul>')
     expect(html.length).toBeLessThan(4_000)
   })
 
@@ -173,7 +177,7 @@ describe('railFor', () => {
     expect([...html.matchAll(/class="rail-title">([^<]+)</g)].map((m) => m[1])).toEqual([
       'On this page',
       'Compare against',
-      'Pin districts',
+      'Pin to the chart',
     ])
   })
 })

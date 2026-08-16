@@ -178,7 +178,10 @@ describe('published page (site/district/cayuga-isd-001902.html)', () => {
 
   it('shows the current rating and score in the hero', () => {
     expect(hero(cayuga.html)).toEqual({ rating: 'B', score: '89' })
-    expect(cayuga.html).toContain('Scores <strong>89</strong>')
+    // The verdict rewrite (2026-08) replaced the old subjectless "Scores
+    // <strong>89</strong>" with a sentence that names the district and states
+    // the scale: see src/render/sections.js:verdictSummary.
+    expect(cayuga.html).toContain('Cayuga ISD is rated <strong>B</strong> by TEA, scoring <strong>89 out of 100</strong> for 2025-26')
   })
 
   it('has exactly 5 rows in the history table body', () => {
@@ -199,12 +202,24 @@ describe('published page (site/district/cayuga-isd-001902.html)', () => {
     expect(trajectory(cayuga.html).match(/<tbody>[\s\S]*?<\/tbody>/)[0]).not.toContain('94')
   })
 
-  it('shows 94 only in the footnote that says which methodology it belongs to', () => {
+  it('shows 94 in the trajectory footnote AND the verdict, nowhere else', () => {
     const note = trajectory(cayuga.html).match(/<p class="note">([\s\S]*?)<\/p>/)?.[1]
     expect(note).toContain('original scoring')
     expect(note).toContain('<strong>94</strong>')
-    // Nowhere else on the page is it presented as this district's score.
-    expect(cayuga.html.match(/<strong>94<\/strong>/g)).toHaveLength(1)
+
+    // The verdict rewrite (2026-08) folded the same fact into the hero
+    // sentence, deliberately: "up 2 points since 2021-22" used to sit 200px
+    // above a footnote saying the district scored 94 that year, with nothing
+    // joining the two true-but-apparently-contradictory numbers. The verdict
+    // now states the pre-refresh score itself, in the same clause that makes
+    // the "up" claim, so the two never again read as disagreeing.
+    const verdict = cayuga.html.match(/<p class="summary">([\s\S]*?)<\/p>/)?.[1]
+    expect(verdict).toContain("under the rules in force back then it scored <strong>94</strong>")
+
+    // Nowhere else on the page is it presented as this district's score —
+    // exactly these two places, not the history table (checked above) and not
+    // a third repetition.
+    expect(cayuga.html.match(/<strong>94<\/strong>/g)).toHaveLength(2)
   })
 
   it('reads without JavaScript: the rows are in the HTML, not fetched', () => {

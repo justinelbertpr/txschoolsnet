@@ -9,8 +9,9 @@
 // or prints a comparison it was not given the other side of. Where an argument is
 // missing the sentence carrying it disappears — it is never filled with a guess.
 
-import { esc, grade, num, section, shell, statGrid, table, SITE_ORIGIN } from './shell.js'
+import { esc, grade, navList, num, section, shell, statGrid, table, SITE_ORIGIN } from './shell.js'
 import { entitySlug, slugify } from './view-model.js'
+import { renderSearch, SEARCH_PATH } from './search.js'
 
 /* ------------------------------------------------------------- primitives -- */
 
@@ -58,10 +59,16 @@ const byName = (a, b) => String(a.name ?? '').localeCompare(String(b.name ?? '')
 
 /* ------------------------------------------------------------------ parts -- */
 
-const hero = ({ eyebrow, title, place = '', lede = '' }) => `<section class="hero">
+/**
+ * `search` is raw markup dropped between the place line and the lede, so the one
+ * control a visitor came to use sits above the paragraph explaining the site
+ * rather than below it. Every other hub passes nothing and is unchanged.
+ */
+const hero = ({ eyebrow, title, place = '', lede = '', search = '' }) => `<section class="hero">
   ${eyebrow ? `<p class="eyebrow">${esc(eyebrow)}</p>` : ''}
   <h1>${esc(title)}</h1>
   ${place ? `<p class="place">${place}</p>` : ''}
+  ${search}
   ${lede ? `<p class="lede">${lede}</p>` : ''}
 </section>`
 
@@ -69,16 +76,24 @@ const IRREGULAR = { campus: 'campuses', county: 'counties' }
 const plural = (n, word) => `${num(n)} ${n === 1 ? word : IRREGULAR[word] ?? `${word}s`}`
 
 /**
- * A wrapped row of links. Reuses .legend, which is exactly this layout already.
+ * A wrapped row of links. It used to emit `.legend` markup, which is the class a
+ * chart key uses: wrapping twenty region links in one tells a screen-reader user
+ * that the front page's navigation is a figure legend. It goes through
+ * shell.js:navList now — same wrapped layout, real navigation semantics.
+ *
  * A count beside a link always carries its unit — a bare number next to a name is
  * the same unlabelled boast a rank without an n would be.
  */
-const linkList = (items) =>
-  `<ul class="legend">${items
-    .map((i) => `<li><a href="${esc(i.href)}"${i.current ? ' aria-current="page"' : ''}>${esc(i.label)}</a>${
-      finite(i.n) ? ` <span class="chip-n">${esc(plural(i.n, i.unit ?? 'district'))}</span>` : ''
-    }</li>`)
-    .join('')}</ul>`
+const linkList = (items, label = null) =>
+  navList(
+    items.map((i) => ({
+      href: i.href,
+      label: i.label,
+      current: i.current,
+      meta: finite(i.n) ? plural(i.n, i.unit ?? 'district') : null,
+    })),
+    { label }
+  )
 
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('')
 
@@ -88,7 +103,8 @@ const azNav = (current = null) =>
       href: `/districts/${l}`,
       label: l.toUpperCase(),
       current: current === l,
-    }))
+    })),
+    'District index by first letter'
   )
 
 /**
@@ -264,7 +280,10 @@ export function renderRegionPage({
         'counties',
         `${plural(cos.length, 'county')} in this region`,
         cos.length
-          ? linkList(cos.map((c) => ({ href: `/county/${c.slug}`, label: `${c.name} County`, n: c.n, unit: 'district' })))
+          ? linkList(
+              cos.map((c) => ({ href: `/county/${c.slug}`, label: `${c.name} County`, n: c.n, unit: 'district' })),
+              'Counties in this region'
+            )
           : '<p class="note na">No counties are listed for this region in this snapshot.</p>'
       ),
       section(
@@ -405,7 +424,13 @@ export function renderLetterPage({ letter, districts = [], snapshotDate = null }
         place: `${plural(mine.length, 'district')} in this snapshot ${mine.length === 1 ? 'begins' : 'begin'} with ${L}`,
         lede: 'District names are not unique in Texas, so each link carries the district number TEA assigns.',
       }),
-      section('index', 'Jump to another letter', azNav(l)),
+      section(
+        'index',
+        'Jump to another letter',
+        `${azNav(l)}
+      <p class="note">This index lists districts only.
+         <a href="${SEARCH_PATH}/${esc(l)}">Districts <em>and</em> campuses starting with ${esc(L)}</a>.</p>`
+      ),
       section(
         'districts',
         `${plural(mine.length, 'district')} beginning with ${L}`,
@@ -438,16 +463,50 @@ const statItems = (stats) => {
 }
 
 /**
- * renderHomePage({ regions, letters, stats, snapshotDate })
+ * Districts and campuses, read off the stat grid the caller already passes, so
+ * the search hint can state its denominator without a second argument to keep in
+ * step. An explicit `counts` wins; with neither, the hint drops the numbers
+ * rather than inventing them.
+ */
+const homeCounts = (stats, counts) => {
+  if (finite(counts?.districts) && finite(counts?.campuses)) return counts
+  const found = {}
+  for (const [label, value] of statItems(stats).map((s) => [String(s[0]).toLowerCase(), s[1]])) {
+    if (label === 'districts' || label === 'campuses') found[label] = Number(String(value).replace(/,/g, ''))
+  }
+  return finite(found.districts) && finite(found.campuses) ? found : null
+}
+
+/**
+ * renderHomePage({ regions, letters, stats, counts, snapshotDate })
  *
  * regions: [{ id, name, districtCount? }]. letters: ['a', ...] or [{ letter, count }];
  * absent means the full a–z, which the URL scheme guarantees. stats is passed
  * straight through to the stat grid — nothing here computes a statewide figure.
+ * counts is optional and only feeds the search hint's denominator.
  *
  * The front page carries no breadcrumb trail: it is the root every other trail
  * starts from, and a crumb pointing at itself would be noise.
+ *
+ * ------------------------------------------------------------------- ORDER
+ *
+ * Search is the first thing in the document after the site header, inside the
+ * hero, above the fold on a phone: eyebrow, h1, one line of place, the box.
+ * A parent arriving with a school name in her head can type it without scrolling.
+ *
+ * Everything the front page used to lead with — the statewide stat grid, the
+ * twenty regions, the A–Z — still exists, in that order, underneath. Those are
+ * browsing tools for a reader with no particular school in mind, and they were
+ * standing between everyone else and the only control that answers the question
+ * they came with.
  */
-export function renderHomePage({ regions = [], letters = null, stats = null, snapshotDate = null }) {
+export function renderHomePage({
+  regions = [],
+  letters = null,
+  stats = null,
+  counts = null,
+  snapshotDate = null,
+}) {
   const rs = (regions ?? [])
     .map((r) => ({
       id: regionPath(r.id ?? r.regionId),
@@ -464,23 +523,46 @@ export function renderHomePage({ regions = [], letters = null, stats = null, sna
   )
 
   const items = statItems(stats)
+  const c = homeCounts(stats, counts)
+
+  const place = c
+    ? `${num(c.districts)} districts &middot; ${num(c.campuses)} campuses`
+    : 'Districts and campuses, by region, county and name'
 
   return shell({
-    title: 'Texas school ratings — every district and campus',
+    title: 'Texas school ratings — find any district or campus',
+    // The h1 stays the site's name rather than becoming a verb phrase: the page
+    // now leads with the control, and a heading that reads "Find any Texas
+    // school" above a box that also says so is the same sentence twice.
     description:
-      'An independent, unofficial index of the A–F accountability ratings the Texas Education Agency publishes for every Texas school district and campus. Browse by region, county or name.',
+      'Search every Texas public school district and campus by name, and read the A–F accountability rating the Texas Education Agency published for it — with ranks, five years of history and a comparison against schools serving a similar share of economically disadvantaged students. Unofficial.',
     canonical: `${SITE_ORIGIN}/`,
     crumbs: [],
     sections: [
       hero({
         eyebrow: 'Texas public schools',
         title: 'Texas school ratings',
-        place: 'Districts and campuses, by region, county and name',
-        lede: `This site republishes the A&ndash;F accountability ratings the Texas Education Agency
-          publishes for every Texas school district and campus, and adds the comparison TEA does not:
-          each school set against others serving a similar share of economically disadvantaged students.
-          It is <strong>unofficial</strong> and is not operated by, endorsed by, or affiliated with TEA
-          &mdash; <a href="/about">what this is and how it works</a>.`,
+        place,
+        search: renderSearch({
+          variant: 'hero',
+          counts: c,
+          // No autofocus: the box is already the first thing on the page, and
+          // stealing focus on arrival throws a phone keyboard over the content
+          // of a reader who came to browse. /search autofocuses, because going
+          // there is itself the decision to type.
+          autofocus: false,
+          id: 'home-search',
+          label: 'Find a school or district',
+          placeholder: 'School or district name',
+          // The shell now emits the header instance's assets (style + script)
+          // once per page, so a second copy here would just be extra bytes.
+          assets: false,
+        }),
+        lede: `Ratings the Texas Education Agency publishes for every district and campus, plus the
+          comparison TEA does not: each school set against others serving a similar share of
+          economically disadvantaged students. This site is <strong>unofficial</strong> and is not
+          operated by, endorsed by, or affiliated with TEA &mdash;
+          <a href="/about">what this is and how it works</a>.`,
       }),
       items.length
         ? section(
@@ -496,7 +578,7 @@ export function renderHomePage({ regions = [], letters = null, stats = null, sna
         'regions',
         rs.length ? `${num(rs.length)} education service regions` : 'Browse by region',
         rs.length
-          ? linkList(rs.map((r) => ({ href: `/region/${r.id}`, label: r.name, n: r.n })))
+          ? linkList(rs.map((r) => ({ href: `/region/${r.id}`, label: r.name, n: r.n })), 'Education service regions')
           : '<p class="note na">No regions are listed in this snapshot.</p>',
         'TEA groups Texas public education into regional service centres. Each region lists its counties and districts.'
       ),
@@ -504,7 +586,12 @@ export function renderHomePage({ regions = [], letters = null, stats = null, sna
         'index',
         'Districts A to Z',
         ls.length
-          ? linkList(ls.map((x) => ({ href: `/districts/${x.letter}`, label: x.letter.toUpperCase(), n: x.n })))
+          ? `${linkList(
+              ls.map((x) => ({ href: `/districts/${x.letter}`, label: x.letter.toUpperCase(), n: x.n })),
+              'District index by first letter'
+            )}
+      <p class="note"><a href="${SEARCH_PATH}">The full index of districts <em>and</em> campuses</a> —
+         every name, with the district and county of each.</p>`
           : '<p class="note na">No district index is available in this snapshot.</p>',
         'The alphabetical index of every district, for when you know the name but not the region.'
       ),

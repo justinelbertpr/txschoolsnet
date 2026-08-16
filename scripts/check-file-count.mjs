@@ -7,16 +7,21 @@
 //
 //     entity pages                          10,230   one per district and campus
 //     county pages                             253
-//     letter pages                              26
+//     letter pages                              26   /districts/a .. /z
+//     search letter pages                       26   /search/a .. /z
 //     region pages                              20
 //     per-district CSV + JSON                2,398   1,199 districts x 2 formats
 //     bulk CSVs                                  3
-//     home, about, download                      3
-//     sitemap.xml, _redirects, _headers          3
-//     404.html, style.css, app.js                3
-//     dashboard payload                          1
+//     home, about, download, search               4
+//     sitemap.xml, _headers                      2   _redirects is deliberately
+//                                                     never written — see the note
+//                                                     at the top of src/prerender.js
+//     404.html, style.css, app.js, search.js     4
+//     dashboard payload, search index            2
+//     favicon.svg, og.png,
+//       apple-touch-icon.png                     3
 //     ------------------------------------------
-//                                           12,940   5,060 under the guard
+//                                           12,971   5,029 under the guard
 //
 // The line that matters is the per-entity one. Campus CSV and JSON are NOT
 // generated: 10,230 entities x 2 formats is 20,460 files on its own, past the

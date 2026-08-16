@@ -8,7 +8,10 @@
 // Fixtures are hand-built and tiny on purpose — these must run offline and fast.
 
 import { describe, it, expect } from 'vitest'
-import { metricSpecs, sourceBundles, cohortMetrics, buildCohorts, rankAll, standouts } from '../../src/render/metrics.js'
+import {
+  metricSpecs, sourceBundles, cohortMetrics, buildCohorts, rankAll, standouts,
+  directionOf, isContextMetric, countedDomains, closestCounted, HIGHER, LOWER, CONTEXT,
+} from '../../src/render/metrics.js'
 import { DOMAIN_LABELS } from '../../src/normalize/domains.js'
 
 const keys = (specs) => specs.map((s) => s.key)
@@ -102,6 +105,62 @@ describe('metricSpecs', () => {
     expect(spec(specs, 'spend').fmt).toBe('usd')
     expect(spec(specs, 'score').fmt).toBe('points')
     expect(spec(specs, 'ecoDis').fmt).toBe('pct')
+  })
+})
+
+/* ------------------------------------------------------------- direction -- */
+//
+// A direction is a claim: it decides which end of the cohort counts as first and
+// whether the copyable sentence says "highest" or "lowest". Getting it wrong
+// publishes a district's dropout rate as an achievement. Leaving it off is worse
+// than wrong, because the default reads "more is better" silently.
+
+describe('metric direction', () => {
+  const specs = metricSpecs({ subjects: ['Reading'] })
+
+  it('declares a direction on every spec, so none ranks by default', () => {
+    for (const s of specs) {
+      expect([HIGHER, LOWER, CONTEXT], `spec ${s.key} declares dir ${s.dir}`).toContain(s.dir)
+    }
+  })
+
+  it('ranks the two absence metrics in opposite directions, because they are opposites', () => {
+    expect(spec(specs, 'attendance').dir).toBe(HIGHER)
+    expect(spec(specs, 'absenteeism').dir).toBe(LOWER)
+  })
+
+  it('reads a low dropout rate as good and a high graduation rate as good', () => {
+    expect(spec(specs, 'grad:3').dir).toBe(LOWER) // Dropout Rate
+    for (const i of [0, 1, 2]) expect(spec(specs, `grad:${i}`).dir).toBe(HIGHER)
+    // ...and the same under the alternative-education labels, where index 3 is
+    // still the dropout rate.
+    expect(spec(metricSpecs({ isAlt: true }), 'grad:3').dir).toBe(LOWER)
+  })
+
+  it('reads more of every performance measure as better', () => {
+    for (const k of ['score', 'domain:achievement', 'domain:gaps', 'staar:Reading:0', 'ccmr:0', 'avgSalary', 'spend']) {
+      expect(spec(specs, k).dir, k).toBe(HIGHER)
+    }
+  })
+
+  it('gives the three student-population shares no direction at all', () => {
+    for (const k of ['ecoDis', 'engLrn', 'specEd']) {
+      expect(spec(specs, k).dir, k).toBe(CONTEXT)
+      expect(isContextMetric(k)).toBe(true)
+    }
+    expect(isContextMetric('absenteeism')).toBe(false)
+    expect(isContextMetric('score')).toBe(false)
+  })
+
+  it('falls back to the key when a spec is assembled without a direction', () => {
+    // Consumers build bare spec objects (this suite does). A missing `dir` must
+    // not silently mean "more is better" for a metric where it is not.
+    expect(directionOf({ key: 'absenteeism' })).toBe(LOWER)
+    expect(directionOf({ key: 'grad:3' })).toBe(LOWER)
+    expect(directionOf({ key: 'ecoDis' })).toBe(CONTEXT)
+    expect(directionOf({ key: 'score' })).toBe(HIGHER)
+    // An explicit direction always wins over the fallback.
+    expect(directionOf({ key: 'score', dir: LOWER })).toBe(LOWER)
   })
 })
 
@@ -465,6 +524,46 @@ describe('rankAll', () => {
     }
   })
 
+  // A demographic share has no good end, so it has no first place. The engine
+  // does not rank it, which is what stops "ranks 8th of 43 districts for
+  // Economically disadvantaged (highest)" from being constructible at all.
+  it('publishes no rank for a metric that describes who the entity serves', () => {
+    const ids = Array.from({ length: 12 }, (_, i) => `o${i}`)
+    const bundles = bundleMap([
+      { id: 'me', eco: 95, sc: 90 },
+      ...ids.map((id, i) => ({ id, eco: 40 + i, sc: 40 + i })),
+    ])
+    const out = rankAll({
+      entity: { id: 'me' },
+      cohorts: [cohortOf('state')],
+      bundles,
+      specs: [
+        { key: 'ecoDis', label: 'Economically disadvantaged', fmt: 'pct', dir: CONTEXT, get: (b) => b.eco },
+        { key: 'engLrn', label: 'English learners', fmt: 'pct', dir: CONTEXT, get: (b) => b.eco },
+        { key: 'specEd', label: 'Special education', fmt: 'pct', dir: CONTEXT, get: (b) => b.eco },
+        { key: 'score', label: 'Overall score', fmt: 'points', dir: HIGHER, get: (b) => b.sc },
+      ],
+      cohortIds: { state: ['me', ...ids] },
+    })
+    // The performance metric ranks in the same call, so this is the metric being
+    // excluded rather than the fixture failing to rank anything.
+    expect(out.map((r) => r.metric)).toEqual(['score'])
+    expect(out[0].rank).toBe(1)
+  })
+
+  it('excludes a context metric even when the spec forgot to say so', () => {
+    const ids = Array.from({ length: 12 }, (_, i) => `o${i}`)
+    const bundles = bundleMap([{ id: 'me', v: 95 }, ...ids.map((id, i) => ({ id, v: i }))])
+    const out = rankAll({
+      entity: { id: 'me' },
+      cohorts: [cohortOf('state')],
+      bundles,
+      specs: [{ key: 'ecoDis', label: 'Economically disadvantaged', fmt: 'pct', get: (b) => b.v }],
+      cohortIds: { state: ['me', ...ids] },
+    })
+    expect(out).toEqual([])
+  })
+
   it('ranks the entity once per cohort per metric', () => {
     const ids = Array.from({ length: 12 }, (_, i) => `o${i}`)
     const bundles = bundleMap([{ id: 'me', v: 90 }, ...ids.map((id, i) => ({ id, v: i }))])
@@ -545,5 +644,92 @@ describe('standouts', () => {
   it('returns nothing when there is nothing to boast about', () => {
     expect(standouts([])).toEqual([])
     expect(standouts([rank({ rank: 500, of: 1000, pctile: 50 })])).toEqual([])
+  })
+
+  // Second lock. rankAll emits no context row, so this can only fire if some
+  // other caller builds rows itself — and this list is what the Copy button
+  // turns into a quotable sentence.
+  it('refuses a demographic share even when handed one directly', () => {
+    const poverty = rank({ metric: 'ecoDis', label: 'Economically disadvantaged', rank: 3, of: 309 })
+    const learners = rank({ metric: 'engLrn', label: 'English learners', rank: 1, of: 1_000 })
+    const real = rank({ metric: 'score', rank: 4, of: 1_000, pctile: 99 })
+    expect(standouts([poverty, learners]).length).toBe(0)
+    expect(standouts([poverty, real, learners]).map((r) => r.metric)).toEqual(['score'])
+  })
+})
+
+/* ------------------------------------------------- what the score reads -- */
+//
+// TEA's overall score is the BETTER of Student Achievement and School Progress
+// at 70%, plus Closing the Gaps at 30%. The lower of the first two is discarded
+// outright, so a page that names it as the route to a higher rating is telling
+// a reader to work on a number the state does not read.
+
+const dom = (domain, score, toNextGrade = null, grade = null) => ({ domain, score, toNextGrade, grade, label: domain })
+
+describe('countedDomains', () => {
+  // Dallas ISD, 2025-26: achievement 79, progress 86, gaps 81. Published 85,
+  // which is 0.7 x 86 + 0.3 x 81 = 84.5 rounded — Student Achievement is not in it.
+  const dallas = [dom('achievement', 79, 1, 'C'), dom('progress', 86, 4, 'B'), dom('gaps', 81, 9, 'B')]
+
+  it('discards the lower of the two 70% measures', () => {
+    const { counted, kept, discarded } = countedDomains(dallas)
+    expect(counted.map((d) => d.domain)).toEqual(['progress', 'gaps'])
+    expect(kept.domain).toBe('progress')
+    expect(discarded.domain).toBe('achievement')
+  })
+
+  it('counts both when they are level, because raising either raises the better', () => {
+    const { counted, discarded } = countedDomains([dom('achievement', 80), dom('progress', 80), dom('gaps', 70)])
+    expect(counted.map((d) => d.domain)).toEqual(['achievement', 'progress', 'gaps'])
+    expect(discarded).toBeNull()
+  })
+
+  it('never counts the two halves of School Progress, which feed it rather than the score', () => {
+    const { counted } = countedDomains([...dallas, dom('progress_growth', 77), dom('progress_relative', 86)])
+    expect(counted.map((d) => d.domain)).toEqual(['progress', 'gaps'])
+  })
+
+  it('takes the only 70% measure published when TEA reported one of the pair', () => {
+    const { counted, kept, discarded } = countedDomains([dom('achievement', 88, 2, 'B'), dom('gaps', null)])
+    expect(counted.map((d) => d.domain)).toEqual(['achievement'])
+    expect(kept.domain).toBe('achievement')
+    expect(discarded).toBeNull()
+  })
+
+  it('ignores a domain TEA published no score for, rather than treating it as zero', () => {
+    const { counted } = countedDomains([dom('achievement', null), dom('progress', 60), dom('gaps', null)])
+    expect(counted.map((d) => d.domain)).toEqual(['progress'])
+  })
+
+  it('counts nothing for an entity with no domain scores at all', () => {
+    expect(countedDomains([]).counted).toEqual([])
+    expect(countedDomains(null).counted).toEqual([])
+    expect(countedDomains(undefined).kept).toBeNull()
+  })
+})
+
+describe('closestCounted', () => {
+  it('never names the discarded measure, however close it sits to a higher grade', () => {
+    // Student Achievement is ONE point below a B and School Progress is four —
+    // the old rule named Student Achievement, and moving it changes nothing.
+    const { counted } = countedDomains([dom('achievement', 79, 1, 'C'), dom('progress', 86, 4, 'B'), dom('gaps', 81, 9, 'B')])
+    expect(closestCounted(counted).domain).toBe('progress')
+  })
+
+  it('names Closing the Gaps when it is the nearest measure that counts', () => {
+    const { counted } = countedDomains([dom('achievement', 79, 1, 'C'), dom('progress', 86, 4, 'B'), dom('gaps', 89, 1, 'B')])
+    expect(closestCounted(counted).domain).toBe('gaps')
+  })
+
+  it('breaks a tie toward the 70% measure, where the same point buys more', () => {
+    const { counted } = countedDomains([dom('achievement', 86, 4, 'B'), dom('progress', 79, 1, 'C'), dom('gaps', 86, 4, 'B')])
+    expect(closestCounted(counted).domain).toBe('achievement')
+  })
+
+  it('names nothing when no counted domain has a next grade to reach', () => {
+    const { counted } = countedDomains([dom('achievement', 95, null, 'A'), dom('gaps', 92, null, 'A')])
+    expect(closestCounted(counted)).toBeNull()
+    expect(closestCounted([])).toBeNull()
   })
 })

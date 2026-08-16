@@ -5,9 +5,10 @@
 // Order here IS the page order. Adding a section is one function plus one entry
 // in SECTIONS at the bottom.
 
-import { cmp, esc, grade, legend, num, ordinal, pct, section, signed, statGrid, table, usd } from './shell.js'
+import { cmp, esc, fmtDelta, grade, legend, num, ordinal, pct, section, statGrid, table, usd } from './shell.js'
 import { trajectoryChart, scoreBars, stackedShare, comparisonChart, groupedBars } from './charts.js'
 import { RACE, EXPERIENCE, STAAR_LEVELS, GRADUATION, COMPLETION, CCMR } from './labels.js'
+import { closestCounted, countedDomains, isContextMetric } from './metrics.js'
 
 /* ------------------------------------------------------------------ words -- */
 
@@ -16,9 +17,52 @@ import { RACE, EXPERIENCE, STAAR_LEVELS, GRADUATION, COMPLETION, CCMR } from './
 // and 61 read "1 students" before this existed.
 const plural = (n, one, many = `${one}s`) => `${num(n)} ${n === 1 ? one : many}`
 
-// TEA's own noun for the two levels. Used wherever a sentence names the thing the
-// page is about, so a district page never calls itself a campus.
-const unit = (vm) => (vm.level === 'district' ? 'district' : 'campus')
+// The reader-facing noun for the two levels. TEA calls a school a "campus";
+// a parent calls it a school, and this noun is only ever used in prose a
+// parent reads (the verdict says the same thing — see verdictSummary below).
+// TEA's own word stays correct where it names TEA's own methodology, on /about.
+const unit = (vm) => (vm.level === 'district' ? 'district' : 'school')
+
+// One number, one noun. "up 1 points" is the same defect as "1 years".
+const points = (n) => `${num(n)} ${n === 1 ? 'point' : 'points'}`
+
+// Half a point is the threshold for "level with" everywhere on this site, so it
+// is one function rather than three copies of the same conditional.
+const versus = (mine, avg) => (Math.abs(mine - avg) < 0.5 ? 'level with' : mine > avg ? 'above' : 'below')
+
+/* ------------------------------------------------------- context, not good -- */
+
+/**
+ * The comparison chip for a metric that has no good direction.
+ *
+ * shell.js:cmp paints a delta green when it is "up" — and the share of a
+ * school's students who are economically disadvantaged being 1.0 points above
+ * its cohort is not up. It is not down either. Serving more disadvantaged
+ * students, more English learners or more students in special education is the
+ * fact the rest of the page has to be read against, not a result to congratulate
+ * or commiserate. So the same delta is rendered without a direction: same
+ * arithmetic, same denominator, same "vs similar" scope, a neutral class.
+ *
+ * `.cmp-neutral` needs a rule in site/style.css (a file this module does not
+ * own): the same size and weight as .cmp-up/.cmp-down in the neutral ink used by
+ * .cmp-level, so it reads as a measurement rather than a verdict.
+ *
+ * `data-neutral` is for site/app.js, which re-renders every .cmp when the reader
+ * switches cohorts and currently reassigns className unconditionally — it must
+ * keep cmp-neutral where the attribute is present, or a cohort switch will paint
+ * the chip green again.
+ */
+const contextCmp = (vm, key, { fmt = 'pct' } = {}) => {
+  const mine = vm.own?.[key]
+  if (mine == null || !vm.cohorts?.length) return ''
+  const active = vm.cohorts[0]
+  const other = active.metrics[key]
+  if (other == null) return ''
+  return `<span class="cmp cmp-neutral" data-metric="${esc(key)}" data-fmt="${esc(fmt)}" data-neutral="1">${fmtDelta(
+    mine - other,
+    fmt
+  )} <span class="cmp-vs">vs ${esc(active.short)}</span></span>`
+}
 
 /* ---------------------------------------------------------------- verdict -- */
 
@@ -34,50 +78,89 @@ const unit = (vm) => (vm.level === 'district' ? 'district' : 'campus')
 export const HERO_ID = 'overview'
 export const HERO_LABEL = 'Overview'
 
+/**
+ * The most-read sentence on the site, and the one four auditors stopped at.
+ *
+ * In the order a reader needs it: name the entity, say the grade in words, say
+ * the score AND what it is out of, then put that score beside a group whose
+ * size is stated. Then the trend, in a sentence that finishes.
+ */
+function verdictSummary(vm) {
+  const latest = vm.history?.[0]
+  // Reader-facing nouns. TEA calls them campuses; a parent calls them schools,
+  // and this is the sentence a parent reads.
+  const units = vm.level === 'district' ? 'districts' : 'schools'
+  const one = vm.level === 'district' ? 'district' : 'school'
+
+  // No score means there is no verdict to give. Say who withheld it and what is
+  // on the page instead, rather than opening with a blank.
+  if (latest?.score == null) {
+    return {
+      summary:
+        (latest?.year
+          ? `TEA did not issue an overall rating for ${esc(vm.name)} for ${esc(latest.year)}.`
+          : `TEA has not rated ${esc(vm.name)}.`) +
+        ` Everything TEA did publish for this ${one} is below.`,
+      rank: null,
+    }
+  }
+
+  /* --- one: who it is, what grade, what score out of what, against whom --- */
+
+  // A withheld letter grade is NOT restated here: the hero already carries the
+  // `vm.notRated` paragraph saying TEA issued no rating, and saying it twice in
+  // two adjacent paragraphs is how the old summary got to five sentences.
+  const rated = latest.rating && latest.rating !== 'Not Rated'
+  const head = rated
+    ? `${esc(vm.name)} is rated <strong>${esc(latest.rating)}</strong> by TEA, scoring <strong>${latest.score} out of 100</strong> for ${esc(latest.year)}`
+    : `${esc(vm.name)} scored <strong>${latest.score} out of 100</strong> for ${esc(latest.year)}`
+
+  const peer =
+    vm.peerAvg != null && vm.peerN > 1
+      ? `${versus(latest.score, vm.peerAvg)} the ${vm.peerAvg.toFixed(1)} average of the ${num(vm.peerN)} ${units} serving a similar share of economically disadvantaged students`
+      : null
+  const state = vm.stateAvg != null ? `${versus(latest.score, vm.stateAvg)} the statewide average of ${vm.stateAvg.toFixed(1)}` : null
+
+  const against = peer && state ? ` — ${peer}, and ${state}.` : peer ? ` — ${peer}.` : state ? ` — ${state}.` : '.'
+
+  /* --- two: the trend, with the 2023 rule change reconciled in the clause --- */
+
+  const scored = vm.history.filter((h) => h.score != null)
+  const earliest = scored.at(-1)
+  let trend
+
+  if (scored.length < 2) {
+    trend = `TEA has published ${plural(scored.length, 'year')} of scores for this ${one}, so there is no trend to read yet.`
+  } else {
+    const d = latest.score - earliest.score
+    const move =
+      d === 0
+        ? `is unchanged since ${esc(earliest.year)}`
+        : `is <strong>${d > 0 ? 'up' : 'down'} ${points(Math.abs(d))}</strong> since ${esc(earliest.year)}`
+    // The clause that stops the page contradicting its own footnote. It used to
+    // say "up 9 points since 2021-22" while a note 200px below said the same
+    // district scored 86 that year. Both were true; nothing joined them.
+    const rescored =
+      earliest.year === '2021-22' && vm.originalScore != null
+        ? ` — both years scored under TEA's current rules, since TEA rewrote them in 2023; under the rules in force back then it scored <strong>${vm.originalScore}</strong>`
+        : ''
+    trend = `It ${move}${rescored}.`
+  }
+
+  /* --- the rank, which is a denominator claim rather than a verdict --- */
+
+  const share = (n) => (n > 0 ? ` (tied with ${plural(n, 'other')})` : '')
+  const rank =
+    vm.rank && vm.rankOf
+      ? `Ranks ${ordinal(vm.rank)} of ${num(vm.rankOf)} Texas ${units}${share(vm.rankTied)}, and ${ordinal(vm.regionRank)} of ${num(vm.regionRankOf)} in ${esc(vm.regionName)}${share(vm.regionRankTied)}.`
+      : null
+
+  return { summary: `${head}${against} ${trend}`, rank }
+}
+
 export function verdict(vm) {
   const latest = vm.history[0]
-  const first = vm.history.at(-1)
   const kind = vm.level === 'district' ? 'District' : 'Campus'
-  const sentences = []
-
-  if (latest?.score != null && first?.score != null) {
-    const d = latest.score - first.score
-    sentences.push(
-      d === 0
-        ? `Scores <strong>${latest.score}</strong>, unchanged since ${esc(first.year)}.`
-        : `Scores <strong>${latest.score}</strong>, ${d > 0 ? 'up' : 'down'} <strong>${Math.abs(d)} points</strong> since ${esc(first.year)}.`
-    )
-  }
-
-  // Both comparisons, deliberately. The state line is the number readers expect;
-  // the peer line is the one that survives the poverty gradient.
-  if (latest?.score != null && vm.stateAvg != null) {
-    const d = latest.score - vm.stateAvg
-    sentences.push(
-      Math.abs(d) < 0.5
-        ? `Level with the state average.`
-        : `<strong>${signed(d)} points</strong> against the state average of ${vm.stateAvg.toFixed(1)}.`
-    )
-  }
-  if (latest?.score != null && vm.peerAvg != null) {
-    const d = latest.score - vm.peerAvg
-    const firstPeer = vm.peerByYear?.[first?.year]
-    const started = firstPeer != null && first?.score != null ? first.score - firstPeer : null
-    let s = `<strong>${signed(d)} points</strong> against the ${num(vm.peerN)} ${vm.level === 'district' ? 'districts' : 'campuses'} serving a similar share of economically disadvantaged students.`
-    if (started != null && Math.sign(started) !== Math.sign(d) && d > 0) {
-      s += ` It started <strong>below</strong> that group.`
-    }
-    sentences.push(s)
-  }
-  if (vm.rank && vm.rankOf) {
-    // A correct competition rank that does not disclose its ties still reads as a
-    // sole placement. Say how many share it.
-    const share = (n) => (n > 0 ? ` (shared with ${num(n)} other${n === 1 ? '' : 's'})` : '')
-    const unit = vm.level === 'district' ? 'districts' : 'campuses'
-    sentences.push(
-      `Ranks ${ordinal(vm.rank)} of ${num(vm.rankOf)} Texas ${unit}${share(vm.rankTied)}, and ${ordinal(vm.regionRank)} of ${num(vm.regionRankOf)} in ${esc(vm.regionName)}${share(vm.regionRankTied)}.`
-    )
-  }
 
   const alert =
     vm.multYear > 0
@@ -86,14 +169,17 @@ export function verdict(vm) {
         }</p>`
       : ''
 
+  const { summary, rank } = verdictSummary(vm)
+
   return `<section class="hero" id="${HERO_ID}" data-rail-label="${esc(HERO_LABEL)}">
   <p class="eyebrow">${kind} &middot; ${vm.isCharter ? 'Charter' : 'Traditional'}${vm.isAlt ? ' &middot; Alternative Education Accountability' : ''}</p>
   <h1>${esc(vm.name)}</h1>
   <p class="place">${esc(vm.county)} County &middot; ${esc(vm.regionName)}${vm.enrollment ? ` &middot; ${plural(vm.enrollment, 'student')}` : ''}</p>
   <div class="verdict">
     ${grade(latest?.rating, latest?.score, 'lg')}
-    <p class="summary">${sentences.join(' ')}</p>
+    <p class="summary">${summary}</p>
   </div>
+  ${rank ? `<p class="note summary-rank">${rank}</p>` : ''}
   ${alert}
   ${vm.notRated ? `<p class="note">TEA did not issue an overall rating for this ${unit(vm)}. Scores below are the figures TEA published; the letter grades are the state's where it issued them.</p>` : ''}
 </section>`
@@ -203,9 +289,24 @@ export function domains(vm) {
         derivedGrades && d.grade ? grade(d.grade) : '<span class="na">Not rated</span>'
       }</td><td class="num">${!derivedGrades || d.toNextGrade == null ? '—' : `${d.toNextGrade}`}</td></tr>`
   )
-  const closest = !derivedGrades
-    ? null
-    : vm.domains.filter((d) => d.toNextGrade != null).sort((a, b) => a.toNextGrade - b.toNextGrade)[0]
+  const { counted, kept, discarded } = countedDomains(vm.domains)
+  const closest = derivedGrades ? closestCounted(counted) : null
+
+  // The weighting is stated wherever the page names a domain as a route to a
+  // better rating, and the discarded measure is named outright — a reader
+  // looking at a 79 sitting one point under a B is owed the reason it is not
+  // the answer.
+  const formula =
+    !counted.length
+      ? ''
+      : `<p class="note">TEA does not add the domains up. The overall score is the better of Student
+  Achievement and School Progress at <strong>70%</strong>, plus Closing the Gaps at <strong>30%</strong>.${
+    discarded && kept
+      ? ` For this ${unit(vm)} that better measure is <strong>${esc(kept.label)}</strong> (${kept.score}), so
+  <strong>${esc(discarded.label)}</strong> (${discarded.score}) is published above but does not enter the overall
+  score at all — gaining points there changes nothing until it passes ${kept.score}.`
+      : ''
+  }</p>`
 
   return section(
     'domains',
@@ -215,21 +316,33 @@ export function domains(vm) {
         label: d.label,
         score: d.score,
         grade: derivedGrades ? d.grade : null,
-        markers: (vm.cohorts ?? []).slice(0, 2).map((c, i) => ({
-          key: i === 0 ? 'peer' : 'state',
+        // The cohort's own key (peer/region/county/state), not a slot index.
+        // vm.cohorts is [peer?, region?, county?, state] with state always
+        // last, so a fixed "second slot is state" reads a region or county
+        // cohort's tick in --c-state teal — the colour every other page on
+        // the site uses for "Texas average".
+        markers: (vm.cohorts ?? []).slice(0, 2).map((c) => ({
+          key: c.key,
           label: c.label,
           short: c.short,
           value: c.metrics[`domain:${d.domain}`] ?? null,
         })),
       }))
     )}
-  ${vm.cohorts?.length ? legend([{ key: 'entity', label: vm.name }, ...vm.cohorts.slice(0, 2).map((c, i) => ({ key: i === 0 ? 'peer' : 'state', label: `${c.label} (${num(c.n)})` }))]) : ''}
+  ${vm.cohorts?.length ? legend([{ key: 'entity', label: vm.name }, ...vm.cohorts.slice(0, 2).map((c) => ({ key: c.key, label: `${c.label} (${num(c.n)})` }))]) : ''}
   ${table({
       caption: 'Domain scores',
       head: ['Domain', { label: 'Score', num: true }, 'Grade', { label: 'Points to next grade', num: true }],
       rows,
     })}
-  ${closest ? `<p class="callout">Closest to moving up: <strong>${esc(closest.label)}</strong>, ${closest.toNextGrade} ${closest.toNextGrade === 1 ? 'point' : 'points'} below ${esc(nextLetter(closest.grade))}.</p>` : ''}
+  ${
+    closest
+      ? `<p class="callout">Closest to moving up: <strong>${esc(closest.label)}</strong>, ${points(
+          closest.toNextGrade
+        )} below ${esc(nextLetter(closest.grade))} in that domain &mdash; the nearest of the measures that count toward the overall rating.</p>`
+      : ''
+  }
+  ${formula}
   ${
     derivedGrades
       ? ''
@@ -237,7 +350,7 @@ export function domains(vm) {
   this ${unit(vm)}, so none are shown: the A&ndash;F thresholds marked on the chart are the state's, but
   applying them here would produce a grade the state chose to withhold.</p>`
   }`,
-    'Texas builds the overall rating from three domains, and a school takes the better of its two School Progress measures. The 60, 70, 80 and 90 rules mark the letter-grade thresholds.'
+    'Texas builds the overall rating from the better of Student Achievement and School Progress, weighted 70%, plus Closing the Gaps at 30%. School Progress is itself the better of Academic Growth and Relative Performance. The 60, 70, 80 and 90 rules mark the letter-grade thresholds.'
   )
 }
 
@@ -248,6 +361,11 @@ const nextLetter = (g) => ({ F: 'D', D: 'C', C: 'B', B: 'A' }[g] ?? 'the next gr
 export function outcomes(vm) {
   if (!vm.staar?.subjects?.length && !vm.graduation?.length && !vm.ccmr?.length) return null
 
+  // The tick is always vm.cohorts[0] — the reader's default comparison, not
+  // necessarily the peer band. Its own key/label carries through to the mark,
+  // the legend and the note, so a region or state tick is never coloured or
+  // captioned as if it were the poverty-band peer group.
+  const tickCohort = vm.cohorts?.[0] ?? null
   const staar = vm.staar?.subjects?.length
     ? `<h3>STAAR performance</h3>
   ${groupedBars({
@@ -256,13 +374,21 @@ export function outcomes(vm) {
           key: `l${i}`,
           label,
           values: vm.staar.levels[i],
-          compare: vm.cohorts?.length
-            ? vm.staar.subjects.map((subj) => vm.cohorts[0].metrics[`staar:${subj}:${i}`] ?? null)
-            : null,
+          compare: tickCohort ? vm.staar.subjects.map((subj) => tickCohort.metrics[`staar:${subj}:${i}`] ?? null) : null,
         })),
+        compareKey: tickCohort?.key ?? 'peer',
+        compareLabel: tickCohort?.label ?? 'Similar schools',
       })}
-  ${legend([...STAAR_LEVELS.map((label, i) => ({ key: `l${i}`, label })), vm.cohorts?.length ? { key: 'peer', label: `Tick: ${vm.cohorts[0].label} (${num(vm.cohorts[0].n)})` } : null].filter(Boolean))}
-  <p class="note">Percentage of tests at or above each level. Masters is a subset of Meets, which is a subset of Approaches. The tick on each bar marks the average for ${vm.level === 'district' ? 'districts' : 'schools'} serving a similar share of economically disadvantaged students — a comparison TEA does not publish.</p>`
+  ${legend([...STAAR_LEVELS.map((label, i) => ({ key: `l${i}`, label })), tickCohort ? { key: tickCohort.key, label: `Tick: ${tickCohort.label} (${num(tickCohort.n)})` } : null].filter(Boolean))}
+  <p class="note">Percentage of tests at or above each level. Masters is a subset of Meets, which is a subset of Approaches. ${
+    // "Texas average" is itself the cohort's label, so "the average for Texas
+    // average" is avoided as a special case rather than as the general rule.
+    tickCohort
+      ? tickCohort.key === 'state'
+        ? `The tick on each bar marks the statewide average (${num(tickCohort.n)} ${vm.level === 'district' ? 'districts' : 'schools'})`
+        : `The tick on each bar marks the average for <strong>${esc(tickCohort.label)}</strong> (${num(tickCohort.n)} ${vm.level === 'district' ? 'districts' : 'schools'})`
+      : `The tick on each bar marks the average for ${vm.level === 'district' ? 'districts' : 'schools'} serving a similar share of economically disadvantaged students`
+  } &mdash; a comparison TEA does not publish.</p>`
     : ''
 
   const grad = vm.graduation?.length
@@ -297,9 +423,10 @@ export function students(vm) {
     `Who this ${vm.level === 'district' ? 'district' : 'school'} serves`,
     `${statGrid([
       ['Students', num(vm.profile.total)],
-      ['Economically disadvantaged', pct(vm.profile.ecoDisPct) + cmp(vm, 'ecoDis', { fmt: 'pct' })],
-      ['English learners', pct(vm.profile.engLrnPct) + cmp(vm, 'engLrn', { fmt: 'pct' })],
-      ['Special education', pct(vm.profile.specEdPct) + cmp(vm, 'specEd', { fmt: 'pct' })],
+      // Three context metrics, three neutral chips: see contextCmp.
+      ['Economically disadvantaged', pct(vm.profile.ecoDisPct) + contextCmp(vm, 'ecoDis')],
+      ['English learners', pct(vm.profile.engLrnPct) + contextCmp(vm, 'engLrn')],
+      ['Special education', pct(vm.profile.specEdPct) + contextCmp(vm, 'specEd')],
       ['Attendance', pct(vm.profile.attendance) + cmp(vm, 'attendance', { fmt: 'pct' })],
       ['Chronically absent', pct(vm.profile.absenteeism) + cmp(vm, 'absenteeism', { fmt: 'pct', invert: true })],
     ])}
@@ -321,14 +448,18 @@ export function spending(vm) {
       years: f.years,
       series: [
         { key: 'entity', values: f.spendEntity },
-        { key: 'peer', values: f.spendPeer },
+        // 'tea', not 'peer': this is the one figure whose "peer" is TEA's own
+        // 40-district group, not this site's cohort — a different population
+        // behind an identical-looking word, so it gets its own key rather than
+        // reusing 'peer' and relying on a #spending CSS scope to repaint it.
+        { key: 'tea', values: f.spendPeer },
         { key: 'state', values: f.spendState },
       ].filter((s) => !s.values.every((v) => v === null)),
       fmt: (v) => `$${(v / 1000).toFixed(0)}k`,
     })}
   ${legend([
       { key: 'entity', label: vm.name },
-      { key: 'peer', label: 'TEA peer group' },
+      { key: 'tea', label: 'TEA peer group' },
       { key: 'state', label: 'Texas average' },
     ])}
   ${
@@ -396,9 +527,14 @@ export const claimSentence = (vm, r) => {
 }
 
 export function standouts(vm) {
-  if (!vm.standouts?.length) return null
+  // "Where this district ranks best" is a claim about performance, so a metric
+  // with no good direction cannot appear in it. metrics.js drops these before a
+  // rank row exists at all; this is the presentation-side lock, so a view model
+  // assembled elsewhere still cannot put a poverty rate under this heading.
+  const placements = (vm.standouts ?? []).filter((r) => !isContextMetric(r.metric))
+  if (!placements.length) return null
 
-  const rows = vm.standouts
+  const rows = placements
     .map((r) => {
       const claim = claimSentence(vm, r)
       return `<li class="standout">
