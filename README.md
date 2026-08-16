@@ -5,10 +5,11 @@ system, built on the full statewide dataset published by TEA via txschools.gov.
 
 ## Status
 
-**Pipeline and site built; not yet deployed.** The ingest, normalization, payload export,
-prerenderer, Cloudflare config and CI deploy pipeline are complete and tested. Deployment needs a
-Cloudflare API token to be added to the repository as `CLOUDFLARE_API_TOKEN`, plus
-`CLOUDFLARE_ACCOUNT_ID`.
+**Live at [txschools.net](https://txschools.net).** The ingest, normalization, payload export,
+prerenderer, Cloudflare config and CI deploy pipeline are complete, tested, and deploying. Every
+merge to `main` rebuilds the site from the committed TEA snapshot and deploys it
+(`.github/workflows/refresh.yml`, `push` trigger) — the same workflow's `workflow_dispatch` trigger
+also covers the annual path, optionally fetching a fresh snapshot first.
 
 The six dashboard views are **not** built — that is Plan 2. Entity pages are live-ready but
 deliberately minimal.
