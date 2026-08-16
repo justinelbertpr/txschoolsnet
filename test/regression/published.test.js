@@ -38,7 +38,7 @@ const readOrGuide = async (path) => {
 
 const CAYUGA_ID = '001902'
 const YEARS = ['2025-26', '2024-25', '2023-24', '2022-23', '2021-22']
-const ENTITY_COUNT = 10230
+const ENTITY_COUNT = 9086
 
 /* ---------------------------------------------------------------- parsing -- */
 
@@ -118,7 +118,7 @@ describe('published payload (site/data/<payload>.json)', () => {
     expect(payload.years).toHaveLength(5)
   })
 
-  it('keeps every entity column and every score/grade row at 10,230', () => {
+  it('keeps every entity column and every score/grade row at 9,086', () => {
     for (const col of Object.values(payload.entities)) expect(col).toHaveLength(ENTITY_COUNT)
     expect(payload.scores).toHaveLength(ENTITY_COUNT)
     expect(payload.grades).toHaveLength(ENTITY_COUNT)
@@ -130,7 +130,7 @@ describe('published payload (site/data/<payload>.json)', () => {
   })
 
   // Right filename, right shape, no data in it: the corruption that the length
-  // assertions above cannot see, because an array of 10,230 nulls is 10,230
+  // assertions above cannot see, because an array of 9,086 nulls is 9,086
   // long. TEA rates the overwhelming majority of entities every year.
   it('is not an empty shell — most cells carry a real score and grade', () => {
     const cells = payload.scores.flat()

@@ -22,12 +22,16 @@
       group" in another, on the same page. One colour, one set.
 
    2. TYPE CARRIES THE VOICE.
-      A serif for the things a reader came for — the entity's name, the
-      verdict sentence, the letter grade. A grotesque for everything that
-      operates the page. System faces only: no CDN, no @font-face, no network
-      request. Georgia leads the display stack because it is the one serif
-      present on Windows, macOS and Android alike, so the page has the same
-      voice everywhere rather than a different one per platform.
+      One self-hosted variable font, Geist (same origin, not a CDN,
+      Latin-only, ~29KB, cached once across all 10,230 pages), runs the
+      whole page — the entity's name and the verdict sentence read the same
+      family as the table cell footnoting them, told apart by size, weight,
+      and letter-spacing rather than by a second typeface. --font-display
+      and --font-sans stay separate tokens even though they resolve to the
+      same face, so every rule below still says which register a piece of
+      text belongs to; ui-sans-serif/system-ui remain the fallback so the
+      voice never depends on the request landing. See @font-face below and
+      --font-display/--font-sans.
 
    3. NOTHING IS ONLY COLOUR.
       Every series carries a second channel: the entity's line is the
@@ -48,34 +52,57 @@
 
 :root {
   /* ---- planes ----------------------------------------------------------
-     Three, not two. Ground sits ~1.17:1 under surface with a slight blue
-     bias, so a card reads as a card. Only --raised takes a shadow, so a
-     shadow on this site always means "floats above the page", never
-     "important". */
-  --ground: #eceef2;
+     Three, not two. Ground sits ~1.09:1 under surface with a slight warm
+     bias (paper, not blueprint) — a shift from this site's original cool
+     blue-grey ground toward the warm near-white a lot of confident modern
+     product sites use as their whole canvas, so a page reads as considered
+     rather than as a default. Only --raised takes a shadow, so a shadow on
+     this site always means "floats above the page", never "important". */
+  --ground: #f7f5f1;
   --surface: #ffffff;
-  --raised: #ffffff;
-  --bg: #eceef2;           /* alias: older rules still reference --bg */
+  --raised: #fffdfa;
+  --bg: #f7f5f1;           /* alias: older rules still reference --bg */
 
-  --ink: #16181d;          /* 17.8:1 on surface */
-  --ink-2: #4a5058;        /* 8.1:1 on surface, 7.0:1 on ground */
-  --ink-3: #5f6675;        /* 5.8:1 on surface, 5.0:1 on ground — AA at any size */
+  --ink: #1a1917;          /* 17.57:1 on surface — warmed off pure black with the rest of the palette */
+  --ink-2: #4d4a45;        /* 8.82:1 on surface, 8.10:1 on ground */
+  --ink-3: #625e57;        /* 6.45:1 on surface, 5.92:1 on ground — AA at any size */
   /* .navlist a only. Picked for 3:1+ against --ink (the prose it sits next
      to), not just against the plane behind it — a link colour this close in
      lightness to body text needs that second number too, or it reads as the
-     same grey as everything around it. 4.98:1 on surface · 3.57:1 on --ink. */
-  --navlink: #687080;
-  --line: #dcdfe5;
-  --line-2: #e9ebef;
-  --hover: #f4f6f9;        /* row hover: must differ from BOTH planes */
-  --stripe: #fafbfd;       /* zebra for long lists; lighter than --hover */
+     same grey as everything around it. The header nav sits on --ground, not
+     --surface — the plane this was originally checked against — so it needs
+     its own number there too. */
+  --navlink: #736c60;      /* 4.77:1 on ground · 5.19:1 on surface · 3.38:1 on --ink */
+  --line: #e4dfd6;
+  --line-2: #ece8e0;
+  --hover: #f0ece3;        /* row hover: must differ from BOTH planes */
+  --stripe: #faf8f4;       /* zebra for long lists; lighter than --hover */
 
-  /* --accent is --c-entity darkened until it passes 4.5:1 as text on the
-     ground plane (--c-entity itself is 4.45:1 there, which fails). One hue,
-     two lightnesses, two jobs: marks need 3:1, text needs 4.5:1. Blue means
-     "the subject, and the way to reach it" — the same meaning in a chart and
-     in a link. */
-  --accent: #1d4ed8;       /* 6.70:1 surface · 5.77:1 ground */
+  /* --accent used to share --c-entity's hue (both blue), which made a plain
+     link and "this is the entity" read as the same colour outside a chart.
+     It is now a distinct indigo — analogous to blue, far enough to never be
+     mistaken for a series, close enough to still say "interactive" — so hue
+     alone now tells you whether you are looking at UI or at data. Two
+     lightnesses, two jobs: marks need 3:1, text needs 4.5:1. */
+  --accent: #4338ca;         /* 7.90:1 on surface · 7.26:1 on ground */
+  --accent-hover: #3730a3;   /* 9.93:1 on surface, white text */
+  /* The one other hue this site doesn't already spend on data: every vivid
+     colour a reader could point to on this site otherwise means something
+     specific (--c-entity/peer/state/tea, the --s0-6 composition ramp) —
+     green is the one left over, so it is the only place a second UI accent
+     could go without colliding with an existing meaning. Decorative/
+     secondary only: the enroll link, a positive-state icon. Never a grade,
+     never "good" — same rule as everything else on this page. */
+  --accent-2: #15803d;       /* 5.02:1 on surface · 4.61:1 on ground */
+  /* Decorative only — a hero rule, an eyebrow underline, and the underline
+     colour under hero links (never the link text itself, which stays at
+     full --hero-ink contrast). Never load-bearing for meaning or legibility
+     on its own: at 4.45:1 on --ground it clears 3:1 (large/UI) but not
+     4.5:1 (body text), which is why it's confined to decoration rather than
+     any text a reader must read. */
+  --accent-brass: #8a6d3b;   /* 4.85:1 on surface */
+  --hero-bg: #221c66;
+  --hero-ink: #f5f4ff;
 
   --shadow-raised: 0 1px 2px rgb(16 24 40 / .06), 0 8px 24px -8px rgb(16 24 40 / .10);
   --shadow-card: 0 1px 2px rgb(16 24 40 / .04);
@@ -98,16 +125,25 @@
   --alert-line: #fecaca;
 
   /* ---- type ------------------------------------------------------------
-     Georgia first so the voice is identical on Windows, macOS and Android.
-     Iowan Old Style and Charter are better where they exist, but a face that
-     only half the readers see is not an identity. */
-  --font-display: Georgia, "Iowan Old Style", Charter, "Times New Roman", ui-serif, serif;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+     One typeface, not a serif/sans pair. Geist (self-hosted woff2, see
+     @font-face below) runs the whole page — the headline that says "B, 81"
+     and the table cell footnoting it are the same family, told apart by
+     size and weight alone. --font-display and --font-sans stay separate
+     TOKENS rather than collapsing to one — every rule below still says
+     which register a piece of text belongs to — they just now resolve to
+     the same face. That keeps every existing font-family: var(--font-...)
+     call site correct without touching each one individually, and leaves
+     the seam ready if a display face is ever wanted back. */
+  --font-display: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+                  "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
                "Helvetica Neue", Arial, sans-serif;
 
-  /* A real scale, ~1.14 stepped, with every step used for one job. The old
-     stylesheet had six sizes and an inverted hierarchy: h3 was smaller and
-     greyer than the body text sitting under it. */
+  /* A real scale, with every step used for one job. Display sizes run
+     bigger and tighter than the old serif scale did — a serif at 3rem is
+     already a headline; a grotesk needs more size and negative tracking to
+     carry the same authority, which is why h1/h2 grew and gained
+     letter-spacing here instead of just swapping the font-family. */
   --t-micro: .6875rem;   /* 11px — chip counts, chart-adjacent notes        */
   --t-label: .75rem;     /* 12px — eyebrows, rail titles, table heads       */
   --t-small: .8125rem;   /* 13px — chips, breadcrumbs, pins                 */
@@ -115,11 +151,11 @@
   --t-body:  1rem;       /* 16px — body                                     */
   --t-lead:  1.125rem;   /* 18px — callouts                                 */
   --t-h3:    1.0625rem;  /* 17px — subheads: ABOVE body, not below it       */
-  --t-h2:    1.4375rem;  /* 23px                                            */
-  --t-verdict: 1.1875rem;/* 19px — the most-read sentence on the site       */
+  --t-h2:    1.75rem;    /* 28px                                            */
+  --t-verdict: 1.25rem;  /* 20px — the most-read sentence on the site       */
 
-  --radius: 10px;
-  --radius-card: 12px;
+  --radius: 8px;
+  --radius-card: 16px;
   --measure: 68ch;
   --measure-display: 36em;
 
@@ -130,25 +166,51 @@
   --pin-lo: 55%;
 }
 
+/* Self-hosted, same origin as the page — no CDN, no third-party request.
+   One variable file (upright only; nothing on this site sets an italic
+   weight), 29KB, subsetted to Latin by the same infrastructure Google
+   Fonts' own CSS2 API uses — smaller than either half of the old
+   serif+sans pair alone, let alone both together. font-display:swap means
+   the system-font fallback paints immediately and this swaps in without
+   blocking first render; shell.js preloads it so the swap happens as early
+   as possible. */
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/geist-var.woff2") format("woff2-variations"),
+       url("/fonts/geist-var.woff2") format("woff2");
+}
+
 /* Dark redefines tokens only. Every colour above has its value on bare
    :root first, so a page never inherits the host's theme by accident. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --ground: #0b0d10;
-    --surface: #171a21;
-    --raised: #1e222a;
-    --bg: #0b0d10;
-    --hover: #212630;
-    --stripe: #1b1f27;
+    --ground: #14120f;
+    --surface: #1e1b17;
+    --raised: #262220;
+    --bg: #14120f;
+    --hover: #2b2620;
+    --stripe: #211d19;
     --shadow-raised: 0 1px 2px rgb(0 0 0 / .5), 0 10px 30px -10px rgb(0 0 0 / .6);
     --shadow-card: 0 1px 2px rgb(0 0 0 / .35);
     --ink: #f2f4f7;
     --ink-2: #b3bac4;
     --ink-3: #8b939e;
-    --navlink: #7d858f;   /* 4.66:1 on surface · 3.39:1 on --ink */
-    --line: #2b313a;
-    --line-2: #21262e;
-    --accent: #93b4f9;     /* 8.40:1 on surface — the light blue's sibling */
+    --navlink: #8e8471;   /* 5.07:1 on ground · 4.65:1 on surface · 3.35:1 on --ink — warmed
+                              off the old cool grey, kept at the same luminance the old value
+                              (#7d858f, 4.66:1 surface · 3.39:1 ink) sat at so the 3:1-vs-ink
+                              rule above still holds; a straight hue-only warm (#a49b8b) drifted
+                              light enough to fall to 2.49:1 against --ink */
+    --line: #3a352e;
+    --line-2: #2d2924;
+    --accent: #a5b4fc;         /* 8.60:1 on surface — indigo's dark sibling */
+    --accent-hover: #c7d2fe;   /* 11.50:1 surface · 12.53:1 ground */
+    --accent-2: #7dd4a0;       /* green's dark sibling — decorative/secondary only */
+    --accent-brass: #d8bd85;
+    --hero-bg: #14113f;
+    --hero-ink: #f5f4ff;
 
     --c-entity: #60a5fa;
     --c-peer: #fb923c;
@@ -167,12 +229,14 @@
   }
 }
 :root[data-theme='dark'] {
-  --ground: #0b0d10; --surface: #171a21; --raised: #1e222a; --bg: #0b0d10;
-  --hover: #212630; --stripe: #1b1f27;
+  --ground: #14120f; --surface: #1e1b17; --raised: #262220; --bg: #14120f;
+  --hover: #2b2620; --stripe: #211d19;
   --shadow-raised: 0 1px 2px rgb(0 0 0 / .5), 0 10px 30px -10px rgb(0 0 0 / .6);
   --shadow-card: 0 1px 2px rgb(0 0 0 / .35);
   --ink: #f2f4f7; --ink-2: #b3bac4;
-  --ink-3: #8b939e; --navlink: #7d858f; --line: #2b313a; --line-2: #21262e; --accent: #93b4f9;
+  --ink-3: #8b939e; --navlink: #8e8471; --line: #3a352e; --line-2: #2d2924;
+  --accent: #a5b4fc; --accent-hover: #c7d2fe; --accent-2: #7dd4a0; --accent-brass: #d8bd85;
+  --hero-bg: #14113f; --hero-ink: #f5f4ff;
   --c-entity: #60a5fa; --c-peer: #fb923c; --c-state: #2dd4bf; --c-tea: #f0abfc;
   --s0: #60a5fa; --s1: #fb923c; --s2: #2dd4bf; --s3: #c084fc;
   --s4: #fbbf24; --s5: #f472b6; --s6: #94a3b8;
@@ -189,7 +253,11 @@
 /* Anchor jumps and programmatic focus must land below the sticky bar, not
    under it. Only pages carrying a sticky bar need the offset; an
    unconditional rule lands every in-page link 52px short on hub pages. */
-html:has(.stickybar) { scroll-padding-top: calc(var(--sb-h) + 1rem); }
+/* --header-h (app.js's ResizeObserver on header.site, degrades to 0 without
+   JS) always counts; --sb-h only when this page actually carries a sticky
+   bar to reserve room for. */
+html { scroll-padding-top: calc(var(--header-h, 0px) + 1rem); }
+html:has(.stickybar) { scroll-padding-top: calc(var(--header-h, 0px) + var(--sb-h) + 1rem); }
 
 body {
   margin: 0;
@@ -225,11 +293,22 @@ body {
    "app chrome".
    ========================================================================== */
 
+/* Sticky: pages here routinely run 10,000+px, and the search box — the
+   site's single highest-value control, per the "TEXAS PUBLIC SCHOOLS" hero
+   copy itself — used to be reachable only by scrolling back to the very
+   top. app.js's initHeaderH (a ResizeObserver on this element) publishes
+   its real rendered height as --header-h so .stickybar, .rail and .data's
+   sticky table headers can stack correctly below it rather than under it;
+   see each of those rules for the same variable. Without JS, --header-h
+   stays unset (0px) and only this element sticks — a smaller win, never a
+   broken layout. */
 header.site {
   display: flex; flex-wrap: wrap; gap: .35rem 1.5rem; align-items: baseline;
   padding: 1.1rem 1.25rem .9rem;
   border-bottom: 2px solid var(--ink);
   max-width: 68rem; margin: 0 auto;
+  position: sticky; top: 0; z-index: 30;
+  background: var(--ground);
 }
 .wordmark {
   font-family: var(--font-display);
@@ -241,14 +320,110 @@ header.site {
   color: var(--ink-3); letter-spacing: 0;
 }
 .wordmark:hover { text-decoration: underline; text-underline-offset: 3px; }
-.unofficial { margin: 0; font-size: var(--t-small); color: var(--ink-3); }
-.unofficial a { color: var(--ink-2); }
+/* A masthead line, not a footnote: full ink-2 and real weight, the same
+   register as the nav beside it. A site one character from a .gov domain
+   does not get to whisper its own disclaimer. */
+.unofficial { margin: 0; font-size: var(--t-small); color: var(--ink-2); font-weight: 550; }
+.unofficial a { color: var(--ink); text-decoration-color: var(--navlink); }
 
 /* Site nav sits inside the masthead rule, between the wordmark and the
    disclaimer. It is navigation, not content, so it takes label type rather
    than link blue — the current page is marked by weight and an underline,
    which survives greyscale. */
 .sitenav { margin-right: auto; }
+
+/* Below 640px, the 5-item flat list plus the disclaimer plus the search box
+   was the tallest part of the page before any content. <details> makes it a
+   real, native, zero-JS collapse there.
+
+   Shipped with the `open` attribute ALWAYS present in the markup — this is
+   deliberate, not a placeholder. A closed <details> hides its content via
+   the UA itself, outside the normal cascade (in Chromium, via an internal
+   content-visibility switch, not a plain `display:none` a stronger rule can
+   override) — so a nav wrapped in one and closed by default can end up
+   genuinely unrecoverable at a width this file guessed wrong about, on a
+   browser this file did not test. Open-by-default has no such failure mode:
+   the reader always sees the nav; below 640px they can additionally
+   collapse it if they want to, and native <details> toggling handles that
+   direction (open → closed → open) correctly on every engine, because nothing
+   here is asking a browser to override its own hidden-content behaviour —
+   only ever to apply it, which is the one direction that is reliable. */
+.nav-toggle {
+  display: inline-flex; align-items: center; gap: .35rem;
+  font: inherit; font-size: var(--t-meta); font-weight: 600; color: var(--ink-2);
+  padding: .4rem .15rem; cursor: pointer; list-style: none;
+  border-bottom: 2px solid transparent;
+}
+.nav-toggle::-webkit-details-marker { display: none; }
+.nav-toggle::after {
+  content: ''; width: .5em; height: .5em; margin-top: -.2em;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+.nav-disclosure:not([open]) .nav-toggle::after { transform: rotate(-45deg); margin-top: .05em; }
+@media (prefers-reduced-motion: no-preference) {
+  .nav-toggle::after { transition: transform .15s; }
+}
+.nav-toggle:hover { color: var(--ink); }
+.nav-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.nav-disclosure .sitenav { margin: .5rem 0 0; }
+.nav-disclosure .navlist { flex-direction: column; gap: .1rem; }
+.nav-disclosure .navlist a { display: block; padding-block: .55rem; }
+
+@media (max-width: 39.99rem) {
+  /* Visual order must match DOM/tab order here (WCAG 2.4.3): theme-toggle
+     sits after .nav-disclosure in the markup, so it needs an explicit order
+     too, not just the disclosure and the disclaimer — otherwise it stays in
+     the default order-0 bucket with the wordmark and search box and renders
+     ABOVE the nav it comes after in tab order. */
+  .nav-disclosure { flex-basis: 100%; order: 5; }
+  .theme-toggle { order: 6; }
+  .unofficial { order: 7; }
+}
+
+@media (min-width: 40rem) {
+  /* .nav-disclosure, not .sitenav, is the actual flex item now — the details
+     wrapper sits where .sitenav used to sit directly in header.site's flow. */
+  .nav-disclosure { margin-right: auto; }
+  .nav-toggle { display: none; }
+  .nav-disclosure .sitenav { margin: 0; }
+  .nav-disclosure .navlist { flex-direction: row; gap: .25rem 1.15rem; }
+  .nav-disclosure .navlist a { display: inline; padding-block: .15rem; }
+}
+
+/* ---------- theme toggle ---------- */
+
+.theme-toggle {
+  align-self: center; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2.25rem; height: 2.25rem; padding: 0;
+  color: var(--ink-2); background: transparent;
+  /* --line reads as ~1.2:1 against --ground — fine for a decorative card
+     divider, not enough for the only visible boundary of an interactive
+     control (WCAG 1.4.11 wants 3:1). --ink-3 clears that at rest in both
+     themes; hover/focus escalate further, matching the aria-current pattern
+     in .navlist a above. */
+  border: 1px solid var(--ink-3); border-radius: 999px;
+  cursor: pointer;
+}
+/* 44px on anything touched with a finger, per WCAG 2.5.5's enhanced target
+   size — same convention as .navlist-letters a and .rk-btn below. */
+@media (pointer: coarse) {
+  .theme-toggle { width: 2.75rem; height: 2.75rem; }
+}
+.theme-toggle:hover { color: var(--ink); border-color: var(--ink); }
+.theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.theme-toggle .ti { width: 1.1rem; height: 1.1rem; }
+/* Icon shows what pressing it DOES, not the current state — CSS-only, so
+   there is no flash: light (system default or [data-theme="light"]) shows
+   the moon; dark shows the sun. */
+.theme-toggle .ti-sun { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .theme-toggle .ti-moon { display: none; }
+  :root:not([data-theme='light']) .theme-toggle .ti-sun { display: block; }
+}
+:root[data-theme='dark'] .theme-toggle .ti-moon { display: none; }
+:root[data-theme='dark'] .theme-toggle .ti-sun { display: block; }
 .navlist {
   list-style: none; display: flex; flex-wrap: wrap; gap: .25rem 1.15rem;
   margin: 0; padding: 0; font-size: var(--t-meta);
@@ -267,6 +442,27 @@ header.site {
 .navlist a:hover { color: var(--ink); border-bottom-color: var(--line); }
 .navlist a[aria-current='page'] { color: var(--ink); font-weight: 650; border-bottom-color: var(--ink); }
 .navlist a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+/* A-Z jump nav (site/render/hubs.js azNav, search.js letterNav): 26
+   single-character links. As plain underlined running text each one measures
+   roughly 9px wide — technically fine under WCAG 2.5.8's inline-text
+   exception, but adjacent one-letter targets are a real mis-tap risk on a
+   touchscreen regardless of what the letter of the law allows. Real button
+   targets, sized to WCAG 2.5.5's enhanced 44px on a coarse pointer. */
+.navlist-letters { gap: .4rem .5rem; }
+.navlist-letters a {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 2.25rem; min-height: 2.25rem; padding: 0 .4rem;
+  border: 1px solid var(--line); border-radius: 8px;
+  text-decoration: none; border-bottom: 0;
+}
+.navlist-letters a:hover { border-color: var(--ink-3); background: var(--hover); }
+.navlist-letters a[aria-current='page'] {
+  background: var(--ink); border-color: var(--ink); color: var(--surface);
+}
+@media (pointer: coarse) {
+  .navlist-letters a { min-width: 2.75rem; min-height: 2.75rem; }
+}
 
 nav[aria-label='Breadcrumb'] { max-width: 68rem; margin: 0 auto; padding: .75rem 1.25rem 0; }
 .crumbs {
@@ -289,33 +485,52 @@ footer.site p { max-width: var(--measure); }
    TYPE
    ========================================================================== */
 
+/* Bigger and tighter than a serif headline needs to be: a grotesk at the
+   old 3rem ceiling read small next to its own weight. Line-height closes to
+   near 1 and tracking goes negative as size climbs — the same move every
+   confident display-grotesk system makes, because letterforms this size
+   have more open counters than the type designer cut them for at text
+   sizes. */
 h1 {
-  font-family: var(--font-display); font-weight: 700;
-  font-size: clamp(2rem, 1.35rem + 2.4vw, 3rem);
-  line-height: 1.08; letter-spacing: -.018em;
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(2.25rem, 1.1rem + 4.4vw, 4.25rem);
+  line-height: 0.98; letter-spacing: -.03em;
   margin: .1rem 0 .4rem;
+  text-wrap: balance;
 }
 h2 {
-  font-family: var(--font-display); font-weight: 700;
-  font-size: var(--t-h2); line-height: 1.25; letter-spacing: -.01em;
+  font-family: var(--font-display); font-weight: 600;
+  font-size: var(--t-h2); line-height: 1.15; letter-spacing: -.02em;
   margin: 0 0 .4rem;
 }
 /* h3 used to be .9375rem and --ink-2 — smaller AND greyer than the body text
    it introduced, which is an inverted hierarchy. It is now larger than body
-   and full ink; the sans keeps it clearly subordinate to the serif h2. */
+   and full ink; with h2 and h3 sharing one Geist face (rule 2, top of file),
+   the size gap alone (--t-h2 vs --t-h3) is what keeps h3 clearly subordinate
+   to h2 — font-family: var(--font-sans) here is just which register it is,
+   not a second typeface doing the subordinating. */
 h3 {
   font-family: var(--font-sans); font-weight: 650;
   font-size: var(--t-h3); line-height: 1.35; letter-spacing: -.005em;
   color: var(--ink); margin: 1.9rem 0 .55rem;
 }
 a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
-a:hover { text-decoration-thickness: 2px; }
+a:hover { color: var(--accent-hover); text-decoration-thickness: 2px; }
+@media (prefers-reduced-motion: no-preference) {
+  a { transition: color .15s, text-decoration-thickness .15s; }
+}
 
 .eyebrow {
   margin: 0; font-size: var(--t-label); font-weight: 650; letter-spacing: .08em;
   text-transform: uppercase; color: var(--ink-3);
 }
 .place { margin: 0; color: var(--ink-2); font-size: var(--t-meta); }
+/* Only where TEA published a website for this entity — never a placeholder,
+   never a guess. An action, not a description, so it gets its own line
+   rather than joining .place's middle-dot list. */
+.enroll { margin: .5rem 0 0; font-size: var(--t-meta); font-weight: 600; }
+.enroll a { color: var(--accent-2); }
+.enroll a:hover { color: var(--accent-2); filter: brightness(.85); }
 .lede { color: var(--ink-2); max-width: var(--measure); margin: .35rem 0 0; }
 .note { color: var(--ink-2); max-width: var(--measure); font-size: var(--t-meta); margin: .85rem 0 0; }
 .na { color: var(--ink-3); font-style: italic; }
@@ -327,8 +542,8 @@ main > section {
   border: 1px solid var(--line);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
-  padding: 1.75rem;
-  margin-bottom: 1rem;
+  padding: 2.25rem;
+  margin-bottom: 1.5rem;
 }
 
 /* Nested panels sit on the ground, the inverse of a card. */
@@ -336,18 +551,73 @@ main > section {
 .stat, .grade { background: var(--surface); }
 
 /* ==========================================================================
+   HOMEPAGE HERO — the one place on the site that spends the colour budget.
+
+   Every other .hero (rankings, districts A–Z, county/region hubs, about,
+   download) stays the plain card above: this site is a records office, not
+   a marketing page, and a bold block on all 10,230+ pages would say the
+   opposite. The front door gets one deliberate, unmoving block of colour;
+   nothing about it changes with any entity's grade, because nothing here is
+   an entity. --accent-brass is decorative only — a rule, never a control. */
+.hero-home {
+  background: var(--hero-bg);
+  border-color: var(--hero-bg);
+  color: var(--hero-ink);
+  position: relative;
+  padding: 3.5rem 2.5rem;
+}
+@media (max-width: 34rem) {
+  .hero-home { padding: 2rem 1.5rem; }
+}
+.hero-home::before {
+  content: '';
+  position: absolute; left: 1.75rem; top: 0;
+  width: 2.5rem; height: 3px;
+  background: var(--accent-brass);
+}
+.hero-home .eyebrow { color: color-mix(in srgb, var(--hero-ink) 70%, transparent); }
+.hero-home h1 { color: var(--hero-ink); }
+.hero-home .place,
+.hero-home .lede { color: color-mix(in srgb, var(--hero-ink) 82%, transparent); }
+.hero-home .lede strong { color: var(--hero-ink); }
+/* Every link in the block, not just the lede's — style.css's default `a`
+   colour is --accent, tuned for 4.5:1+ against --surface/--ground, and
+   against this block's own dark fill that measured 1.86:1. A link is not
+   allowed to be the one thing on the page a reader cannot read. */
+.hero-home a { color: var(--hero-ink); text-decoration-color: var(--accent-brass); }
+.hero-home a:hover { text-decoration-color: var(--hero-ink); }
+/* The one control on the page keeps full-strength surface/ink regardless of
+   the block it sits in — a search box is a tool, not hero decoration, and it
+   needs the same contrast here it has everywhere else on the site. */
+.hero-home .sitesearch-input {
+  background: var(--raised); color: var(--ink); border-color: transparent;
+}
+.hero-home .sitesearch-hint { color: color-mix(in srgb, var(--hero-ink) 65%, transparent); }
+
+/* ==========================================================================
    VERDICT — the most-read sentence on the site gets the display face
    ========================================================================== */
 
+/* The verdict — the letter grade plus the sentence that explains it — is the
+   one thing every visitor came for, but it used to carry LESS visual weight
+   than the "5 years of ratings" card sitting directly beneath it: that card
+   gets a full main>section treatment (raised surface, shadow, its own h2);
+   the verdict was a plain 1px box nested on the sunken ground plane. A
+   heading would say it twice — the h1 right above it already names the
+   subject — so the fix is weight, not more text: a real border and the
+   card's own shadow, so it reads as the answer, not as a footnote under the
+   headline. Same treatment at every grade — this is a hierarchy fix, not a
+   verdict-dependent one. */
 .verdict {
   display: flex; gap: 1.25rem; align-items: flex-start; flex-wrap: wrap;
   margin: 1.5rem 0 0; padding: 1.35rem;
-  border: 1px solid var(--line); border-radius: var(--radius);
+  border: 2px solid var(--ink); border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
 }
 .summary {
   margin: 0; flex: 1 1 20rem;
-  font-family: var(--font-display);
-  font-size: var(--t-verdict); line-height: 1.5;
+  font-family: var(--font-display); font-weight: 450;
+  font-size: var(--t-verdict); line-height: 1.5; letter-spacing: -.005em;
   max-width: var(--measure-display);
   text-wrap: pretty;
 }
@@ -368,8 +638,14 @@ main > section {
 }
 td .grade, .crumbs .grade { padding: .1rem .4rem; }
 td .grade-letter { font-size: 1.05rem; }
-.grade-lg { padding: .65rem 1.05rem; }
-.grade-lg .grade-letter { font-size: 2.8rem; }
+/* .grade-lg is the verdict box's badge (sections.js verdict()) — the page's
+   second-most-prominent figure, sitting directly under the h1. h1 grew
+   substantially in the Geist pass (up to 4.25rem, from a 3rem ceiling) but
+   this modifier was untouched, so the badge quietly lost most of the visual
+   weight it used to carry next to the headline. Scaled up to keep pace
+   without competing with h1 for the page's focal point. */
+.grade-lg { padding: .75rem 1.15rem; }
+.grade-lg .grade-letter { font-size: 3.25rem; }
 
 .alert {
   margin: 1rem 0 0; padding: .8rem 1rem; border-radius: var(--radius);
@@ -666,13 +942,15 @@ td .grade-letter { font-size: 1.05rem; }
   text-transform: uppercase; color: var(--ink-3);
   border-bottom: 1px solid var(--line);
   /* The header follows the page down a long list. Two backgrounds because
-     the sticky row paints over the rows sliding under it. */
-  position: sticky; top: 0; z-index: 1;
+     the sticky row paints over the rows sliding under it. --header-h is the
+     masthead's own sticky height (0 without JS — see app.js initHeaderH —
+     which degrades to exactly today's behaviour, not a broken one). */
+  position: sticky; top: var(--header-h, 0px); z-index: 1;
   background: var(--surface);
 }
 /* Only while the bar is actually showing — with JS off it never is, and an
    unconditional offset would strand the header 52px low. */
-html:has(.stickybar:not([hidden])) .data thead th { top: var(--sb-h); }
+html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0px) + var(--sb-h)); }
 .data tbody th { font-weight: 550; }
 .data tbody th a { text-decoration-thickness: 1px; }
 .data .num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -740,8 +1018,11 @@ html:has(.stickybar:not([hidden])) .data thead th { top: var(--sb-h); }
   position: absolute; inset: 0 auto 0 0; width: calc(var(--v, 0) * 1%);
   background: var(--c-entity); border-radius: 3px;
 }
+/* Widened from 2px: a cohort tick is how a reader sees "how far off" without
+   reading the sub-line, and at 2px against a 9-point gap on a 100-point
+   track it all but disappeared. */
 .hbar-mark {
-  position: absolute; top: -2px; bottom: -2px; width: 2px;
+  position: absolute; top: -3px; bottom: -3px; width: 3px;
   left: calc(var(--m, 0) * 1%);
   background: var(--c-peer); border-radius: 2px;
 }
@@ -807,7 +1088,22 @@ html:has(.stickybar:not([hidden])) .data thead th { top: var(--sb-h); }
   background: var(--line); border: 1px solid var(--line);
   border-radius: var(--radius); overflow: hidden;
 }
-.standout { display: flex; align-items: center; gap: 1rem; padding: .85rem 1rem; background: var(--surface); }
+.standout { display: flex; align-items: center; gap: 1rem; padding: .85rem 1rem; background: var(--surface); position: relative; z-index: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  /* translate, not transform: the scroll-reveal entrance animation further
+     down this file (`rise`, on this same selector) owns `transform` on
+     every .standout row for as long as the page exists — once a row has
+     entered view, `animation: rise ... both` holds `transform: none`
+     there, and a CSS Animation's held value for a property always wins the
+     cascade over an ordinary :hover declaration for that same property,
+     fill-mode included, regardless of selector or source order. A plain
+     `transform: translateY(-2px)` here would therefore be silently
+     dropped post-reveal. `translate` is its own CSS property — untouched
+     by `rise` — so it composes with whatever `transform` currently holds
+     instead of fighting it for the cascade slot. */
+  .standout { transition: translate .18s cubic-bezier(.22,.61,.36,1), box-shadow .18s; }
+  .standout:hover { translate: 0 -2px; box-shadow: var(--shadow-raised); z-index: 1; }
+}
 .standout-rank { display: flex; flex-direction: column; align-items: center; min-width: 3.4rem; flex: none; }
 .standout-n {
   font-family: var(--font-display); font-size: 1.6rem; font-weight: 700;
@@ -874,6 +1170,31 @@ html:has(.stickybar:not([hidden])) .data thead th { top: var(--sb-h); }
       from { transform: translateY(14px); }
       to { transform: none; }
     }
+    /* "Where this district ranks best" is the page's highlight reel, not
+       another data table — one level of `rise` deeper, staggered per row,
+       marks it as a moment rather than more content. Same keyframe, same
+       transform-only rule, so it degrades exactly like the section-level
+       version above: reduced motion or an unsupported engine leaves every
+       row simply in place and fully readable. Twelve explicit steps rather
+       than :nth-child(n) math — standouts() in src/render/metrics.js caps
+       this list at 12 rows, so twelve is the most this ever needs to cover. */
+    .standout {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 55%;
+    }
+    .standout:nth-child(1) { animation-range: entry 10% entry 45%; }
+    .standout:nth-child(2) { animation-range: entry 15% entry 50%; }
+    .standout:nth-child(3) { animation-range: entry 20% entry 55%; }
+    .standout:nth-child(4) { animation-range: entry 25% entry 60%; }
+    .standout:nth-child(5) { animation-range: entry 30% entry 65%; }
+    .standout:nth-child(6) { animation-range: entry 35% entry 70%; }
+    .standout:nth-child(7) { animation-range: entry 40% entry 75%; }
+    .standout:nth-child(8) { animation-range: entry 45% entry 80%; }
+    .standout:nth-child(9) { animation-range: entry 50% entry 85%; }
+    .standout:nth-child(10) { animation-range: entry 55% entry 90%; }
+    .standout:nth-child(11) { animation-range: entry 60% entry 95%; }
+    .standout:nth-child(12) { animation-range: entry 65% entry 100%; }
   }
 }
 
@@ -920,8 +1241,8 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
 
 .rail {
   position: sticky;
-  top: calc(var(--sb-h) + 1rem);
-  max-height: calc(100vh - var(--sb-h) - 2rem);
+  top: calc(var(--header-h, 0px) + var(--sb-h) + 1rem);
+  max-height: calc(100vh - var(--header-h, 0px) - var(--sb-h) - 2rem);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: .15rem .35rem 1.5rem;   /* room for focus rings the scroller would clip */
@@ -959,6 +1280,46 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
 
 @media (prefers-reduced-motion: no-preference) {
   .rail-link { transition: color .15s, border-color .15s; }
+}
+
+/* ---------- mobile jump sheet (src/render/page.js:jumpSheet) ----------
+   The rail's own section index prints after the whole article below
+   1024px — right for the rail as a whole, wrong for "how do I reach
+   Spending from the top of a ten-screen page." This is the same index,
+   printed again right after the hero, collapsed into a <details> so it
+   costs nothing until opened, and gone entirely at 1024px and up, where
+   the rail's copy is already on screen. */
+.rail-sheet {
+  display: block;
+  margin: 1.25rem 0 0;
+  border: 1px solid var(--line); border-radius: var(--radius-card);
+  background: var(--surface);
+  padding: .15rem 1.1rem;
+}
+.rail-sheet summary {
+  padding: .95rem 0;
+  font-weight: 650; font-size: var(--t-meta);
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+}
+.rail-sheet summary::-webkit-details-marker { display: none; }
+.rail-sheet summary::after {
+  content: ''; width: .55em; height: .55em; flex: none;
+  border-right: 2px solid var(--ink-3); border-bottom: 2px solid var(--ink-3);
+  transform: rotate(45deg); margin-top: -.25em;
+}
+.rail-sheet[open] summary::after { transform: rotate(-135deg); margin-top: .1em; }
+@media (prefers-reduced-motion: no-preference) {
+  .rail-sheet summary::after { transition: transform .15s; }
+}
+.rail-sheet summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.rail-sheet .rail-index {
+  border-left: 0; margin: 0 0 .95rem; padding-top: .25rem;
+  border-top: 1px solid var(--line-2);
+}
+.rail-sheet .rail-link { padding-block: .6rem; }
+@media (min-width: 1024px) {
+  .rail-sheet { display: none; }
 }
 
 /* .rail-title already says "Compare against"; the picker's own label would
@@ -1075,7 +1436,7 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
 /* ---------- sticky bar ---------- */
 
 .stickybar {
-  position: sticky; top: 0; z-index: 20;
+  position: sticky; top: var(--header-h, 0px); z-index: 20;
   display: flex; align-items: center; gap: .55rem;
   height: var(--sb-h); padding: .4rem .9rem;
   /* Occupies no flow height, so revealing it mid-scroll does not shove the
@@ -1083,7 +1444,7 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
   margin-block: 0 calc(-1 * var(--sb-h));
   background: var(--raised);
   border: 1px solid var(--line); border-top: 0;
-  border-radius: 0 0 12px 12px;
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
   box-shadow: var(--shadow-raised);
   font-size: var(--t-meta);
 }
@@ -1185,10 +1546,10 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
 @media (max-width: 34rem) {
   main { padding-inline: 1rem; }
   .layout { padding-inline: 1rem; }
-  main > section { padding: 1.15rem; }
+  main > section { padding: 1.4rem; }
   .verdict { padding: 1rem; }
   .grade-letter { font-size: 2rem; }
-  .grade-lg .grade-letter { font-size: 2.3rem; }
+  .grade-lg .grade-letter { font-size: 2.6rem; }
   .stickybar { padding-inline: .75rem; }
   .sb-cohort { display: none; }
   /* Five columns will not fit 290px, and the two ways of pretending they do
@@ -1322,13 +1683,26 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
   .chart-narrow, .figure-narrow { display: block; }
 }
 
+.print-only { display: none; }
+
 @media print {
-  .rail, .stickybar, .skip { display: none !important; }
+  .rail, .stickybar, .skip, .rail-sheet { display: none !important; }
+  /* The header's controls print as dead chrome — a search box with nothing
+     behind it, a theme toggle with nothing to switch. The mark and the
+     disclaimer are the two things worth a printed page's first inches. */
+  header.site .sitesearch, header.site .nav-disclosure, header.site .theme-toggle { display: none !important; }
   .layout { display: block; max-width: none; padding: 0; }
   main > section { box-shadow: none; break-inside: avoid-page; }
   .data thead th { position: static; }
+  .data tr { break-inside: avoid; }
   .tbl-scroll { overflow: visible; box-shadow: none; }
   a { text-decoration: none; }
+  /* .stat's only divider on screen is a box-shadow ring (see the tile's own
+     rule above) — many browsers drop box-shadow under print by default, and
+     without a real border the whole grid can print as one undifferentiated
+     block. */
+  .stat { box-shadow: none; border: 1px solid var(--line); }
+  .print-only { display: block; margin-top: .5rem; font-size: var(--t-micro); color: var(--ink-3); }
 }
 
 /* ==========================================================================
@@ -1431,7 +1805,8 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .rk-btn { transition: border-color .18s, background .18s; }
+  .rk-btn { transition: border-color .18s, background .18s, transform .18s cubic-bezier(.22,.61,.36,1), box-shadow .18s; }
+  .rk-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-card); }
 }
 
 /* 44px on anything touched with a finger, per WCAG 2.5.8's enhanced target
@@ -1502,6 +1877,27 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
 .rk-table .rk-value { font-weight: 650; }
 .rk-table .rk-context { color: var(--ink-2); }
 
+/* The single most important row on a "highest score" page — 1st place —
+   used to carry the same visual weight as 4th. Weight and a rule, never a
+   colour: this is a focal point, not a verdict, and the same treatment
+   applies whether the list is a "highest" or "lowest" ranking.
+
+   The second selector below is not redundant: below 34rem, ranking tables
+   pin their rank column via .data.scroll's own box-shadow (site/style.css,
+   the ".data.scroll tbody td.num:first-child" rule, specificity 0,4,2 —
+   higher than .rk-podium alone), which silently wins and erases the podium
+   rule at exactly the width where a reader is most likely to be skimming
+   fast and most needs the focal point. Matching that rule's own shape adds
+   the podium accent as an outer ring rather than replacing the sticky-column
+   shadow, and wins on source order since it is declared later in the file. */
+.rk-podium {
+  font-family: var(--font-display); font-weight: 700; font-size: 1.05em;
+  box-shadow: inset 3px 0 0 var(--ink-3);
+}
+.data.scroll tbody td.num.rk-podium {
+  box-shadow: inset 3px 0 0 var(--ink-3), 1px 0 0 var(--line-2);
+}
+
 /* The sort control is the whole header cell, so the target is the size of
    the thing it looks like. */
 .rk-sort {
@@ -1554,3 +1950,84 @@ body:has(.layout) footer.site { max-width: var(--layout-max); }
 }
 
 /* ▲▲▲ END RANKINGS TOOL APPENDED BLOCK ▲▲▲ */
+
+/* ==========================================================================
+   RANKINGS INDEX: GROUPED ACCORDIONS + FILTER
+   ==========================================================================
+   The /rankings hub's ~44 per-scope link lists (src/render/rankings-page.js),
+   each now a native <details>, plus the client-side name filter above them.
+   Reuses .rk-controls / .rk-btn's own look (border, radius, focus ring)
+   rather than inventing a second visual language on the same page. */
+
+.rk-filter { margin: 1.1rem 0 0; max-width: var(--measure); }
+.rk-filter label {
+  display: block;
+  font-size: var(--t-label); font-weight: 650; letter-spacing: .03em;
+  text-transform: uppercase; color: var(--ink-3);
+  margin: 0 0 .35rem;
+}
+.rk-filter input {
+  font: inherit; font-size: var(--t-meta);
+  color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: .45rem .6rem; min-height: 2.5rem;
+  width: 100%; max-width: 24rem;
+}
+.rk-filter input:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px;
+}
+@media (pointer: coarse) {
+  .rk-filter input { min-height: 2.75rem; }
+}
+.rk-filter-empty { margin: .6rem 0 0; color: var(--ink-3); font-size: var(--t-meta); }
+
+.rk-groups { margin-top: .25rem; }
+
+/* One collapsible group per ranked scope. Closed groups (every region and
+   county — see GROUP_KINDS in rankings-page.js) cost a phone screen nothing
+   until opened; statewide's two groups render open, since there are only two
+   of them and they are worth seeing without a click. */
+.rk-group {
+  margin: 0 0 .75rem;
+  border: 1px solid var(--line); border-radius: var(--radius-card);
+  background: var(--surface);
+  padding: 0 1.1rem;
+}
+.rk-group summary {
+  padding: .85rem 0;
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: .6rem;
+}
+.rk-group summary h3 { margin: 0; font-size: var(--t-body); font-weight: 650; }
+.rk-group summary::-webkit-details-marker { display: none; }
+.rk-group summary::after {
+  content: ''; width: .55em; height: .55em; flex: none; margin-left: auto;
+  border-right: 2px solid var(--ink-3); border-bottom: 2px solid var(--ink-3);
+  transform: rotate(45deg); margin-top: -.25em;
+}
+.rk-group[open] summary::after { transform: rotate(-135deg); margin-top: .1em; }
+@media (prefers-reduced-motion: no-preference) {
+  .rk-group summary::after { transition: transform .15s; }
+}
+.rk-group summary:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px;
+}
+/* Each group is "highest X, lowest X, largest gains, largest declines" — a
+   natural pair of opposites, adjacent in the list by construction. A wrapped
+   flex row let each pair land on the same line or split across two by
+   accident of text width; a two-column grid makes every pair a row on
+   purpose, so 74+ links per group read as grouped comparisons instead of
+   one undifferentiated run of underlines. (Was scoped to `section[id^=
+   'scope-']` before the accordion restructure moved each scope's list into
+   its own `.rk-group`; that id no longer exists in the markup, so the rule
+   is anchored to `.rk-group` itself now.) */
+.rk-group .navlist {
+  margin: 0 0 1rem;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .35rem 1.5rem;
+}
+@media (max-width: 34rem) {
+  .rk-group .navlist { grid-template-columns: 1fr; }
+}
+
+/* ▲▲▲ END RANKINGS GROUPS APPENDED BLOCK ▲▲▲ */

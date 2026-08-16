@@ -480,43 +480,32 @@ function scopeLabel({ kind, id }, members) {
 
 /* ---------------------------------------------------------------- filters -- */
 
-export const SECTORS = ['all', 'traditional', 'charter']
 export const AEA_MODES = ['include', 'exclude', 'only']
 export const LEVELS = ['district', 'campus']
 
-const DEFAULT_FILTERS = { sector: 'all', aea: 'include' }
+const DEFAULT_FILTERS = { aea: 'include' }
 
 function normalizeFilters(filters = {}) {
   const f = { ...DEFAULT_FILTERS, ...filters }
-  if (!SECTORS.includes(f.sector)) throw new Error(`rankings: sector must be one of ${SECTORS.join(', ')}`)
   if (!AEA_MODES.includes(f.aea)) throw new Error(`rankings: aea must be one of ${AEA_MODES.join(', ')}`)
   return f
 }
 
 /**
  * How the filters read in a sentence. Stated even when nothing was filtered,
- * because "charter districts are included" is information a reader needs to
- * interpret the table, and only saying so when it is unusual makes the common
- * case the ambiguous one.
+ * because "alternative-education districts are included" is information a
+ * reader needs to interpret the table, and only saying so when it is unusual
+ * makes the common case the ambiguous one.
  */
 function filterPhrases(filters, level) {
   const kind = levelWord(level, 2)
-  const out = []
-  out.push(
-    filters.sector === 'all'
-      ? `open-enrollment charter ${kind} are included`
-      : filters.sector === 'charter'
-        ? `open-enrollment charter ${kind} only`
-        : `traditional ${kind} only, charters excluded`
-  )
-  out.push(
+  return [
     filters.aea === 'include'
       ? `alternative-education ${kind} are included`
       : filters.aea === 'only'
         ? `alternative-education ${kind} only`
-        : `alternative-education ${kind} are excluded`
-  )
-  return out
+        : `alternative-education ${kind} are excluded`,
+  ]
 }
 
 /* --------------------------------------------------------------- bundles -- */
@@ -526,8 +515,8 @@ function filterPhrases(filters, level) {
  *
  * Extends metrics.js:sourceBundles — same object, same extractors, so a ranked
  * value and the value on the entity's own page come from one place — with the
- * entity fields a list row and a scope filter need (name, county, sector,
- * enrollment) and with `series`, the per-year history the change rankings read.
+ * entity fields a list row and a scope filter need (name, county, enrollment)
+ * and with `series`, the per-year history the change rankings read.
  *
  * `ratings` is passed through preferredRatings again on the way in. That is
  * deliberately redundant: prerender.js already hands over the preferred rows,
@@ -664,7 +653,7 @@ const roundDelta = (v, fmt) => (fmt === 'usd' ? Math.round(v) : Math.round(v * 1
  * to the number handed in. Reported that way in `population.excluded`.
  */
 function poolFor({ entities, bundles, metric, scope, level, filters }) {
-  const excluded = { level: 0, scope: 0, sector: 0, aea: 0, population: 0, notRated: 0 }
+  const excluded = { level: 0, scope: 0, aea: 0, population: 0, notRated: 0 }
   const def = SCOPE_BY_KIND.get(scope.kind)
   const members = []
 
@@ -681,14 +670,6 @@ function poolFor({ entities, bundles, metric, scope, level, filters }) {
     const group = def.groupOf(b)
     if (group == null || (scope.id != null && group !== scope.id)) {
       excluded.scope += 1
-      continue
-    }
-    if (filters.sector === 'traditional' && b.isCharter) {
-      excluded.sector += 1
-      continue
-    }
-    if (filters.sector === 'charter' && !b.isCharter) {
-      excluded.sector += 1
       continue
     }
     if (filters.aea === 'exclude' && b.isAlt) {
@@ -738,7 +719,6 @@ function envelope({ metric, scope, level, filters, members, excluded, rows, kind
       `${nf(excluded.population)} judged under ${metric.population === 'aea' ? 'standard' : 'alternative-education'} accountability, where this measure means something different`
     )
   }
-  if (excluded.sector > 0) reasons.push(`${nf(excluded.sector)} removed by the sector filter`)
   if (excluded.aea > 0) reasons.push(`${nf(excluded.aea)} removed by the alternative-education filter`)
   const missing = (excluded.noValue ?? 0) + (excluded.noStart ?? 0) + (excluded.noEnd ?? 0)
   if (missing > 0) {
@@ -834,7 +814,7 @@ const rowOf = (b) => ({
  *   metric    a RANKABLE entry, its key ('score') or its slug ('overall-score')
  *   scope     'state' | 'region:07' | 'county:001' | 'band:80-100', or {kind,id}
  *   level     'district' | 'campus'
- *   filters   { sector: 'all'|'traditional'|'charter', aea: 'include'|'exclude'|'only' }
+ *   filters   { aea: 'include'|'exclude'|'only' }
  *   limit     rows to return; `population.n` always reports the full count
  *
  * Returns the envelope documented in `envelope` above. Every row carries rank,

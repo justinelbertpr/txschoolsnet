@@ -11,7 +11,7 @@
 // WHAT IT WILL RANK, AND WHY THE LIST IS SHORT. The only numbers this file has
 // are the ones in site/data/payload-<hash>.json: five years of overall score and
 // letter grade, enrollment, economically-disadvantaged share, region, county,
-// charter flag and alternative-education flag, for all 10,230 entities. STAAR,
+// charter flag and alternative-education flag, for all 9,086 entities. STAAR,
 // CCMR, graduation and chronic absence are NOT in that payload, so they are not
 // offered here. They are not approximated either — a ranking of a measure this
 // file cannot see would be a fabrication with a download button under it. If they
@@ -81,7 +81,6 @@ const DEFAULTS = {
   metric: 'score.latest',
   level: 'district',
   scope: 'state',
-  sector: 'all',
   aea: 'exclude',
   order: 'top',
   n: '50',
@@ -203,7 +202,7 @@ const whatIfNote = (year) =>
  *
  * The parent district of a campus is recovered from the id rather than fetched:
  * TEA campus ids are nine digits whose first six are the district's id, and
- * every one of the 9,031 campuses in this snapshot resolves that way. It is
+ * every one of the 8,066 campuses in this snapshot resolves that way. It is
  * checked per row all the same — an id that does not resolve gets no district
  * name rather than a wrong one.
  */
@@ -253,7 +252,6 @@ export function selectPool(rows, state) {
   let total = 0
   let inScope = 0
   let aeaRemoved = 0
-  let sectorRemoved = 0
   const pool = []
   for (const r of rows) {
     if (r.level !== state.level) continue
@@ -261,12 +259,10 @@ export function selectPool(rows, state) {
     if (kind === 'r' && r.regionId !== id) continue
     if (kind === 'c' && r.countyId !== id) continue
     inScope++
-    if (state.sector === 'traditional' && r.isCharter) { sectorRemoved++; continue }
-    if (state.sector === 'charter' && !r.isCharter) { sectorRemoved++; continue }
     if (state.aea === 'exclude' && r.isAlt) { aeaRemoved++; continue }
     pool.push(r)
   }
-  return { total, inScope, pool, aeaRemoved, sectorRemoved }
+  return { total, inScope, pool, aeaRemoved }
 }
 
 export const splitScope = (scope) => {
@@ -328,11 +324,6 @@ const scopePhrase = (state, names) => {
   return 'statewide'
 }
 
-const sectorPhrase = (sector) =>
-  sector === 'traditional' ? 'traditional (non-charter) only'
-  : sector === 'charter' ? 'open-enrolment charters only'
-  : 'traditional and charter'
-
 const orderPhrase = (metric, order) => {
   const top = order === 'top'
   if (metric.kind === 'size') return top ? 'largest first' : 'smallest first'
@@ -345,7 +336,7 @@ const orderPhrase = (metric, order) => {
  * in the table. Built from the same counts the rows were built from — there is
  * no second computation here that could disagree with the list underneath it.
  */
-export function describe({ state, metric, names, total, inScope, pool, aeaRemoved, sectorRemoved, ranked, missing, tiedRows, distinct, shown }) {
+export function describe({ state, metric, names, total, inScope, pool, aeaRemoved, ranked, missing, tiedRows, distinct, shown }) {
   const level = state.level
   const many = noun(level, 2)
   const count = (n) => `${n0(n)} ${noun(level, n)}`
@@ -361,10 +352,9 @@ export function describe({ state, metric, names, total, inScope, pool, aeaRemove
   // the ranking is actually of.
   const steps = [`${count(total)} in this dataset`]
   if (!statewide) steps.push(`${n0(inScope)} of them ${where}`)
-  if (sectorRemoved) steps.push(`${n0(sectorRemoved)} removed by the sector filter (${sectorPhrase(state.sector)})`)
   if (aeaRemoved) steps.push(`${n0(aeaRemoved)} alternative-education ${many} excluded`)
   lines.push(
-    `Population: ${count(pool)} ${where} — ${sectorPhrase(state.sector)}, ` +
+    `Population: ${count(pool)} ${where} — ` +
       `alternative-education ${many} ${state.aea === 'exclude' ? 'excluded' : 'included'}. ` +
       `${steps.join('; ')}; leaves ${n0(pool)}.`
   )
@@ -622,7 +612,7 @@ export function buildCsv({ displayed, cols, description, state, metric, snapshot
     `ranked by: ${metric.label} (${orderPhrase(metric, state.order)})`,
     `ranking: ${description.headline}`,
     ...description.lines.map((l) => `note: ${l}`),
-    `filters: level=${state.level} scope=${state.scope} sector=${state.sector} alternative_education=${state.aea === 'include' ? 'included' : 'excluded'} order=${state.order} show=${state.n}`,
+    `filters: level=${state.level} scope=${state.scope} alternative_education=${state.aea === 'include' ? 'included' : 'excluded'} order=${state.order} show=${state.n}`,
     `counts: ${total} at this level; ${inScope} in the selected area; ${pool} in the population after filters; ${ranked} ranked; ${missing} in the population with no value for this measure`,
     `rows in this file: ${displayed.length} — exactly the rows shown on screen when it was downloaded, in the order shown`,
     'ties: competition ranking — equal values share a rank and the next rank is skipped. tied_with counts the others sharing that value.',
@@ -679,7 +669,6 @@ export function readState(search, metrics, defaults = DEFAULTS) {
     metric: known(metric) ? metric : known(defaults.metric) ? defaults.metric : DEFAULTS.metric,
     level: pick('level', ['district', 'campus']),
     scope: SCOPE_RE.test(defaults.scope ?? '') ? defaults.scope : DEFAULTS.scope,
-    sector: pick('sector', ['all', 'traditional', 'charter']),
     aea: pick('aea', ['exclude', 'include']),
     order: pick('order', ['top', 'bottom']),
     n: pick('n', SIZES),
@@ -697,7 +686,7 @@ export function readState(search, metrics, defaults = DEFAULTS) {
  */
 export function writeQuery(state, defaults = DEFAULTS) {
   const q = new URLSearchParams()
-  for (const key of ['metric', 'level', 'scope', 'sector', 'aea', 'order', 'n']) {
+  for (const key of ['metric', 'level', 'scope', 'aea', 'order', 'n']) {
     if (state[key] !== (defaults[key] ?? DEFAULTS[key])) q.set(key, state[key])
   }
   if (state.sort && state.sort !== 'rank') {
@@ -711,7 +700,7 @@ export function writeQuery(state, defaults = DEFAULTS) {
 /** True when the URL already asks for something, i.e. this is a shared link. */
 export const isSharedLink = (search) => {
   const q = new URLSearchParams(search)
-  return ['metric', 'level', 'scope', 'sector', 'aea', 'order', 'n', 'sort'].some((k) => q.has(k))
+  return ['metric', 'level', 'scope', 'aea', 'order', 'n', 'sort'].some((k) => q.has(k))
 }
 
 /* ------------------------------------------------------------------- boot -- */
@@ -847,7 +836,6 @@ function init(root) {
       field('rk-metric', 'Rank by', `<select id="rk-metric" name="metric">${metricOptions()}</select>`) +
       field('rk-level', 'Level', `<select id="rk-level" name="level">${option('district', 'Districts', state.level === 'district')}${option('campus', 'Campuses', state.level === 'campus')}</select>`) +
       field('rk-scope', 'Population', `<select id="rk-scope" name="scope">${scopeOptions(state.level)}</select>`) +
-      field('rk-sector', 'Sector', `<select id="rk-sector" name="sector">${option('all', 'All', state.sector === 'all')}${option('traditional', 'Traditional only', state.sector === 'traditional')}${option('charter', 'Charters only', state.sector === 'charter')}</select>`) +
       field('rk-order', 'Order', `<select id="rk-order" name="order">${orderOptions()}</select>`) +
       field('rk-n', 'Show', `<select id="rk-n" name="n">${SIZES.map((s) => option(s, s === 'all' ? 'All rows' : `Top ${s}`, state.n === s)).join('')}</select>`) +
       `</div>` +
@@ -881,7 +869,7 @@ function init(root) {
 
   function render({ announce = true, repaint = false, refocus = null } = {}) {
     const metric = currentMetric()
-    const { total, inScope, pool, aeaRemoved, sectorRemoved } = selectPool(data.rows, state)
+    const { total, inScope, pool, aeaRemoved } = selectPool(data.rows, state)
     const { ranked, missing, tiedRows, distinct } = rankPool(pool, metric, state.order)
 
     const limit = state.n === 'all' ? ranked.length : Math.min(Number(state.n), ranked.length)
@@ -907,7 +895,7 @@ function init(root) {
           })
 
     const description = describe({
-      state, metric, names, total, inScope, pool: pool.length, aeaRemoved, sectorRemoved,
+      state, metric, names, total, inScope, pool: pool.length, aeaRemoved,
       ranked: ranked.length, missing, tiedRows, distinct, shown: shown.length,
     })
 
@@ -1066,7 +1054,7 @@ function init(root) {
     const prompt = document.createElement('button')
     prompt.type = 'button'
     prompt.className = 'rk-btn rk-wake'
-    prompt.textContent = 'Change this ranking (metric, area, level, sector)'
+    prompt.textContent = 'Change this ranking (metric, area, level)'
     prompt.addEventListener('click', load)
     mount.appendChild(prompt)
     mount.removeAttribute('hidden')

@@ -340,9 +340,7 @@ const entityHref = (row, scope) => {
 const nameCell = (row, scope) => {
   const href = entityHref(row, scope)
   const label = esc(row.name ?? row.id ?? '—')
-  return `<th scope="row">${href ? `<a href="${href}">${label}</a>` : label}${
-    row.isCharter ? ' <span class="na-sm">Charter</span>' : ''
-  }</th>`
+  return `<th scope="row">${href ? `<a href="${href}">${label}</a>` : label}</th>`
 }
 
 /**
@@ -355,9 +353,9 @@ const nameCell = (row, scope) => {
  * here.
  */
 const rankCell = (row) =>
-  `<td class="num">${finite(row.rank) ? esc(ordinal(row.rank)) : '—'}${
-    finite(row.tied) && row.tied > 0 ? ` <span class="chip-n">tied</span>` : ''
-  }</td>`
+  `<td class="num${finite(row.rank) && row.rank <= 3 ? ' rk-podium' : ''}">${
+    finite(row.rank) ? esc(ordinal(row.rank)) : '—'
+  }${finite(row.tied) && row.tied > 0 ? ` <span class="chip-n">tied</span>` : ''}</td>`
 
 const whereCell = (row) => {
   if (row.districtName) {
@@ -503,6 +501,21 @@ const rankedPopulation = (rows, meta = {}, end = 'top') => {
 }
 
 /* ------------------------------------------------------------------- page -- */
+
+/**
+ * The caveat every raw ranking owes a reader, and the one this site is
+ * otherwise careful never to leave unsaid: "the highest overall score" is not
+ * "the best school" — it correlates with size and, more strongly, with how
+ * poor a school's students are. src/render/about.js's "How the peer group is
+ * chosen" section is where that finding actually lives (with its own
+ * numbers, kept there so this file cannot quote a stale copy of them); this
+ * reuses that section's own words for the claim itself rather than writing a
+ * second, driftable version of it, and links straight to it. Printed on the
+ * /rankings hub's "How to read these" block and on every individual board's
+ * "What this ranking counts" block — see both call sites below.
+ */
+const povertyCaveat = () =>
+  `<p class="note">A ranking by a raw figure is not a measure of teaching quality on its own: it correlates with school size and, more strongly, with how many of a school's students live in poverty. Every entity page on this site instead compares a school against a peer group — districts with districts, campuses with campuses — whose share of economically disadvantaged students falls within 10 percentage points of its own, because a comparison against the state average measures the composition of a school's intake at least as much as anything the school did. This list does not: it orders by the raw figure alone. <a href="/about#peer-cohort">How the peer group is chosen</a>.</p>`
 
 const sourceSection = (snapshotDate) =>
   section(
@@ -684,7 +697,8 @@ export function renderRankingPage({
    </div>
   <p class="note">${esc(direction)}</p>
   <p class="note">${ties}</p>
-  ${tooSmall}`
+  ${tooSmall}
+  ${povertyCaveat()}`
       ),
       short
         ? null
@@ -982,8 +996,8 @@ export function relatedFor(catalogue, entry, { limit = 24 } = {}) {
  * missing `payloadHref`, `defaults`, `metric` or `scope` returns ''.
  *
  * `defaults` is stated by the caller, not derived here. This module has no
- * way to know which sector/AEA filter actually produced `tool.rows` —
- * rankings.js's row shape carries neither flag — so guessing a defaults
+ * way to know which AEA filter actually produced `tool.rows` —
+ * rankings.js's row shape carries no such flag — so guessing a defaults
  * object would risk declaring a selection the rows do not match, which is
  * exactly the "the page visibly rewrites itself the moment the payload
  * lands" failure site/rankings.js's own comment warns about.
@@ -1036,6 +1050,97 @@ function renderRankingsTool({
 <script type="module" src="/rankings.js"></script>`
 }
 
+/* ------------------------------------------------------ grouped accordions -- */
+//
+// The /rankings hub carries one link-list per scope — Texas school districts,
+// Texas campuses, each of 20 regions, each county that clears MIN_POPULATION —
+// which is ~44 headed lists holding ~256 links. Printed flat, one after
+// another, that is reachable but not readable: a visitor after "Dallas
+// County" scrolls past every other county to find it. Below, each scope's
+// list is wrapped in a native <details>, grouped under three headings
+// (statewide / by region / by county — the grouping rankingScopes() already
+// encodes in scope.kind). Statewide opens by default: two groups, worth
+// seeing without a click. Region and county groups start closed, so the page
+// loads as ~44 one-line summaries instead of one long scroll.
+//
+// This is a real <details>/<summary>, not a JS-built collapse: clicking (or
+// Enter/Space on) a summary is the browser's own behaviour, so every group is
+// reachable with JavaScript off exactly as it is with JavaScript on.
+
+/** Which of the three population kinds a scope's boards belong to, and how the group opens. */
+const GROUP_KINDS = [
+  { kind: 'state', heading: 'Statewide', open: true },
+  { kind: 'region', heading: 'By region', open: false },
+  { kind: 'county', heading: 'By county', open: false },
+]
+
+/** One scope's link list, as a collapsible group. `data-name` is what the filter script below matches against. */
+const groupDetails = (g, open) =>
+  `<details class="rk-group" data-name="${esc(g.label)}"${open ? ' open' : ''}>
+  <summary><h3>${esc(g.label)} <span class="chip-n">${esc(num(g.items.length))} ranked ${
+    g.items.length === 1 ? 'list' : 'lists'
+  }</span></h3></summary>
+  ${linkRow(
+    g.items.map((i) => ({ href: i.href, label: i.title })),
+    `Ranked lists of ${g.label}`
+  )}
+</details>`
+
+/**
+ * The text filter's whole behaviour: show/hide `.rk-group` elements by a
+ * case-insensitive substring match on each group's own name, and open a
+ * matching group so a reader does not also have to click it. Independent of
+ * site/rankings.js and its [data-rankings] contract — this runs whenever the
+ * groups below exist, whether or not the interactive tool's payload does —
+ * and touches nothing outside the elements this page itself renders.
+ *
+ * The filter input is kept `hidden` in the markup and only revealed here,
+ * the same pattern site/rankings.js's own controls mount uses: a reader
+ * without JavaScript never meets a text box that does nothing when they type
+ * into it. What they get instead — every group, reachable by opening its
+ * <details> — is unaffected by whether this script ever runs.
+ *
+ * This markup is emitted *before* the `.rk-group` elements it queries for
+ * (the filter box belongs above the groups it filters), so the plain,
+ * unmodulized `<script>` below runs mid-parse, before those groups exist.
+ * It defers its own body to DOMContentLoaded — the same readyState guard
+ * site/rankings.js's own boot() uses — so `querySelectorAll('.rk-group')`
+ * runs only after the whole document, groups included, has been parsed.
+ */
+const RANKINGS_GROUP_FILTER_JS = `(function () {
+  function run() {
+    var wrap = document.getElementById('rk-filter-wrap')
+    var input = document.getElementById('rk-filter-input')
+    var empty = document.getElementById('rk-filter-empty')
+    var groups = Array.prototype.slice.call(document.querySelectorAll('.rk-group'))
+    if (!wrap || !input || !groups.length) return
+    var openByDefault = groups.map(function (g) { return g.hasAttribute('open') })
+    wrap.hidden = false
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase()
+      var shown = 0
+      groups.forEach(function (g, i) {
+        var name = (g.getAttribute('data-name') || '').toLowerCase()
+        var match = !q || name.indexOf(q) !== -1
+        g.hidden = !match
+        if (match) shown += 1
+        g.open = q ? match : openByDefault[i]
+      })
+      if (empty) empty.hidden = shown !== 0
+    })
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run)
+  else run()
+})()`
+
+const groupFilterInput = () =>
+  `<div class="rk-filter" id="rk-filter-wrap" hidden>
+  <label for="rk-filter-input">Filter these lists by name</label>
+  <input type="text" id="rk-filter-input" autocomplete="off" placeholder="Region, county, or statewide">
+  <p class="rk-filter-empty" id="rk-filter-empty" role="status" aria-live="polite" hidden>No groups match that filter. Clear it to see them all.</p>
+</div>
+<script>${RANKINGS_GROUP_FILTER_JS}</script>`
+
 /**
  * renderRankingsIndexPage({ pages, snapshotDate, note, lookups, countiesTotal, tool })
  *
@@ -1079,16 +1184,19 @@ export function renderRankingsIndexPage({
     byScope.get(slug).items.push(p)
   }
 
-  const sections = groups.map((g) =>
-    section(
-      `scope-${g.slug}`,
-      `${g.label}: ${num(g.items.length)} ranked ${g.items.length === 1 ? 'list' : 'lists'}`,
-      linkRow(
-        g.items.map((i) => ({ href: i.href, label: i.title })),
-        `Ranked lists of ${g.label}`
-      )
+  // The same groups, bucketed into the three population kinds and each
+  // wrapped as a <details> — see the "grouped accordions" note above
+  // renderRankingsTool for why, and for what stays reachable without
+  // JavaScript.
+  const bucketSections = GROUP_KINDS.map(({ kind, heading, open }) => {
+    const kindGroups = groups.filter((g) => (g.scope?.kind ?? 'state') === kind)
+    if (!kindGroups.length) return null
+    return section(
+      `group-${kind}`,
+      `${heading}: ${num(kindGroups.length)} ranked ${kindGroups.length === 1 ? 'population' : 'populations'}`,
+      `<div class="rk-groups">${kindGroups.map((g) => groupDetails(g, open)).join('\n')}</div>`
     )
-  )
+  }).filter(Boolean)
 
   // Which counties get a board of their own, and how many do not — the same
   // standard every ranking on this site holds itself to (Rule 1: a ranking
@@ -1145,6 +1253,7 @@ export function renderRankingsIndexPage({
   <p class="note">TEA publishes most measures for the current year only. Where a list ranks change
      over time, the underlying figure is one TEA publishes for several years — the overall score,
      the domain scores, per-student spending. Nothing else here is presented as a trend.</p>
+  ${povertyCaveat()}
   ${note ? `<p class="note">${esc(note)}</p>` : ''}`
       ),
       toolMarkup
@@ -1156,8 +1265,9 @@ export function renderRankingsIndexPage({
              and the table below recomputes without leaving the page.`
           )
         : null,
-      ...(sections.length
-        ? sections
+      groups.length ? groupFilterInput() : null,
+      ...(bucketSections.length
+        ? bucketSections
         : [section('none', 'No ranked lists', '<p class="note na">No ranked lists were built for this snapshot.</p>')]),
       sourceSection(snapshotDate),
     ],

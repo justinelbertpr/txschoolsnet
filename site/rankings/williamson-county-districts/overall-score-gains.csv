@@ -3,25 +3,23 @@
 # snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
 # dataset: ranking board
 # page: https://txschools.net/rankings/williamson-county-districts/overall-score-gains
-# rows: 12 (excluding this header and the column row)
+# rows: 11 (excluding this header and the column row)
 # ranking: Williamson County school districts with the largest overall score gains since 2021-22
-# population: 12 districts of 13 districts are ranked here.
-# population: 1 has no figure at the start of the window and is not ranked.
+# population: 11 districts of 11 districts are ranked here.
 # rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
 # methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
 # empty cell = TEA did not publish that figure. It does not mean zero.
 # numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
 # lines starting with # are comments — pandas: read_csv(path, comment='#')
 rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
-1,12,1,246902,Florence ISD,Williamson,B,16,69,85,1125,https://txschools.net/district/florence-isd-246902
-1,12,1,246911,Taylor ISD,Williamson,B,16,64,80,2882,https://txschools.net/district/taylor-isd-246911
-3,12,0,246904,Georgetown ISD,Williamson,B,8,72,80,13951,https://txschools.net/district/georgetown-isd-246904
-4,12,0,246908,Liberty Hill ISD,Williamson,B,6,79,85,10446,https://txschools.net/district/liberty-hill-isd-246908
-5,12,1,246907,Jarrell ISD,Williamson,C,5,69,74,4514,https://txschools.net/district/jarrell-isd-246907
-5,12,1,246912,Thrall ISD,Williamson,A,5,88,93,916,https://txschools.net/district/thrall-isd-246912
-7,12,1,246801,Meridian World School LLC,Williamson,A,2,94,96,1757,https://txschools.net/district/meridian-world-school-llc-246801
-7,12,1,246909,Round Rock ISD,Williamson,B,2,87,89,45865,https://txschools.net/district/round-rock-isd-246909
-9,12,0,246913,Leander ISD,Williamson,B,1,86,87,41854,https://txschools.net/district/leander-isd-246913
-10,12,0,246905,Granger ISD,Williamson,C,0,76,76,573,https://txschools.net/district/granger-isd-246905
-11,12,0,246906,Hutto ISD,Williamson,C,-6,81,75,11069,https://txschools.net/district/hutto-isd-246906
-12,12,0,246914,Coupland ISD,Williamson,C,-13,89,76,315,https://txschools.net/district/coupland-isd-246914
+1,11,1,246902,Florence ISD,Williamson,B,16,69,85,1125,https://txschools.net/district/florence-isd-246902
+1,11,1,246911,Taylor ISD,Williamson,B,16,64,80,2882,https://txschools.net/district/taylor-isd-246911
+3,11,0,246904,Georgetown ISD,Williamson,B,8,72,80,13951,https://txschools.net/district/georgetown-isd-246904
+4,11,0,246908,Liberty Hill ISD,Williamson,B,6,79,85,10446,https://txschools.net/district/liberty-hill-isd-246908
+5,11,1,246907,Jarrell ISD,Williamson,C,5,69,74,4514,https://txschools.net/district/jarrell-isd-246907
+5,11,1,246912,Thrall ISD,Williamson,A,5,88,93,916,https://txschools.net/district/thrall-isd-246912
+7,11,0,246909,Round Rock ISD,Williamson,B,2,87,89,45865,https://txschools.net/district/round-rock-isd-246909
+8,11,0,246913,Leander ISD,Williamson,B,1,86,87,41854,https://txschools.net/district/leander-isd-246913
+9,11,0,246905,Granger ISD,Williamson,C,0,76,76,573,https://txschools.net/district/granger-isd-246905
+10,11,0,246906,Hutto ISD,Williamson,C,-6,81,75,11069,https://txschools.net/district/hutto-isd-246906
+11,11,0,246914,Coupland ISD,Williamson,C,-13,89,76,315,https://txschools.net/district/coupland-isd-246914

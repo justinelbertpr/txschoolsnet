@@ -22,6 +22,12 @@ txschools.gov publishes the entire statewide accountability dataset as static JS
 districts, 9,031 campuses, and five academic years of rating history, 52.5 MB in total. This
 project normalizes that into queryable tables and prerenders a page for every district and campus.
 
+This site publishes traditional public school districts only. Open-enrollment charter districts
+and campuses are excluded outright, at the normalized-table stage, before any downstream table is
+built — not filtered per view, not offered as a toggle. Of TEA's 1,199 districts and 9,031
+campuses, 1,020 districts and 8,066 campuses are traditional and appear here; the remaining 179
+districts and 965 campuses are charters and appear nowhere on the site.
+
 The editorial thesis, validated against the data before being adopted:
 
 > Texas public schools are recovering from the pandemic-era trough, traditional ISDs are leading
@@ -38,7 +44,7 @@ rather than quietly going stale.
 npm run fetch      download the 14 TEA source files into data/raw/<YYYY-MM>/
 npm run build      normalize the newest snapshot into build/*.ndjson
 npm run export     build the dashboard payload into site/data/
-npm run prerender  render 10,230 entity pages into site/
+npm run prerender  render 9,086 entity pages into site/
 npm run site       build + export + prerender
 npm test           141 tests, including the published-figure regression suite
 ```

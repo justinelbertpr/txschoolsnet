@@ -26,6 +26,7 @@ export function toEntity(rec, level) {
     isAlt: str(rec.alt_standards) === 'Yes',
     campusType: str(rec.campus_type),
     enrollment: num(rec.enrollment),
+    website: str(rec.website),
     rating: str(rec.rating),
     score: num(rec.score),
     lat: num(rec.latitude),

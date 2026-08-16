@@ -64,7 +64,9 @@ const byName = (a, b) => String(a.name ?? '').localeCompare(String(b.name ?? '')
  * control a visitor came to use sits above the paragraph explaining the site
  * rather than below it. Every other hub passes nothing and is unchanged.
  */
-const hero = ({ eyebrow, title, place = '', lede = '', search = '' }) => `<section class="hero">
+const hero = ({ eyebrow, title, place = '', lede = '', search = '', variant = null }) => `<section class="hero${
+  variant ? ` hero-${esc(variant)}` : ''
+}">
   ${eyebrow ? `<p class="eyebrow">${esc(eyebrow)}</p>` : ''}
   <h1>${esc(title)}</h1>
   ${place ? `<p class="place">${place}</p>` : ''}
@@ -84,7 +86,7 @@ const plural = (n, word) => `${num(n)} ${n === 1 ? word : IRREGULAR[word] ?? `${
  * A count beside a link always carries its unit — a bare number next to a name is
  * the same unlabelled boast a rank without an n would be.
  */
-const linkList = (items, label = null) =>
+const linkList = (items, label = null, { className = null } = {}) =>
   navList(
     items.map((i) => ({
       href: i.href,
@@ -92,7 +94,7 @@ const linkList = (items, label = null) =>
       current: i.current,
       meta: finite(i.n) ? plural(i.n, i.unit ?? 'district') : null,
     })),
-    { label }
+    { label, className }
   )
 
 /* -------------------------------------------------------------- rankings -- */
@@ -148,7 +150,11 @@ const azNav = (current = null) =>
       label: l.toUpperCase(),
       current: current === l,
     })),
-    'District index by first letter'
+    'District index by first letter',
+    // 26 single-character links: a run of underlined text turns each one into
+    // a ~9px-wide tap target — style.css's .navlist-letters gives them the
+    // real button-sized targets a letter-only link needs.
+    { className: 'navlist-letters' }
   )
 
 /**
@@ -168,9 +174,7 @@ const districtTable = (districts, { caption, showCounty = false, emptyMessage })
 
   const rows = districts.map(
     (d) =>
-      `<tr><th scope="row"><a href="${href(d)}">${esc(d.name ?? d.id)}</a>${
-        d.isCharter ? ' <span class="na-sm">Charter</span>' : ''
-      }</th>${
+      `<tr><th scope="row"><a href="${href(d)}">${esc(d.name ?? d.id)}</a></th>${
         showCounty
           ? `<td>${d.county ? `<a href="/county/${esc(slugify(d.county))}">${esc(d.county)}</a>` : '—'}</td>`
           : ''
@@ -621,6 +625,7 @@ export function renderHomePage({
     crumbs: [],
     sections: [
       hero({
+        variant: 'home',
         eyebrow: 'Texas public schools',
         title: 'Texas school ratings',
         place,

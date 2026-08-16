@@ -492,7 +492,9 @@ describe('the home page leads with search', () => {
   })
 
   it('puts it inside the hero, above the paragraph explaining the site', () => {
-    const hero = home.slice(home.indexOf('<section class="hero">'), home.indexOf('</section>'))
+    // The homepage hero carries the hero-home modifier (site/style.css's one
+    // deliberate block of colour) — every other hub's hero stays bare.
+    const hero = home.slice(home.indexOf('<section class="hero hero-home">'), home.indexOf('</section>'))
     expect(hero).toContain('class="sitesearch')
     expect(hero.indexOf('class="sitesearch')).toBeLessThan(hero.indexOf('class="lede"'))
   })

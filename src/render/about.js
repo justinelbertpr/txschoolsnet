@@ -199,7 +199,11 @@ const corrections = () =>
   own rather than the Texas Education Agency's. If a figure here looks wrong, check it against
   <a href="https://txschools.gov">txschools.gov</a>. Every claim published here is covered by tests
   that recompute it from the source data, so a future release from TEA that changes the picture
-  fails the build rather than quietly ageing into being wrong.</p>`
+  fails the build rather than quietly ageing into being wrong.</p>
+  <p>If it still looks wrong after checking against TEA's own figure, that is a bug in this site's
+  normalisation, not a data question —
+  <a href="https://github.com/justinelbertpr/txschoolsnet/issues">report it on GitHub</a>, with the
+  page URL and the figure you expected.</p>`
   )
 
 /* ------------------------------------------------------------------ page -- */

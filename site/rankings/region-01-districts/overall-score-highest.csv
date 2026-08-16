@@ -3,56 +3,48 @@
 # snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
 # dataset: ranking board
 # page: https://txschools.net/rankings/region-01-districts/overall-score-highest
-# rows: 44 (excluding this header and the column row)
+# rows: 37 (excluding this header and the column row)
 # ranking: Region 01: Edinburg school districts with the highest overall score in 2025-26
-# population: 44 districts of 45 districts are ranked here.
-# population: 1 was not rated by TEA for 2025-26 and is not ranked.
+# population: 37 districts of 37 districts are ranked here.
 # rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
 # empty cell = TEA did not publish that figure. It does not mean zero.
 # numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
 # lines starting with # are comments — pandas: read_csv(path, comment='#')
 rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
-1,44,0,031916,South Texas ISD,Cameron,A,95,4741,https://txschools.net/district/south-texas-isd-031916
-2,44,0,214903,Roma ISD,Starr,A,92,5916,https://txschools.net/district/roma-isd-214903
-3,44,1,245903,Raymondville ISD,Willacy,A,91,1901,https://txschools.net/district/raymondville-isd-245903
-3,44,1,108916,Valley View ISD,Hidalgo,A,91,3304,https://txschools.net/district/valley-view-isd-108916
-5,44,4,240901,Laredo ISD,Webb,A,90,19461,https://txschools.net/district/laredo-isd-240901
-5,44,4,031906,Los Fresnos CISD,Cameron,A,90,10284,https://txschools.net/district/los-fresnos-cisd-031906
-5,44,4,108909,Pharr-San Juan-Alamo ISD,Hidalgo,A,90,29043,https://txschools.net/district/pharr-san-juan-alamo-isd-108909
-5,44,4,240903,United ISD,Webb,A,90,39764,https://txschools.net/district/united-isd-240903
-5,44,4,108808,Vanguard Academy,Hidalgo,A,90,6739,https://txschools.net/district/vanguard-academy-108808
-10,44,1,108906,McAllen ISD,Hidalgo,B,89,19405,https://txschools.net/district/mcallen-isd-108906
-10,44,1,108804,Triumph Public High Schools-Rio Grande Valley,Hidalgo,B,89,477,https://txschools.net/district/triumph-public-high-schools-rio-grande-valley-108804
-12,44,1,108911,Sharyland ISD,Hidalgo,B,88,9653,https://txschools.net/district/sharyland-isd-108911
-12,44,1,240801,Triumph Public High Schools Central Texas,Webb,B,88,362,https://txschools.net/district/triumph-public-high-schools-central-texas-240801
-14,44,3,031901,Brownsville ISD,Cameron,B,87,34296,https://txschools.net/district/brownsville-isd-031901
-14,44,3,031903,Harlingen CISD,Cameron,B,87,16187,https://txschools.net/district/harlingen-cisd-031903
-14,44,3,031914,Santa Rosa ISD,Cameron,B,87,811,https://txschools.net/district/santa-rosa-isd-031914
-14,44,3,108913,Weslaco ISD,Hidalgo,B,87,16012,https://txschools.net/district/weslaco-isd-108913
-18,44,2,214901,Rio Grande City Grulla ISD,Starr,B,86,9157,https://txschools.net/district/rio-grande-city-grulla-isd-214901
-18,44,2,031913,Santa Maria ISD,Cameron,B,86,502,https://txschools.net/district/santa-maria-isd-031913
-18,44,2,253901,Zapata County ISD,Zapata,B,86,3199,https://txschools.net/district/zapata-county-isd-253901
-21,44,1,108904,Edinburg CISD,Hidalgo,B,85,32466,https://txschools.net/district/edinburg-cisd-108904
-21,44,1,245904,San Perlita ISD,Willacy,B,85,174,https://txschools.net/district/san-perlita-isd-245904
-23,44,0,245902,Lyford CISD,Willacy,B,84,1366,https://txschools.net/district/lyford-cisd-245902
-24,44,0,108908,Mission CISD,Hidalgo,B,83,13186,https://txschools.net/district/mission-cisd-108908
-25,44,4,108905,Hidalgo ISD,Hidalgo,B,82,2788,https://txschools.net/district/hidalgo-isd-108905
-25,44,4,108807,IDEA Public Schools,Hidalgo,B,82,79607,https://txschools.net/district/idea-public-schools-108807
-25,44,4,108915,Monte Alto ISD,Hidalgo,B,82,764,https://txschools.net/district/monte-alto-isd-108915
-25,44,4,031909,Point Isabel ISD,Cameron,B,82,1718,https://txschools.net/district/point-isabel-isd-031909
-25,44,4,214902,San Isidro ISD,Starr,B,82,151,https://txschools.net/district/san-isidro-isd-214902
-30,44,0,108902,Donna ISD,Hidalgo,B,81,12436,https://txschools.net/district/donna-isd-108902
-31,44,4,108802,Horizon Montessori Public Schools,Hidalgo,B,80,1034,https://txschools.net/district/horizon-montessori-public-schools-108802
-31,44,4,108912,La Joya ISD,Hidalgo,B,80,21606,https://txschools.net/district/la-joya-isd-108912
-31,44,4,108914,La Villa ISD,Hidalgo,B,80,459,https://txschools.net/district/la-villa-isd-108914
-31,44,4,245901,Lasara ISD,Willacy,B,80,330,https://txschools.net/district/lasara-isd-245901
-31,44,4,108910,Progreso ISD,Hidalgo,B,80,1291,https://txschools.net/district/progreso-isd-108910
-36,44,1,124901,Jim Hogg County ISD,Jim Hogg,C,79,927,https://txschools.net/district/jim-hogg-county-isd-124901
-36,44,1,031912,San Benito CISD,Cameron,C,79,8620,https://txschools.net/district/san-benito-cisd-031912
-38,44,0,031911,Rio Hondo ISD,Cameron,C,77,1312,https://txschools.net/district/rio-hondo-isd-031911
-39,44,0,240904,Webb CISD,Webb,C,76,206,https://txschools.net/district/webb-cisd-240904
-40,44,0,031905,La Feria ISD,Cameron,C,75,2754,https://txschools.net/district/la-feria-isd-031905
-41,44,0,108907,Mercedes ISD,Hidalgo,C,73,3940,https://txschools.net/district/mercedes-isd-108907
-42,44,1,108903,Edcouch-Elsa ISD,Hidalgo,D,69,4162,https://txschools.net/district/edcouch-elsa-isd-108903
-42,44,1,108809,Excellence In Leadership Academy,Hidalgo,D,69,168,https://txschools.net/district/excellence-in-leadership-academy-108809
-44,44,0,108810,Brillante Academy,Hidalgo,F,57,426,https://txschools.net/district/brillante-academy-108810
+1,37,0,031916,South Texas ISD,Cameron,A,95,4741,https://txschools.net/district/south-texas-isd-031916
+2,37,0,214903,Roma ISD,Starr,A,92,5916,https://txschools.net/district/roma-isd-214903
+3,37,1,245903,Raymondville ISD,Willacy,A,91,1901,https://txschools.net/district/raymondville-isd-245903
+3,37,1,108916,Valley View ISD,Hidalgo,A,91,3304,https://txschools.net/district/valley-view-isd-108916
+5,37,3,240901,Laredo ISD,Webb,A,90,19461,https://txschools.net/district/laredo-isd-240901
+5,37,3,031906,Los Fresnos CISD,Cameron,A,90,10284,https://txschools.net/district/los-fresnos-cisd-031906
+5,37,3,108909,Pharr-San Juan-Alamo ISD,Hidalgo,A,90,29043,https://txschools.net/district/pharr-san-juan-alamo-isd-108909
+5,37,3,240903,United ISD,Webb,A,90,39764,https://txschools.net/district/united-isd-240903
+9,37,0,108906,McAllen ISD,Hidalgo,B,89,19405,https://txschools.net/district/mcallen-isd-108906
+10,37,0,108911,Sharyland ISD,Hidalgo,B,88,9653,https://txschools.net/district/sharyland-isd-108911
+11,37,3,031901,Brownsville ISD,Cameron,B,87,34296,https://txschools.net/district/brownsville-isd-031901
+11,37,3,031903,Harlingen CISD,Cameron,B,87,16187,https://txschools.net/district/harlingen-cisd-031903
+11,37,3,031914,Santa Rosa ISD,Cameron,B,87,811,https://txschools.net/district/santa-rosa-isd-031914
+11,37,3,108913,Weslaco ISD,Hidalgo,B,87,16012,https://txschools.net/district/weslaco-isd-108913
+15,37,2,214901,Rio Grande City Grulla ISD,Starr,B,86,9157,https://txschools.net/district/rio-grande-city-grulla-isd-214901
+15,37,2,031913,Santa Maria ISD,Cameron,B,86,502,https://txschools.net/district/santa-maria-isd-031913
+15,37,2,253901,Zapata County ISD,Zapata,B,86,3199,https://txschools.net/district/zapata-county-isd-253901
+18,37,1,108904,Edinburg CISD,Hidalgo,B,85,32466,https://txschools.net/district/edinburg-cisd-108904
+18,37,1,245904,San Perlita ISD,Willacy,B,85,174,https://txschools.net/district/san-perlita-isd-245904
+20,37,0,245902,Lyford CISD,Willacy,B,84,1366,https://txschools.net/district/lyford-cisd-245902
+21,37,0,108908,Mission CISD,Hidalgo,B,83,13186,https://txschools.net/district/mission-cisd-108908
+22,37,3,108905,Hidalgo ISD,Hidalgo,B,82,2788,https://txschools.net/district/hidalgo-isd-108905
+22,37,3,108915,Monte Alto ISD,Hidalgo,B,82,764,https://txschools.net/district/monte-alto-isd-108915
+22,37,3,031909,Point Isabel ISD,Cameron,B,82,1718,https://txschools.net/district/point-isabel-isd-031909
+22,37,3,214902,San Isidro ISD,Starr,B,82,151,https://txschools.net/district/san-isidro-isd-214902
+26,37,0,108902,Donna ISD,Hidalgo,B,81,12436,https://txschools.net/district/donna-isd-108902
+27,37,3,108912,La Joya ISD,Hidalgo,B,80,21606,https://txschools.net/district/la-joya-isd-108912
+27,37,3,108914,La Villa ISD,Hidalgo,B,80,459,https://txschools.net/district/la-villa-isd-108914
+27,37,3,245901,Lasara ISD,Willacy,B,80,330,https://txschools.net/district/lasara-isd-245901
+27,37,3,108910,Progreso ISD,Hidalgo,B,80,1291,https://txschools.net/district/progreso-isd-108910
+31,37,1,124901,Jim Hogg County ISD,Jim Hogg,C,79,927,https://txschools.net/district/jim-hogg-county-isd-124901
+31,37,1,031912,San Benito CISD,Cameron,C,79,8620,https://txschools.net/district/san-benito-cisd-031912
+33,37,0,031911,Rio Hondo ISD,Cameron,C,77,1312,https://txschools.net/district/rio-hondo-isd-031911
+34,37,0,240904,Webb CISD,Webb,C,76,206,https://txschools.net/district/webb-cisd-240904
+35,37,0,031905,La Feria ISD,Cameron,C,75,2754,https://txschools.net/district/la-feria-isd-031905
+36,37,0,108907,Mercedes ISD,Hidalgo,C,73,3940,https://txschools.net/district/mercedes-isd-108907
+37,37,0,108903,Edcouch-Elsa ISD,Hidalgo,D,69,4162,https://txschools.net/district/edcouch-elsa-isd-108903

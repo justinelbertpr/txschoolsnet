@@ -21,7 +21,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   RANKABLE, RANKABLE_BY_KEY, RANKABLE_BY_SLUG, CHANGE_METRICS, STAAR_SUBJECTS, rankable,
-  SCOPES, SCOPE_KINDS, PEER_BANDS, SECTORS, AEA_MODES, LEVELS,
+  SCOPES, SCOPE_KINDS, PEER_BANDS, AEA_MODES, LEVELS,
   MIN_POPULATION, WINDOW_COVERAGE, METHOD_BREAK_YEAR, METHOD_BREAK_NOTE,
   rankingBundles, rankBy, changeMetrics, availableYears, rankEverywhere,
   place, parseScope, scopeKey, resolveMetric, isRankable, windowLabel,
@@ -336,11 +336,10 @@ describe('rankBy', () => {
     expect(() => rankBy({ entities, bundles, metric: 'ecoDis' })).toThrow(/not rankable/)
   })
 
-  it('refuses an unknown metric, level, sector or aea mode', () => {
+  it('refuses an unknown metric, level or aea mode', () => {
     const { entities, bundles } = fixture(filler(12, 70))
     expect(() => rankBy({ entities, bundles, metric: 'nope' })).toThrow(/unknown metric/)
     expect(() => rankBy({ entities, bundles, metric: 'score', level: 'school' })).toThrow(/level must be/)
-    expect(() => rankBy({ entities, bundles, metric: 'score', filters: { sector: 'private' } })).toThrow(/sector must be/)
     expect(() => rankBy({ entities, bundles, metric: 'score', filters: { aea: 'maybe' } })).toThrow(/aea must be/)
   })
 
@@ -404,24 +403,18 @@ describe('population reporting', () => {
   it('counts every filter’s exclusions separately', () => {
     const specs = [
       ...filler(10, 70),
-      { score: 80, isCharter: true },
       { score: 80, isAlt: true },
       { score: null }, // rated nowhere: no latest-year score
     ]
     const { entities, bundles } = fixture(specs)
 
     const all = rankBy({ entities, bundles, metric: 'score' })
-    expect(all.population.n).toBe(12)
+    expect(all.population.n).toBe(11)
     expect(all.population.excluded.notRated).toBe(1)
-    expect(all.population.excluded.sector).toBe(0)
-
-    const trad = rankBy({ entities, bundles, metric: 'score', filters: { sector: 'traditional' } })
-    expect(trad.population.excluded.sector).toBe(1)
-    expect(trad.population.n).toBe(11)
 
     const noAea = rankBy({ entities, bundles, metric: 'score', filters: { aea: 'exclude' } })
     expect(noAea.population.excluded.aea).toBe(1)
-    expect(noAea.population.n).toBe(11)
+    expect(noAea.population.n).toBe(10)
   })
 
   it('counts entities that reported no value for the metric', () => {
@@ -441,14 +434,14 @@ describe('population reporting', () => {
   })
 
   it('states the population, the n and the exclusions in one printable sentence', () => {
-    const specs = [...filler(10, 70), { score: null }, { score: 80, isCharter: true }]
+    const specs = [...filler(10, 70), { score: null }, { score: 80, isAlt: true }]
     const { entities, bundles } = fixture(specs)
-    const s = rankBy({ entities, bundles, metric: 'score', filters: { sector: 'traditional' } }).population.sentence
+    const s = rankBy({ entities, bundles, metric: 'score', filters: { aea: 'exclude' } }).population.sentence
     expect(s).toContain('10 districts ranked in Texas')
     expect(s).toContain('Excluded')
     expect(s).toContain('1 TEA did not rate in 2025-26')
-    expect(s).toContain('1 removed by the sector filter')
-    expect(s).toContain('traditional districts only, charters excluded')
+    expect(s).toContain('1 removed by the alternative-education filter')
+    expect(s).toContain('alternative-education districts are excluded')
     expect(s).toContain('share a rank')
   })
 
@@ -836,7 +829,6 @@ describe('limit', () => {
 
 describe('exported contract', () => {
   it('names its filter and level vocabularies', () => {
-    expect(SECTORS).toEqual(['all', 'traditional', 'charter'])
     expect(AEA_MODES).toEqual(['include', 'exclude', 'only'])
     expect(LEVELS).toEqual(['district', 'campus'])
   })
@@ -856,7 +848,7 @@ describe('exported contract', () => {
     expect(r.metric).toMatchObject({ key: 'score', slug: 'overall-score', lowerIsBetter: false })
     expect(r.scope).toMatchObject({ kind: 'state', label: 'Texas' })
     expect(r.level).toBe('district')
-    expect(r.filters).toEqual({ sector: 'all', aea: 'include' })
+    expect(r.filters).toEqual({ aea: 'include' })
     expect(r.population).toHaveProperty('sentence')
     expect(r.population).toHaveProperty('excluded')
   })

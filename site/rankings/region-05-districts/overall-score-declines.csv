@@ -3,50 +3,48 @@
 # snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
 # dataset: ranking board
 # page: https://txschools.net/rankings/region-05-districts/overall-score-declines
-# rows: 38 (excluding this header and the column row)
+# rows: 36 (excluding this header and the column row)
 # ranking: Region 05: Beaumont school districts with the largest overall score declines since 2021-22
-# population: 38 districts of 38 districts are ranked here.
+# population: 36 districts of 36 districts are ranked here.
 # rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
 # methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
 # empty cell = TEA did not publish that figure. It does not mean zero.
 # numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
 # lines starting with # are comments — pandas: read_csv(path, comment='#')
 rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
-1,38,0,100908,West Hardin County CISD,Hardin,C,-10,84,74,506,https://txschools.net/district/west-hardin-county-cisd-100908
-2,38,0,036901,Anahuac ISD,Chambers,C,-9,81,72,1533,https://txschools.net/district/anahuac-isd-036901
-3,38,0,084903,High Island ISD,Galveston,B,-7,92,85,122,https://txschools.net/district/high-island-isd-084903
-4,38,0,146905,Hull-Daisetta ISD,Liberty,D,-6,69,63,425,https://txschools.net/district/hull-daisetta-isd-146905
-5,38,2,121902,Brookeland ISD,Jasper,B,-5,88,83,391,https://txschools.net/district/brookeland-isd-121902
-5,38,2,100903,Kountze ISD,Hardin,C,-5,84,79,1163,https://txschools.net/district/kountze-isd-100903
-5,38,2,229904,Warren ISD,Tyler,C,-5,78,73,1178,https://txschools.net/district/warren-isd-229904
-8,38,0,146904,Hardin ISD,Liberty,C,-4,77,73,1175,https://txschools.net/district/hardin-isd-146904
-9,38,0,181901,Bridge City ISD,Orange,C,-3,82,79,3072,https://txschools.net/district/bridge-city-isd-181901
-10,38,0,146903,Devers ISD,Liberty,A,-2,95,93,198,https://txschools.net/district/devers-isd-146903
-11,38,1,146906,Liberty ISD,Liberty,C,-1,77,76,2406,https://txschools.net/district/liberty-isd-146906
-11,38,1,229905,Spurger ISD,Tyler,B,-1,81,80,375,https://txschools.net/district/spurger-isd-229905
-13,38,0,229903,Woodville ISD,Tyler,D,0,67,67,1169,https://txschools.net/district/woodville-isd-229903
-14,38,2,229901,Colmesneil ISD,Tyler,C,1,73,74,388,https://txschools.net/district/colmesneil-isd-229901
-14,38,2,176902,Newton ISD,Newton,C,1,78,79,946,https://txschools.net/district/newton-isd-176902
-14,38,2,181905,Orangefield ISD,Orange,B,1,81,82,1727,https://txschools.net/district/orangefield-isd-181905
-17,38,5,123910,Beaumont ISD,Jefferson,D,2,67,69,15838,https://txschools.net/district/beaumont-isd-123910
-17,38,5,121906,Evadale ISD,Jasper,A,2,88,90,450,https://txschools.net/district/evadale-isd-121906
-17,38,5,121905,Kirbyville CISD,Jasper,C,2,76,78,1443,https://txschools.net/district/kirbyville-cisd-121905
-17,38,5,123907,Port Arthur ISD,Jefferson,C,2,69,71,7664,https://txschools.net/district/port-arthur-isd-123907
-17,38,5,123913,Sabine Pass ISD,Jefferson,B,2,84,86,373,https://txschools.net/district/sabine-pass-isd-123913
-17,38,5,181907,Vidor ISD,Orange,C,2,74,76,4095,https://txschools.net/district/vidor-isd-181907
-23,38,1,123807,Bob Hope School,Jefferson,A,3,87,90,2587,https://txschools.net/district/bob-hope-school-123807
-23,38,1,121903,Buna ISD,Jasper,C,3,76,79,1412,https://txschools.net/district/buna-isd-121903
-25,38,2,036903,East Chambers ISD,Chambers,B,4,81,85,1563,https://txschools.net/district/east-chambers-isd-036903
-25,38,2,100905,Hardin-Jefferson ISD,Hardin,B,4,83,87,2828,https://txschools.net/district/hardin-jefferson-isd-100905
-25,38,2,123905,Nederland ISD,Jefferson,A,4,86,90,5359,https://txschools.net/district/nederland-isd-123905
-28,38,0,100907,Lumberton ISD,Hardin,B,5,79,84,4039,https://txschools.net/district/lumberton-isd-100907
-29,38,2,229906,Chester ISD,Tyler,B,6,83,89,186,https://txschools.net/district/chester-isd-229906
-29,38,2,176903,Deweyville ISD,Newton,C,6,73,79,574,https://txschools.net/district/deweyville-isd-176903
-29,38,2,181908,Little Cypress-Mauriceville CISD,Orange,C,6,71,77,3342,https://txschools.net/district/little-cypress-mauriceville-cisd-181908
-32,38,1,123908,Port Neches-Groves ISD,Jefferson,B,7,76,83,5289,https://txschools.net/district/port-neches-groves-isd-123908
-32,38,1,181906,West Orange-Cove CISD,Orange,C,7,66,73,2502,https://txschools.net/district/west-orange-cove-cisd-181906
-34,38,0,123805,Ehrhart School,Jefferson,A,8,83,91,593,https://txschools.net/district/ehrhart-school-123805
-35,38,1,176901,Burkeville ISD,Newton,C,9,62,71,245,https://txschools.net/district/burkeville-isd-176901
-35,38,1,123914,Hamshire-Fannett ISD,Jefferson,B,9,76,85,1947,https://txschools.net/district/hamshire-fannett-isd-123914
-37,38,0,100904,Silsbee ISD,Hardin,C,11,63,74,2377,https://txschools.net/district/silsbee-isd-100904
-38,38,0,121904,Jasper ISD,Jasper,C,12,59,71,1947,https://txschools.net/district/jasper-isd-121904
+1,36,0,100908,West Hardin County CISD,Hardin,C,-10,84,74,506,https://txschools.net/district/west-hardin-county-cisd-100908
+2,36,0,036901,Anahuac ISD,Chambers,C,-9,81,72,1533,https://txschools.net/district/anahuac-isd-036901
+3,36,0,084903,High Island ISD,Galveston,B,-7,92,85,122,https://txschools.net/district/high-island-isd-084903
+4,36,0,146905,Hull-Daisetta ISD,Liberty,D,-6,69,63,425,https://txschools.net/district/hull-daisetta-isd-146905
+5,36,2,121902,Brookeland ISD,Jasper,B,-5,88,83,391,https://txschools.net/district/brookeland-isd-121902
+5,36,2,100903,Kountze ISD,Hardin,C,-5,84,79,1163,https://txschools.net/district/kountze-isd-100903
+5,36,2,229904,Warren ISD,Tyler,C,-5,78,73,1178,https://txschools.net/district/warren-isd-229904
+8,36,0,146904,Hardin ISD,Liberty,C,-4,77,73,1175,https://txschools.net/district/hardin-isd-146904
+9,36,0,181901,Bridge City ISD,Orange,C,-3,82,79,3072,https://txschools.net/district/bridge-city-isd-181901
+10,36,0,146903,Devers ISD,Liberty,A,-2,95,93,198,https://txschools.net/district/devers-isd-146903
+11,36,1,146906,Liberty ISD,Liberty,C,-1,77,76,2406,https://txschools.net/district/liberty-isd-146906
+11,36,1,229905,Spurger ISD,Tyler,B,-1,81,80,375,https://txschools.net/district/spurger-isd-229905
+13,36,0,229903,Woodville ISD,Tyler,D,0,67,67,1169,https://txschools.net/district/woodville-isd-229903
+14,36,2,229901,Colmesneil ISD,Tyler,C,1,73,74,388,https://txschools.net/district/colmesneil-isd-229901
+14,36,2,176902,Newton ISD,Newton,C,1,78,79,946,https://txschools.net/district/newton-isd-176902
+14,36,2,181905,Orangefield ISD,Orange,B,1,81,82,1727,https://txschools.net/district/orangefield-isd-181905
+17,36,5,123910,Beaumont ISD,Jefferson,D,2,67,69,15838,https://txschools.net/district/beaumont-isd-123910
+17,36,5,121906,Evadale ISD,Jasper,A,2,88,90,450,https://txschools.net/district/evadale-isd-121906
+17,36,5,121905,Kirbyville CISD,Jasper,C,2,76,78,1443,https://txschools.net/district/kirbyville-cisd-121905
+17,36,5,123907,Port Arthur ISD,Jefferson,C,2,69,71,7664,https://txschools.net/district/port-arthur-isd-123907
+17,36,5,123913,Sabine Pass ISD,Jefferson,B,2,84,86,373,https://txschools.net/district/sabine-pass-isd-123913
+17,36,5,181907,Vidor ISD,Orange,C,2,74,76,4095,https://txschools.net/district/vidor-isd-181907
+23,36,0,121903,Buna ISD,Jasper,C,3,76,79,1412,https://txschools.net/district/buna-isd-121903
+24,36,2,036903,East Chambers ISD,Chambers,B,4,81,85,1563,https://txschools.net/district/east-chambers-isd-036903
+24,36,2,100905,Hardin-Jefferson ISD,Hardin,B,4,83,87,2828,https://txschools.net/district/hardin-jefferson-isd-100905
+24,36,2,123905,Nederland ISD,Jefferson,A,4,86,90,5359,https://txschools.net/district/nederland-isd-123905
+27,36,0,100907,Lumberton ISD,Hardin,B,5,79,84,4039,https://txschools.net/district/lumberton-isd-100907
+28,36,2,229906,Chester ISD,Tyler,B,6,83,89,186,https://txschools.net/district/chester-isd-229906
+28,36,2,176903,Deweyville ISD,Newton,C,6,73,79,574,https://txschools.net/district/deweyville-isd-176903
+28,36,2,181908,Little Cypress-Mauriceville CISD,Orange,C,6,71,77,3342,https://txschools.net/district/little-cypress-mauriceville-cisd-181908
+31,36,1,123908,Port Neches-Groves ISD,Jefferson,B,7,76,83,5289,https://txschools.net/district/port-neches-groves-isd-123908
+31,36,1,181906,West Orange-Cove CISD,Orange,C,7,66,73,2502,https://txschools.net/district/west-orange-cove-cisd-181906
+33,36,1,176901,Burkeville ISD,Newton,C,9,62,71,245,https://txschools.net/district/burkeville-isd-176901
+33,36,1,123914,Hamshire-Fannett ISD,Jefferson,B,9,76,85,1947,https://txschools.net/district/hamshire-fannett-isd-123914
+35,36,0,100904,Silsbee ISD,Hardin,C,11,63,74,2377,https://txschools.net/district/silsbee-isd-100904
+36,36,0,121904,Jasper ISD,Jasper,C,12,59,71,1947,https://txschools.net/district/jasper-isd-121904
