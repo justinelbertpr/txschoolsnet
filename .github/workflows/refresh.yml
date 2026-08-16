@@ -162,7 +162,16 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: versions deploy --yes
+          # `versions deploy --yes` selects NOTHING. The command is interactive by
+          # design and --yes only skips the confirmation, not the choice, so every
+          # run uploaded a version, smoke-tested it, and then promoted zero:
+          # "You must select at least 1 version to deploy."
+          #
+          # The upload step above tags each version ci-<run_number>, so name that
+          # tag here. --version-tag resolves it to a version id against the
+          # deployable versions, which keeps promotion tied to the exact artefact
+          # this run built and smoke-tested rather than to whatever is newest.
+          command: versions deploy --version-tag ci-${{ github.run_number }} --yes
 
       # A first deploy publishes immediately, so there is no preview to test —
       # but that is the run most worth verifying, not least.
