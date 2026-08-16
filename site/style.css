@@ -392,8 +392,18 @@ header.site {
      too, not just the disclosure and the disclaimer — otherwise it stays in
      the default order-0 bucket with the wordmark and search box and renders
      ABOVE the nav it comes after in tab order. */
-  .nav-disclosure { flex-basis: 100%; order: 5; }
-  .theme-toggle { order: 6; }
+  /* Sized to the closed "Menu" summary, not the full row: at flex-basis:100%
+     unconditionally, closed and open looked identical, which meant the
+     theme toggle right after it (same order-based flow) always got shoved
+     onto its own otherwise-empty row — a lone circle with nothing beside it
+     instead of sharing the compact "Menu" row it fits on. Only grows to the
+     full row once actually open, when the link list underneath needs it. */
+  .nav-disclosure { flex-basis: auto; order: 5; }
+  .nav-disclosure[open] { flex-basis: 100%; }
+  /* Pinned to the far end of that same row rather than left with the
+     "Menu" toggle — an edge-aligned pair reads as deliberate; the leftover
+     middle space the old full-width row left around a lone circle did not. */
+  .theme-toggle { order: 6; margin-left: auto; }
   .unofficial { order: 7; }
 }
 
