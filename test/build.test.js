@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { assertIntegrity, toNdjson, latestSnapshot, dropOrphans, assertOrphanIdSet, KNOWN_ORPHAN_IDS } from '../src/build.js'
+import {
+  assertIntegrity,
+  toNdjson,
+  latestSnapshot,
+  dropOrphans,
+  assertOrphanIdSet,
+  excludeCharters,
+  KNOWN_ORPHAN_IDS,
+} from '../src/build.js'
 
 describe('assertIntegrity', () => {
   const entities = [{ id: 'a' }, { id: 'b' }]
@@ -109,5 +117,33 @@ describe('assertOrphanIdSet', () => {
     expect(() => assertOrphanIdSet('ratings', threeOfFour, KNOWN_ORPHAN_IDS)).toThrow(
       new RegExp(`expected orphan ids no longer dropped: ${KNOWN_ORPHAN_IDS[3]}`)
     )
+  })
+})
+
+describe('excludeCharters', () => {
+  // Requirement 4: this site publishes traditional public school districts
+  // and campuses only. Charters are dropped at the single point every
+  // entity enters the pipeline (build()), so nothing downstream — the
+  // entity count, the payload, rankings, search, the sitemap — has to know
+  // to filter them a second time.
+  it('drops every entity flagged isCharter, keeps the rest unchanged', () => {
+    const entities = [
+      { id: 'a', name: 'Traditional ISD', isCharter: false },
+      { id: 'b', name: 'Charter Academy', isCharter: true },
+      { id: 'c', name: 'Another Traditional ISD', isCharter: false },
+    ]
+    expect(excludeCharters(entities)).toEqual([
+      { id: 'a', name: 'Traditional ISD', isCharter: false },
+      { id: 'c', name: 'Another Traditional ISD', isCharter: false },
+    ])
+  })
+
+  it('returns every entity when none are charters', () => {
+    const entities = [{ id: 'a', isCharter: false }, { id: 'b', isCharter: false }]
+    expect(excludeCharters(entities)).toEqual(entities)
+  })
+
+  it('returns an empty list when every entity is a charter', () => {
+    expect(excludeCharters([{ id: 'a', isCharter: true }])).toEqual([])
   })
 })

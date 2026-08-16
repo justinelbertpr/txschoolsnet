@@ -3,33 +3,26 @@
 # snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
 # dataset: ranking board
 # page: https://txschools.net/rankings/hidalgo-county-districts/overall-score-highest
-# rows: 21 (excluding this header and the column row)
+# rows: 15 (excluding this header and the column row)
 # ranking: Hidalgo County school districts with the highest overall score in 2025-26
-# population: 21 districts of 22 districts are ranked here.
-# population: 1 was not rated by TEA for 2025-26 and is not ranked.
+# population: 15 districts of 15 districts are ranked here.
 # rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
 # empty cell = TEA did not publish that figure. It does not mean zero.
 # numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
 # lines starting with # are comments — pandas: read_csv(path, comment='#')
 rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
-1,21,0,108916,Valley View ISD,Hidalgo,A,91,3304,https://txschools.net/district/valley-view-isd-108916
-2,21,1,108909,Pharr-San Juan-Alamo ISD,Hidalgo,A,90,29043,https://txschools.net/district/pharr-san-juan-alamo-isd-108909
-2,21,1,108808,Vanguard Academy,Hidalgo,A,90,6739,https://txschools.net/district/vanguard-academy-108808
-4,21,1,108906,McAllen ISD,Hidalgo,B,89,19405,https://txschools.net/district/mcallen-isd-108906
-4,21,1,108804,Triumph Public High Schools-Rio Grande Valley,Hidalgo,B,89,477,https://txschools.net/district/triumph-public-high-schools-rio-grande-valley-108804
-6,21,0,108911,Sharyland ISD,Hidalgo,B,88,9653,https://txschools.net/district/sharyland-isd-108911
-7,21,0,108913,Weslaco ISD,Hidalgo,B,87,16012,https://txschools.net/district/weslaco-isd-108913
-8,21,0,108904,Edinburg CISD,Hidalgo,B,85,32466,https://txschools.net/district/edinburg-cisd-108904
-9,21,0,108908,Mission CISD,Hidalgo,B,83,13186,https://txschools.net/district/mission-cisd-108908
-10,21,2,108905,Hidalgo ISD,Hidalgo,B,82,2788,https://txschools.net/district/hidalgo-isd-108905
-10,21,2,108807,IDEA Public Schools,Hidalgo,B,82,79607,https://txschools.net/district/idea-public-schools-108807
-10,21,2,108915,Monte Alto ISD,Hidalgo,B,82,764,https://txschools.net/district/monte-alto-isd-108915
-13,21,0,108902,Donna ISD,Hidalgo,B,81,12436,https://txschools.net/district/donna-isd-108902
-14,21,3,108802,Horizon Montessori Public Schools,Hidalgo,B,80,1034,https://txschools.net/district/horizon-montessori-public-schools-108802
-14,21,3,108912,La Joya ISD,Hidalgo,B,80,21606,https://txschools.net/district/la-joya-isd-108912
-14,21,3,108914,La Villa ISD,Hidalgo,B,80,459,https://txschools.net/district/la-villa-isd-108914
-14,21,3,108910,Progreso ISD,Hidalgo,B,80,1291,https://txschools.net/district/progreso-isd-108910
-18,21,0,108907,Mercedes ISD,Hidalgo,C,73,3940,https://txschools.net/district/mercedes-isd-108907
-19,21,1,108903,Edcouch-Elsa ISD,Hidalgo,D,69,4162,https://txschools.net/district/edcouch-elsa-isd-108903
-19,21,1,108809,Excellence In Leadership Academy,Hidalgo,D,69,168,https://txschools.net/district/excellence-in-leadership-academy-108809
-21,21,0,108810,Brillante Academy,Hidalgo,F,57,426,https://txschools.net/district/brillante-academy-108810
+1,15,0,108916,Valley View ISD,Hidalgo,A,91,3304,https://txschools.net/district/valley-view-isd-108916
+2,15,0,108909,Pharr-San Juan-Alamo ISD,Hidalgo,A,90,29043,https://txschools.net/district/pharr-san-juan-alamo-isd-108909
+3,15,0,108906,McAllen ISD,Hidalgo,B,89,19405,https://txschools.net/district/mcallen-isd-108906
+4,15,0,108911,Sharyland ISD,Hidalgo,B,88,9653,https://txschools.net/district/sharyland-isd-108911
+5,15,0,108913,Weslaco ISD,Hidalgo,B,87,16012,https://txschools.net/district/weslaco-isd-108913
+6,15,0,108904,Edinburg CISD,Hidalgo,B,85,32466,https://txschools.net/district/edinburg-cisd-108904
+7,15,0,108908,Mission CISD,Hidalgo,B,83,13186,https://txschools.net/district/mission-cisd-108908
+8,15,1,108905,Hidalgo ISD,Hidalgo,B,82,2788,https://txschools.net/district/hidalgo-isd-108905
+8,15,1,108915,Monte Alto ISD,Hidalgo,B,82,764,https://txschools.net/district/monte-alto-isd-108915
+10,15,0,108902,Donna ISD,Hidalgo,B,81,12436,https://txschools.net/district/donna-isd-108902
+11,15,2,108912,La Joya ISD,Hidalgo,B,80,21606,https://txschools.net/district/la-joya-isd-108912
+11,15,2,108914,La Villa ISD,Hidalgo,B,80,459,https://txschools.net/district/la-villa-isd-108914
+11,15,2,108910,Progreso ISD,Hidalgo,B,80,1291,https://txschools.net/district/progreso-isd-108910
+14,15,0,108907,Mercedes ISD,Hidalgo,C,73,3940,https://txschools.net/district/mercedes-isd-108907
+15,15,0,108903,Edcouch-Elsa ISD,Hidalgo,D,69,4162,https://txschools.net/district/edcouch-elsa-isd-108903

@@ -3,17 +3,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ranked lists of Texas school districts and campuses</title>
-<meta name="description" content="Every ranked list on this site: 256 tables ordering Texas school districts and campuses by the figures the Texas Education Agency publishes, each stating its population, its n and what it excluded. Unofficial.">
+<meta name="description" content="Every ranked list on this site: 228 tables ordering Texas school districts and campuses by the figures the Texas Education Agency publishes, each stating its population, its n and what it excluded. Unofficial.">
 <link rel="canonical" href="https://txschools.net/rankings">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="theme-color" content="#eceef2" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f7f5f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14120f" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="txschools.net (unofficial)">
 <meta property="og:locale" content="en_US">
 <meta property="og:title" content="Ranked lists of Texas school districts and campuses">
-<meta property="og:description" content="Every ranked list on this site: 256 tables ordering Texas school districts and campuses by the figures the Texas Education Agency publishes, each stating its population, its n and what it excluded…">
+<meta property="og:description" content="Every ranked list on this site: 228 tables ordering Texas school districts and campuses by the figures the Texas Education Agency publishes, each stating its population, its n and what it excluded…">
 <meta property="og:url" content="https://txschools.net/rankings">
 <meta property="og:image" content="https://txschools.net/og.png">
 <meta property="og:image:type" content="image/png">
@@ -22,10 +22,12 @@
 <meta property="og:image:alt" content="txschools.net: three ascending bars on a blue tile. An unofficial site, not affiliated with the Texas Education Agency.">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Ranked lists of Texas school districts and campuses">
-<meta name="twitter:description" content="Every ranked list on this site: 256 tables ordering Texas school districts and campuses by the figures the Texas Education Agency publishes, each stating its population, its n and what it excluded…">
+<meta name="twitter:description" content="Every ranked list on this site: 228 tables ordering Texas school districts and campuses by the figures the Texas Education Agency publishes, each stating its population, its n and what it excluded…">
 <meta name="twitter:image" content="https://txschools.net/og.png">
 <meta name="twitter:image:alt" content="txschools.net: three ascending bars on a blue tile. An unofficial site, not affiliated with the Texas Education Agency.">
+<link rel="preload" href="/fonts/geist-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
+<script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
@@ -50,9 +52,17 @@
   <p class="sitesearch-hint sr-only" id="header-search-hint">Type at least two letters. Every result names its district and county, because school names repeat across Texas.</p>
   <p class="sr-only" data-search-status role="status" aria-live="polite"></p>
 </form>
-  <nav class="sitenav" aria-label="Site">
+  <details class="nav-disclosure" open>
+    <summary class="nav-toggle">Menu</summary>
+    <nav class="sitenav" aria-label="Site">
   <ul class="navlist"><li><a href="/">Home</a></li><li><a href="/districts/a">Districts A–Z</a></li><li><a href="/rankings" aria-current="page">Rankings</a></li><li><a href="/download">Download data</a></li><li><a href="/about">About</a></li></ul>
 </nav>
+  </details>
+  <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false">
+    <svg class="ti ti-moon" aria-hidden="true" viewBox="0 0 20 20"><path d="M17.3 12.5A7.3 7.3 0 0 1 7.5 2.7a7.6 7.6 0 1 0 9.8 9.8Z" fill="currentColor"/></svg>
+    <svg class="ti ti-sun" aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M15.7 4.3l-1.4 1.4M5.7 14.3l-1.4 1.4M15.7 15.7l-1.4-1.4M5.7 5.7 4.3 4.3"/></g></svg>
+    <span class="sr-only" data-theme-label>Switch to dark theme</span>
+  </button>
   <p class="unofficial">Unofficial &middot; not affiliated with the Texas Education Agency &middot; <a href="/about">what this is</a></p>
 </header>
 
@@ -62,7 +72,7 @@
 <section class="hero">
   <p class="eyebrow">Ranked lists</p>
   <h1>Texas school rankings</h1>
-  <p class="place">256 ranked lists &middot; TEA data fetched 15 August 2026</p>
+  <p class="place">228 ranked lists &middot; TEA data fetched 15 August 2026</p>
   <p class="lede">TEA publishes a rating for every district and campus. It does not publish them in
     order. These tables do, and each one states the population it ranked, how many entities that was,
     and which were left out and why. Both ends of every ordering are published.</p>
@@ -75,278 +85,303 @@
     <li>Entities TEA did not rate are excluded, not counted as zero, and each page says how many.</li>
     <li>Student demographics — economic disadvantage, English learners, special education — are
         never ranked. They describe who a school serves, not how it did.</li>
-    <li>22 counties have at least 10 rated districts — the same floor every ranking on this site refuses to publish a placement under —
-        and get a ranking board of their own. The other 231 of Texas's 253 counties fall short of that floor; each keeps its county hub page's own score-ordered list instead
+    <li>16 counties have at least 10 rated districts — the same floor every ranking on this site refuses to publish a placement under —
+        and get a ranking board of their own. The other 237 of Texas's 253 counties fall short of that floor; each keeps its county hub page's own score-ordered list instead
         of a board here.</li>
   </ul>
   <p class="note">TEA publishes most measures for the current year only. Where a list ranks change
      over time, the underlying figure is one TEA publishes for several years — the overall score,
      the domain scores, per-student spending. Nothing else here is presented as a trend.</p>
-  
+  <p class="note">A ranking by a raw figure is not a measure of teaching quality on its own: it correlates with school size and, more strongly, with how many of a school's students live in poverty. Every entity page on this site instead compares a school against a peer group — districts with districts, campuses with campuses — whose share of economically disadvantaged students falls within 10 percentage points of its own, because a comparison against the state average measures the composition of a school's intake at least as much as anything the school did. This list does not: it orders by the raw figure alone. <a href="/about#peer-cohort">How the peer group is chosen</a>.</p>
+  <p class="note">4 further orderings were computed and not published: each covered fewer than 10 rated entities, and a placement out of nine is not a placement. Those populations are listed in full on their region and county pages.</p>
 </section>
-<section id="scope-texas-districts">
-  <h2>Texas school districts: 74 ranked lists</h2>
+<section id="build">
+  <h2>Build your own ranking</h2>
+  <p class="lede">Everything else on this page is fixed. This one is not: choose a measure, an area and a level,
+             and the table below recomputes without leaving the page.</p>
+  <section data-rankings data-payload="/data/payload-fefccd92.json" data-snapshot="2026-08" data-defaults='{&quot;metric&quot;:&quot;score.latest&quot;,&quot;level&quot;:&quot;district&quot;,&quot;scope&quot;:&quot;state&quot;,&quot;aea&quot;:&quot;include&quot;,&quot;order&quot;:&quot;top&quot;,&quot;n&quot;:&quot;50&quot;}'>
+  <div data-rankings-controls></div>
+  <p data-rankings-status role="status" aria-live="polite" class="rankings-status"></p>
+  <div data-rankings-output>
+    <p class="rk-headline">Texas school districts with the highest overall score in 2025-26</p>
+    <div class="callout"><p>1,019 districts of 1,020 districts are ranked here.</p>
+     <p>1 was not rated by TEA for 2025-26 and is not ranked.</p></div>
+    <div class="tbl-scroll" tabindex="0" role="region" aria-label="Texas school districts with the highest overall score in 2025-26"><table class="data scroll">
+    <caption class="sr-only">Texas school districts with the highest overall score in 2025-26</caption>
+    <thead><tr><th class="num">Rank</th><th>District</th><th>County</th><th>Rating</th><th class="num">Overall score</th><th class="num">Students</th></tr></thead>
+    <tbody><tr><td class="num rk-podium">1st</td><th scope="row"><a href="/district/patton-springs-isd-063906">Patton Springs ISD</a></th><td><a href="/county/dickens">Dickens</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">100</td><td class="num">22</td></tr><tr><td class="num rk-podium">2nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/blackwell-cisd-177903">Blackwell CISD</a></th><td><a href="/county/nolan">Nolan</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">97</td><td class="num">171</td></tr><tr><td class="num rk-podium">2nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/fayetteville-isd-075906">Fayetteville ISD</a></th><td><a href="/county/fayette">Fayette</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">97</td><td class="num">308</td></tr><tr><td class="num rk-podium">2nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/grady-isd-156905">Grady ISD</a></th><td><a href="/county/martin">Martin</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">97</td><td class="num">242</td></tr><tr><td class="num rk-podium">2nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/highland-isd-177905">Highland ISD</a></th><td><a href="/county/nolan">Nolan</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">97</td><td class="num">211</td></tr><tr><td class="num rk-podium">2nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/whitharral-isd-110908">Whitharral ISD</a></th><td><a href="/county/hockley">Hockley</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">97</td><td class="num">223</td></tr><tr><td class="num">7th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/aspermont-isd-217901">Aspermont ISD</a></th><td><a href="/county/stonewall">Stonewall</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">96</td><td class="num">210</td></tr><tr><td class="num">7th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/borden-county-isd-017901">Borden County ISD</a></th><td><a href="/county/borden">Borden</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">96</td><td class="num">238</td></tr><tr><td class="num">7th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/broaddus-isd-203902">Broaddus ISD</a></th><td><a href="/county/san-augustine">San Augustine</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">96</td><td class="num">380</td></tr><tr><td class="num">7th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/claude-isd-006902">Claude ISD</a></th><td><a href="/county/armstrong">Armstrong</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">96</td><td class="num">311</td></tr><tr><td class="num">7th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/douglass-isd-174911">Douglass ISD</a></th><td><a href="/county/nacogdoches">Nacogdoches</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">96</td><td class="num">405</td></tr><tr><td class="num">7th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/glasscock-county-isd-087901">Glasscock County ISD</a></th><td><a href="/county/glasscock">Glasscock</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">96</td><td class="num">290</td></tr><tr><td class="num">7th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/huckabay-isd-072908">Huckabay ISD</a></th><td><a href="/county/erath">Erath</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">96</td><td class="num">345</td></tr><tr><td class="num">7th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/jayton-girard-isd-132902">Jayton-Girard ISD</a></th><td><a href="/county/kent">Kent</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">96</td><td class="num">187</td></tr><tr><td class="num">7th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/loop-isd-083902">Loop ISD</a></th><td><a href="/county/gaines">Gaines</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">96</td><td class="num">143</td></tr><tr><td class="num">7th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/mcmullen-county-isd-162904">McMullen County ISD</a></th><td><a href="/county/mcmullen">McMullen</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">96</td><td class="num">286</td></tr><tr><td class="num">17th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/ft-sam-houston-isd-015914">Ft Sam Houston ISD</a></th><td><a href="/county/bexar">Bexar</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">95</td><td class="num">1,543</td></tr><tr><td class="num">17th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/highland-park-isd-057911">Highland Park ISD</a></th><td><a href="/county/dallas">Dallas</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">95</td><td class="num">6,215</td></tr><tr><td class="num">17th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/knox-city-o-brien-cisd-138902">Knox City-O&#39;Brien CISD</a></th><td><a href="/county/knox">Knox</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">95</td><td class="num">183</td></tr><tr><td class="num">17th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/miles-isd-200902">Miles ISD</a></th><td><a href="/county/runnels">Runnels</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">95</td><td class="num">497</td></tr><tr><td class="num">17th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/nazareth-isd-035903">Nazareth ISD</a></th><td><a href="/county/castro">Castro</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">95</td><td class="num">239</td></tr><tr><td class="num">17th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/north-zulch-isd-154903">North Zulch ISD</a></th><td><a href="/county/madison">Madison</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">95</td><td class="num">335</td></tr><tr><td class="num">17th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/rochelle-isd-160904">Rochelle ISD</a></th><td><a href="/county/mcculloch">McCulloch</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">95</td><td class="num">166</td></tr><tr><td class="num">17th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/south-texas-isd-031916">South Texas ISD</a></th><td><a href="/county/cameron">Cameron</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">95</td><td class="num">4,741</td></tr><tr><td class="num">17th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/turkey-quitaque-isd-096905">Turkey-Quitaque ISD</a></th><td><a href="/county/hall">Hall</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">95</td><td class="num">175</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/abbott-isd-109901">Abbott ISD</a></th><td><a href="/county/hill">Hill</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">285</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/eanes-isd-227909">Eanes ISD</a></th><td><a href="/county/travis">Travis</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">7,524</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/gruver-isd-098901">Gruver ISD</a></th><td><a href="/county/hansford">Hansford</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">419</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/guthrie-csd-135001">Guthrie CSD</a></th><td><a href="/county/king">King</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">99</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/hartley-isd-103902">Hartley ISD</a></th><td><a href="/county/hartley">Hartley</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">242</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/ira-isd-208903">Ira ISD</a></th><td><a href="/county/scurry">Scurry</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">307</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/klondike-isd-058905">Klondike ISD</a></th><td><a href="/county/dawson">Dawson</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">269</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/lovejoy-isd-043919">Lovejoy ISD</a></th><td><a href="/county/collin">Collin</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">3,841</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/mumford-isd-198906">Mumford ISD</a></th><td><a href="/county/robertson">Robertson</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">600</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/paint-creek-isd-104907">Paint Creek ISD</a></th><td><a href="/county/haskell">Haskell</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">116</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/randolph-field-isd-015906">Randolph Field ISD</a></th><td><a href="/county/bexar">Bexar</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">1,402</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/roby-cisd-076903">Roby CISD</a></th><td><a href="/county/fisher">Fisher</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">313</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/sands-cisd-058909">Sands CISD</a></th><td><a href="/county/dawson">Dawson</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">225</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/sterling-city-isd-216901">Sterling City ISD</a></th><td><a href="/county/sterling">Sterling</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">312</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/sunnyvale-isd-057919">Sunnyvale ISD</a></th><td><a href="/county/dallas">Dallas</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">2,313</td></tr><tr><td class="num">26th <span class="chip-n">tied</span></td><th scope="row"><a href="/district/utopia-isd-232904">Utopia ISD</a></th><td><a href="/county/uvalde">Uvalde</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">94</td><td class="num">190</td></tr><tr><td class="num">42nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/archer-city-isd-005901">Archer City ISD</a></th><td><a href="/county/archer">Archer</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">93</td><td class="num">486</td></tr><tr><td class="num">42nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/avery-isd-194902">Avery ISD</a></th><td><a href="/county/red-river">Red River</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">93</td><td class="num">295</td></tr><tr><td class="num">42nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/barbers-hill-isd-036902">Barbers Hill ISD</a></th><td><a href="/county/chambers">Chambers</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">93</td><td class="num">8,069</td></tr><tr><td class="num">42nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/canadian-isd-106901">Canadian ISD</a></th><td><a href="/county/hemphill">Hemphill</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">93</td><td class="num">675</td></tr><tr><td class="num">42nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/carroll-isd-220919">Carroll ISD</a></th><td><a href="/county/tarrant">Tarrant</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">93</td><td class="num">7,866</td></tr><tr><td class="num">42nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/coppell-isd-057922">Coppell ISD</a></th><td><a href="/county/dallas">Dallas</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">93</td><td class="num">13,047</td></tr><tr><td class="num">42nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/d-hanis-isd-163902">D&#39;Hanis ISD</a></th><td><a href="/county/medina">Medina</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">93</td><td class="num">297</td></tr><tr><td class="num">42nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/devers-isd-146903">Devers ISD</a></th><td><a href="/county/liberty">Liberty</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">93</td><td class="num">198</td></tr><tr><td class="num">42nd <span class="chip-n">tied</span></td><th scope="row"><a href="/district/flatonia-isd-075901">Flatonia ISD</a></th><td><a href="/county/fayette">Fayette</a></td><td><span class="grade"><span class="grade-letter">A</span></span></td><td class="num">93</td><td class="num">675</td></tr></tbody>
+  </table></div>
+  </div>
+</section>
+<script type="application/json" data-rankings-lookups>{"regions":{"10":"Region 10: Richardson","11":"Region 11: Fort Worth","12":"Region 12: Waco","13":"Region 13: Austin","14":"Region 14: Abilene","15":"Region 15: San Angelo","16":"Region 16: Amarillo","17":"Region 17: Lubbock","18":"Region 18: Midland","19":"Region 19: El Paso","20":"Region 20: San Antonio","07":"Region 07: Kilgore","02":"Region 02: Corpus Christi","09":"Region 09: Wichita Falls","06":"Region 06: Huntsville","08":"Region 08: Mt Pleasant","04":"Region 04: Houston","03":"Region 03: Victoria","01":"Region 01: Edinburg","05":"Region 05: Beaumont"},"counties":{"100":"Hardin","101":"Harris","102":"Harrison","103":"Hartley","104":"Haskell","105":"Hays","106":"Hemphill","107":"Henderson","108":"Hidalgo","109":"Hill","110":"Hockley","111":"Hood","112":"Hopkins","113":"Houston","114":"Howard","115":"Hudspeth","116":"Hunt","117":"Hutchinson","118":"Irion","119":"Jack","120":"Jackson","121":"Jasper","122":"Jeff Davis","123":"Jefferson","124":"Jim Hogg","125":"Jim Wells","126":"Johnson","127":"Jones","128":"Karnes","129":"Kaufman","130":"Kendall","131":"Kenedy","132":"Kent","133":"Kerr","134":"Kimble","135":"King","136":"Kinney","137":"Kleberg","138":"Knox","139":"Lamar","140":"Lamb","141":"Lampasas","142":"La Salle","143":"Lavaca","144":"Lee","145":"Leon","146":"Liberty","147":"Limestone","148":"Lipscomb","149":"Live Oak","150":"Llano","152":"Lubbock","153":"Lynn","154":"Madison","155":"Marion","156":"Martin","157":"Mason","158":"Matagorda","159":"Maverick","160":"McCulloch","161":"McLennan","162":"McMullen","163":"Medina","164":"Menard","165":"Midland","166":"Milam","167":"Mills","168":"Mitchell","169":"Montague","170":"Montgomery","171":"Moore","172":"Morris","173":"Motley","174":"Nacogdoches","175":"Navarro","176":"Newton","177":"Nolan","178":"Nueces","179":"Ochiltree","180":"Oldham","181":"Orange","182":"Palo Pinto","183":"Panola","184":"Parker","185":"Parmer","186":"Pecos","187":"Polk","188":"Potter","189":"Presidio","190":"Rains","191":"Randall","192":"Reagan","193":"Real","194":"Red River","195":"Reeves","196":"Refugio","197":"Roberts","198":"Robertson","199":"Rockwall","200":"Runnels","201":"Rusk","202":"Sabine","203":"San Augustine","204":"San Jacinto","205":"San Patricio","206":"San Saba","207":"Schleicher","208":"Scurry","209":"Shackelford","210":"Shelby","211":"Sherman","212":"Smith","213":"Somervell","214":"Starr","215":"Stephens","216":"Sterling","217":"Stonewall","218":"Sutton","219":"Swisher","220":"Tarrant","221":"Taylor","222":"Terrell","223":"Terry","224":"Throckmorton","225":"Titus","226":"Tom Green","227":"Travis","228":"Trinity","229":"Tyler","230":"Upshur","231":"Upton","232":"Uvalde","233":"Val Verde","234":"Van Zandt","235":"Victoria","236":"Walker","237":"Waller","238":"Ward","239":"Washington","240":"Webb","241":"Wharton","242":"Wheeler","243":"Wichita","244":"Wilbarger","245":"Willacy","246":"Williamson","247":"Wilson","248":"Winkler","249":"Wise","250":"Wood","251":"Yoakum","252":"Young","253":"Zapata","254":"Zavala","001":"Anderson","002":"Andrews","003":"Angelina","004":"Aransas","005":"Archer","006":"Armstrong","007":"Atascosa","008":"Austin","009":"Bailey","010":"Bandera","011":"Bastrop","012":"Baylor","013":"Bee","014":"Bell","015":"Bexar","016":"Blanco","017":"Borden","018":"Bosque","019":"Bowie","020":"Brazoria","021":"Brazos","022":"Brewster","023":"Briscoe","024":"Brooks","025":"Brown","026":"Burleson","027":"Burnet","028":"Caldwell","029":"Calhoun","030":"Callahan","031":"Cameron","032":"Camp","033":"Carson","034":"Cass","035":"Castro","036":"Chambers","037":"Cherokee","038":"Childress","039":"Clay","040":"Cochran","041":"Coke","042":"Coleman","043":"Collin","044":"Collingsworth","045":"Colorado","046":"Comal","047":"Comanche","048":"Concho","049":"Cooke","050":"Coryell","051":"Cottle","052":"Crane","053":"Crockett","054":"Crosby","055":"Culberson","056":"Dallam","057":"Dallas","058":"Dawson","059":"Deaf Smith","060":"Delta","061":"Denton","062":"Dewitt","063":"Dickens","064":"Dimmit","065":"Donley","066":"Duval","067":"Eastland","068":"Ector","069":"Edwards","070":"Ellis","071":"El Paso","072":"Erath","073":"Falls","074":"Fannin","075":"Fayette","076":"Fisher","077":"Floyd","078":"Foard","079":"Fort Bend","080":"Franklin","081":"Freestone","082":"Frio","083":"Gaines","084":"Galveston","085":"Garza","086":"Gillespie","087":"Glasscock","088":"Goliad","089":"Gonzales","090":"Gray","091":"Grayson","092":"Gregg","093":"Grimes","094":"Guadalupe","095":"Hale","096":"Hall","097":"Hamilton","098":"Hansford","099":"Hardeman"}}</script>
+<script type="module" src="/rankings.js"></script>
+</section>
+<div class="rk-filter" id="rk-filter-wrap" hidden>
+  <label for="rk-filter-input">Filter these lists by name</label>
+  <input type="text" id="rk-filter-input" autocomplete="off" placeholder="Region, county, or statewide">
+  <p class="rk-filter-empty" id="rk-filter-empty" role="status" aria-live="polite" hidden>No groups match that filter. Clear it to see them all.</p>
+</div>
+<script>(function () {
+  function run() {
+    var wrap = document.getElementById('rk-filter-wrap')
+    var input = document.getElementById('rk-filter-input')
+    var empty = document.getElementById('rk-filter-empty')
+    var groups = Array.prototype.slice.call(document.querySelectorAll('.rk-group'))
+    if (!wrap || !input || !groups.length) return
+    var openByDefault = groups.map(function (g) { return g.hasAttribute('open') })
+    wrap.hidden = false
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase()
+      var shown = 0
+      groups.forEach(function (g, i) {
+        var name = (g.getAttribute('data-name') || '').toLowerCase()
+        var match = !q || name.indexOf(q) !== -1
+        g.hidden = !match
+        if (match) shown += 1
+        g.open = q ? match : openByDefault[i]
+      })
+      if (empty) empty.hidden = shown !== 0
+    })
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run)
+  else run()
+})()</script>
+<section id="group-state">
+  <h2>Statewide: 2 ranked populations</h2>
+  <div class="rk-groups"><details class="rk-group" data-name="Texas school districts" open>
+  <summary><h3>Texas school districts <span class="chip-n">70 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Texas school districts">
-  <ul class="navlist"><li><a href="/rankings/texas-districts/overall-score-highest">Texas school districts with the highest overall score</a></li><li><a href="/rankings/texas-districts/overall-score-lowest">Texas school districts with the lowest overall score</a></li><li><a href="/rankings/texas-districts/student-achievement-highest">Texas school districts with the highest Student Achievement</a></li><li><a href="/rankings/texas-districts/student-achievement-lowest">Texas school districts with the lowest Student Achievement</a></li><li><a href="/rankings/texas-districts/school-progress-highest">Texas school districts with the highest School Progress</a></li><li><a href="/rankings/texas-districts/school-progress-lowest">Texas school districts with the lowest School Progress</a></li><li><a href="/rankings/texas-districts/closing-the-gaps-highest">Texas school districts with the highest Closing the Gaps</a></li><li><a href="/rankings/texas-districts/closing-the-gaps-lowest">Texas school districts with the lowest Closing the Gaps</a></li><li><a href="/rankings/texas-districts/academic-growth-highest">Texas school districts with the highest Academic Growth</a></li><li><a href="/rankings/texas-districts/academic-growth-lowest">Texas school districts with the lowest Academic Growth</a></li><li><a href="/rankings/texas-districts/relative-performance-highest">Texas school districts with the highest Relative Performance</a></li><li><a href="/rankings/texas-districts/relative-performance-lowest">Texas school districts with the lowest Relative Performance</a></li><li><a href="/rankings/texas-districts/four-year-graduation-rate-highest">Texas school districts with the highest Four-Year Graduation Rate</a></li><li><a href="/rankings/texas-districts/four-year-graduation-rate-lowest">Texas school districts with the lowest Four-Year Graduation Rate</a></li><li><a href="/rankings/texas-districts/four-year-completion-rate-highest">Texas school districts with the highest Four-Year Completion Rate — alternative education</a></li><li><a href="/rankings/texas-districts/four-year-completion-rate-lowest">Texas school districts with the lowest Four-Year Completion Rate — alternative education</a></li><li><a href="/rankings/texas-districts/dropout-rate-highest">Texas school districts with the highest Dropout Rate</a></li><li><a href="/rankings/texas-districts/dropout-rate-lowest">Texas school districts with the lowest Dropout Rate</a></li><li><a href="/rankings/texas-districts/dropout-rate-alternative-education-highest">Texas school districts with the highest Dropout Rate — alternative education</a></li><li><a href="/rankings/texas-districts/dropout-rate-alternative-education-lowest">Texas school districts with the lowest Dropout Rate — alternative education</a></li><li><a href="/rankings/texas-districts/college-career-military-ready-highest">Texas school districts with the highest college, career or military ready</a></li><li><a href="/rankings/texas-districts/college-career-military-ready-lowest">Texas school districts with the lowest college, career or military ready</a></li><li><a href="/rankings/texas-districts/attendance-highest">Texas school districts with the highest attendance</a></li><li><a href="/rankings/texas-districts/attendance-lowest">Texas school districts with the lowest attendance</a></li><li><a href="/rankings/texas-districts/chronically-absent-highest">Texas school districts with the highest chronically absent</a></li><li><a href="/rankings/texas-districts/chronically-absent-lowest">Texas school districts with the lowest chronically absent</a></li><li><a href="/rankings/texas-districts/average-teacher-salary-highest">Texas school districts with the highest average teacher salary</a></li><li><a href="/rankings/texas-districts/average-teacher-salary-lowest">Texas school districts with the lowest average teacher salary</a></li><li><a href="/rankings/texas-districts/per-student-spending-highest">Texas school districts with the highest per-student spending</a></li><li><a href="/rankings/texas-districts/per-student-spending-lowest">Texas school districts with the lowest per-student spending</a></li><li><a href="/rankings/texas-districts/all-subjects-approaches-grade-level-highest">Texas school districts with the highest All Subjects — Approaches</a></li><li><a href="/rankings/texas-districts/all-subjects-approaches-grade-level-lowest">Texas school districts with the lowest All Subjects — Approaches</a></li><li><a href="/rankings/texas-districts/all-subjects-meets-grade-level-highest">Texas school districts with the highest All Subjects — Meets</a></li><li><a href="/rankings/texas-districts/all-subjects-meets-grade-level-lowest">Texas school districts with the lowest All Subjects — Meets</a></li><li><a href="/rankings/texas-districts/all-subjects-masters-grade-level-highest">Texas school districts with the highest All Subjects — Masters</a></li><li><a href="/rankings/texas-districts/all-subjects-masters-grade-level-lowest">Texas school districts with the lowest All Subjects — Masters</a></li><li><a href="/rankings/texas-districts/reading-approaches-grade-level-highest">Texas school districts with the highest Reading — Approaches</a></li><li><a href="/rankings/texas-districts/reading-approaches-grade-level-lowest">Texas school districts with the lowest Reading — Approaches</a></li><li><a href="/rankings/texas-districts/reading-meets-grade-level-highest">Texas school districts with the highest Reading — Meets</a></li><li><a href="/rankings/texas-districts/reading-meets-grade-level-lowest">Texas school districts with the lowest Reading — Meets</a></li><li><a href="/rankings/texas-districts/reading-masters-grade-level-highest">Texas school districts with the highest Reading — Masters</a></li><li><a href="/rankings/texas-districts/reading-masters-grade-level-lowest">Texas school districts with the lowest Reading — Masters</a></li><li><a href="/rankings/texas-districts/math-approaches-grade-level-highest">Texas school districts with the highest Math — Approaches</a></li><li><a href="/rankings/texas-districts/math-approaches-grade-level-lowest">Texas school districts with the lowest Math — Approaches</a></li><li><a href="/rankings/texas-districts/math-meets-grade-level-highest">Texas school districts with the highest Math — Meets</a></li><li><a href="/rankings/texas-districts/math-meets-grade-level-lowest">Texas school districts with the lowest Math — Meets</a></li><li><a href="/rankings/texas-districts/math-masters-grade-level-highest">Texas school districts with the highest Math — Masters</a></li><li><a href="/rankings/texas-districts/math-masters-grade-level-lowest">Texas school districts with the lowest Math — Masters</a></li><li><a href="/rankings/texas-districts/science-approaches-grade-level-highest">Texas school districts with the highest Science — Approaches</a></li><li><a href="/rankings/texas-districts/science-approaches-grade-level-lowest">Texas school districts with the lowest Science — Approaches</a></li><li><a href="/rankings/texas-districts/science-meets-grade-level-highest">Texas school districts with the highest Science — Meets</a></li><li><a href="/rankings/texas-districts/science-meets-grade-level-lowest">Texas school districts with the lowest Science — Meets</a></li><li><a href="/rankings/texas-districts/science-masters-grade-level-highest">Texas school districts with the highest Science — Masters</a></li><li><a href="/rankings/texas-districts/science-masters-grade-level-lowest">Texas school districts with the lowest Science — Masters</a></li><li><a href="/rankings/texas-districts/social-studies-approaches-grade-level-highest">Texas school districts with the highest Social Studies — Approaches</a></li><li><a href="/rankings/texas-districts/social-studies-approaches-grade-level-lowest">Texas school districts with the lowest Social Studies — Approaches</a></li><li><a href="/rankings/texas-districts/social-studies-meets-grade-level-highest">Texas school districts with the highest Social Studies — Meets</a></li><li><a href="/rankings/texas-districts/social-studies-meets-grade-level-lowest">Texas school districts with the lowest Social Studies — Meets</a></li><li><a href="/rankings/texas-districts/social-studies-masters-grade-level-highest">Texas school districts with the highest Social Studies — Masters</a></li><li><a href="/rankings/texas-districts/social-studies-masters-grade-level-lowest">Texas school districts with the lowest Social Studies — Masters</a></li><li><a href="/rankings/texas-districts/overall-score-gains">Texas school districts with the largest overall score gains</a></li><li><a href="/rankings/texas-districts/overall-score-declines">Texas school districts with the largest overall score declines</a></li><li><a href="/rankings/texas-districts/student-achievement-gains">Texas school districts with the largest Student Achievement gains</a></li><li><a href="/rankings/texas-districts/student-achievement-declines">Texas school districts with the largest Student Achievement declines</a></li><li><a href="/rankings/texas-districts/school-progress-gains">Texas school districts with the largest School Progress gains</a></li><li><a href="/rankings/texas-districts/school-progress-declines">Texas school districts with the largest School Progress declines</a></li><li><a href="/rankings/texas-districts/closing-the-gaps-gains">Texas school districts with the largest Closing the Gaps gains</a></li><li><a href="/rankings/texas-districts/closing-the-gaps-declines">Texas school districts with the largest Closing the Gaps declines</a></li><li><a href="/rankings/texas-districts/academic-growth-gains">Texas school districts with the largest Academic Growth gains</a></li><li><a href="/rankings/texas-districts/academic-growth-declines">Texas school districts with the largest Academic Growth declines</a></li><li><a href="/rankings/texas-districts/relative-performance-gains">Texas school districts with the largest Relative Performance gains</a></li><li><a href="/rankings/texas-districts/relative-performance-declines">Texas school districts with the largest Relative Performance declines</a></li><li><a href="/rankings/texas-districts/per-student-spending-gains">Texas school districts with the largest per-student spending gains</a></li><li><a href="/rankings/texas-districts/per-student-spending-declines">Texas school districts with the largest per-student spending declines</a></li></ul>
+  <ul class="navlist"><li><a href="/rankings/texas-districts/overall-score-highest">Texas school districts with the highest overall score</a></li><li><a href="/rankings/texas-districts/overall-score-lowest">Texas school districts with the lowest overall score</a></li><li><a href="/rankings/texas-districts/student-achievement-highest">Texas school districts with the highest Student Achievement</a></li><li><a href="/rankings/texas-districts/student-achievement-lowest">Texas school districts with the lowest Student Achievement</a></li><li><a href="/rankings/texas-districts/school-progress-highest">Texas school districts with the highest School Progress</a></li><li><a href="/rankings/texas-districts/school-progress-lowest">Texas school districts with the lowest School Progress</a></li><li><a href="/rankings/texas-districts/closing-the-gaps-highest">Texas school districts with the highest Closing the Gaps</a></li><li><a href="/rankings/texas-districts/closing-the-gaps-lowest">Texas school districts with the lowest Closing the Gaps</a></li><li><a href="/rankings/texas-districts/academic-growth-highest">Texas school districts with the highest Academic Growth</a></li><li><a href="/rankings/texas-districts/academic-growth-lowest">Texas school districts with the lowest Academic Growth</a></li><li><a href="/rankings/texas-districts/relative-performance-highest">Texas school districts with the highest Relative Performance</a></li><li><a href="/rankings/texas-districts/relative-performance-lowest">Texas school districts with the lowest Relative Performance</a></li><li><a href="/rankings/texas-districts/four-year-graduation-rate-highest">Texas school districts with the highest Four-Year Graduation Rate</a></li><li><a href="/rankings/texas-districts/four-year-graduation-rate-lowest">Texas school districts with the lowest Four-Year Graduation Rate</a></li><li><a href="/rankings/texas-districts/dropout-rate-highest">Texas school districts with the highest Dropout Rate</a></li><li><a href="/rankings/texas-districts/dropout-rate-lowest">Texas school districts with the lowest Dropout Rate</a></li><li><a href="/rankings/texas-districts/college-career-military-ready-highest">Texas school districts with the highest college, career or military ready</a></li><li><a href="/rankings/texas-districts/college-career-military-ready-lowest">Texas school districts with the lowest college, career or military ready</a></li><li><a href="/rankings/texas-districts/attendance-highest">Texas school districts with the highest attendance</a></li><li><a href="/rankings/texas-districts/attendance-lowest">Texas school districts with the lowest attendance</a></li><li><a href="/rankings/texas-districts/chronically-absent-highest">Texas school districts with the highest chronically absent</a></li><li><a href="/rankings/texas-districts/chronically-absent-lowest">Texas school districts with the lowest chronically absent</a></li><li><a href="/rankings/texas-districts/average-teacher-salary-highest">Texas school districts with the highest average teacher salary</a></li><li><a href="/rankings/texas-districts/average-teacher-salary-lowest">Texas school districts with the lowest average teacher salary</a></li><li><a href="/rankings/texas-districts/per-student-spending-highest">Texas school districts with the highest per-student spending</a></li><li><a href="/rankings/texas-districts/per-student-spending-lowest">Texas school districts with the lowest per-student spending</a></li><li><a href="/rankings/texas-districts/all-subjects-approaches-grade-level-highest">Texas school districts with the highest All Subjects — Approaches</a></li><li><a href="/rankings/texas-districts/all-subjects-approaches-grade-level-lowest">Texas school districts with the lowest All Subjects — Approaches</a></li><li><a href="/rankings/texas-districts/all-subjects-meets-grade-level-highest">Texas school districts with the highest All Subjects — Meets</a></li><li><a href="/rankings/texas-districts/all-subjects-meets-grade-level-lowest">Texas school districts with the lowest All Subjects — Meets</a></li><li><a href="/rankings/texas-districts/all-subjects-masters-grade-level-highest">Texas school districts with the highest All Subjects — Masters</a></li><li><a href="/rankings/texas-districts/all-subjects-masters-grade-level-lowest">Texas school districts with the lowest All Subjects — Masters</a></li><li><a href="/rankings/texas-districts/reading-approaches-grade-level-highest">Texas school districts with the highest Reading — Approaches</a></li><li><a href="/rankings/texas-districts/reading-approaches-grade-level-lowest">Texas school districts with the lowest Reading — Approaches</a></li><li><a href="/rankings/texas-districts/reading-meets-grade-level-highest">Texas school districts with the highest Reading — Meets</a></li><li><a href="/rankings/texas-districts/reading-meets-grade-level-lowest">Texas school districts with the lowest Reading — Meets</a></li><li><a href="/rankings/texas-districts/reading-masters-grade-level-highest">Texas school districts with the highest Reading — Masters</a></li><li><a href="/rankings/texas-districts/reading-masters-grade-level-lowest">Texas school districts with the lowest Reading — Masters</a></li><li><a href="/rankings/texas-districts/math-approaches-grade-level-highest">Texas school districts with the highest Math — Approaches</a></li><li><a href="/rankings/texas-districts/math-approaches-grade-level-lowest">Texas school districts with the lowest Math — Approaches</a></li><li><a href="/rankings/texas-districts/math-meets-grade-level-highest">Texas school districts with the highest Math — Meets</a></li><li><a href="/rankings/texas-districts/math-meets-grade-level-lowest">Texas school districts with the lowest Math — Meets</a></li><li><a href="/rankings/texas-districts/math-masters-grade-level-highest">Texas school districts with the highest Math — Masters</a></li><li><a href="/rankings/texas-districts/math-masters-grade-level-lowest">Texas school districts with the lowest Math — Masters</a></li><li><a href="/rankings/texas-districts/science-approaches-grade-level-highest">Texas school districts with the highest Science — Approaches</a></li><li><a href="/rankings/texas-districts/science-approaches-grade-level-lowest">Texas school districts with the lowest Science — Approaches</a></li><li><a href="/rankings/texas-districts/science-meets-grade-level-highest">Texas school districts with the highest Science — Meets</a></li><li><a href="/rankings/texas-districts/science-meets-grade-level-lowest">Texas school districts with the lowest Science — Meets</a></li><li><a href="/rankings/texas-districts/science-masters-grade-level-highest">Texas school districts with the highest Science — Masters</a></li><li><a href="/rankings/texas-districts/science-masters-grade-level-lowest">Texas school districts with the lowest Science — Masters</a></li><li><a href="/rankings/texas-districts/social-studies-approaches-grade-level-highest">Texas school districts with the highest Social Studies — Approaches</a></li><li><a href="/rankings/texas-districts/social-studies-approaches-grade-level-lowest">Texas school districts with the lowest Social Studies — Approaches</a></li><li><a href="/rankings/texas-districts/social-studies-meets-grade-level-highest">Texas school districts with the highest Social Studies — Meets</a></li><li><a href="/rankings/texas-districts/social-studies-meets-grade-level-lowest">Texas school districts with the lowest Social Studies — Meets</a></li><li><a href="/rankings/texas-districts/social-studies-masters-grade-level-highest">Texas school districts with the highest Social Studies — Masters</a></li><li><a href="/rankings/texas-districts/social-studies-masters-grade-level-lowest">Texas school districts with the lowest Social Studies — Masters</a></li><li><a href="/rankings/texas-districts/overall-score-gains">Texas school districts with the largest overall score gains</a></li><li><a href="/rankings/texas-districts/overall-score-declines">Texas school districts with the largest overall score declines</a></li><li><a href="/rankings/texas-districts/student-achievement-gains">Texas school districts with the largest Student Achievement gains</a></li><li><a href="/rankings/texas-districts/student-achievement-declines">Texas school districts with the largest Student Achievement declines</a></li><li><a href="/rankings/texas-districts/school-progress-gains">Texas school districts with the largest School Progress gains</a></li><li><a href="/rankings/texas-districts/school-progress-declines">Texas school districts with the largest School Progress declines</a></li><li><a href="/rankings/texas-districts/closing-the-gaps-gains">Texas school districts with the largest Closing the Gaps gains</a></li><li><a href="/rankings/texas-districts/closing-the-gaps-declines">Texas school districts with the largest Closing the Gaps declines</a></li><li><a href="/rankings/texas-districts/academic-growth-gains">Texas school districts with the largest Academic Growth gains</a></li><li><a href="/rankings/texas-districts/academic-growth-declines">Texas school districts with the largest Academic Growth declines</a></li><li><a href="/rankings/texas-districts/relative-performance-gains">Texas school districts with the largest Relative Performance gains</a></li><li><a href="/rankings/texas-districts/relative-performance-declines">Texas school districts with the largest Relative Performance declines</a></li><li><a href="/rankings/texas-districts/per-student-spending-gains">Texas school districts with the largest per-student spending gains</a></li><li><a href="/rankings/texas-districts/per-student-spending-declines">Texas school districts with the largest per-student spending declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-texas-campuses">
-  <h2>Texas campuses: 14 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Texas campuses" open>
+  <summary><h3>Texas campuses <span class="chip-n">14 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Texas campuses">
   <ul class="navlist"><li><a href="/rankings/texas-campuses/overall-score-highest">Texas campuses with the highest overall score</a></li><li><a href="/rankings/texas-campuses/overall-score-lowest">Texas campuses with the lowest overall score</a></li><li><a href="/rankings/texas-campuses/student-achievement-highest">Texas campuses with the highest Student Achievement</a></li><li><a href="/rankings/texas-campuses/student-achievement-lowest">Texas campuses with the lowest Student Achievement</a></li><li><a href="/rankings/texas-campuses/school-progress-highest">Texas campuses with the highest School Progress</a></li><li><a href="/rankings/texas-campuses/school-progress-lowest">Texas campuses with the lowest School Progress</a></li><li><a href="/rankings/texas-campuses/closing-the-gaps-highest">Texas campuses with the highest Closing the Gaps</a></li><li><a href="/rankings/texas-campuses/closing-the-gaps-lowest">Texas campuses with the lowest Closing the Gaps</a></li><li><a href="/rankings/texas-campuses/attendance-highest">Texas campuses with the highest attendance</a></li><li><a href="/rankings/texas-campuses/attendance-lowest">Texas campuses with the lowest attendance</a></li><li><a href="/rankings/texas-campuses/chronically-absent-highest">Texas campuses with the highest chronically absent</a></li><li><a href="/rankings/texas-campuses/chronically-absent-lowest">Texas campuses with the lowest chronically absent</a></li><li><a href="/rankings/texas-campuses/overall-score-gains">Texas campuses with the largest overall score gains</a></li><li><a href="/rankings/texas-campuses/overall-score-declines">Texas campuses with the largest overall score declines</a></li></ul>
 </nav>
+</details></div>
 </section>
-<section id="scope-region-01-districts">
-  <h2>Region 01: Edinburg school districts: 4 ranked lists</h2>
+<section id="group-region">
+  <h2>By region: 20 ranked populations</h2>
+  <div class="rk-groups"><details class="rk-group" data-name="Region 01: Edinburg school districts">
+  <summary><h3>Region 01: Edinburg school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 01: Edinburg school districts">
   <ul class="navlist"><li><a href="/rankings/region-01-districts/overall-score-highest">Region 01: Edinburg school districts with the highest overall score</a></li><li><a href="/rankings/region-01-districts/overall-score-lowest">Region 01: Edinburg school districts with the lowest overall score</a></li><li><a href="/rankings/region-01-districts/overall-score-gains">Region 01: Edinburg school districts with the largest overall score gains</a></li><li><a href="/rankings/region-01-districts/overall-score-declines">Region 01: Edinburg school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-02-districts">
-  <h2>Region 02: Corpus Christi school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 02: Corpus Christi school districts">
+  <summary><h3>Region 02: Corpus Christi school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 02: Corpus Christi school districts">
   <ul class="navlist"><li><a href="/rankings/region-02-districts/overall-score-highest">Region 02: Corpus Christi school districts with the highest overall score</a></li><li><a href="/rankings/region-02-districts/overall-score-lowest">Region 02: Corpus Christi school districts with the lowest overall score</a></li><li><a href="/rankings/region-02-districts/overall-score-gains">Region 02: Corpus Christi school districts with the largest overall score gains</a></li><li><a href="/rankings/region-02-districts/overall-score-declines">Region 02: Corpus Christi school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-03-districts">
-  <h2>Region 03: Victoria school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 03: Victoria school districts">
+  <summary><h3>Region 03: Victoria school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 03: Victoria school districts">
   <ul class="navlist"><li><a href="/rankings/region-03-districts/overall-score-highest">Region 03: Victoria school districts with the highest overall score</a></li><li><a href="/rankings/region-03-districts/overall-score-lowest">Region 03: Victoria school districts with the lowest overall score</a></li><li><a href="/rankings/region-03-districts/overall-score-gains">Region 03: Victoria school districts with the largest overall score gains</a></li><li><a href="/rankings/region-03-districts/overall-score-declines">Region 03: Victoria school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-04-districts">
-  <h2>Region 04: Houston school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 04: Houston school districts">
+  <summary><h3>Region 04: Houston school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 04: Houston school districts">
   <ul class="navlist"><li><a href="/rankings/region-04-districts/overall-score-highest">Region 04: Houston school districts with the highest overall score</a></li><li><a href="/rankings/region-04-districts/overall-score-lowest">Region 04: Houston school districts with the lowest overall score</a></li><li><a href="/rankings/region-04-districts/overall-score-gains">Region 04: Houston school districts with the largest overall score gains</a></li><li><a href="/rankings/region-04-districts/overall-score-declines">Region 04: Houston school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-05-districts">
-  <h2>Region 05: Beaumont school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 05: Beaumont school districts">
+  <summary><h3>Region 05: Beaumont school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 05: Beaumont school districts">
   <ul class="navlist"><li><a href="/rankings/region-05-districts/overall-score-highest">Region 05: Beaumont school districts with the highest overall score</a></li><li><a href="/rankings/region-05-districts/overall-score-lowest">Region 05: Beaumont school districts with the lowest overall score</a></li><li><a href="/rankings/region-05-districts/overall-score-gains">Region 05: Beaumont school districts with the largest overall score gains</a></li><li><a href="/rankings/region-05-districts/overall-score-declines">Region 05: Beaumont school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-06-districts">
-  <h2>Region 06: Huntsville school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 06: Huntsville school districts">
+  <summary><h3>Region 06: Huntsville school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 06: Huntsville school districts">
   <ul class="navlist"><li><a href="/rankings/region-06-districts/overall-score-highest">Region 06: Huntsville school districts with the highest overall score</a></li><li><a href="/rankings/region-06-districts/overall-score-lowest">Region 06: Huntsville school districts with the lowest overall score</a></li><li><a href="/rankings/region-06-districts/overall-score-gains">Region 06: Huntsville school districts with the largest overall score gains</a></li><li><a href="/rankings/region-06-districts/overall-score-declines">Region 06: Huntsville school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-07-districts">
-  <h2>Region 07: Kilgore school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 07: Kilgore school districts">
+  <summary><h3>Region 07: Kilgore school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 07: Kilgore school districts">
   <ul class="navlist"><li><a href="/rankings/region-07-districts/overall-score-highest">Region 07: Kilgore school districts with the highest overall score</a></li><li><a href="/rankings/region-07-districts/overall-score-lowest">Region 07: Kilgore school districts with the lowest overall score</a></li><li><a href="/rankings/region-07-districts/overall-score-gains">Region 07: Kilgore school districts with the largest overall score gains</a></li><li><a href="/rankings/region-07-districts/overall-score-declines">Region 07: Kilgore school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-08-districts">
-  <h2>Region 08: Mt Pleasant school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 08: Mt Pleasant school districts">
+  <summary><h3>Region 08: Mt Pleasant school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 08: Mt Pleasant school districts">
   <ul class="navlist"><li><a href="/rankings/region-08-districts/overall-score-highest">Region 08: Mt Pleasant school districts with the highest overall score</a></li><li><a href="/rankings/region-08-districts/overall-score-lowest">Region 08: Mt Pleasant school districts with the lowest overall score</a></li><li><a href="/rankings/region-08-districts/overall-score-gains">Region 08: Mt Pleasant school districts with the largest overall score gains</a></li><li><a href="/rankings/region-08-districts/overall-score-declines">Region 08: Mt Pleasant school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-09-districts">
-  <h2>Region 09: Wichita Falls school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 09: Wichita Falls school districts">
+  <summary><h3>Region 09: Wichita Falls school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 09: Wichita Falls school districts">
   <ul class="navlist"><li><a href="/rankings/region-09-districts/overall-score-highest">Region 09: Wichita Falls school districts with the highest overall score</a></li><li><a href="/rankings/region-09-districts/overall-score-lowest">Region 09: Wichita Falls school districts with the lowest overall score</a></li><li><a href="/rankings/region-09-districts/overall-score-gains">Region 09: Wichita Falls school districts with the largest overall score gains</a></li><li><a href="/rankings/region-09-districts/overall-score-declines">Region 09: Wichita Falls school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-10-districts">
-  <h2>Region 10: Richardson school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 10: Richardson school districts">
+  <summary><h3>Region 10: Richardson school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 10: Richardson school districts">
   <ul class="navlist"><li><a href="/rankings/region-10-districts/overall-score-highest">Region 10: Richardson school districts with the highest overall score</a></li><li><a href="/rankings/region-10-districts/overall-score-lowest">Region 10: Richardson school districts with the lowest overall score</a></li><li><a href="/rankings/region-10-districts/overall-score-gains">Region 10: Richardson school districts with the largest overall score gains</a></li><li><a href="/rankings/region-10-districts/overall-score-declines">Region 10: Richardson school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-11-districts">
-  <h2>Region 11: Fort Worth school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 11: Fort Worth school districts">
+  <summary><h3>Region 11: Fort Worth school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 11: Fort Worth school districts">
   <ul class="navlist"><li><a href="/rankings/region-11-districts/overall-score-highest">Region 11: Fort Worth school districts with the highest overall score</a></li><li><a href="/rankings/region-11-districts/overall-score-lowest">Region 11: Fort Worth school districts with the lowest overall score</a></li><li><a href="/rankings/region-11-districts/overall-score-gains">Region 11: Fort Worth school districts with the largest overall score gains</a></li><li><a href="/rankings/region-11-districts/overall-score-declines">Region 11: Fort Worth school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-12-districts">
-  <h2>Region 12: Waco school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 12: Waco school districts">
+  <summary><h3>Region 12: Waco school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 12: Waco school districts">
   <ul class="navlist"><li><a href="/rankings/region-12-districts/overall-score-highest">Region 12: Waco school districts with the highest overall score</a></li><li><a href="/rankings/region-12-districts/overall-score-lowest">Region 12: Waco school districts with the lowest overall score</a></li><li><a href="/rankings/region-12-districts/overall-score-gains">Region 12: Waco school districts with the largest overall score gains</a></li><li><a href="/rankings/region-12-districts/overall-score-declines">Region 12: Waco school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-13-districts">
-  <h2>Region 13: Austin school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 13: Austin school districts">
+  <summary><h3>Region 13: Austin school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 13: Austin school districts">
   <ul class="navlist"><li><a href="/rankings/region-13-districts/overall-score-highest">Region 13: Austin school districts with the highest overall score</a></li><li><a href="/rankings/region-13-districts/overall-score-lowest">Region 13: Austin school districts with the lowest overall score</a></li><li><a href="/rankings/region-13-districts/overall-score-gains">Region 13: Austin school districts with the largest overall score gains</a></li><li><a href="/rankings/region-13-districts/overall-score-declines">Region 13: Austin school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-14-districts">
-  <h2>Region 14: Abilene school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 14: Abilene school districts">
+  <summary><h3>Region 14: Abilene school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 14: Abilene school districts">
   <ul class="navlist"><li><a href="/rankings/region-14-districts/overall-score-highest">Region 14: Abilene school districts with the highest overall score</a></li><li><a href="/rankings/region-14-districts/overall-score-lowest">Region 14: Abilene school districts with the lowest overall score</a></li><li><a href="/rankings/region-14-districts/overall-score-gains">Region 14: Abilene school districts with the largest overall score gains</a></li><li><a href="/rankings/region-14-districts/overall-score-declines">Region 14: Abilene school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-15-districts">
-  <h2>Region 15: San Angelo school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 15: San Angelo school districts">
+  <summary><h3>Region 15: San Angelo school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 15: San Angelo school districts">
   <ul class="navlist"><li><a href="/rankings/region-15-districts/overall-score-highest">Region 15: San Angelo school districts with the highest overall score</a></li><li><a href="/rankings/region-15-districts/overall-score-lowest">Region 15: San Angelo school districts with the lowest overall score</a></li><li><a href="/rankings/region-15-districts/overall-score-gains">Region 15: San Angelo school districts with the largest overall score gains</a></li><li><a href="/rankings/region-15-districts/overall-score-declines">Region 15: San Angelo school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-16-districts">
-  <h2>Region 16: Amarillo school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 16: Amarillo school districts">
+  <summary><h3>Region 16: Amarillo school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 16: Amarillo school districts">
   <ul class="navlist"><li><a href="/rankings/region-16-districts/overall-score-highest">Region 16: Amarillo school districts with the highest overall score</a></li><li><a href="/rankings/region-16-districts/overall-score-lowest">Region 16: Amarillo school districts with the lowest overall score</a></li><li><a href="/rankings/region-16-districts/overall-score-gains">Region 16: Amarillo school districts with the largest overall score gains</a></li><li><a href="/rankings/region-16-districts/overall-score-declines">Region 16: Amarillo school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-17-districts">
-  <h2>Region 17: Lubbock school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 17: Lubbock school districts">
+  <summary><h3>Region 17: Lubbock school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 17: Lubbock school districts">
   <ul class="navlist"><li><a href="/rankings/region-17-districts/overall-score-highest">Region 17: Lubbock school districts with the highest overall score</a></li><li><a href="/rankings/region-17-districts/overall-score-lowest">Region 17: Lubbock school districts with the lowest overall score</a></li><li><a href="/rankings/region-17-districts/overall-score-gains">Region 17: Lubbock school districts with the largest overall score gains</a></li><li><a href="/rankings/region-17-districts/overall-score-declines">Region 17: Lubbock school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-18-districts">
-  <h2>Region 18: Midland school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 18: Midland school districts">
+  <summary><h3>Region 18: Midland school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 18: Midland school districts">
   <ul class="navlist"><li><a href="/rankings/region-18-districts/overall-score-highest">Region 18: Midland school districts with the highest overall score</a></li><li><a href="/rankings/region-18-districts/overall-score-lowest">Region 18: Midland school districts with the lowest overall score</a></li><li><a href="/rankings/region-18-districts/overall-score-gains">Region 18: Midland school districts with the largest overall score gains</a></li><li><a href="/rankings/region-18-districts/overall-score-declines">Region 18: Midland school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-19-districts">
-  <h2>Region 19: El Paso school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 19: El Paso school districts">
+  <summary><h3>Region 19: El Paso school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 19: El Paso school districts">
   <ul class="navlist"><li><a href="/rankings/region-19-districts/overall-score-highest">Region 19: El Paso school districts with the highest overall score</a></li><li><a href="/rankings/region-19-districts/overall-score-lowest">Region 19: El Paso school districts with the lowest overall score</a></li><li><a href="/rankings/region-19-districts/overall-score-gains">Region 19: El Paso school districts with the largest overall score gains</a></li><li><a href="/rankings/region-19-districts/overall-score-declines">Region 19: El Paso school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-region-20-districts">
-  <h2>Region 20: San Antonio school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Region 20: San Antonio school districts">
+  <summary><h3>Region 20: San Antonio school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Region 20: San Antonio school districts">
   <ul class="navlist"><li><a href="/rankings/region-20-districts/overall-score-highest">Region 20: San Antonio school districts with the highest overall score</a></li><li><a href="/rankings/region-20-districts/overall-score-lowest">Region 20: San Antonio school districts with the lowest overall score</a></li><li><a href="/rankings/region-20-districts/overall-score-gains">Region 20: San Antonio school districts with the largest overall score gains</a></li><li><a href="/rankings/region-20-districts/overall-score-declines">Region 20: San Antonio school districts with the largest overall score declines</a></li></ul>
 </nav>
+</details></div>
 </section>
-<section id="scope-bell-county-districts">
-  <h2>Bell County school districts: 4 ranked lists</h2>
-  <nav class="sitenav" aria-label="Ranked lists of Bell County school districts">
-  <ul class="navlist"><li><a href="/rankings/bell-county-districts/overall-score-highest">Bell County school districts with the highest overall score</a></li><li><a href="/rankings/bell-county-districts/overall-score-lowest">Bell County school districts with the lowest overall score</a></li><li><a href="/rankings/bell-county-districts/overall-score-gains">Bell County school districts with the largest overall score gains</a></li><li><a href="/rankings/bell-county-districts/overall-score-declines">Bell County school districts with the largest overall score declines</a></li></ul>
-</nav>
-</section>
-<section id="scope-bexar-county-districts">
-  <h2>Bexar County school districts: 4 ranked lists</h2>
+<section id="group-county">
+  <h2>By county: 16 ranked populations</h2>
+  <div class="rk-groups"><details class="rk-group" data-name="Bexar County school districts">
+  <summary><h3>Bexar County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Bexar County school districts">
   <ul class="navlist"><li><a href="/rankings/bexar-county-districts/overall-score-highest">Bexar County school districts with the highest overall score</a></li><li><a href="/rankings/bexar-county-districts/overall-score-lowest">Bexar County school districts with the lowest overall score</a></li><li><a href="/rankings/bexar-county-districts/overall-score-gains">Bexar County school districts with the largest overall score gains</a></li><li><a href="/rankings/bexar-county-districts/overall-score-declines">Bexar County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-bowie-county-districts">
-  <h2>Bowie County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Bowie County school districts">
+  <summary><h3>Bowie County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Bowie County school districts">
   <ul class="navlist"><li><a href="/rankings/bowie-county-districts/overall-score-highest">Bowie County school districts with the highest overall score</a></li><li><a href="/rankings/bowie-county-districts/overall-score-lowest">Bowie County school districts with the lowest overall score</a></li><li><a href="/rankings/bowie-county-districts/overall-score-gains">Bowie County school districts with the largest overall score gains</a></li><li><a href="/rankings/bowie-county-districts/overall-score-declines">Bowie County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-cameron-county-districts">
-  <h2>Cameron County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Cameron County school districts">
+  <summary><h3>Cameron County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Cameron County school districts">
   <ul class="navlist"><li><a href="/rankings/cameron-county-districts/overall-score-highest">Cameron County school districts with the highest overall score</a></li><li><a href="/rankings/cameron-county-districts/overall-score-lowest">Cameron County school districts with the lowest overall score</a></li><li><a href="/rankings/cameron-county-districts/overall-score-gains">Cameron County school districts with the largest overall score gains</a></li><li><a href="/rankings/cameron-county-districts/overall-score-declines">Cameron County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-collin-county-districts">
-  <h2>Collin County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Collin County school districts">
+  <summary><h3>Collin County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Collin County school districts">
   <ul class="navlist"><li><a href="/rankings/collin-county-districts/overall-score-highest">Collin County school districts with the highest overall score</a></li><li><a href="/rankings/collin-county-districts/overall-score-lowest">Collin County school districts with the lowest overall score</a></li><li><a href="/rankings/collin-county-districts/overall-score-gains">Collin County school districts with the largest overall score gains</a></li><li><a href="/rankings/collin-county-districts/overall-score-declines">Collin County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-dallas-county-districts">
-  <h2>Dallas County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Dallas County school districts">
+  <summary><h3>Dallas County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Dallas County school districts">
   <ul class="navlist"><li><a href="/rankings/dallas-county-districts/overall-score-highest">Dallas County school districts with the highest overall score</a></li><li><a href="/rankings/dallas-county-districts/overall-score-lowest">Dallas County school districts with the lowest overall score</a></li><li><a href="/rankings/dallas-county-districts/overall-score-gains">Dallas County school districts with the largest overall score gains</a></li><li><a href="/rankings/dallas-county-districts/overall-score-declines">Dallas County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-denton-county-districts">
-  <h2>Denton County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Denton County school districts">
+  <summary><h3>Denton County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Denton County school districts">
   <ul class="navlist"><li><a href="/rankings/denton-county-districts/overall-score-highest">Denton County school districts with the highest overall score</a></li><li><a href="/rankings/denton-county-districts/overall-score-lowest">Denton County school districts with the lowest overall score</a></li><li><a href="/rankings/denton-county-districts/overall-score-gains">Denton County school districts with the largest overall score gains</a></li><li><a href="/rankings/denton-county-districts/overall-score-declines">Denton County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-el-paso-county-districts">
-  <h2>El Paso County school districts: 4 ranked lists</h2>
-  <nav class="sitenav" aria-label="Ranked lists of El Paso County school districts">
-  <ul class="navlist"><li><a href="/rankings/el-paso-county-districts/overall-score-highest">El Paso County school districts with the highest overall score</a></li><li><a href="/rankings/el-paso-county-districts/overall-score-lowest">El Paso County school districts with the lowest overall score</a></li><li><a href="/rankings/el-paso-county-districts/overall-score-gains">El Paso County school districts with the largest overall score gains</a></li><li><a href="/rankings/el-paso-county-districts/overall-score-declines">El Paso County school districts with the largest overall score declines</a></li></ul>
-</nav>
-</section>
-<section id="scope-ellis-county-districts">
-  <h2>Ellis County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Ellis County school districts">
+  <summary><h3>Ellis County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Ellis County school districts">
   <ul class="navlist"><li><a href="/rankings/ellis-county-districts/overall-score-highest">Ellis County school districts with the highest overall score</a></li><li><a href="/rankings/ellis-county-districts/overall-score-lowest">Ellis County school districts with the lowest overall score</a></li><li><a href="/rankings/ellis-county-districts/overall-score-gains">Ellis County school districts with the largest overall score gains</a></li><li><a href="/rankings/ellis-county-districts/overall-score-declines">Ellis County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-galveston-county-districts">
-  <h2>Galveston County school districts: 4 ranked lists</h2>
-  <nav class="sitenav" aria-label="Ranked lists of Galveston County school districts">
-  <ul class="navlist"><li><a href="/rankings/galveston-county-districts/overall-score-highest">Galveston County school districts with the highest overall score</a></li><li><a href="/rankings/galveston-county-districts/overall-score-lowest">Galveston County school districts with the lowest overall score</a></li><li><a href="/rankings/galveston-county-districts/overall-score-gains">Galveston County school districts with the largest overall score gains</a></li><li><a href="/rankings/galveston-county-districts/overall-score-declines">Galveston County school districts with the largest overall score declines</a></li></ul>
-</nav>
-</section>
-<section id="scope-grayson-county-districts">
-  <h2>Grayson County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Grayson County school districts">
+  <summary><h3>Grayson County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Grayson County school districts">
   <ul class="navlist"><li><a href="/rankings/grayson-county-districts/overall-score-highest">Grayson County school districts with the highest overall score</a></li><li><a href="/rankings/grayson-county-districts/overall-score-lowest">Grayson County school districts with the lowest overall score</a></li><li><a href="/rankings/grayson-county-districts/overall-score-gains">Grayson County school districts with the largest overall score gains</a></li><li><a href="/rankings/grayson-county-districts/overall-score-declines">Grayson County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-harris-county-districts">
-  <h2>Harris County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Harris County school districts">
+  <summary><h3>Harris County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Harris County school districts">
   <ul class="navlist"><li><a href="/rankings/harris-county-districts/overall-score-highest">Harris County school districts with the highest overall score</a></li><li><a href="/rankings/harris-county-districts/overall-score-lowest">Harris County school districts with the lowest overall score</a></li><li><a href="/rankings/harris-county-districts/overall-score-gains">Harris County school districts with the largest overall score gains</a></li><li><a href="/rankings/harris-county-districts/overall-score-declines">Harris County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-hidalgo-county-districts">
-  <h2>Hidalgo County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Hidalgo County school districts">
+  <summary><h3>Hidalgo County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Hidalgo County school districts">
   <ul class="navlist"><li><a href="/rankings/hidalgo-county-districts/overall-score-highest">Hidalgo County school districts with the highest overall score</a></li><li><a href="/rankings/hidalgo-county-districts/overall-score-lowest">Hidalgo County school districts with the lowest overall score</a></li><li><a href="/rankings/hidalgo-county-districts/overall-score-gains">Hidalgo County school districts with the largest overall score gains</a></li><li><a href="/rankings/hidalgo-county-districts/overall-score-declines">Hidalgo County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-hill-county-districts">
-  <h2>Hill County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Hill County school districts">
+  <summary><h3>Hill County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Hill County school districts">
   <ul class="navlist"><li><a href="/rankings/hill-county-districts/overall-score-highest">Hill County school districts with the highest overall score</a></li><li><a href="/rankings/hill-county-districts/overall-score-lowest">Hill County school districts with the lowest overall score</a></li><li><a href="/rankings/hill-county-districts/overall-score-gains">Hill County school districts with the largest overall score gains</a></li><li><a href="/rankings/hill-county-districts/overall-score-declines">Hill County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-hunt-county-districts">
-  <h2>Hunt County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Hunt County school districts">
+  <summary><h3>Hunt County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Hunt County school districts">
   <ul class="navlist"><li><a href="/rankings/hunt-county-districts/overall-score-highest">Hunt County school districts with the highest overall score</a></li><li><a href="/rankings/hunt-county-districts/overall-score-lowest">Hunt County school districts with the lowest overall score</a></li><li><a href="/rankings/hunt-county-districts/overall-score-gains">Hunt County school districts with the largest overall score gains</a></li><li><a href="/rankings/hunt-county-districts/overall-score-declines">Hunt County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-lubbock-county-districts">
-  <h2>Lubbock County school districts: 4 ranked lists</h2>
-  <nav class="sitenav" aria-label="Ranked lists of Lubbock County school districts">
-  <ul class="navlist"><li><a href="/rankings/lubbock-county-districts/overall-score-highest">Lubbock County school districts with the highest overall score</a></li><li><a href="/rankings/lubbock-county-districts/overall-score-lowest">Lubbock County school districts with the lowest overall score</a></li><li><a href="/rankings/lubbock-county-districts/overall-score-gains">Lubbock County school districts with the largest overall score gains</a></li><li><a href="/rankings/lubbock-county-districts/overall-score-declines">Lubbock County school districts with the largest overall score declines</a></li></ul>
-</nav>
-</section>
-<section id="scope-mclennan-county-districts">
-  <h2>McLennan County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="McLennan County school districts">
+  <summary><h3>McLennan County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of McLennan County school districts">
   <ul class="navlist"><li><a href="/rankings/mclennan-county-districts/overall-score-highest">McLennan County school districts with the highest overall score</a></li><li><a href="/rankings/mclennan-county-districts/overall-score-lowest">McLennan County school districts with the lowest overall score</a></li><li><a href="/rankings/mclennan-county-districts/overall-score-gains">McLennan County school districts with the largest overall score gains</a></li><li><a href="/rankings/mclennan-county-districts/overall-score-declines">McLennan County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-nueces-county-districts">
-  <h2>Nueces County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Nueces County school districts">
+  <summary><h3>Nueces County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Nueces County school districts">
   <ul class="navlist"><li><a href="/rankings/nueces-county-districts/overall-score-highest">Nueces County school districts with the highest overall score</a></li><li><a href="/rankings/nueces-county-districts/overall-score-lowest">Nueces County school districts with the lowest overall score</a></li><li><a href="/rankings/nueces-county-districts/overall-score-gains">Nueces County school districts with the largest overall score gains</a></li><li><a href="/rankings/nueces-county-districts/overall-score-declines">Nueces County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-smith-county-districts">
-  <h2>Smith County school districts: 4 ranked lists</h2>
-  <nav class="sitenav" aria-label="Ranked lists of Smith County school districts">
-  <ul class="navlist"><li><a href="/rankings/smith-county-districts/overall-score-highest">Smith County school districts with the highest overall score</a></li><li><a href="/rankings/smith-county-districts/overall-score-lowest">Smith County school districts with the lowest overall score</a></li><li><a href="/rankings/smith-county-districts/overall-score-gains">Smith County school districts with the largest overall score gains</a></li><li><a href="/rankings/smith-county-districts/overall-score-declines">Smith County school districts with the largest overall score declines</a></li></ul>
-</nav>
-</section>
-<section id="scope-tarrant-county-districts">
-  <h2>Tarrant County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Tarrant County school districts">
+  <summary><h3>Tarrant County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Tarrant County school districts">
   <ul class="navlist"><li><a href="/rankings/tarrant-county-districts/overall-score-highest">Tarrant County school districts with the highest overall score</a></li><li><a href="/rankings/tarrant-county-districts/overall-score-lowest">Tarrant County school districts with the lowest overall score</a></li><li><a href="/rankings/tarrant-county-districts/overall-score-gains">Tarrant County school districts with the largest overall score gains</a></li><li><a href="/rankings/tarrant-county-districts/overall-score-declines">Tarrant County school districts with the largest overall score declines</a></li></ul>
 </nav>
-</section>
-<section id="scope-travis-county-districts">
-  <h2>Travis County school districts: 4 ranked lists</h2>
-  <nav class="sitenav" aria-label="Ranked lists of Travis County school districts">
-  <ul class="navlist"><li><a href="/rankings/travis-county-districts/overall-score-highest">Travis County school districts with the highest overall score</a></li><li><a href="/rankings/travis-county-districts/overall-score-lowest">Travis County school districts with the lowest overall score</a></li><li><a href="/rankings/travis-county-districts/overall-score-gains">Travis County school districts with the largest overall score gains</a></li><li><a href="/rankings/travis-county-districts/overall-score-declines">Travis County school districts with the largest overall score declines</a></li></ul>
-</nav>
-</section>
-<section id="scope-williamson-county-districts">
-  <h2>Williamson County school districts: 4 ranked lists</h2>
+</details>
+<details class="rk-group" data-name="Williamson County school districts">
+  <summary><h3>Williamson County school districts <span class="chip-n">4 ranked lists</span></h3></summary>
   <nav class="sitenav" aria-label="Ranked lists of Williamson County school districts">
   <ul class="navlist"><li><a href="/rankings/williamson-county-districts/overall-score-highest">Williamson County school districts with the highest overall score</a></li><li><a href="/rankings/williamson-county-districts/overall-score-lowest">Williamson County school districts with the lowest overall score</a></li><li><a href="/rankings/williamson-county-districts/overall-score-gains">Williamson County school districts with the largest overall score gains</a></li><li><a href="/rankings/williamson-county-districts/overall-score-declines">Williamson County school districts with the largest overall score declines</a></li></ul>
 </nav>
+</details></div>
 </section>
 <section id="source">
   <h2>Where this comes from</h2>
@@ -365,6 +400,7 @@
   Education Agency publishes publicly. It is not operated by, endorsed by, or connected to TEA.
   The official source is <a href="https://txschools.gov">txschools.gov</a>.
   <a href="/about">How this site works and what it adds</a>.</p>
+  <p class="print-only">https://txschools.net/rankings</p>
 </footer>
 <style data-search-style>.sitesearch{display:block;margin:0}
 .sitesearch-field{position:relative}
@@ -375,6 +411,11 @@
 .sitesearch-input::placeholder{color:var(--ink-3)}
 .sitesearch-go{font:inherit;font-size:1rem;padding:.6rem 1rem;cursor:pointer;
  color:var(--surface);background:var(--accent);border:1px solid var(--accent);border-radius:var(--radius)}
+.sitesearch-go:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+@media (prefers-reduced-motion:no-preference){
+ .sitesearch-go{transition:transform .15s cubic-bezier(.22,.61,.36,1),box-shadow .15s,background .15s}
+ .sitesearch-go:hover{transform:translateY(-1px);box-shadow:var(--shadow-raised)}
+}
 .sitesearch-label{display:block;font-weight:600;margin:0 0 .35rem}
 .sitesearch-hint{margin:.45rem 0 0;font-size:.8125rem;color:var(--ink-3);max-width:var(--measure)}
 .sitesearch-hero .sitesearch-input{font-size:1.125rem;padding:.75rem .85rem}

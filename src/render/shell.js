@@ -11,6 +11,17 @@ import { renderSearch, searchAssets } from './search.js'
 
 export const SITE_ORIGIN = 'https://txschools.net'
 
+/**
+ * Runs synchronously, before the stylesheet paints anything, so a reader who
+ * has explicitly chosen a theme never sees the OTHER one flash first. It sets
+ * an attribute only — every colour value still lives in style.css's
+ * [data-theme] rules — so a reader with JavaScript off simply never overrides
+ * their OS preference, which is the correct fallback, not a broken one.
+ * try/catch because Safari private mode throws on localStorage access rather
+ * than returning null.
+ */
+export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}`
+
 export const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
@@ -29,12 +40,12 @@ export const esc = (s) =>
  * it says nothing about any particular school.
  */
 export const BRAND = {
-  tile: '#1d4ed8', // --accent, light scheme
+  tile: '#4338ca', // --accent, light scheme
   glyph: '#ffffff',
-  tileDark: '#7aa2f7', // --accent, dark scheme
-  glyphDark: '#0b1220',
-  themeLight: '#eceef2', // --ground, light
-  themeDark: '#0b0d10', // --ground, dark
+  tileDark: '#a5b4fc', // --accent, dark scheme
+  glyphDark: '#0d0e14',
+  themeLight: '#f7f5f1', // --ground, light
+  themeDark: '#14120f', // --ground, dark
   name: 'txschools.net',
   siteName: 'txschools.net (unofficial)',
   markAlt:
@@ -118,9 +129,9 @@ export const clampText = (s, max) => {
  * `meta` is a caller-formatted count *with its unit* ("31 districts"), because a
  * bare number beside a name is the same unlabelled boast a rank without an n is.
  */
-export const navList = (items, { label = null } = {}) =>
+export const navList = (items, { label = null, className = null } = {}) =>
   `<nav class="sitenav"${label ? ` aria-label="${esc(label)}"` : ''}>
-  <ul class="navlist">${items
+  <ul class="navlist${className ? ` ${esc(className)}` : ''}">${items
     .map(
       (i) =>
         `<li><a href="${esc(i.href)}"${i.current ? ' aria-current="page"' : ''}>${esc(i.label)}</a>${
@@ -270,14 +281,24 @@ ${main}`
 <meta name="twitter:description" content="${esc(ogDescription)}">
 <meta name="twitter:image" content="${esc(image)}">
 <meta name="twitter:image:alt" content="${esc(BRAND.markAlt)}">
+<link rel="preload" href="/fonts/geist-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
+<script>${THEME_INIT_SCRIPT}</script>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="site">
   <a class="wordmark" href="/">txschools<span>.net</span></a>
   ${renderSearch({ id: 'header-search', variant: 'header', assets: false })}
-  ${siteNav(canonical)}
+  <details class="nav-disclosure" open>
+    <summary class="nav-toggle">Menu</summary>
+    ${siteNav(canonical)}
+  </details>
+  <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false">
+    <svg class="ti ti-moon" aria-hidden="true" viewBox="0 0 20 20"><path d="M17.3 12.5A7.3 7.3 0 0 1 7.5 2.7a7.6 7.6 0 1 0 9.8 9.8Z" fill="currentColor"/></svg>
+    <svg class="ti ti-sun" aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M15.7 4.3l-1.4 1.4M5.7 14.3l-1.4 1.4M15.7 15.7l-1.4-1.4M5.7 5.7 4.3 4.3"/></g></svg>
+    <span class="sr-only" data-theme-label>Switch to dark theme</span>
+  </button>
   <p class="unofficial">Unofficial &middot; not affiliated with the Texas Education Agency &middot; <a href="/about">what this is</a></p>
 </header>
 
@@ -288,6 +309,7 @@ ${frame}
   Education Agency publishes publicly. It is not operated by, endorsed by, or connected to TEA.
   The official source is <a href="https://txschools.gov">txschools.gov</a>.
   <a href="/about">How this site works and what it adds</a>.</p>
+  <p class="print-only">${esc(canonical)}</p>
 </footer>
 ${searchAssets({ scriptSrc: '/search.js' })}
 <script type="module" src="/app.js"></script>

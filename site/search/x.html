@@ -7,8 +7,8 @@
 <link rel="canonical" href="https://txschools.net/search/x">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<meta name="theme-color" content="#eceef2" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0b0d10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f7f5f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14120f" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="txschools.net (unofficial)">
 <meta property="og:locale" content="en_US">
@@ -25,7 +25,9 @@
 <meta name="twitter:description" content="The 1 Texas public school districts and campuses whose name begins with X, each listed with its district and county.">
 <meta name="twitter:image" content="https://txschools.net/og.png">
 <meta name="twitter:image:alt" content="txschools.net: three ascending bars on a blue tile. An unofficial site, not affiliated with the Texas Education Agency.">
+<link rel="preload" href="/fonts/geist-var.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/style.css">
+<script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
@@ -50,9 +52,17 @@
   <p class="sitesearch-hint sr-only" id="header-search-hint">Type at least two letters. Every result names its district and county, because school names repeat across Texas.</p>
   <p class="sr-only" data-search-status role="status" aria-live="polite"></p>
 </form>
-  <nav class="sitenav" aria-label="Site">
+  <details class="nav-disclosure" open>
+    <summary class="nav-toggle">Menu</summary>
+    <nav class="sitenav" aria-label="Site">
   <ul class="navlist"><li><a href="/">Home</a></li><li><a href="/districts/a">Districts A–Z</a></li><li><a href="/rankings">Rankings</a></li><li><a href="/download">Download data</a></li><li><a href="/about">About</a></li></ul>
 </nav>
+  </details>
+  <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false">
+    <svg class="ti ti-moon" aria-hidden="true" viewBox="0 0 20 20"><path d="M17.3 12.5A7.3 7.3 0 0 1 7.5 2.7a7.6 7.6 0 1 0 9.8 9.8Z" fill="currentColor"/></svg>
+    <svg class="ti ti-sun" aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M15.7 4.3l-1.4 1.4M5.7 14.3l-1.4 1.4M15.7 15.7l-1.4-1.4M5.7 5.7 4.3 4.3"/></g></svg>
+    <span class="sr-only" data-theme-label>Switch to dark theme</span>
+  </button>
   <p class="unofficial">Unofficial &middot; not affiliated with the Texas Education Agency &middot; <a href="/about">what this is</a></p>
 </header>
 
@@ -79,7 +89,7 @@
       <p class="sitesearch-more" hidden></p>
     </div>
   </div>
-  <p class="sitesearch-hint" id="search-page-box-hint">Type at least two letters. Searches all 10,230 — 1,199 districts and 9,031 campuses — and names the district and county of each, because Texas school names repeat. <a href="/search">Browse the whole A&ndash;Z index</a>.</p>
+  <p class="sitesearch-hint" id="search-page-box-hint">Type at least two letters. Searches all 9,086 — 1,020 districts and 8,066 campuses — and names the district and county of each, because Texas school names repeat. <a href="/search">Browse the whole A&ndash;Z index</a>.</p>
   <p class="sr-only" data-search-status role="status" aria-live="polite"></p>
 </form>
   
@@ -87,7 +97,7 @@
 <section id="letters">
   <h2>Jump to another letter</h2>
   <nav class="sitenav" aria-label="Search index by first letter">
-  <ul class="navlist"><li><a href="/search/a">A</a> <span class="chip-n">457 names</span></li><li><a href="/search/b">B</a> <span class="chip-n">763 names</span></li><li><a href="/search/c">C</a> <span class="chip-n">883 names</span></li><li><a href="/search/d">D</a> <span class="chip-n">422 names</span></li><li><a href="/search/e">E</a> <span class="chip-n">350 names</span></li><li><a href="/search/f">F</a> <span class="chip-n">324 names</span></li><li><a href="/search/g">G</a> <span class="chip-n">421 names</span></li><li><a href="/search/h">H</a> <span class="chip-n">692 names</span></li><li><a href="/search/i">I</a> <span class="chip-n">283 names</span></li><li><a href="/search/j">J</a> <span class="chip-n">361 names</span></li><li><a href="/search/k">K</a> <span class="chip-n">266 names</span></li><li><a href="/search/l">L</a> <span class="chip-n">596 names</span></li><li><a href="/search/m">M</a> <span class="chip-n">652 names</span></li><li><a href="/search/n">N</a> <span class="chip-n">292 names</span></li><li><a href="/search/o">O</a> <span class="chip-n">149 names</span></li><li><a href="/search/p">P</a> <span class="chip-n">527 names</span></li><li><a href="/search/q">Q</a> <span class="chip-n">14 names</span></li><li><a href="/search/r">R</a> <span class="chip-n">524 names</span></li><li><a href="/search/s">S</a> <span class="chip-n">856 names</span></li><li><a href="/search/t">T</a> <span class="chip-n">511 names</span></li><li><a href="/search/u">U</a> <span class="chip-n">102 names</span></li><li><a href="/search/v">V</a> <span class="chip-n">153 names</span></li><li><a href="/search/w">W</a> <span class="chip-n">534 names</span></li><li><a href="/search/x" aria-current="page">X</a> <span class="chip-n">1 name</span></li><li><a href="/search/y">Y</a> <span class="chip-n">71 names</span></li><li><a href="/search/z">Z</a> <span class="chip-n">26 names</span></li></ul>
+  <ul class="navlist navlist-letters"><li><a href="/search/a">A</a> <span class="chip-n">418 names</span></li><li><a href="/search/b">B</a> <span class="chip-n">707 names</span></li><li><a href="/search/c">C</a> <span class="chip-n">843 names</span></li><li><a href="/search/d">D</a> <span class="chip-n">407 names</span></li><li><a href="/search/e">E</a> <span class="chip-n">316 names</span></li><li><a href="/search/f">F</a> <span class="chip-n">302 names</span></li><li><a href="/search/g">G</a> <span class="chip-n">390 names</span></li><li><a href="/search/h">H</a> <span class="chip-n">592 names</span></li><li><a href="/search/i">I</a> <span class="chip-n">89 names</span></li><li><a href="/search/j">J</a> <span class="chip-n">349 names</span></li><li><a href="/search/k">K</a> <span class="chip-n">205 names</span></li><li><a href="/search/l">L</a> <span class="chip-n">566 names</span></li><li><a href="/search/m">M</a> <span class="chip-n">638 names</span></li><li><a href="/search/n">N</a> <span class="chip-n">260 names</span></li><li><a href="/search/o">O</a> <span class="chip-n">143 names</span></li><li><a href="/search/p">P</a> <span class="chip-n">439 names</span></li><li><a href="/search/q">Q</a> <span class="chip-n">13 names</span></li><li><a href="/search/r">R</a> <span class="chip-n">488 names</span></li><li><a href="/search/s">S</a> <span class="chip-n">792 names</span></li><li><a href="/search/t">T</a> <span class="chip-n">368 names</span></li><li><a href="/search/u">U</a> <span class="chip-n">34 names</span></li><li><a href="/search/v">V</a> <span class="chip-n">134 names</span></li><li><a href="/search/w">W</a> <span class="chip-n">520 names</span></li><li><a href="/search/x" aria-current="page">X</a> <span class="chip-n">1 name</span></li><li><a href="/search/y">Y</a> <span class="chip-n">46 names</span></li><li><a href="/search/z">Z</a> <span class="chip-n">26 names</span></li></ul>
 </nav>
 </section>
 <section id="districts">
@@ -113,6 +123,7 @@
   Education Agency publishes publicly. It is not operated by, endorsed by, or connected to TEA.
   The official source is <a href="https://txschools.gov">txschools.gov</a>.
   <a href="/about">How this site works and what it adds</a>.</p>
+  <p class="print-only">https://txschools.net/search/x</p>
 </footer>
 <style data-search-style>.sitesearch{display:block;margin:0}
 .sitesearch-field{position:relative}
@@ -123,6 +134,11 @@
 .sitesearch-input::placeholder{color:var(--ink-3)}
 .sitesearch-go{font:inherit;font-size:1rem;padding:.6rem 1rem;cursor:pointer;
  color:var(--surface);background:var(--accent);border:1px solid var(--accent);border-radius:var(--radius)}
+.sitesearch-go:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+@media (prefers-reduced-motion:no-preference){
+ .sitesearch-go{transition:transform .15s cubic-bezier(.22,.61,.36,1),box-shadow .15s,background .15s}
+ .sitesearch-go:hover{transform:translateY(-1px);box-shadow:var(--shadow-raised)}
+}
 .sitesearch-label{display:block;font-weight:600;margin:0 0 .35rem}
 .sitesearch-hint{margin:.45rem 0 0;font-size:.8125rem;color:var(--ink-3);max-width:var(--measure)}
 .sitesearch-hero .sitesearch-input{font-size:1.125rem;padding:.75rem .85rem}

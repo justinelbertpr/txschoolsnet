@@ -174,9 +174,12 @@ describe('railFor', () => {
 
   it('labels every block, so the rail is navigable by heading', () => {
     const html = railFor(vm(), index, { payload: PAYLOAD })
+    // Compare leads (page.js:railFor) — "how does this compare" is the
+    // second question a reader asks, right after the score, and it used to
+    // sit under an 8-12-link section index on a long entity page.
     expect([...html.matchAll(/class="rail-title">([^<]+)</g)].map((m) => m[1])).toEqual([
-      'On this page',
       'Compare against',
+      'On this page',
       'Pin to the chart',
     ])
   })

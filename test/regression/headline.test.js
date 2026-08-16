@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { readFile } from 'node:fs/promises'
-import { mean, weightedMean, median } from '../../src/lib/stats.js'
+import { mean } from '../../src/lib/stats.js'
 import { preferredRatings } from '../../src/normalize/ratings.js'
 
 const read = async (t) => {
@@ -30,57 +30,34 @@ beforeAll(async () => {
   preferred = preferredRatings(ratings)
 })
 
-/** Mean score across districts of one sector for one year, default-methodology view. */
-const districtMean = (year, isCharter) => {
+/** Mean district score for one year, default-methodology view. */
+const districtMean = (year) => {
   const scores = preferred
     .filter((r) => r.year === year)
-    .filter((r) => byId.get(r.id)?.level === 'district' && byId.get(r.id)?.isCharter === isCharter)
+    .filter((r) => byId.get(r.id)?.level === 'district')
     .map((r) => r.score)
   return mean(scores)
 }
 
+// This site now excludes charter districts and campuses from every table it
+// publishes (build.js:excludeCharters) — a deliberate editorial decision, not
+// a data gap. The design's original §8 findings compared traditional ISDs
+// against charters; that comparison no longer has a second group to compare
+// against in build/*.ndjson, so those specific assertions are gone. What
+// survives is every claim that was, and still is, about traditional districts
+// on their own — the numbers below are unchanged from the original design
+// because districtMean was always computed on the traditional-only filter.
 describe('design §8 — unweighted district means', () => {
   it.each([
-    ['2021-22', 80.6, 82.3],
-    ['2023-24', 78.7, 78.0],
-    ['2025-26', 81.7, 79.7],
-  ])('%s: traditional %f, charter %f', (year, trad, charter) => {
-    expect(districtMean(year, false)).toBeCloseTo(trad, 1)
-    expect(districtMean(year, true)).toBeCloseTo(charter, 1)
+    ['2021-22', 80.6],
+    ['2023-24', 78.7],
+    ['2025-26', 81.7],
+  ])('%s: %f', (year, expected) => {
+    expect(districtMean(year)).toBeCloseTo(expected, 1)
   })
 
-  it('shows traditional districts overtaking charters', () => {
-    const gap = (y) => districtMean(y, false) - districtMean(y, true)
-    expect(gap('2021-22')).toBeLessThan(0)
-    expect(gap('2025-26')).toBeGreaterThan(0)
-  })
-})
-
-describe('design §8 — enrollment weighting reverses the ordering', () => {
-  const weighted = (year, isCharter) =>
-    weightedMean(
-      preferred
-        .filter((r) => r.year === year)
-        .filter((r) => byId.get(r.id)?.level === 'district' && byId.get(r.id)?.isCharter === isCharter)
-        .map((r) => ({ v: r.score, w: byId.get(r.id).enrollment }))
-    )
-
-  it('puts charters ahead by student in 2025-26', () => {
-    expect(weighted('2025-26', false)).toBeCloseTo(82.4, 1)
-    expect(weighted('2025-26', true)).toBeCloseTo(82.9, 1)
-    expect(weighted('2025-26', true)).toBeGreaterThan(weighted('2025-26', false))
-  })
-})
-
-describe('design §8 — charters serve higher-poverty populations', () => {
-  const medianEcoDis = (isCharter) => {
-    const p = new Map(profile.map((r) => [r.id, r.ecoDisPct]))
-    return median(districts.filter((d) => d.isCharter === isCharter).map((d) => p.get(d.id) ?? null))
-  }
-
-  it('reports the medians the design states', () => {
-    expect(medianEcoDis(false)).toBeCloseTo(59.35, 1)
-    expect(medianEcoDis(true)).toBeCloseTo(77.4, 1)
+  it('shows recovery from the pandemic-era trough', () => {
+    expect(districtMean('2025-26')).toBeGreaterThan(districtMean('2023-24'))
   })
 })
 
@@ -106,7 +83,7 @@ describe('design §8 — the steepest gains are in the highest-poverty schools',
     const current = scoreByYear('2025-26')
 
     const matched = campuses
-      .map((c) => ({ isCharter: c.isCharter, ecoDisPct: ecoDis.get(c.id), s1: trough.get(c.id), s2: current.get(c.id) }))
+      .map((c) => ({ ecoDisPct: ecoDis.get(c.id), s1: trough.get(c.id), s2: current.get(c.id) }))
       .filter((c) => typeof c.ecoDisPct === 'number' && typeof c.s1 === 'number' && typeof c.s2 === 'number')
       .sort((a, b) => a.ecoDisPct - b.ecoDisPct)
 
@@ -115,9 +92,11 @@ describe('design §8 — the steepest gains are in the highest-poverty schools',
       matched.slice(Math.floor((i * n) / 10), Math.floor(((i + 1) * n) / 10)))
   })
 
+  // Smaller than the design's original threshold: that count included charter
+  // campuses, which build.js now excludes before this table is even built.
   it('has a sane matched cohort (both years plus a numeric ecoDisPct)', () => {
     const n = deciles.reduce((sum, d) => sum + d.length, 0)
-    expect(n).toBeGreaterThan(8000)
+    expect(n).toBeGreaterThan(7000)
     expect(deciles.every((d) => d.length > 0)).toBe(true)
   })
 
@@ -130,25 +109,19 @@ describe('design §8 — the steepest gains are in the highest-poverty schools',
     expect(topGain).toBeLessThan(1.5)
     expect(bottomGain - topGain).toBeGreaterThanOrEqual(3)
   })
-
-  it('traditional campuses lead charter campuses in at least 6 of the 10 deciles', () => {
-    const leads = deciles.filter((d) => {
-      const trad = mean(d.filter((c) => !c.isCharter).map(gain))
-      const charter = mean(d.filter((c) => c.isCharter).map(gain))
-      return trad !== null && charter !== null && trad > charter
-    }).length
-    expect(leads).toBeGreaterThanOrEqual(6)
-  })
 })
 
 describe('data shape', () => {
-  it('has 1,199 districts and 9,031 campuses', () => {
-    expect(districts).toHaveLength(1199)
-    expect(entities.filter((e) => e.level === 'campus')).toHaveLength(9031)
+  // TEA publishes 1,199 districts and 9,031 campuses; this site excludes
+  // charters (build.js:excludeCharters), which is 1,020 traditional districts
+  // and 8,066 traditional campuses of that total.
+  it('has 1,020 districts and 8,066 campuses', () => {
+    expect(districts).toHaveLength(1020)
+    expect(entities.filter((e) => e.level === 'campus')).toHaveLength(8066)
   })
 
-  it('classifies 179 charter districts by entity_type', () => {
-    expect(districts.filter((d) => d.isCharter)).toHaveLength(179)
+  it('excludes every charter district and campus from the build', () => {
+    expect(entities.filter((e) => e.isCharter)).toHaveLength(0)
   })
 
   it('keeps 2021-22 under both methodologies', () => {

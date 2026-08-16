@@ -3,32 +3,30 @@
 # snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
 # dataset: ranking board
 # page: https://txschools.net/rankings/mclennan-county-districts/overall-score-gains
-# rows: 20 (excluding this header and the column row)
+# rows: 18 (excluding this header and the column row)
 # ranking: McLennan County school districts with the largest overall score gains since 2021-22
-# population: 20 districts of 20 districts are ranked here.
+# population: 18 districts of 18 districts are ranked here.
 # rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
 # methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
 # empty cell = TEA did not publish that figure. It does not mean zero.
 # numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
 # lines starting with # are comments — pandas: read_csv(path, comment='#')
 rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
-1,20,0,161910,Moody ISD,McLennan,B,10,78,88,761,https://txschools.net/district/moody-isd-161910
-2,20,0,161925,Gholson ISD,McLennan,B,7,82,89,227,https://txschools.net/district/gholson-isd-161925
-3,20,0,161921,Connally ISD,McLennan,D,6,63,69,2031,https://txschools.net/district/connally-isd-161921
-4,20,1,161901,Crawford ISD,McLennan,B,5,83,88,585,https://txschools.net/district/crawford-isd-161901
-4,20,1,161922,Robinson ISD,McLennan,A,5,85,90,2401,https://txschools.net/district/robinson-isd-161922
-6,20,0,161916,West ISD,McLennan,B,4,85,89,1338,https://txschools.net/district/west-isd-161916
-7,20,0,161918,Axtell ISD,McLennan,B,3,83,86,842,https://txschools.net/district/axtell-isd-161918
-8,20,1,161807,Harmony Public Schools - North Texas,McLennan,B,1,87,88,11297,https://txschools.net/district/harmony-public-schools-north-texas-161807
-8,20,1,161908,Mart ISD,McLennan,B,1,82,83,597,https://txschools.net/district/mart-isd-161908
-10,20,0,161903,Midway ISD,McLennan,A,0,90,90,8704,https://txschools.net/district/midway-isd-161903
-11,20,2,161920,China Spring ISD,McLennan,B,-1,89,88,2980,https://txschools.net/district/china-spring-isd-161920
-11,20,2,161907,Lorena ISD,McLennan,A,-1,92,91,1740,https://txschools.net/district/lorena-isd-161907
-11,20,2,161912,Riesel ISD,McLennan,B,-1,90,89,683,https://txschools.net/district/riesel-isd-161912
-14,20,1,161909,McGregor ISD,McLennan,C,-3,80,77,1448,https://txschools.net/district/mcgregor-isd-161909
-14,20,1,161914,Waco ISD,McLennan,D,-3,69,66,12892,https://txschools.net/district/waco-isd-161914
-16,20,0,161919,Bruceville-Eddy ISD,McLennan,C,-5,75,70,505,https://txschools.net/district/bruceville-eddy-isd-161919
-17,20,0,161906,La Vega ISD,McLennan,C,-6,78,72,3079,https://txschools.net/district/la-vega-isd-161906
-18,20,1,161923,Bosqueville ISD,McLennan,C,-10,86,76,718,https://txschools.net/district/bosqueville-isd-161923
-18,20,1,161802,Rapoport Academy Public School,McLennan,C,-10,86,76,914,https://txschools.net/district/rapoport-academy-public-school-161802
-20,20,0,161924,Hallsburg ISD,McLennan,F,-23,82,59,106,https://txschools.net/district/hallsburg-isd-161924
+1,18,0,161910,Moody ISD,McLennan,B,10,78,88,761,https://txschools.net/district/moody-isd-161910
+2,18,0,161925,Gholson ISD,McLennan,B,7,82,89,227,https://txschools.net/district/gholson-isd-161925
+3,18,0,161921,Connally ISD,McLennan,D,6,63,69,2031,https://txschools.net/district/connally-isd-161921
+4,18,1,161901,Crawford ISD,McLennan,B,5,83,88,585,https://txschools.net/district/crawford-isd-161901
+4,18,1,161922,Robinson ISD,McLennan,A,5,85,90,2401,https://txschools.net/district/robinson-isd-161922
+6,18,0,161916,West ISD,McLennan,B,4,85,89,1338,https://txschools.net/district/west-isd-161916
+7,18,0,161918,Axtell ISD,McLennan,B,3,83,86,842,https://txschools.net/district/axtell-isd-161918
+8,18,0,161908,Mart ISD,McLennan,B,1,82,83,597,https://txschools.net/district/mart-isd-161908
+9,18,0,161903,Midway ISD,McLennan,A,0,90,90,8704,https://txschools.net/district/midway-isd-161903
+10,18,2,161920,China Spring ISD,McLennan,B,-1,89,88,2980,https://txschools.net/district/china-spring-isd-161920
+10,18,2,161907,Lorena ISD,McLennan,A,-1,92,91,1740,https://txschools.net/district/lorena-isd-161907
+10,18,2,161912,Riesel ISD,McLennan,B,-1,90,89,683,https://txschools.net/district/riesel-isd-161912
+13,18,1,161909,McGregor ISD,McLennan,C,-3,80,77,1448,https://txschools.net/district/mcgregor-isd-161909
+13,18,1,161914,Waco ISD,McLennan,D,-3,69,66,12892,https://txschools.net/district/waco-isd-161914
+15,18,0,161919,Bruceville-Eddy ISD,McLennan,C,-5,75,70,505,https://txschools.net/district/bruceville-eddy-isd-161919
+16,18,0,161906,La Vega ISD,McLennan,C,-6,78,72,3079,https://txschools.net/district/la-vega-isd-161906
+17,18,0,161923,Bosqueville ISD,McLennan,C,-10,86,76,718,https://txschools.net/district/bosqueville-isd-161923
+18,18,0,161924,Hallsburg ISD,McLennan,F,-23,82,59,106,https://txschools.net/district/hallsburg-isd-161924

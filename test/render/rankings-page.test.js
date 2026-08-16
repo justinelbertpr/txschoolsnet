@@ -1,5 +1,6 @@
 // test/render/rankings-page.test.js
 import { describe, it, expect } from 'vitest'
+import vm from 'node:vm'
 import {
   renderRankingPage,
   renderRankingsIndexPage,
@@ -130,9 +131,14 @@ describe('the page frame', () => {
 
   it('needs no JavaScript: the table is in the markup, and the page adds no script of its own', () => {
     const html = page()
-    expect(html).toContain('<td class="num">1st</td>')
-    // Only the shell's own two scripts (search + app), neither of which renders content.
-    expect(html.match(/<script/g).length).toBe(html.match(/src="\/(search|app)\.js"/g).length)
+    // 1st carries .rk-podium too — a weight/rule treatment for the top 3
+    // placements, never a colour (see site/style.css .rk-podium).
+    expect(html).toContain('<td class="num rk-podium">1st</td>')
+    // Only the shell's own scripts: search + app (external) and the inline
+    // theme-init snippet (THEME_INIT_SCRIPT — sets [data-theme] before paint
+    // if a reader has stored a preference; a no-op with nothing to restore,
+    // never a source of rendered content). None of the three are this page's own.
+    expect(html.match(/<script/g).length).toBe(html.match(/src="\/(search|app)\.js"/g).length + 1)
   })
 })
 
@@ -218,6 +224,17 @@ describe('every ranking states its population, its n and what it excluded', () =
   it('says plainly when a population is too small to be a contest', () => {
     const html = renderRankingPage({ metric: SCORE, scope: REGION10, rows: rows(6), meta: { eligible: 6 } })
     expect(html).toContain('Only 6 districts carry this measure')
+  })
+
+  it('states the poverty-context caveat in "What this ranking counts", reusing the About page\'s words', () => {
+    const html = page()
+    const countedAt = html.indexOf('id="counted"')
+    const nextSectionAt = html.indexOf('<section', countedAt + 1)
+    const counted = html.slice(countedAt, nextSectionAt === -1 ? html.length : nextSectionAt)
+    expect(counted).toContain(
+      "a comparison against the state average measures the composition of a school's intake at least as much as anything the school did"
+    )
+    expect(counted).toContain('<a href="/about#peer-cohort">How the peer group is chosen</a>')
   })
 })
 
@@ -841,8 +858,9 @@ describe('the rankings index', () => {
 
   it('groups every list by the population it ranks', () => {
     const html = renderRankingsIndexPage({ pages: cat })
-    expect(html).toContain('<h2>Texas school districts: 4 ranked lists</h2>')
-    expect(html).toContain('<h2>Region 10 school districts: 4 ranked lists</h2>')
+    expect(html).toContain('Texas school districts')
+    expect(html).toContain('4 ranked lists')
+    expect(html).toContain('Region 10 school districts')
     expect(html).toContain('href="/rankings/texas-districts/score-highest"')
     expect(html).toContain('href="/rankings/region-10-districts/change-score-5y-declines"')
   })
@@ -862,6 +880,129 @@ describe('the rankings index', () => {
   it('says nothing about counties when no county board was built', () => {
     const html = renderRankingsIndexPage({ pages: cat })
     expect(html).not.toContain('rated districts')
+  })
+
+  it('states the poverty-context caveat, reusing the About page\'s own words, linked to it', () => {
+    const html = renderRankingsIndexPage({ pages: cat })
+    expect(html).toContain(
+      "a comparison against the state average measures the composition of a school's intake at least as much as anything the school did"
+    )
+    expect(html).toContain('<a href="/about#peer-cohort">How the peer group is chosen</a>')
+  })
+})
+
+/* ---------------------------------------------------- grouped accordions -- */
+
+describe('the index groups its ~44 population lists into real accordions', () => {
+  const cat = rankingCatalogue({ metrics: [SCORE, CHANGE], scopes: [TEXAS, CAMPUSES, REGION10] })
+  const DALLAS_COUNTY = { kind: 'county', id: '113', level: 'district', label: 'Dallas County' }
+  const catWithCounty = rankingCatalogue({
+    metrics: [SCORE],
+    scopes: [TEXAS, DALLAS_COUNTY],
+    plan: [
+      { kind: 'state', level: 'district', select: () => true },
+      { kind: 'county', level: 'district', select: () => true },
+    ],
+  })
+
+  it('wraps every scope in a native <details>, not a JS-built collapse', () => {
+    const html = renderRankingsIndexPage({ pages: cat })
+    expect(html.match(/<details class="rk-group"/g).length).toBe(3) // Texas districts, Texas campuses, Region 10
+    expect(html).toContain('<summary>')
+  })
+
+  it('opens the statewide groups by default and leaves region and county groups closed', () => {
+    const html = renderRankingsIndexPage({ pages: cat })
+    const stateBlock = html.slice(html.indexOf('data-name="Texas school districts"') - 40, html.indexOf('data-name="Texas school districts"') + 40)
+    expect(stateBlock).toContain('<details class="rk-group" data-name="Texas school districts" open>')
+
+    const regionBlock = html.slice(html.indexOf('data-name="Region 10 school districts"') - 40, html.indexOf('data-name="Region 10 school districts"') + 40)
+    expect(regionBlock).toContain('<details class="rk-group" data-name="Region 10 school districts">')
+    expect(regionBlock).not.toContain('open>')
+  })
+
+  it('gives a county group the same closed treatment as a region group', () => {
+    const html = renderRankingsIndexPage({ pages: catWithCounty })
+    expect(html).toContain('<details class="rk-group" data-name="Dallas County school districts">')
+  })
+
+  it('headlines the three population kinds separately', () => {
+    const html = renderRankingsIndexPage({ pages: cat })
+    expect(html).toMatch(/Statewide: \d+ ranked population/)
+    expect(html).toMatch(/By region: \d+ ranked population/)
+  })
+
+  it('carries a client-side name filter that starts hidden, above the groups', () => {
+    const html = renderRankingsIndexPage({ pages: cat })
+    const filterAt = html.indexOf('id="rk-filter-wrap"')
+    const firstGroupAt = html.indexOf('<details class="rk-group"')
+    expect(filterAt).toBeGreaterThan(-1)
+    expect(filterAt).toBeLessThan(firstGroupAt)
+    expect(html).toContain('<div class="rk-filter" id="rk-filter-wrap" hidden>')
+    expect(html).toContain('<input type="text" id="rk-filter-input"')
+    expect(html).toContain("document.getElementById('rk-filter-wrap')")
+  })
+
+  it('defers its DOM query past parse time, so it still finds the groups that render after it in the document', () => {
+    // The filter's <script> is a plain classic script (no defer/module), so a
+    // real browser executes it the instant the parser reaches it — before the
+    // .rk-group markup later in this same document has been parsed. This
+    // stubs just enough of `document` to run the emitted script exactly as a
+    // browser would and prove it no longer queries for groups at that
+    // mid-parse moment, only after the document (DOMContentLoaded) is done.
+    const html = renderRankingsIndexPage({ pages: cat })
+    const scriptOpen = html.indexOf('<script>', html.indexOf('id="rk-filter-wrap"'))
+    const scriptClose = html.indexOf('</script>', scriptOpen)
+    const js = html.slice(scriptOpen + '<script>'.length, scriptClose)
+
+    let wrapHidden = true
+    let listenerAdded = false
+    let domReady = false // flips true only once the "rest of the document" has parsed
+    let domContentLoadedHandler = null
+    const wrapEl = {
+      get hidden() { return wrapHidden },
+      set hidden(v) { wrapHidden = v },
+    }
+    const inputEl = { value: '', addEventListener: (type) => { if (type === 'input') listenerAdded = true } }
+    const emptyEl = { hidden: true }
+    const document = {
+      readyState: 'loading',
+      getElementById: (id) =>
+        id === 'rk-filter-wrap' ? wrapEl : id === 'rk-filter-input' ? inputEl : id === 'rk-filter-empty' ? emptyEl : null,
+      // Only "present" once domReady flips — mirrors the .rk-group <details>
+      // elements not existing yet at the moment this script tag runs.
+      querySelectorAll: (sel) => (sel === '.rk-group' && domReady ? [{ hasAttribute: () => false }] : []),
+      addEventListener: (type, handler) => { if (type === 'DOMContentLoaded') domContentLoadedHandler = handler },
+    }
+
+    vm.runInNewContext(js, { document })
+
+    // At the instant the parser reaches this script (readyState still
+    // 'loading', groups not yet in the DOM), the filter must stay hidden and
+    // unwired rather than give up because groups.length was 0.
+    expect(wrapHidden).toBe(true)
+    expect(listenerAdded).toBe(false)
+    expect(typeof domContentLoadedHandler).toBe('function')
+
+    // Once the document (and the groups below this script) has finished
+    // parsing, the deferred run must find them and do its job.
+    domReady = true
+    domContentLoadedHandler()
+    expect(wrapHidden).toBe(false)
+    expect(listenerAdded).toBe(true)
+  })
+
+  it('renders no filter and no groups when the hub has nothing to show', () => {
+    const html = renderRankingsIndexPage({ pages: [] })
+    expect(html).not.toContain('rk-filter-wrap')
+    expect(html).not.toContain('rk-group')
+  })
+
+  it('announces the zero-match filter message as a live region, like the site\'s other dynamic status lines', () => {
+    const html = renderRankingsIndexPage({ pages: cat })
+    expect(html).toContain(
+      '<p class="rk-filter-empty" id="rk-filter-empty" role="status" aria-live="polite" hidden>No groups match that filter. Clear it to see them all.</p>'
+    )
   })
 })
 
@@ -903,7 +1044,7 @@ describe('the interactive tool boots from the /rankings index', () => {
   const tool = {
     payloadHref: '/data/payload-abc12345.json',
     snapshot: '2026-08',
-    defaults: { metric: 'score.latest', level: 'district', scope: 'state', sector: 'all', aea: 'include', order: 'top', n: '50' },
+    defaults: { metric: 'score.latest', level: 'district', scope: 'state', aea: 'include', order: 'top', n: '50' },
     lookups: { regions: { '01': 'Region 01: Edinburg' }, counties: { '001': 'Anderson' } },
     metric: SCORE,
     scope: TEXAS,

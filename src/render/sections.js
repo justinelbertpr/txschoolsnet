@@ -294,9 +294,10 @@ export function verdict(vm) {
   const { summary, rank } = verdictSummary(vm)
 
   return `<section class="hero" id="${HERO_ID}" data-rail-label="${esc(HERO_LABEL)}">
-  <p class="eyebrow">${kind} &middot; ${vm.isCharter ? 'Charter' : 'Traditional'}${vm.isAlt ? ' &middot; Alternative Education Accountability' : ''}</p>
+  <p class="eyebrow">${kind} &middot; Traditional${vm.isAlt ? ' &middot; Alternative Education Accountability' : ''}</p>
   <h1>${esc(vm.name)}</h1>
   <p class="place">${esc(vm.county)} County &middot; ${esc(vm.regionName)}${vm.enrollment ? ` &middot; ${plural(vm.enrollment, 'student')}` : ''}</p>
+  ${vm.website ? `<p class="enroll"><a href="https://${esc(vm.website)}" rel="nofollow">Learn more &amp; enroll</a></p>` : ''}
   <div class="verdict">
     ${grade(latest?.rating, latest?.score, 'lg')}
     <p class="summary">${summary}</p>
@@ -792,13 +793,14 @@ export function source(vm) {
 }
 
 /**
- * Per-entity files are pre-generated for districts only. 10,230 entities in two
- * formats is 20,460 assets and a Workers version is capped at 20,000, so the
- * 9,031 campus files are never written (see the note at the top of
+ * Per-entity files are pre-generated for districts only. 9,086 entities in two
+ * formats is 18,172 assets, which on top of the rest of what this site
+ * publishes is past the 20,000-asset cap a Workers version is capped at, so
+ * the 8,066 campus files are never written (see the note at the top of
  * src/prerender.js). _redirects cannot rescue them either — a splat there is
- * followed whether or not an asset matches, which took out all 2,398 real
- * district files when it was tried. So the link has to be honest at the source:
- * a campus page links what exists rather than a file that 404s.
+ * followed whether or not an asset matches, which took out all real district
+ * files when it was tried. So the link has to be honest at the source: a
+ * campus page links what exists rather than a file that 404s.
  */
 const downloadLinks = (vm) =>
   vm.level === 'district'
@@ -809,9 +811,9 @@ const downloadLinks = (vm) =>
         vm.districtSlug ? ` &middot; <a href="/district/${esc(vm.districtSlug)}#source">this campus's district</a>` : ''
       }</p>
   <p class="note">Single-file records are pre-built for districts only, so there is no per-campus CSV to
-     link here &mdash; 10,230 entities in two formats would exceed the 20,000-asset limit this site is
-     published under. This campus is a row in the bulk files on the download page, keyed by its TEA id
-     <code>${esc(vm.id)}</code>.</p>`
+     link here &mdash; 9,086 entities in two formats is 18,172 assets, on top of everything else this site
+     publishes, and that is past the 20,000-asset limit this site is published under. This campus is a row
+     in the bulk files on the download page, keyed by its TEA id <code>${esc(vm.id)}</code>.</p>`
 
 /** Page order. */
 export const SECTIONS = [verdict, trajectory, changeRankings, domains, outcomes, students, spending, teachers, standouts, campuses, source]

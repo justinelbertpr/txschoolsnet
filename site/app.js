@@ -314,6 +314,30 @@ function initTrajectory(svg) {
     if (cls) p.dataset.key = cls.slice(5)
   })
 
+  // Reveal, once, when the chart scrolls into view — the same drawOn() the
+  // picker already gives a line the reader turns on by hand, just deferred
+  // instead of immediate. The seeded paths are already fully drawn in their
+  // final, correct shape (the comment above is exact: nothing flashes before
+  // this runs), so a reader with JS off, a reduced-motion preference, or a
+  // browser with no IntersectionObserver sees precisely what they see today
+  // — a complete chart, never a blank or a stuck one. Disconnects after the
+  // first trigger: a domain change later (apply(), below) must update these
+  // same paths' `d` in place, not draw them in a second time.
+  if (!REDUCED && 'IntersectionObserver' in window) {
+    const seeded = [...linesG.querySelectorAll('path[data-key]')]
+    if (seeded.length) {
+      const io = new IntersectionObserver(
+        (entries, obs) => {
+          if (!entries.some((en) => en.isIntersecting)) return
+          seeded.forEach(drawOn)
+          obs.disconnect()
+        },
+        { threshold: 0.2 }
+      )
+      io.observe(svg)
+    }
+  }
+
   /**
    * Names every line for a screen reader, which can see neither the picker's
    * pressed states nor the rail's pin dots. The base label describes the chart
@@ -1585,6 +1609,63 @@ function initPins(chart) {
   }
 }
 
+/* ------------------------------------------------------------- theme toggle --
+
+   shell.js's THEME_INIT_SCRIPT already set [data-theme] before paint if a
+   choice was stored, so there is never a flash for a returning reader. This
+   only wires the button: which theme is "current" is read off the DOM/media
+   query, never tracked in a variable here, so it cannot drift from what the
+   reader actually sees. The icon swap itself is pure CSS (site/style.css)
+   and needs none of this — a reader with JS off sees a button that does
+   nothing, on a page that already rendered in their OS theme, which is
+   correct, not broken. */
+
+function initThemeToggle() {
+  const btn = document.querySelector('[data-theme-toggle]')
+  if (!btn) return
+  const label = btn.querySelector('[data-theme-label]')
+  const media = matchMedia('(prefers-color-scheme: dark)')
+
+  const effective = () =>
+    document.documentElement.getAttribute('data-theme') || (media.matches ? 'dark' : 'light')
+
+  const sync = () => {
+    const dark = effective() === 'dark'
+    btn.setAttribute('aria-pressed', String(dark))
+    if (label) label.textContent = dark ? 'Switch to light theme' : 'Switch to dark theme'
+  }
+  sync()
+  media.addEventListener('change', sync)
+
+  btn.addEventListener('click', () => {
+    const next = effective() === 'dark' ? 'light' : 'dark'
+    document.documentElement.setAttribute('data-theme', next)
+    try { localStorage.setItem('theme', next) } catch {}
+    sync()
+  })
+}
+
+/* ------------------------------------------------------ header height --
+
+   Publishes header.site's real rendered height as --header-h so every
+   sticky element below it (the stickybar, the rail, .data's sticky column
+   headers) can stack correctly instead of hiding underneath it — see the
+   var(--header-h, 0px) reads in site/style.css next to each of those rules.
+   A ResizeObserver, not a resize listener, because the header's height
+   changes for reasons that have nothing to do with the viewport resizing —
+   the mobile nav-disclosure opening, the "Unofficial" line wrapping to a
+   second line at an in-between width, a webfont swap changing line height.
+   Unset (0px, via the CSS fallback) until this runs, which is the same
+   layout the site already had — never a broken one. */
+function initHeaderH() {
+  const header = document.querySelector('header.site')
+  if (!header || !('ResizeObserver' in window)) return
+  const set = () =>
+    document.documentElement.style.setProperty('--header-h', `${Math.round(header.getBoundingClientRect().height)}px`)
+  new ResizeObserver(set).observe(header)
+  set()
+}
+
 /* ------------------------------------------------------------------ init -- */
 
 const charts = [...document.querySelectorAll('[data-chart="trajectory"]')].map(initTrajectory).filter(Boolean)
@@ -1592,5 +1673,7 @@ initBars()
 initCohorts(charts[0])
 initCopy()
 initSpy()
+initHeaderH()
 initStickybar()
 initPins(charts[0])
+initThemeToggle()

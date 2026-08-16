@@ -47,6 +47,31 @@ ${index.map((s) => `      <li><a class="rail-link" href="#${esc(s.id)}" data-spy
     </ol>
   </nav>`
 
+/**
+ * Mobile-only section jump. The rail carries the same index, but below
+ * 1024px it prints AFTER every section (site/style.css, "the rail unstacks
+ * and prints after the article") — correct for the rail as a whole, since
+ * most of it (compare, pinner) only makes sense once a reader has seen the
+ * chart it acts on, but wrong for the index specifically: a reader who wants
+ * "Spending" on a page ten screens tall has to scroll past all ten screens
+ * to find the one list of links that would have taken them straight there.
+ *
+ * This is that same index, printed a second time, immediately after the
+ * hero, in a <details> so it costs a phone screen nothing until opened.
+ * `hidden` at 1024px and up, where the rail's own copy is already on
+ * screen — never both. A native <details>, not a JS-built one: exactly the
+ * markup site/style.css's own "RAIL, STICKY BAR, PINNER" comment asked for.
+ */
+const jumpSheet = (index) =>
+  index.length < 2
+    ? ''
+    : `<details class="rail-sheet">
+  <summary>Jump to a section</summary>
+  <ol class="rail-index">
+${index.map((s) => `    <li><a class="rail-link" href="#${esc(s.id)}">${s.label}</a></li>`).join('\n')}
+  </ol>
+</details>`
+
 /** The cohort switch, moved out of the hero. Same markup, new home. */
 const railCompare = (vm) =>
   !vm.cohorts?.length
@@ -112,10 +137,17 @@ export function payloadPath() {
   return cachedPayload
 }
 
-/** Everything in the left rail, in reading order. */
+/** Everything in the left rail, in reading order.
+ *
+ * Compare leads, ahead of the section index. "How does this compare" is the
+ * second question a reader asks, right after the score itself (the first is
+ * answered on the page, before the rail is ever reached) — it used to sit
+ * under the full section index, which on a long entity page runs 8-12 links
+ * deep and buried the one control most readers actually want under a wall
+ * of anchors. */
 export function railFor(vm, index, { payload = null } = {}) {
   const hasChart = index.some((s) => s.id === 'trajectory')
-  return [railSections(index), railCompare(vm), railPins(hasChart ? payload : null)]
+  return [railCompare(vm), railSections(index), railPins(hasChart ? payload : null)]
     .filter(Boolean)
     .join('\n')
 }
@@ -212,13 +244,17 @@ export function renderEntity(vm, { payload = payloadPath() } = {}) {
   // before the thing it indexes exists.
   const sections = SECTIONS.map((s) => s(vm))
   const index = sectionIndex(sections)
+  // The mobile jump sheet is spliced in AFTER the index is built from the
+  // real sections, and is not itself a <section id="…">, so it can never
+  // end up indexing itself.
+  const sectionsWithJump = [sections[0], jumpSheet(index), ...sections.slice(1)]
 
   return shell({
     title: `${vm.name} — ratings, student outcomes and spending`,
     description: metaDescription(vm),
     canonical: `${SITE_ORIGIN}/${vm.level}/${vm.slug}`,
     crumbs,
-    sections,
+    sections: sectionsWithJump,
     rail: railFor(vm, index, { payload }),
     sticky: stickyFor(vm),
   })

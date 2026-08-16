@@ -219,9 +219,12 @@ describe('renderEntity (src/render/page.js)', () => {
     expect(html).toContain('not affiliated with the Texas Education Agency')
   })
 
-  it('labels the sector', () => {
-    expect(renderEntity(vm({ isCharter: true }))).toContain('Charter')
+  it('labels every entity Traditional — this site excludes charters entirely', () => {
     expect(html).toContain('Traditional')
+    // Even a view model someone constructs with isCharter: true must not
+    // relabel the page: charters never reach this renderer once excluded at
+    // the build step, and the eyebrow no longer reads that field at all.
+    expect(renderEntity(vm({ isCharter: true }))).toContain('Traditional')
   })
 
   it('labels alternative-education campuses so their bar is not mistaken for a comprehensive one', () => {

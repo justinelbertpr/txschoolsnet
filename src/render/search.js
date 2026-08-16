@@ -285,7 +285,7 @@ const letterNav = (countsByLetter, current = null) =>
         meta: finite(n) ? `${num(n)} ${n === 1 ? 'name' : 'names'}` : null,
       }
     }),
-    { label: 'Search index by first letter' }
+    { label: 'Search index by first letter', className: 'navlist-letters' }
   )
 
 const sourceSection = (snapshotDate) =>
@@ -428,8 +428,10 @@ export function renderSearchPage({ districts = [], campuses = [], letter = null,
  * a CSS comment, so none of it is served to 10,230 readers.
  *
  *   TOKENS ONLY. Not one literal colour, so the control inherits both themes
- *   from site/style.css without knowing either exists. Nothing animates, so
- *   prefers-reduced-motion has nothing to suppress.
+ *   from site/style.css without knowing either exists. .sitesearch-go's lift
+ *   (transform+box-shadow) is gated on prefers-reduced-motion:no-preference;
+ *   its background/border-color hover swap is a plain colour change and
+ *   stays unguarded, same as .rk-btn's border-color hover in site/style.css.
  *
  *   .sitesearch-field is the positioning anchor rather than the form, so the
  *   panel opens directly under the input. Anchored to the form it opened below
@@ -464,6 +466,11 @@ const SEARCH_CSS = `
 .sitesearch-input::placeholder{color:var(--ink-3)}
 .sitesearch-go{font:inherit;font-size:1rem;padding:.6rem 1rem;cursor:pointer;
  color:var(--surface);background:var(--accent);border:1px solid var(--accent);border-radius:var(--radius)}
+.sitesearch-go:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+@media (prefers-reduced-motion:no-preference){
+ .sitesearch-go{transition:transform .15s cubic-bezier(.22,.61,.36,1),box-shadow .15s,background .15s}
+ .sitesearch-go:hover{transform:translateY(-1px);box-shadow:var(--shadow-raised)}
+}
 .sitesearch-label{display:block;font-weight:600;margin:0 0 .35rem}
 .sitesearch-hint{margin:.45rem 0 0;font-size:.8125rem;color:var(--ink-3);max-width:var(--measure)}
 .sitesearch-hero .sitesearch-input{font-size:1.125rem;padding:.75rem .85rem}

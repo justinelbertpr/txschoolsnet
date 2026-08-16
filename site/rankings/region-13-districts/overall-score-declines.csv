@@ -3,78 +3,62 @@
 # snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
 # dataset: ranking board
 # page: https://txschools.net/rankings/region-13-districts/overall-score-declines
-# rows: 64 (excluding this header and the column row)
+# rows: 50 (excluding this header and the column row)
 # ranking: Region 13: Austin school districts with the largest overall score declines since 2021-22
-# population: 64 districts of 69 districts are ranked here.
-# population: 2 were not rated by TEA for 2025-26 and are not ranked.
-# population: 3 have no figure at the start of the window and are not ranked.
+# population: 50 districts of 50 districts are ranked here.
 # rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
 # methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
 # empty cell = TEA did not publish that figure. It does not mean zero.
 # numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
 # lines starting with # are comments — pandas: read_csv(path, comment='#')
 rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
-1,64,0,227805,Texas Empowerment Academy,Travis,F,-31,88,57,760,https://txschools.net/district/texas-empowerment-academy-227805
-2,64,0,227819,University of Texas Elem Charter School,Travis,C,-15,91,76,305,https://txschools.net/district/university-of-texas-elem-charter-school-227819
-3,64,2,246914,Coupland ISD,Williamson,C,-13,89,76,315,https://txschools.net/district/coupland-isd-246914
-3,64,2,227506,University of Texas at Austin HS,Travis,C,-13,83,70,1211,https://txschools.net/district/university-of-texas-at-austin-hs-227506
-3,64,2,227806,University of Texas University Charter School,Travis,B,-13,97,84,695,https://txschools.net/district/university-of-texas-university-charter-school-227806
-6,64,1,227817,Cedars International Academy,Travis,B,-9,92,83,543,https://txschools.net/district/cedars-international-academy-227817
-6,64,1,227829,Valor Education,Travis,B,-9,90,81,4738,https://txschools.net/district/valor-education-227829
-8,64,1,227826,Montessori for All,Travis,D,-8,77,69,556,https://txschools.net/district/montessori-for-all-227826
-8,64,1,227824,Valere Public Schools,Travis,C,-8,78,70,812,https://txschools.net/district/valere-public-schools-227824
-10,64,0,227910,Del Valle ISD,Travis,D,-7,73,66,11766,https://txschools.net/district/del-valle-isd-227910
-11,64,1,246906,Hutto ISD,Williamson,C,-6,81,75,11069,https://txschools.net/district/hutto-isd-246906
-11,64,1,089903,Nixon-Smiley CISD,Gonzales,C,-6,84,78,994,https://txschools.net/district/nixon-smiley-cisd-089903
-13,64,3,086024,Doss Consolidated CSD,Gillespie,B,-4,89,85,18,https://txschools.net/district/doss-consolidated-csd-086024
-13,64,3,016901,Johnson City ISD,Blanco,B,-4,87,83,677,https://txschools.net/district/johnson-city-isd-016901
-13,64,3,028906,Prairie Lea ISD,Caldwell,F,-4,56,52,276,https://txschools.net/district/prairie-lea-isd-028906
-13,64,3,075903,Schulenburg ISD,Fayette,C,-4,81,77,644,https://txschools.net/district/schulenburg-isd-075903
-17,64,1,227912,Lago Vista ISD,Travis,C,-3,80,77,1864,https://txschools.net/district/lago-vista-isd-227912
-17,64,1,011905,McDade ISD,Bastrop,C,-3,73,70,373,https://txschools.net/district/mcdade-isd-011905
-19,64,7,027903,Burnet CISD,Burnet,C,-2,73,71,3224,https://txschools.net/district/burnet-cisd-027903
-19,64,7,144901,Giddings ISD,Lee,B,-2,84,82,1798,https://txschools.net/district/giddings-isd-144901
-19,64,7,105906,Hays CISD,Hays,B,-2,83,81,24938,https://txschools.net/district/hays-cisd-105906
-19,64,7,105801,Katherine Anne Porter School,Hays,D,-2,68,66,76,https://txschools.net/district/katherine-anne-porter-school-105801
-19,64,7,144902,Lexington ISD,Lee,B,-2,84,82,1014,https://txschools.net/district/lexington-isd-144902
-19,64,7,028903,Luling ISD,Caldwell,C,-2,78,76,1431,https://txschools.net/district/luling-isd-028903
-19,64,7,227907,Manor ISD,Travis,D,-2,68,66,9826,https://txschools.net/district/manor-isd-227907
-19,64,7,075908,Round Top-Carmine ISD,Fayette,B,-2,91,89,237,https://txschools.net/district/round-top-carmine-isd-075908
-27,64,1,227825,Austin Achieve Public Schools,Travis,C,-1,72,71,2852,https://txschools.net/district/austin-achieve-public-schools-227825
-27,64,1,227901,Austin ISD,Travis,B,-1,82,81,69000,https://txschools.net/district/austin-isd-227901
-29,64,3,105904,Dripping Springs ISD,Hays,B,0,89,89,8793,https://txschools.net/district/dripping-springs-isd-105904
-29,64,3,246905,Granger ISD,Williamson,C,0,76,76,573,https://txschools.net/district/granger-isd-246905
-29,64,3,227816,Harmony Public Schools - Central Texas,Travis,B,0,86,86,5679,https://txschools.net/district/harmony-public-schools-central-texas-227816
-29,64,3,150901,Llano ISD,Llano,B,0,85,85,2009,https://txschools.net/district/llano-isd-150901
-33,64,2,227909,Eanes ISD,Travis,A,1,93,94,7524,https://txschools.net/district/eanes-isd-227909
-33,64,2,075901,Flatonia ISD,Fayette,A,1,92,93,675,https://txschools.net/district/flatonia-isd-075901
-33,64,2,246913,Leander ISD,Williamson,B,1,86,87,41854,https://txschools.net/district/leander-isd-246913
-36,64,6,014902,Bartlett ISD,Bell,C,2,77,79,399,https://txschools.net/district/bartlett-isd-014902
-36,64,6,016902,Blanco ISD,Blanco,B,2,79,81,1106,https://txschools.net/district/blanco-isd-016902
-36,64,6,011902,Elgin ISD,Bastrop,D,2,64,66,6221,https://txschools.net/district/elgin-isd-011902
-36,64,6,027904,Marble Falls ISD,Burnet,C,2,73,75,4054,https://txschools.net/district/marble-falls-isd-027904
-36,64,6,246801,Meridian World School LLC,Williamson,A,2,94,96,1757,https://txschools.net/district/meridian-world-school-llc-246801
-36,64,6,246909,Round Rock ISD,Williamson,B,2,87,89,45865,https://txschools.net/district/round-rock-isd-246909
-36,64,6,227803,Wayside Schools,Travis,C,2,73,75,1923,https://txschools.net/district/wayside-schools-227803
-43,64,1,011901,Bastrop ISD,Bastrop,C,3,69,72,13325,https://txschools.net/district/bastrop-isd-011901
-43,64,1,075906,Fayetteville ISD,Fayette,A,3,94,97,308,https://txschools.net/district/fayetteville-isd-075906
-45,64,1,227804,NYOS Charter School,Travis,B,4,85,89,1808,https://txschools.net/district/nyos-charter-school-227804
-45,64,1,227904,Pflugerville ISD,Travis,B,4,77,81,25028,https://txschools.net/district/pflugerville-isd-227904
-47,64,3,246907,Jarrell ISD,Williamson,C,5,69,74,4514,https://txschools.net/district/jarrell-isd-246907
-47,64,3,227913,Lake Travis ISD,Travis,A,5,86,91,10748,https://txschools.net/district/lake-travis-isd-227913
-47,64,3,246912,Thrall ISD,Williamson,A,5,88,93,916,https://txschools.net/district/thrall-isd-246912
-47,64,3,105905,Wimberley ISD,Hays,B,5,82,87,2633,https://txschools.net/district/wimberley-isd-105905
-51,64,2,227814,Chaparral Star Academy,Travis,A,6,93,99,385,https://txschools.net/district/chaparral-star-academy-227814
-51,64,2,075902,La Grange ISD,Fayette,B,6,77,83,1839,https://txschools.net/district/la-grange-isd-075902
-51,64,2,246908,Liberty Hill ISD,Williamson,B,6,79,85,10446,https://txschools.net/district/liberty-hill-isd-246908
-54,64,2,246904,Georgetown ISD,Williamson,B,8,72,80,13951,https://txschools.net/district/georgetown-isd-246904
-54,64,2,011904,Smithville ISD,Bastrop,C,8,71,79,1864,https://txschools.net/district/smithville-isd-011904
-54,64,2,166905,Thorndale ISD,Milam,B,8,76,84,662,https://txschools.net/district/thorndale-isd-166905
-57,64,2,089901,Gonzales ISD,Gonzales,C,10,66,76,2514,https://txschools.net/district/gonzales-isd-089901
-57,64,2,028902,Lockhart ISD,Caldwell,C,10,69,79,6757,https://txschools.net/district/lockhart-isd-028902
-57,64,2,105902,San Marcos CISD,Hays,C,10,66,76,8134,https://txschools.net/district/san-marcos-cisd-105902
-60,64,1,144903,Dime Box ISD,Lee,B,14,69,83,169,https://txschools.net/district/dime-box-isd-144903
-60,64,1,089905,Waelder ISD,Gonzales,B,14,70,84,588,https://txschools.net/district/waelder-isd-089905
-62,64,2,246902,Florence ISD,Williamson,B,16,69,85,1125,https://txschools.net/district/florence-isd-246902
-62,64,2,086901,Fredericksburg ISD,Gillespie,B,16,73,89,2956,https://txschools.net/district/fredericksburg-isd-086901
-62,64,2,246911,Taylor ISD,Williamson,B,16,64,80,2882,https://txschools.net/district/taylor-isd-246911
+1,50,1,246914,Coupland ISD,Williamson,C,-13,89,76,315,https://txschools.net/district/coupland-isd-246914
+1,50,1,227506,University of Texas at Austin HS,Travis,C,-13,83,70,1211,https://txschools.net/district/university-of-texas-at-austin-hs-227506
+3,50,0,227910,Del Valle ISD,Travis,D,-7,73,66,11766,https://txschools.net/district/del-valle-isd-227910
+4,50,1,246906,Hutto ISD,Williamson,C,-6,81,75,11069,https://txschools.net/district/hutto-isd-246906
+4,50,1,089903,Nixon-Smiley CISD,Gonzales,C,-6,84,78,994,https://txschools.net/district/nixon-smiley-cisd-089903
+6,50,3,086024,Doss Consolidated CSD,Gillespie,B,-4,89,85,18,https://txschools.net/district/doss-consolidated-csd-086024
+6,50,3,016901,Johnson City ISD,Blanco,B,-4,87,83,677,https://txschools.net/district/johnson-city-isd-016901
+6,50,3,028906,Prairie Lea ISD,Caldwell,F,-4,56,52,276,https://txschools.net/district/prairie-lea-isd-028906
+6,50,3,075903,Schulenburg ISD,Fayette,C,-4,81,77,644,https://txschools.net/district/schulenburg-isd-075903
+10,50,1,227912,Lago Vista ISD,Travis,C,-3,80,77,1864,https://txschools.net/district/lago-vista-isd-227912
+10,50,1,011905,McDade ISD,Bastrop,C,-3,73,70,373,https://txschools.net/district/mcdade-isd-011905
+12,50,6,027903,Burnet CISD,Burnet,C,-2,73,71,3224,https://txschools.net/district/burnet-cisd-027903
+12,50,6,144901,Giddings ISD,Lee,B,-2,84,82,1798,https://txschools.net/district/giddings-isd-144901
+12,50,6,105906,Hays CISD,Hays,B,-2,83,81,24938,https://txschools.net/district/hays-cisd-105906
+12,50,6,144902,Lexington ISD,Lee,B,-2,84,82,1014,https://txschools.net/district/lexington-isd-144902
+12,50,6,028903,Luling ISD,Caldwell,C,-2,78,76,1431,https://txschools.net/district/luling-isd-028903
+12,50,6,227907,Manor ISD,Travis,D,-2,68,66,9826,https://txschools.net/district/manor-isd-227907
+12,50,6,075908,Round Top-Carmine ISD,Fayette,B,-2,91,89,237,https://txschools.net/district/round-top-carmine-isd-075908
+19,50,0,227901,Austin ISD,Travis,B,-1,82,81,69000,https://txschools.net/district/austin-isd-227901
+20,50,2,105904,Dripping Springs ISD,Hays,B,0,89,89,8793,https://txschools.net/district/dripping-springs-isd-105904
+20,50,2,246905,Granger ISD,Williamson,C,0,76,76,573,https://txschools.net/district/granger-isd-246905
+20,50,2,150901,Llano ISD,Llano,B,0,85,85,2009,https://txschools.net/district/llano-isd-150901
+23,50,2,227909,Eanes ISD,Travis,A,1,93,94,7524,https://txschools.net/district/eanes-isd-227909
+23,50,2,075901,Flatonia ISD,Fayette,A,1,92,93,675,https://txschools.net/district/flatonia-isd-075901
+23,50,2,246913,Leander ISD,Williamson,B,1,86,87,41854,https://txschools.net/district/leander-isd-246913
+26,50,4,014902,Bartlett ISD,Bell,C,2,77,79,399,https://txschools.net/district/bartlett-isd-014902
+26,50,4,016902,Blanco ISD,Blanco,B,2,79,81,1106,https://txschools.net/district/blanco-isd-016902
+26,50,4,011902,Elgin ISD,Bastrop,D,2,64,66,6221,https://txschools.net/district/elgin-isd-011902
+26,50,4,027904,Marble Falls ISD,Burnet,C,2,73,75,4054,https://txschools.net/district/marble-falls-isd-027904
+26,50,4,246909,Round Rock ISD,Williamson,B,2,87,89,45865,https://txschools.net/district/round-rock-isd-246909
+31,50,1,011901,Bastrop ISD,Bastrop,C,3,69,72,13325,https://txschools.net/district/bastrop-isd-011901
+31,50,1,075906,Fayetteville ISD,Fayette,A,3,94,97,308,https://txschools.net/district/fayetteville-isd-075906
+33,50,0,227904,Pflugerville ISD,Travis,B,4,77,81,25028,https://txschools.net/district/pflugerville-isd-227904
+34,50,3,246907,Jarrell ISD,Williamson,C,5,69,74,4514,https://txschools.net/district/jarrell-isd-246907
+34,50,3,227913,Lake Travis ISD,Travis,A,5,86,91,10748,https://txschools.net/district/lake-travis-isd-227913
+34,50,3,246912,Thrall ISD,Williamson,A,5,88,93,916,https://txschools.net/district/thrall-isd-246912
+34,50,3,105905,Wimberley ISD,Hays,B,5,82,87,2633,https://txschools.net/district/wimberley-isd-105905
+38,50,1,075902,La Grange ISD,Fayette,B,6,77,83,1839,https://txschools.net/district/la-grange-isd-075902
+38,50,1,246908,Liberty Hill ISD,Williamson,B,6,79,85,10446,https://txschools.net/district/liberty-hill-isd-246908
+40,50,2,246904,Georgetown ISD,Williamson,B,8,72,80,13951,https://txschools.net/district/georgetown-isd-246904
+40,50,2,011904,Smithville ISD,Bastrop,C,8,71,79,1864,https://txschools.net/district/smithville-isd-011904
+40,50,2,166905,Thorndale ISD,Milam,B,8,76,84,662,https://txschools.net/district/thorndale-isd-166905
+43,50,2,089901,Gonzales ISD,Gonzales,C,10,66,76,2514,https://txschools.net/district/gonzales-isd-089901
+43,50,2,028902,Lockhart ISD,Caldwell,C,10,69,79,6757,https://txschools.net/district/lockhart-isd-028902
+43,50,2,105902,San Marcos CISD,Hays,C,10,66,76,8134,https://txschools.net/district/san-marcos-cisd-105902
+46,50,1,144903,Dime Box ISD,Lee,B,14,69,83,169,https://txschools.net/district/dime-box-isd-144903
+46,50,1,089905,Waelder ISD,Gonzales,B,14,70,84,588,https://txschools.net/district/waelder-isd-089905
+48,50,2,246902,Florence ISD,Williamson,B,16,69,85,1125,https://txschools.net/district/florence-isd-246902
+48,50,2,086901,Fredericksburg ISD,Gillespie,B,16,73,89,2956,https://txschools.net/district/fredericksburg-isd-086901
+48,50,2,246911,Taylor ISD,Williamson,B,16,64,80,2882,https://txschools.net/district/taylor-isd-246911

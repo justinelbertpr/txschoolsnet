@@ -85,6 +85,20 @@ export function assertOrphanIdSet(table, actualIds, expectedIds) {
 // accountability/directory record for them. Observed 2026-08.
 export const KNOWN_ORPHAN_IDS = ['221801026', '227901029', '227901054', '227901157']
 
+/**
+ * This site publishes traditional public school districts and their
+ * campuses only. Charter entities (entity_type === 'Charter', toEntities'
+ * own isCharter flag) are excluded here, at the single point every entity
+ * enters the pipeline, rather than filtered per-page downstream — the same
+ * reason KNOWN_ORPHAN_IDS is dropped at the source above: one list a
+ * reader could reach through a stale filter is one too many. Everything
+ * that counts entities (the homepage stat grid, About's tally, the
+ * sitemap, search, rankings, the download files) reads off `entities`
+ * after this filter runs, so nothing downstream has to know charters were
+ * ever in the source data at all.
+ */
+export const excludeCharters = (entities) => entities.filter((e) => !e.isCharter)
+
 const readSource = async (dir, name) =>
   JSON.parse(gunzipSync(await readFile(`${dir}/${name}.json.gz`)).toString('utf8'))
 
@@ -102,15 +116,31 @@ export async function build() {
     readSource(dir, 'profile_tab'),
   ])
 
-  const entities = toEntities(districts, schools)
+  const allEntities = toEntities(districts, schools)
+  const entities = excludeCharters(allEntities)
+  const charterIds = new Set(allEntities.filter((e) => e.isCharter).map((e) => e.id))
   const known = new Set(entities.map((e) => e.id))
+  console.log(
+    `  excluded charters  ${charterIds.size} entities (this site publishes traditional public schools only)`
+  )
 
-  // Rows for known-orphan campus ids are dropped at the source (rather than
-  // crashing the build or weakening assertIntegrity below). What's asserted
-  // is the *id set*, not a row count — see assertOrphanIdSet for why a count
-  // is the wrong invariant for a table exploded across year labels.
+  // Rows for known-orphan campus ids AND for excluded charter ids are both
+  // dropped at the source (rather than crashing the build or weakening
+  // assertIntegrity below). The two are asserted differently on purpose:
+  // KNOWN_ORPHAN_IDS is a small, hand-verified list of genuine data
+  // anomalies, so its id SET is asserted exactly — see assertOrphanIdSet for
+  // why a count is the wrong invariant for a table exploded across year
+  // labels. charterIds is large and derived straight from today's snapshot
+  // (a charter can open, close, or simply lack a rating-history row for a
+  // given year), so it is filtered out of the comparison rather than
+  // asserted id-for-id — asserting it exactly would fail the build over a
+  // charter's own data coverage, not over anything this site got wrong.
   const ratingsDrop = dropOrphans(toRatings(cot), known)
-  assertOrphanIdSet('ratings', ratingsDrop.droppedIds, KNOWN_ORPHAN_IDS)
+  assertOrphanIdSet(
+    'ratings',
+    ratingsDrop.droppedIds.filter((id) => !charterIds.has(id)),
+    KNOWN_ORPHAN_IDS
+  )
 
   // profile_tab is one row per entity (toProfile is a plain .map, no
   // explode), so a dropped-row count and a dropped-id-set assertion carry
@@ -118,9 +148,10 @@ export async function build() {
   // to make a count fragile. A plain count is kept for that reason: it's
   // the simpler assertion and loses nothing over asserting the set.
   const profileDrop = dropOrphans(toProfile(profileRaw), known)
-  if (profileDrop.dropped !== 4) {
+  const profileNonCharterDropped = profileDrop.droppedIds.filter((id) => !charterIds.has(id)).length
+  if (profileNonCharterDropped !== 4) {
     throw new Error(
-      `profile: expected to drop exactly 4 orphan rows, dropped ${profileDrop.dropped} — investigate before proceeding`
+      `profile: expected to drop exactly 4 non-charter orphan rows, dropped ${profileNonCharterDropped} — investigate before proceeding`
     )
   }
 

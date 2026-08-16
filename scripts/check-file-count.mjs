@@ -20,8 +20,13 @@
 //     dashboard payload, search index            2
 //     favicon.svg, og.png,
 //       apple-touch-icon.png                     3
+//     ranking boards + CSVs                    513   257 boards (metric x scope,
+//                                                     both ends of every ordering)
+//                                                     + 256 CSVs beside them — see
+//                                                     THE FILE BUDGET in
+//                                                     src/prerender.js
 //     ------------------------------------------
-//                                           12,971   5,029 under the guard
+//                                           13,484   4,516 under the guard
 //
 // The line that matters is the per-entity one. Campus CSV and JSON are NOT
 // generated: 10,230 entities x 2 formats is 20,460 files on its own, past the

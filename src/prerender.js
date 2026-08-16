@@ -677,7 +677,6 @@ const EXCLUSION_REASONS = {
   notRated: (n, year) => `${n === 1 ? 'was' : 'were'} not rated by TEA for ${year}`,
   population: (n) =>
     `${n === 1 ? 'is' : 'are'} judged under the other accountability standard, on which this measure means something different`,
-  sector: (n) => `${n === 1 ? 'was' : 'were'} removed by the sector filter`,
   aea: (n) => `${n === 1 ? 'was' : 'were'} removed by the alternative-education filter`,
   noValue: (n) => `reported no figure for this measure`,
   noStart: (n) => `${n === 1 ? 'has' : 'have'} no figure at the start of the window`,
@@ -687,7 +686,7 @@ const EXCLUSION_REASONS = {
 // `level` and `scope` count the entities this page was never about — the wrong
 // level, or a different county — and naming them would put "9,031 campuses are
 // not ranked" under a table of districts.
-const EXCLUDED_HERE = ['notRated', 'population', 'sector', 'aea', 'noValue', 'noStart', 'noEnd']
+const EXCLUDED_HERE = ['notRated', 'population', 'aea', 'noValue', 'noStart', 'noEnd']
 
 export function rankingMeta(result, latestYear) {
   const tally = result.population?.excluded ?? {}
@@ -902,6 +901,23 @@ export async function prerender({ concurrency } = {}) {
   const manifest = JSON.parse(readFileSync(`${dir}/manifest.json`, 'utf8'))
   const snapshotDate = humanDate(manifest.fetchedAt)
 
+  // The bare snapshot folder name ('2026-08', not the human-formatted
+  // snapshotDate above) and the content-hashed payload `npm run export` wrote
+  // before this step ran. Read here, early, rather than where the bulk-data
+  // section used to read it (after rankings.html was already written): the
+  // FILE the export step produced has been on disk the entire time this
+  // function runs — `npm run site` always runs export before prerender, and
+  // no resetDir call below touches site/data itself (only site/data/entity) —
+  // so the only thing that was ever missing was the JS variable holding its
+  // name, not the file. Hoisting the read is what lets the interactive
+  // rankings tool (`tool` below, and the bulk-data section further down) both
+  // use the same payload href without either one re-deriving it.
+  const snapshotName = dir.slice('data/raw/'.length)
+  const payloadName = existsSync('build/payload-name.txt')
+    ? readFileSync('build/payload-name.txt', 'utf8').trim()
+    : null
+  const payloadHref = payloadName && existsSync(`site/data/${payloadName}`) ? `/data/${payloadName}` : null
+
   const entities = ndjson('entities')
   const allRatings = ndjson('ratings')
   const profile = ndjson('profile')
@@ -961,6 +977,18 @@ export async function prerender({ concurrency } = {}) {
   const rankIndex = rankingIndex(kept)
   const rankingsIndexHref = RANKINGS_HREF
   const boardsFor = (scope) => rankingBoardsFor(kept, scope)
+
+  // The interactive rankings tool's starting ranking: statewide districts,
+  // overall score, highest first — the same catalogue entry `kept` already
+  // carries for site/rankings/texas-districts/overall-score-highest.html.
+  // Found now, while `kept` is fresh, so the write loop below can recognize
+  // it by reference (`b === toolEntry`) and capture the exact rows/meta that
+  // loop computes for that board — never a second, independently-computed
+  // ranking that could drift from the static page it duplicates.
+  const toolEntry = kept.find(
+    (b) => b.scope.kind === 'state' && b.level === 'district' && b.metric.key === 'score' && b.end === 'top'
+  )
+  let toolSource = null
 
   /* --- entity pages, striped across workers (see the PERFORMANCE note) ------ */
 
@@ -1152,6 +1180,13 @@ export async function prerender({ concurrency } = {}) {
   for (const b of kept) {
     const rows = rankingRows(b.result, b.end)
     const meta = rankingMeta(b.result, tables.latestYear)
+    // The interactive tool's starting ranking is the SAME rows/meta this
+    // board's own static page and CSV are about to be built from — captured
+    // here rather than recomputed after the loop, so the tool's SSR fallback
+    // and the board it duplicates (overall-score-highest) can never drift
+    // apart, even if one of the two call sites is edited later and the other
+    // is not.
+    if (b === toolEntry) toolSource = { metric: b.metric, scope: b.scope, rows, meta }
     await write(
       b.file,
       renderRankingPage({
@@ -1173,6 +1208,56 @@ export async function prerender({ concurrency } = {}) {
     }
   }
 
+  // The interactive tool's starting ranking, in the exact shape
+  // renderRankingsIndexPage's `tool` parameter documents. `payloadHref` was
+  // read at the top of this function (see the note there); `toolSource` was
+  // captured in the write loop above from the SAME rankBy result the
+  // overall-score-highest board and its CSV were just built from. Either one
+  // missing (no payload on disk, or — effectively never, at ~1,184 rated
+  // districts — the board itself suppressed by MIN_POPULATION) degrades to
+  // `tool: null`, which renderRankingsIndexPage already renders as "no tool
+  // section" rather than a half-wired one: see its own "omits the tool"
+  // tests.
+  //
+  // `defaults` is stated here, in the payload's own vocabulary
+  // ('score.latest', decoded client-side from years[0]), not the data
+  // layer's ('score', toolSource.metric.key) — the two name the same figure
+  // and this is how the two layers already talk elsewhere on this site. Two
+  // values are NOT simply site/rankings.js's own built-in defaults:
+  //   aea: 'include', not that file's internal 'exclude' — planRankings
+  //     calls rankBy/changeMetrics for every catalogue entry with no filters
+  //     override, so EVERY static board on this site (including the one this
+  //     tool starts on) is computed with alternative-education districts
+  //     included. Declaring 'exclude' here would make the served table
+  //     silently shrink the instant the payload loads and site/rankings.js's
+  //     own script recomputes with its own default filter — the exact
+  //     "rewrites itself the moment the payload lands" failure that file's
+  //     header comment warns against.
+  //   n: '50', not the design spec's literal "top twenty" — SIZES
+  //     (site/rankings.js) has no '20' option, and its own DEFAULTS.n is
+  //     already '50'. A declared '20' would be silently rejected by
+  //     readState's validation and produce the same rewrite-on-load bug.
+  const tool =
+    payloadHref && toolSource
+      ? {
+          payloadHref,
+          snapshot: snapshotName,
+          defaults: {
+            metric: 'score.latest',
+            level: 'district',
+            scope: 'state',
+            aea: 'include',
+            order: 'top',
+            n: '50',
+          },
+          metric: toolSource.metric,
+          scope: toolSource.scope,
+          end: 'top',
+          rows: toolSource.rows,
+          meta: toolSource.meta,
+        }
+      : null
+
   await write(
     'rankings.html',
     renderRankingsIndexPage({
@@ -1187,13 +1272,7 @@ export async function prerender({ concurrency } = {}) {
       // already loads for other pages — renderRankingsIndexPage's own
       // data-rankings-lookups script tag (site/rankings.js's documented
       // contract: {"regions":{"01":"Region 01: Edinburg"},
-      // "counties":{"001":"Anderson"}}) reads it when a `tool` is also
-      // passed. This step does not assemble `tool` — that is the interactive
-      // rankings.js widget's own payload/defaults/metric-key contract, a
-      // different vocabulary than rankings.js's, and not one of the defects
-      // this pass owns — so on a build without one, `lookups` is accepted
-      // and currently unused rather than wired to nothing that renders. See
-      // the handoff notes.
+      // "counties":{"001":"Anderson"}}) reads it whenever `tool` is present.
       lookups: {
         regions: Object.fromEntries(regionNames),
         counties: Object.fromEntries(countyNames),
@@ -1203,6 +1282,7 @@ export async function prerender({ concurrency } = {}) {
       // clear that bar; this is just its denominator, for the "the other N
       // counties..." sentence renderRankingsIndexPage now prints.
       countiesTotal: counties.length,
+      tool,
     })
   )
 
@@ -1251,10 +1331,9 @@ export async function prerender({ concurrency } = {}) {
     })
   }
 
-  const payloadName = existsSync('build/payload-name.txt')
-    ? readFileSync('build/payload-name.txt', 'utf8').trim()
-    : null
-  if (payloadName && existsSync(`site/data/${payloadName}`)) {
+  // payloadName / payloadHref were resolved once, near the top of this
+  // function — see the note there. Only the byte size is looked up here.
+  if (payloadHref) {
     files.push({
       href: `/data/${payloadName}`,
       label: payloadName,
@@ -1274,7 +1353,7 @@ export async function prerender({ concurrency } = {}) {
     bytes: null,
     description:
       `One file per district (${districts.length.toLocaleString('en-US')} of each), long format, every metric with its cohort and denominator. ` +
-      `Districts only — the ${campuses.length.toLocaleString('en-US')} campuses are not pre-generated, because 10,230 entities in two formats is 20,460 assets and this site is capped at 20,000. ` +
+      `Districts only — the ${campuses.length.toLocaleString('en-US')} campuses are not pre-generated, because ${entities.length.toLocaleString('en-US')} entities in two formats is ${(entities.length * 2).toLocaleString('en-US')} assets, on top of everything else this site publishes, and this site is capped at 20,000. ` +
       'A campus record is in the bulk files above.',
   })
 
