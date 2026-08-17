@@ -798,7 +798,12 @@ function initCohorts(chart) {
     const table = [...document.querySelectorAll('table.data')].find((t) =>
       /CCMR criteria/i.test(t.querySelector('caption')?.textContent ?? ''))
     if (!table) return null
-    const head = table.querySelectorAll('thead th')[2] ?? null
+    // The cohort now names itself in the header's second line and again in the
+    // note under the table, so a switch has to move both. Writing to the
+    // <small> rather than the <th> is what keeps the word "Average" — the part
+    // that says what the column IS — from being overwritten by the cohort name.
+    const head = table.querySelectorAll('thead th')[2]?.querySelector('small') ?? null
+    const noteCohort = document.querySelector('[data-ccmr-cohort]')
     const rows = [...table.querySelectorAll('tbody tr')]
       .map((tr) => {
         const cells = tr.querySelectorAll('td')
@@ -814,6 +819,7 @@ function initCohorts(chart) {
 
     return (c) => {
       if (head) head.textContent = c.short
+      if (noteCohort) noteCohort.textContent = c.label ?? c.short
       rows.forEach((r, i) => {
         const v = c.metrics[keys[i]]
         const mine = own[keys[i]]

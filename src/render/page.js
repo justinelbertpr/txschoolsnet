@@ -277,5 +277,7 @@ export function renderEntity(vm, { payload = payloadPath() } = {}) {
     sections: sectionsWithJump,
     rail: railFor(vm, index, { payload }),
     sticky: stickyFor(vm),
+    snapshot: vm.snapshotDate ?? null,
+    scripts: ['/md.js'],
   })
 }

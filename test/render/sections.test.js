@@ -346,7 +346,37 @@ describe('outcomes', () => {
     expect(html).toContain('similar') // the cohort's short name heads the column
     expect(html).toContain('55.0%')
     expect(html).toMatch(/cmp-up">\+6\.0/)
-    expect(html).toContain('<summary>View all 1 readiness criteria</summary>')
+  })
+
+  // The criteria used to sit behind <details>, which published one CCMR figure
+  // and hid the eleven that explain it. Asserted on the rendered table rather
+  // than on the absence of the old <summary> text, so the test still fails if
+  // the breakdown is re-hidden behind a disclosure worded any other way.
+  it('shows the criteria breakdown outright rather than behind a disclosure', () => {
+    const html = outcomes(empty({
+      ccmr: [{ label: 'College, career or military ready', value: '61%' }],
+      cohorts: COHORTS,
+      own: { 'ccmr:0': 61 },
+    }))
+    const table = html.slice(html.indexOf('CCMR criteria'))
+    expect(table).toContain('<table')
+    expect(html.slice(0, html.indexOf('CCMR criteria'))).not.toContain('<details')
+  })
+
+  // "Gap" over a column of bare signed numbers never said gap against what, in
+  // what unit, or which direction was good. Each of those three is asserted
+  // separately so a rewrite that drops one of them fails on that one.
+  it('says what the difference is measured against, in what unit, and which way is better', () => {
+    const html = outcomes(empty({
+      ccmr: [{ label: 'College, career or military ready', value: '61%' }],
+      cohorts: COHORTS,
+      own: { 'ccmr:0': 61 },
+    }))
+    expect(html).not.toMatch(/<th[^>]*>Gap</) // the header that answered none of the three
+    expect(html).toContain('percentage points') // the unit
+    expect(html).toMatch(/Average<small>/) // the column is an average, and of whom
+    expect(html).toContain('a bigger share is better') // the direction
+    expect(html).toMatch(/data-ccmr-cohort>[^<]+</) // the cohort, named in full
   })
 
   it('shows an em dash for a gap it cannot compute, rather than zero', () => {
@@ -485,14 +515,28 @@ const rank = (over = {}) => ({
 describe('claimSentence', () => {
   it('states the rank, the denominator, the cohort and the metric', () => {
     const s = claimSentence(vmFor(), rank())
-    expect(s).toContain('Cayuga ISD ranks 2nd of 1207 Texas districts')
-    expect(s).toContain('Overall score')
+    expect(s).toContain('Cayuga ISD ranks 2nd for Overall score among the 1207 Texas districts')
     expect(s).toContain('txschools.net')
+  })
+
+  it('names the measure before it says "it", so a pasted sentence is self-contained', () => {
+    // The bug: "...of 19 districts in Harris County that report this measure
+    // for College, career or military ready" — the reference came before the
+    // name, so the sentence read as a rank with no measure attached.
+    const s = claimSentence(vmFor(), rank({ label: 'College, career or military ready' }))
+    expect(s).not.toContain('this measure')
+    expect(s.indexOf('College, career or military ready')).toBeLessThan(s.indexOf('that report it'))
+  })
+
+  it('keeps the denominator qualifier, which is what makes the n mean something', () => {
+    // The n counts who reports THIS measure, not who exists — dropping the
+    // qualifier would quietly turn it into a different, larger claim.
+    expect(claimSentence(vmFor(), rank())).toContain('that report it')
   })
 
   it('never states a rank without its n', () => {
     for (const r of [rank({ rank: 1 }), rank({ rank: 11 }), rank({ rank: 23 }), rank({ cohort: 'peer' })]) {
-      expect(claimSentence(vmFor(), r)).toMatch(new RegExp(`ranks \\d+(st|nd|rd|th) of ${r.of}\\b`))
+      expect(claimSentence(vmFor(), r)).toMatch(new RegExp(`ranks \\d+(st|nd|rd|th) for .+ among the ${r.of}\\b`))
     }
   })
 
@@ -515,7 +559,7 @@ describe('claimSentence', () => {
   it('states the tie count, so a shared ceiling is never read as a sole placement', () => {
     const s = claimSentence(vmFor(), rank({ rank: 1, of: 1084, tied: 213, label: 'Four-Year Graduation Rate' }))
     expect(s).toContain('tied with 213 others')
-    expect(s).toContain('1st of 1084')
+    expect(s).toContain('1st for Four-Year Graduation Rate among the 1084')
   })
 
   it('says one other, singular, for a single tie', () => {
@@ -576,7 +620,7 @@ describe('standouts', () => {
   it('offers a copyable claim that carries its own cohort and denominator', () => {
     const html = standouts(vm)
     const claim = html.match(/data-claim="([^"]+)"/)[1]
-    expect(claim).toContain('of 1207')
+    expect(claim).toContain('among the 1207')
     expect(claim).toContain('Source: txschools.net')
     expect(html).toContain('aria-label="Copy this statement"')
   })

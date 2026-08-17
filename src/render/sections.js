@@ -324,8 +324,16 @@ export function verdict(vm) {
     finite(change)
       ? ['Change', `${change > 0 ? '+' : change < 0 ? '−' : '±'}${Math.abs(change)}<small> pts</small>`, `since ${earliest.year}`]
       : null,
+    // "Comparable districts: +13.0 pts" named the comparison but never the
+    // measure or the basis, leaving the reader to infer both. The label now
+    // says which number moved, and the note says it is an average of a stated
+    // number of districts rather than some unnamed benchmark.
     finite(peerGap)
-      ? [`Comparable ${one}s`, `${peerGap > 0 ? '+' : peerGap < 0 ? '−' : '±'}${Math.abs(peerGap).toFixed(1)}<small> pts</small>`, `vs ${num(vm.peerN)} with a similar economic-disadvantage rate`]
+      ? [
+          `Score vs similar ${one}s`,
+          `${peerGap > 0 ? '+' : peerGap < 0 ? '−' : '±'}${Math.abs(peerGap).toFixed(1)}<small> pts</small>`,
+          `vs the average of ${num(vm.peerN)} with a similar economic-disadvantage rate`,
+        ]
       : null,
     vm.regionRank && vm.regionRankOf
       ? ['Regional placement', `${num(vm.regionRank)}<small> of ${num(vm.regionRankOf)}</small>`, vm.regionName]
@@ -658,19 +666,36 @@ export function outcomes(vm) {
   ${statGrid(vm.graduation.map((g, i) => [g.label.replace(/ (Graduation|Completion) Rate/, ''), pct(g.value) + cmp(vm, `grad:${i}`, { fmt: 'pct', invert: g.label === 'Dropout Rate' })]))}`
     : ''
 
+  // The 12 criteria used to sit behind <details>, which meant the page
+  // published one CCMR number and hid the eleven that explain it. A district
+  // at 97% on the headline can be there almost entirely on dual credit, or
+  // spread across certifications, military enlistment and advanced diplomas —
+  // and those are different districts to write about. The breakdown IS the
+  // section; it is not an appendix to it.
   const ccmr = vm.ccmr?.length
     ? `<h3>College, career and military readiness</h3>
   ${statGrid([[vm.ccmr[0].label, `${vm.ccmr[0].value ?? '—'}${cmp(vm, 'ccmr:0', { fmt: 'pct' })}`]])}
-  <details class="data-details"><summary>View all ${num(vm.ccmr.length)} readiness criteria</summary>${table({
+  ${table({
         caption: 'CCMR criteria',
-        head: ['Criterion', { label: 'This ' + (vm.level === 'district' ? 'district' : 'school'), num: true }, { label: vm.cohorts?.[0]?.short ?? 'Cohort', num: true }, { label: 'Gap', num: true }],
+        className: 'data scroll ccmr-tbl',
+        head: [
+          'Criterion',
+          { label: 'This ' + (vm.level === 'district' ? 'district' : 'school'), sub: '% of graduates', num: true },
+          { label: 'Average', sub: vm.cohorts?.[0]?.short ?? 'cohort', num: true },
+          { label: 'Difference', sub: 'percentage points', num: true },
+        ],
         rows: vm.ccmr.map((c, i) => {
           const other = vm.cohorts?.[0]?.metrics[`ccmr:${i}`] ?? null
           const mine = vm.own?.[`ccmr:${i}`] ?? null
           const gap = mine != null && other != null ? mine - other : null
           return `<tr><th scope="row" class="wrap">${esc(c.label)}</th><td class="num">${c.value ?? '—'}</td><td class="num">${other == null ? '—' : other.toFixed(1) + '%'}</td><td class="num">${gap == null ? '—' : `<span class="${gap >= 0 ? 'cmp-up' : 'cmp-down'}">${gap >= 0 ? '+' : '−'}${Math.abs(gap).toFixed(1)}</span>`}</td></tr>`
         }),
-      })}</details>`
+      })}
+  <p class="note">Every row is a share of this ${unit(vm)}'s graduates, and every row is a way of
+  meeting CCMR &mdash; so on every row, a bigger share is better. <strong>Difference</strong> is this
+  ${unit(vm)} minus the average for <strong data-ccmr-cohort>${esc(vm.cohorts?.[0]?.label ?? 'the comparison group')}</strong>,
+  counted in percentage points: <strong>+5.0</strong> would mean five more graduates in every hundred met that
+  criterion here. Graduates may meet several criteria, so the rows do not add up to the total.</p>`
     : ''
 
   const coverage = vm.cohorts?.length
@@ -829,9 +854,19 @@ export const claimSentence = (vm, r) => {
     : r.cohort === 'peer' ? `${unit} serving a similar share of economically disadvantaged students`
     : `${unit} in ${r.cohortLabel}`
   const tie = r.tied > 0 ? `, tied with ${r.tied} other${r.tied === 1 ? '' : 's'}` : ''
-  const reporting = ' that report this measure'
   const dir = r.lowerIsBetter ? 'lowest' : 'highest'
-  return `${vm.name} ranks ${r.rank}${ordSuffix(r.rank)} of ${r.of} ${scope}${reporting} for ${r.label} (${dir}, 2025-26)${tie}. Source: txschools.net`
+  // The measure is named where the sentence first refers to it. It used to read
+  // "...of 19 districts in Harris County that report this measure for College,
+  // career or military ready" — "this measure" pointing at something not yet
+  // named, and the name bolted on after the denominator. Pasted into an email
+  // or a story, that reads as a rank with no measure attached until the very
+  // end, which is the one thing a citable sentence cannot afford.
+  //
+  // "among the N ... that report it" keeps the denominator qualifier doing its
+  // job — the n is a count of who reports THIS measure, not of who exists —
+  // while letting "it" refer back to a measure the reader has already been
+  // given. Entity first, because a citation is about the entity.
+  return `${vm.name} ranks ${r.rank}${ordSuffix(r.rank)} for ${r.label} among the ${r.of} ${scope} that report it (${dir}, 2025-26)${tie}. Source: txschools.net`
 }
 
 export function standouts(vm) {
