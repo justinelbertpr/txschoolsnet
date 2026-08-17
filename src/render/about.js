@@ -35,12 +35,8 @@ const intro = () => `<section class="hero">
   <h1>About txschools.net</h1>
   <p class="alert"><strong>txschools.net is not affiliated with, endorsed by, or operated by
   the Texas Education Agency.</strong> It is an unofficial presentation of data TEA publishes.
-  The official site is <a href="https://txschools.gov">txschools.gov</a> — a similar address, which
-  is why this comes first. Where a figure here disagrees with the figure there, the official one is
-  right and this one is wrong.</p>
-  <p class="callout">Every number on this site is one TEA released, or an average, difference or
-  rank computed from those numbers and labelled as such. Nothing is modelled, estimated or filled
-  in.</p>
+  The official site is <a href="https://txschools.gov">txschools.gov</a>. Where a figure here
+  disagrees with the figure there, the official one is right and this one is wrong.</p>
 </section>`
 
 /* ------------------------------------------------------------ what it adds -- */
