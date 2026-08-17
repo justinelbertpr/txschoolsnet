@@ -2512,9 +2512,12 @@ main > section.hero-home {
 }
 .hero-home::before {
   content: ''; position: absolute; z-index: -1;
-  width: 20rem; height: 20rem; right: -8rem; bottom: -11rem;
-  border: 1px solid rgb(255 255 255 / .16); border-radius: 50%;
-  box-shadow: 0 0 0 4rem rgb(255 255 255 / .025), 0 0 0 8rem rgb(255 255 255 / .02);
+  width: clamp(20rem, 32vw, 26rem); height: auto; aspect-ratio: 1;
+  left: auto; right: clamp(14rem, 24vw, 21rem); top: auto; bottom: -1rem;
+  background: url('/texas.svg') center / contain no-repeat;
+  border: 0; border-radius: 0; box-shadow: none;
+  opacity: .42;
+  transform: rotate(2deg);
 }
 .hero-home .eyebrow { color: #9ee3dd; }
 .hero-home h1 {
@@ -2844,6 +2847,7 @@ footer.site {
   main { padding-top: 1rem; }
   main > section { margin-bottom: .9rem; }
   .home-hero-grid { grid-template-columns: 1fr; }
+  .hero-home::before { width: 16rem; right: -4.5rem; top: 1.25rem; bottom: auto; opacity: .22; }
   .home-trust-list { grid-template-columns: 1fr; }
   .home-trust-item + .home-trust-item { padding-top: .65rem; border-top: 1px solid var(--line-2); }
   .home-task-grid,
