@@ -258,13 +258,22 @@ describe('renderMapPage', () => {
     expect(html).toContain('no attendance boundary')
   })
 
-  it('uses a single-hue ramp, never the green-to-red one rule 3 forbids', () => {
-    // Guards the accessibility decision in this module's header: a later edit
-    // that "makes the map more intuitive" with green/amber/red should fail here.
+  it('ships the measured traffic light, not the classic one', () => {
+    // The site owner chose green-to-red, overriding rule 3, so what needs
+    // guarding is no longer "is it single-hue" but WHICH green-to-red. The
+    // classic ColorBrewer RdYlGn stops close to ΔE 9.7 on the B/D pair under
+    // deuteranopia; the shipped ramp holds that pair at 18.5. Reaching for the
+    // classic stops because they look more familiar would undo the only
+    // mitigation the override left available, and would do it silently.
+    //
+    // This replaces a test that forbade five specific prototype hexes. Once the
+    // ramp changed, none of those five appeared anywhere and it passed without
+    // asserting anything — a green test guarding nothing, under a name that had
+    // become false.
     expect(RAMP).toHaveLength(BUCKETS)
-    const html = page()
-    for (const c of ['#1a7f5a', '#63a86c', '#e0a731', '#d9782d', '#c2453c']) {
-      expect(html.toLowerCase()).not.toContain(c)
+    expect(RAMP).toEqual(['#0f5132', '#7cb342', '#ffe9a8', '#e8590c', '#7a0b16'])
+    for (const classic of ['#1a9641', '#a6d96a', '#ffffbf', '#fdae61', '#d7191c']) {
+      expect(RAMP).not.toContain(classic)
     }
   })
 

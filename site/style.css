@@ -41,6 +41,24 @@
       green–amber–red five-step ramp tested failed CVD separation (worst
       adjacent pair ΔE 0.6 under deuteranopia). The letter is the encoding.
 
+      ONE EXCEPTION, /map, by the site owner's explicit decision: that page
+      shades districts green through red. The ramp there was picked by
+      re-running this same measurement across candidate traffic lights and
+      taking the best — worst-of-ten-pairs ΔE 18.5 under deuteranopia, against
+      the classic ColorBrewer ramp's 9.7. See src/render/map.js for the table.
+      The letter still carries the meaning there: it is in the key, in every
+      district's accessible name and in the hover readout, and any class can be
+      switched off for an exact two-colour view. Everywhere else, this holds.
+
+      ONE EXCEPTION, /map, by the site owner's explicit decision: that page
+      shades districts green through red. The ramp there was chosen by
+      re-running this same measurement over candidate traffic lights and
+      taking the best (worst-of-ten-pairs ΔE 18.5 under deuteranopia against
+      the classic ramp's 9.7) — see src/render/map.js. The letter still
+      carries the meaning there: it is in the key, in every district's
+      accessible name and in the hover readout, and any class can be switched
+      off to get an exact two-colour view. Everywhere else this rule holds.
+
    Series separation, measured (Brettel dichromat simulation, CIE76 ΔE, and
    WCAG contrast on --surface):
       normal ΔE 34.4 min · protan 13.1 min · deutan 9.8 min
@@ -1663,42 +1681,79 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 .pin-remove:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* ---------- the state map ----------
-   src/render/map.js draws 1,015 district polygons as one inline SVG. The ramp
-   is single-hue and sequential on purpose, and the reasoning plus the measured
-   CVD numbers are in that module's header — the short version is that rule 3
-   at the top of this file forbids the obvious green-to-red choropleth, and
-   re-measuring confirmed why: green-amber-red scores deutan dE 12.1 and puts A
-   and F on the identical L* 47.
+   src/render/map.js draws 1,016 district polygons as one inline SVG. The ramp
+   is green through red at the site owner's explicit instruction, overriding
+   rule 3 at the top of this file for this page — see that rule, which records
+   the override, and map.js's header, which carries the measurements.
 
-   Lightness is the second channel here. On a polygon there is no dash pattern
-   or stroke weight to carry one, so the ramp is monotonic in L* (17 -> 92) and
-   an achromatic reader still sees an ordering. */
+   @layer IS LOad-BEARING HERE, not tidiness. The filter has to beat the ramp
+   fills but must NOT beat the focus ring: win by raw specificity and
+   `.map-svg a:focus-visible path` (0,2,2) loses to the filter, so keyboard
+   focus disappears on a muted district. Layering the ramp under the filter and
+   leaving focus/hover unlayered on top makes the whole thing order- and
+   specificity-independent. Unlayered always beats layered, which is exactly
+   what focus needs. */
+
+@layer map.ramp, map.filter;
 
 .map-figure { margin: 1rem 0 0; }
-.map-svg {
-  display: block; width: 100%; height: auto;
-  background: var(--ground); border-radius: var(--radius);
+.map-form { margin: 0; }
+
+@layer map.ramp {
+  .map-svg {
+    display: block; width: 100%; height: auto;
+    background: var(--ground); border-radius: var(--radius);
+  }
+  /* The hairline is what keeps 1,016 shapes from reading as one blob. It
+     scales with the viewBox, so it stays a hairline at every width. */
+  .map-svg path {
+    fill: var(--line-2);
+    stroke: var(--surface); stroke-width: .6; stroke-linejoin: round;
+  }
+  .map-svg [data-b="0"] { fill: #0f5132; }
+  .map-svg [data-b="1"] { fill: #7cb342; }
+  .map-svg [data-b="2"] { fill: #ffe9a8; }
+  .map-svg [data-b="3"] { fill: #e8590c; }
+  .map-svg [data-b="4"] { fill: #7a0b16; }
 }
-/* The hairline is what keeps 1,015 shapes from reading as one blob. It scales
-   with the viewBox, so it stays a hairline at every width. */
-.map-svg path {
-  fill: var(--line-2);
-  stroke: var(--surface); stroke-width: .6; stroke-linejoin: round;
+
+/* ---- turning a class off ----------------------------------------------
+   Pure CSS, no script: five checkboxes in the key, and `~` from the caption
+   to the svg they precede. Works for every layer because the selector keys on
+   data-b (the bucket index), never on what a class means — so the same five
+   rules serve "A" and "20.6%–45.6%" alike.
+
+   Muted districts are DIMMED, not removed. `fill: none` would also make the
+   interior non-hit-testable, leaving a 0.6-unit clickable sliver: the mouse
+   would break while the keyboard still worked. They stay clickable and
+   focusable on purpose — a reader filtering to "A" is still allowed to click
+   the county next door.
+
+   The hairline on the districts still shown is the second channel, and it is
+   the mechanism rather than decoration: the ramp spans nearly the whole
+   lightness axis, so no single flat "off" tone can sit clear of both ends —
+   muted vs #ffe9a8 and muted vs #0f5132 cannot both have contrast. The edge
+   is what makes "show only C" legible in light mode and "show only A" legible
+   in dark. */
+@layer map.filter {
+  .map-classes:has(.map-class:not(:checked)) ~ .map-svg path { stroke: var(--ink-3); stroke-width: .5; }
+  .map-classes:has(#map-b0:not(:checked)) ~ .map-svg [data-b="0"],
+  .map-classes:has(#map-b1:not(:checked)) ~ .map-svg [data-b="1"],
+  .map-classes:has(#map-b2:not(:checked)) ~ .map-svg [data-b="2"],
+  .map-classes:has(#map-b3:not(:checked)) ~ .map-svg [data-b="3"],
+  .map-classes:has(#map-b4:not(:checked)) ~ .map-svg [data-b="4"] {
+    fill: var(--line-2); stroke: var(--line); stroke-width: .3;
+  }
 }
-.map-svg [data-b="0"] { fill: #082f39; }
-.map-svg [data-b="1"] { fill: #155f70; }
-.map-svg [data-b="2"] { fill: #3d95a2; }
-.map-svg [data-b="3"] { fill: #8ac4c9; }
-.map-svg [data-b="4"] { fill: #dbebea; }
-/* Focus has to be visible over any shade in the ramp, including the darkest,
-   so it is a light halo rather than a colour. */
+
 .map-svg a:focus-visible { outline: none; }
 .map-svg a:focus-visible path { stroke: var(--accent); stroke-width: 2.5; }
 @media (hover: hover) {
   .map-svg a:hover path { stroke: var(--ink); stroke-width: 1.6; }
 }
 
-.map-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .7rem; margin: 0 0 .3rem; }
+.map-controls { display: flex; flex-wrap: wrap; gap: .6rem .9rem; margin: 0 0 .3rem; }
+.map-field { display: flex; flex-direction: column; gap: .2rem; min-width: 0; flex: 1 1 12rem; }
 .map-pick { font-weight: 650; font-size: var(--t-small); }
 .map-controls select {
   font: inherit; font-size: var(--t-small);
@@ -1707,22 +1762,62 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
   border: 1px solid var(--ink-3); border-radius: var(--radius);
 }
 
-.map-legend { margin: .9rem 0 0; }
+/* ---- the key, which is also the filter ---- */
+.map-legend { margin: 0 0 .55rem; padding: 0; border: 0; }
 .map-legend-title { margin: 0 0 .4rem; font-weight: 650; font-size: var(--t-small); }
+.map-legend-hint { font-weight: 400; color: var(--ink-3); }
 .map-legend ul {
-  list-style: none; display: flex; flex-wrap: wrap; gap: .3rem .9rem;
+  list-style: none; display: flex; flex-wrap: wrap; gap: .25rem .5rem;
   margin: 0; padding: 0; font-size: var(--t-small); color: var(--ink-2);
 }
-.map-legend li { display: flex; align-items: center; gap: .4rem; }
+.map-legend li { margin: 0; }
+/* The whole entry is the target, and it clears the 2.75rem floor this site
+   holds everywhere else — a bare 1.1rem swatch would not. */
+.map-legend label {
+  display: flex; align-items: center; gap: .4rem;
+  min-height: 2.75rem; padding: 0 .5rem 0 .35rem;
+  border: 1px solid transparent; border-radius: var(--radius);
+  cursor: pointer;
+}
+.map-legend label:hover { background: var(--hover); }
+.map-class:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* An unticked class reads as off in the key too, not only on the map. */
+.map-class:not(:checked) + label { color: var(--ink-3); }
+.map-class:not(:checked) + label .map-swatch { background: var(--line-2); }
+.map-class:not(:checked) + label .map-range { text-decoration: line-through; }
+
 .map-swatch {
   width: 1.1rem; height: 1.1rem; flex: none;
   border-radius: .2rem; border: 1px solid var(--line);
 }
-.map-swatch[data-b="0"] { background: #082f39; }
-.map-swatch[data-b="1"] { background: #155f70; }
-.map-swatch[data-b="2"] { background: #3d95a2; }
-.map-swatch[data-b="3"] { background: #8ac4c9; }
-.map-swatch[data-b="4"] { background: #dbebea; }
+.map-swatch[data-b="0"] { background: #0f5132; }
+.map-swatch[data-b="1"] { background: #7cb342; }
+.map-swatch[data-b="2"] { background: #ffe9a8; }
+.map-swatch[data-b="3"] { background: #e8590c; }
+.map-swatch[data-b="4"] { background: #7a0b16; }
+
+.map-reset { margin: .5rem 0 0; }
+.map-reset button {
+  font: inherit; font-size: var(--t-small); min-height: 2.75rem;
+  padding: .4rem .9rem; cursor: pointer;
+  color: var(--ink-2); background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius);
+}
+.map-reset button:hover { color: var(--ink); background: var(--hover); border-color: var(--line-2); }
+
+/* ---- hover readout ----------------------------------------------------
+   Positioned by site/map.js. pointer-events:none so it can never sit between
+   the pointer and the district underneath it. */
+.map-tip {
+  position: fixed; z-index: 50; pointer-events: none;
+  max-width: 16rem; padding: .35rem .55rem;
+  font-size: var(--t-small); line-height: 1.3;
+  color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line-2); border-radius: var(--radius);
+  box-shadow: var(--shadow-raised, 0 4px 14px -8px rgb(16 42 67 / .5));
+}
+.map-tip b { display: block; font-weight: 650; }
+.map-tip span { color: var(--ink-2); }
 
 /* ---------- pager ----------
    The page-to-page navigation under a long ranked list

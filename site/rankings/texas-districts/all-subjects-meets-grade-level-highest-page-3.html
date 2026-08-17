@@ -29,7 +29,9 @@
 <link rel="stylesheet" href="/style.css">
 <link rel="preload" href="/fonts/geist-var.woff2" as="font" type="font/woff2" crossorigin>
 <script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
-<script>if(window.trustedTypes&&trustedTypes.createPolicy){try{trustedTypes.createPolicy('default',{createHTML:function(s){return s}})}catch(e){}}</script>
+<script>if(window.trustedTypes&&trustedTypes.createPolicy){try{trustedTypes.createPolicy('default',{createHTML:function(s){return s},createScriptURL:function(u){var a=['https://www.googletagmanager.com/','https://www.google-analytics.com/'];for(var i=0;i<a.length;i++){if(u.indexOf(a[i])===0)return u}if(u.indexOf('/')===0||u.indexOf(location.origin+'/')===0)return u;throw new TypeError('blocked script url: '+u)}})}catch(e){}}</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-W5GMR15VZD"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-W5GMR15VZD');</script>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 

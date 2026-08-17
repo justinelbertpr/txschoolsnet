@@ -141,14 +141,15 @@ describe('the page frame', () => {
     // 1st carries .rk-podium too — a weight/rule treatment for the top 3
     // placements, never a colour (see site/style.css .rk-podium).
     expect(html).toContain('<td class="num rk-podium">1st</td>')
-    // Only the shell's own scripts: search + app (external) and the two
-    // inline before-paint snippets, THEME_INIT_SCRIPT (sets [data-theme] if
-    // a reader has stored a preference) and TRUSTED_TYPES_INIT_SCRIPT
-    // (installs the Trusted Types policy site/_headers' CSP requires) — both
-    // no-ops with nothing to restore or policy-check here, never a source of
-    // rendered content. None of the four are this page's own. This count is
-    // the guard on site/_headers' hash list: it must move in lockstep.
-    expect(html.match(/<script/g).length).toBe(html.match(/src="\/(search|app)\.js"/g).length + 2)
+    // Only the shell's own scripts, none of them this page's: search + app
+    // (external), the Google tag (external, async), and the three inline
+    // snippets — THEME_INIT_SCRIPT, TRUSTED_TYPES_INIT_SCRIPT and the gtag
+    // config. None is a source of rendered content, so the table below is in
+    // the markup either way. This count is the guard on site/_headers' hash
+    // list: it must move in lockstep, and test/render/page.test.js checks the
+    // hashes themselves.
+    const external = html.match(/src="\/(search|app)\.js"/g).length
+    expect(html.match(/<script/g).length).toBe(external + 1 /* gtag src */ + 3 /* inline */)
   })
 })
 

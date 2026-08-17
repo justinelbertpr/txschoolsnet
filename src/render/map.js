@@ -3,29 +3,22 @@
 //
 // ------------------------------------------------------------------ ENCODING
 //
-// site/style.css rule 3 says grades are never colour-coded, and gives the
-// measurement behind it: every green–amber–red five-step ramp tested failed
-// CVD separation, worst adjacent pair ΔE 0.6 under deuteranopia. That rule
-// applies here, and the obvious choropleth — green A through red F — is exactly
-// what it forbids. Re-measured for this page with the same method (Brettel
-// simulation, CIE76): green–amber–red scores deutan ΔE 12.1 AND is
-// non-monotonic in lightness, with A and F landing on the identical L* 47. A
-// reader with deuteranopia cannot tell the best districts from the worst.
+// Green through red, at the site owner's explicit instruction. site/style.css
+// rule 3 says grades are never colour-coded and gives the measurement behind
+// it; that rule now records this page as a deliberate exception rather than
+// being quietly contradicted by it.
 //
-// So the ramp here is single-hue and sequential, on the brand teal:
+// The measurements are on RAMP below. The short version: the classic
+// green-amber-red ramp fails not on its adjacent pairs but on B/D, which close
+// to ΔE 9.7 under deuteranopia — and B/D is a non-adjacent pair, so the
+// four-adjacent-pair test this file used to apply would have passed it. The
+// ramp that ships holds that same pair at 18.5, bought by deepening A well
+// below B and F well below D.
 //
-//     L*  17 → 37 → 57 → 76 → 92          (monotonic, so it survives even
-//     ΔE  normal 19.9 · protan 16.9        total achromatopsia as a
-//         deutan 19.8 · tritan 20.2        light-to-dark ordering)
-//
-// Every one of those minimums beats the site's existing series palette
-// (protan 13.1, deutan 9.8). Lightness IS the second channel rule 3 asks for:
-// on a polygon there is no dash pattern to carry one, and hue alone would be
-// the whole encoding. The letter stays the encoding in the legend and in every
-// district's own accessible name.
-//
-// Two-colour views — "show me the A districts" — are the default and are
-// trivially safe: a district is in the set or it is not.
+// It is still less safe than a single hue, and the letter is what carries the
+// meaning: it is in the key, in every district's accessible name, and in the
+// hover readout. The reader can also switch any class off, which is a
+// two-colour view and therefore exact regardless of colour vision.
 //
 // ----------------------------------------------------------------- NO SCRIPT
 //
@@ -51,12 +44,32 @@ export const MAP_FILE = 'map.html'
 export const BUCKETS = 5
 
 /**
- * The ramp, darkest first. Dark = more of the thing measured, always — never
- * "dark = good", because the same ramp draws chronic absenteeism and dropout
- * rate, where more is worse. The legend states the direction in words for
- * every layer rather than relying on the reader to infer it.
+ * Green through red, at the site owner's explicit instruction, overriding the
+ * single-hue ramp this page shipped with and the "never colour-code a grade"
+ * line in site/style.css rule 3. The override is recorded there too, so the
+ * stylesheet does not assert one thing while the map does another.
+ *
+ * Given the decision, this is the best-separating traffic light I could
+ * measure rather than the obvious one. Brettel/Viénot simulation, CIE76, worst
+ * of ALL TEN pairs (not just the four adjacent ones — any two classes can
+ * share a border on a choropleth, so the adjacent-only test the earlier note
+ * used would have passed a ramp that fails in practice):
+ *
+ *                              adjacent ΔE            worst of all ten
+ *                       norm  prot  deut  trit        under deuteranopia
+ *   ColorBrewer RdYlGn  34.1  26.2  24.8  20.9         9.7   B/D collide
+ *   THIS RAMP           46.1  30.6  30.5  33.4        18.5   B/D, ~2x better
+ *   teal (was shipping) 19.9  16.9  19.8  20.2        19.8
+ *
+ * The failure mode is unchanged in kind — B and D are the pair that closes
+ * under deuteranopia, as they do in every green-to-red ramp, because yellow
+ * must be light and that forces B and D to similar lightness. It is roughly
+ * twice as far apart here as in the classic ramp, bought by deepening A well
+ * below B and F well below D. It is still not as safe as a single hue, and the
+ * letter remains the real encoding: it is in the legend, in every district's
+ * accessible name, and in the hover readout.
  */
-export const RAMP = ['#082f39', '#155f70', '#3d95a2', '#8ac4c9', '#dbebea']
+export const RAMP = ['#0f5132', '#7cb342', '#ffe9a8', '#e8590c', '#7a0b16']
 
 /** Districts TEA rates but NCES draws no polygon for. */
 export const NO_SHAPE_NOTE =
@@ -326,8 +339,23 @@ export function buildRatingLayer({ ratings, order }) {
 
 /* ----------------------------------------------------------------- page -- */
 
+/**
+ * One key entry, which is also the on/off control for that class.
+ *
+ * The key and the filter are the same list on purpose: the labels are already
+ * per-layer ("A" for the rating, "12.5%–16.0%" for a rate), site/map.js
+ * already rewrites them, and a separate filter row would be a second copy of
+ * the same five labels for the client to keep in step.
+ *
+ * The colour comes from data-b and the stylesheet, never an inline style. The
+ * server used to paint the swatch from RAMP while site/map.js repainted it
+ * from CSS — two sources for one colour, which drift silently the first time a
+ * reader changes measure.
+ */
 const swatch = (i, label) =>
-  `<li><span class="map-swatch" style="background:${RAMP[i]}"></span>${esc(label)}</li>`
+  `<li><input class="sr-only map-class" type="checkbox" id="map-b${i}" checked>` +
+  `<label for="map-b${i}"><span class="map-swatch" data-b="${i}"></span>` +
+  `<span class="sr-only">Show </span><span class="map-range" data-map-class="${i}">${esc(label)}</span></label></li>`
 
 /**
  * renderMapPage({ topo, districts, layers, rating, snapshotDate, missing })
@@ -374,6 +402,52 @@ export function renderMapPage({
   const allRings = drawn.map((d) => byGeoid.get(d.geoid))
   const { height, project } = fitProjection(allRings, width)
 
+  // Where each Education Service Center region sits in projected space, so the
+  // client can frame one without shipping the topology. Computed HERE because
+  // this is the only scope holding `project` — a boundary refresh that moves
+  // the projection moves these with it, where a hard-coded table would rot.
+  //
+  // The extent is the union of BOTH fidelities. The inline 1% geometry is not
+  // a subset of the 3%: simplification moves vertices outward as well as in,
+  // so taking only the high-fidelity extent clips the inline paths at the
+  // frame edge on the very zoom that is meant to show them.
+  const boxes = new Map()
+  for (const d of drawn) {
+    if (!d.region) continue
+    let b = boxes.get(d.region)
+    if (!b) {
+      b = { id: d.region, label: d.regionName || `Region ${d.region}`, x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity, n: 0 }
+      boxes.set(d.region, b)
+    }
+    b.n += 1
+    for (const rings of [byGeoid.get(d.geoid), inlineRings.get(d.geoid)]) {
+      for (const ring of rings ?? []) {
+        for (const pt of ring) {
+          const [x, y] = project(pt)
+          if (x < b.x0) b.x0 = x
+          if (x > b.x1) b.x1 = x
+          if (y < b.y0) b.y0 = y
+          if (y > b.y1) b.y1 = y
+        }
+      }
+    }
+  }
+  const regions = [...boxes.values()]
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .map((b) => {
+      // Rounded OUTWARD, the only padding added at build time: it exists so
+      // rounding can never clip a district. Visual margin is the client's.
+      const x = Math.floor(b.x0)
+      const y = Math.floor(b.y0)
+      return { id: b.id, label: b.label, box: [x, y, Math.ceil(b.x1) - x, Math.ceil(b.y1) - y], n: b.n }
+    })
+  // Same failure mode as the layer alignment check above: a district with no
+  // region would vanish from every region view while still being drawn.
+  const placed = regions.reduce((t, r) => t + r.n, 0)
+  if (regions.length && placed !== drawn.length) {
+    throw new Error(`map: ${placed} districts fall in a region but ${drawn.length} are drawn`)
+  }
+
   // Each district is a link, so the map is navigable with no script at all.
   // aria-label carries the name AND the figure, because the shade alone is not
   // a label and a screen reader gets nothing from a <path>.
@@ -393,7 +467,10 @@ export function renderMapPage({
     // Where site/map.js can fetch the sharper geometry, and the width it was
     // projected at. Null when there is no second fidelity to fetch.
     hiFi: topoLo && hiFiHref ? { href: hiFiHref, width } : null,
+    view: [0, 0, width, height],
+    regions,
     order: drawn.map((d) => d.geoid),
+    names: drawn.map((d) => d.name),
     layers: [rating, ...layers].map((l) => ({
       key: l.key,
       label: l.label,
@@ -405,22 +482,45 @@ export function renderMapPage({
     })),
   }
 
-  const picker = `<div class="map-controls" data-map-controls hidden>
-    <label class="map-pick" for="map-layer">Shade districts by</label>
-    <select id="map-layer" data-map-layer>
-      ${[rating, ...layers]
-        .map((l) => `<option value="${esc(l.key)}">${esc(l.label)}</option>`)
-        .join('\n      ')}
-    </select>
+  const field = (id, label, options, attr) =>
+    `<div class="map-field">
+      <label class="map-pick" for="${id}">${esc(label)}</label>
+      <select id="${id}" ${attr}>${options}</select>
+    </div>`
+
+  // Both selects need script to do anything, so both live inside the block
+  // that ships `hidden` and is revealed by site/map.js.
+  const controls = `<div class="map-controls" data-map-controls hidden>
+    ${field(
+      'map-layer',
+      'Shade districts by',
+      [rating, ...layers].map((l) => `<option value="${esc(l.key)}">${esc(l.label)}</option>`).join(''),
+      'data-map-layer'
+    )}${
+      regions.length
+        ? field(
+            'map-zoom',
+            'Zoom to',
+            `<option value="">Whole state</option>` +
+              regions.map((r) => `<option value="${esc(r.id)}">${esc(r.label)}</option>`).join(''),
+            'data-map-zoom'
+          )
+        : ''
+    }
   </div>`
 
-  const legend = `<div class="map-legend" data-map-legend>
-    <p class="map-legend-title" data-map-legend-title>${esc(rating.label)}</p>
-    <ul data-map-legend-items>${rating.ranges.map((r, i) => swatch(i, r)).join('')}</ul>
-    <p class="note" data-map-legend-note>${esc(rating.direction)} ${esc(
-      `${num(rating.counted)} districts shown.`
-    )}</p>
-  </div>`
+  // The key is the figure's CAPTION, and HTML allows a figcaption first or
+  // last inside a <figure> — so "the key goes above the map" is the content
+  // model rather than a CSS reordering trick, and DOM order still matches
+  // visual order for a screen reader and for the keyboard.
+  //
+  // It also has to sit there for the filtering to work at all: the CSS reaches
+  // the paths with `~`, which only looks forward among SIBLINGS, and inside
+  // the figure the figcaption and the svg are siblings.
+  const legend = `<figcaption class="map-legend map-classes" data-map-legend>
+      <p class="map-legend-title"><span data-map-legend-title>${esc(rating.label)}</span><span class="map-legend-hint"> &mdash; untick a class to hide it</span></p>
+      <ul data-map-legend-items>${rating.ranges.map((r, i) => swatch(i, r)).join('')}</ul>
+    </figcaption>`
 
   return shell({
     title: 'Map of Texas school districts — txschools.net',
@@ -443,14 +543,19 @@ export function renderMapPage({
       section(
         'map',
         'The map',
-        `${picker}
-  <figure class="map-figure">
+        `${controls}
+  <form class="map-form">
+    <figure class="map-figure">
+    ${legend}
     <svg class="map-svg" viewBox="0 0 ${width} ${height}" role="group"
-         aria-label="Texas school districts shaded by rating" data-map>
+         aria-label="Texas school districts shaded by rating" data-map data-base-view="0 0 ${width} ${height}">
       <g data-map-shapes>${paths}</g>
     </svg>
-  </figure>
-  ${legend}
+    </figure>
+    <p class="map-reset"><button type="reset">Show every class</button></p>
+  </form>
+  <p class="note" data-map-legend-note>${esc(rating.direction)} ${esc(`${num(rating.counted)} districts shown.`)}</p>
+  <div class="map-tip" data-map-tip hidden aria-hidden="true"></div>
   <script type="application/json" data-map-payload>${JSON.stringify(payload).replace(/</g, '\\u003c')}</script>`
       ),
       section(
