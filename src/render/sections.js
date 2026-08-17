@@ -895,8 +895,7 @@ export function standouts(vm) {
   </ul>
   <p class="note"><strong>These are selected high placements, not a summary.</strong> Every figure above
   this section is the full picture, including where this ${vm.level} ranks poorly. Each statement below
-  states its cohort and its denominator so it can be checked — a rank without an n is a boast, not a
-  fact. Ties are shown because a shared ceiling is not a sole first place.${allRankings}</p>`,
+  states its cohort and its denominator, and ties are shown as ties.${allRankings}</p>`,
     `Out of ${num(vm.ranks.length)} rankings computed across every published metric and every comparison group, these are the placements that stand out. Press Copy for a citable sentence.`
   )
 }

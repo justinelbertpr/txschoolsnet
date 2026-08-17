@@ -577,8 +577,7 @@ export function renderDownloadPage({ files = [], snapshotDate = null, counts = {
       provenance. Most tools skip them on request:
       <code>pandas.read_csv(path, comment='#')</code>, or <code>csvkit</code>'s <code>--skip-lines</code>.</li>
     <li><strong>Every rank carries its denominator.</strong> Rows with a <code>rank</code> also carry
-      <code>rank_of</code> and the cohort they were ranked within. A rank without an n is a boast, not
-      a fact, so the files never publish one.</li>
+      <code>rank_of</code> and the cohort they were ranked within.</li>
     <li><strong>2021-22 appears under the refreshed methodology</strong> TEA adopted in 2023, which is
       what makes it comparable with later years. Where TEA published an original 2021-22 score too, it is
       in the file separately and labelled as such.</li>

@@ -691,7 +691,7 @@ const rankedPopulation = (rows, meta = {}, end = 'top') => {
  * "What this ranking counts" block — see both call sites below.
  */
 const povertyCaveat = () =>
-  `<p class="note">A ranking by a raw figure is not a measure of teaching quality on its own: it correlates with school size and, more strongly, with how many of a school's students live in poverty. Every entity page on this site instead compares a school against a peer group — districts with districts, campuses with campuses — whose share of economically disadvantaged students falls within 10 percentage points of its own, because a comparison against the state average measures the composition of a school's intake at least as much as anything the school did. This list does not: it orders by the raw figure alone. <a href="/about#peer-cohort">How the peer group is chosen</a>.</p>`
+  `<p class="note">A ranking by a raw figure is not a measure of teaching quality on its own: it correlates with school size and, more strongly, with how many of a school's students live in poverty. Every entity page on this site instead compares a school against a peer group — districts with districts, campuses with campuses — whose share of economically disadvantaged students falls within 10 percentage points of its own. This list does not: it orders by the raw figure alone. <a href="/about#peer-cohort">How the peer group is chosen</a>.</p>`
 
 const sourceSection = (snapshotDate) =>
   section(
@@ -870,11 +870,10 @@ export function renderRankingPage({
     ? `<p class="callout">The other end of this list: <a href="${esc(related.inverse.href)}">${esc(
         related.inverse.label
       )}</a>.</p>`
-    : `<p class="note na">This site does not publish the other end of this ordering. This page already shows the
-       better-performing end of ${esc(nounOf(metric))}; the other end would be a standalone list of the ${levelPlural(
+    : `<p class="note na">This site does not publish the other end of this ordering. This page shows the
+       better-performing end of ${esc(nounOf(metric))}; there is no matching list of the ${levelPlural(
         level
-      )} doing worst on it, and txschools.net does not compile one. That is a publishing choice, not a data one —
-       every ${levelSingular(level)}'s own page still shows its real figure for this measure, good or bad.</p>`
+      )} doing worst on it. Every ${levelSingular(level)}'s own page shows its figure for this measure.</p>`
 
   const crumbs = [{ href: '/', label: 'Texas schools' }, { href: RANKINGS_HREF, label: 'Rankings' }]
   if (scope?.href && scope?.label) crumbs.push({ href: scope.href, label: scope.label })
@@ -897,7 +896,9 @@ export function renderRankingPage({
       ? `<p class="note na">Only ${countOf(
           ranked.length,
           level
-        )} carry this measure. A placement out of fewer than ${MIN_RANKED} is not worth much, and this page states the figure rather than dressing it as a contest.</p>`
+        )} carry this measure. A placement out of fewer than ${MIN_RANKED} says little about the ${levelPlural(
+          level
+        )} in it.</p>`
       : ''
 
   // Every page of a board is its own canonical URL, and pages 2+ say so in the
@@ -960,7 +961,7 @@ export function renderRankingPage({
             lead.length > TOP_N
               ? `${num(lead.length)} rows, not ${TOP_N}: ${num(edgeShare)} ${levelPlural(
                   level
-                )} share ${esc(ordinal(edgeRank))} place, and cutting a tie in half is how a ranked list stops being true. The full list follows.`
+                )} share ${esc(ordinal(edgeRank))} place. The full list follows.`
               : `Ranked ${esc(ordinal(1))} to ${esc(ordinal(lead.at(-1)?.rank ?? lead.length))}. The full list follows.`
           ),
       shown.length
@@ -986,9 +987,7 @@ export function renderRankingPage({
             first && !short && !leadShown && lead.length > leadMax
               ? `No separate top-${TOP_N} table here: ${num(edgeShare)} ${levelPlural(level)} share ${esc(
                   ordinal(edgeRank)
-                )} place, so one that kept that tie whole would be ${num(
-                  lead.length
-                )} rows — the same rows this list opens with. It starts at ${esc(ordinal(1))}.`
+                )} place, which would make one ${num(lead.length)} rows long. This list starts at ${esc(ordinal(1))}.`
               : ''
           )
         : section(
@@ -1559,15 +1558,14 @@ export function renderRankingsIndexPage({
         'how',
         'How to read these',
         `<ul>
-    <li>Every list names its population and its n. A placement without a denominator is a boast.</li>
+    <li>Every list names its population and its n.</li>
     <li>Ties are shown as ties: two districts sharing 3rd both read 3rd, and the next reads 5th.</li>
     <li>Entities TEA did not rate are excluded, not counted as zero, and each page says how many.</li>
     <li>Student demographics — economic disadvantage, English learners, special education — are
         never ranked. They describe who a school serves, not how it did.</li>
     <li>Each list publishes only the end where 1st place is the best result — the highest score, the
         lowest dropout rate, the largest gain — never the worst end of the same ordering. Every
-        district's and campus's own page still shows its real figure for every measure, whatever it
-        is; this site simply does not assemble a standalone leaderboard of who is doing worst.</li>
+        district's and campus's own page shows its figure for every measure.</li>
     ${countyRule}
   </ul>
   <p class="note">TEA publishes most measures for the current year only. Where a list ranks change
