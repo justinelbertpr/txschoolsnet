@@ -344,3 +344,73 @@ describe('renderEntity', () => {
     expect(html).not.toContain('rail-compare')
   })
 })
+
+/* -------------------------------------------- the nav cannot go unreachable --
+
+   The header used to wrap the nav in a <details> that an inline script closed
+   below 640px while a media query hid the <summary> above it: load narrow,
+   widen — a phone rotating to landscape, a window dragged — and the nav was
+   gone with no control to bring it back, hidden by the UA outside the cascade
+   where no stylesheet rule could reach it.
+
+   Three of the four assertions below are source-level on purpose. The bug was a
+   MECHANISM, so the test forbids the mechanism rather than sampling a
+   rendering — a rendering checked at two widths is exactly what missed it, because
+   the failure only appears in the transition between them. */
+
+describe('the primary nav cannot become unreachable', () => {
+  const page = () =>
+    shell({
+      title: 'T',
+      description: 'D',
+      canonical: 'https://txschools.net/x',
+      sections: ['<section id="a"><h2>A</h2></section>'],
+    })
+
+  it('ships every destination as a plain link, with no disclosure widget', () => {
+    const html = page()
+    for (const href of ['/', '/districts/a', '/rankings', '/download', '/about']) {
+      expect(html).toContain(`<a href="${href}"`)
+    }
+    expect(html).toContain('<nav class="sitenav" aria-label="Site">')
+    expect(html).not.toContain('<details')
+    expect(html).not.toContain('<summary')
+    expect(html).not.toMatch(/nav-disclosure|nav-toggle|hamburger/)
+  })
+
+  it('emits no inline script inside the header', () => {
+    const html = page()
+    const header = html.slice(html.indexOf('<header class="site">'), html.indexOf('</header>'))
+    expect(header).not.toContain('<script')
+    expect(header).not.toContain('matchMedia')
+  })
+
+  it('has no stylesheet rule that can hide the header nav', async () => {
+    const { readFileSync } = await import('node:fs')
+    const css = readFileSync(new URL('../../site/style.css', import.meta.url), 'utf8')
+    expect(css).not.toMatch(/nav-disclosure|nav-toggle/)
+    // Every rule mentioning the header nav, checked for a visibility switch.
+    // @media print may hide .masthead-tools; nothing may hide these.
+    for (const block of css.match(/[^{}]*\.navlist-site[^{}]*\{[^}]*\}/g) ?? []) {
+      expect(block).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|content-visibility/)
+    }
+    expect(css.match(/\.sitenav[^{}]*\{[^}]*display\s*:\s*none/g)).toBeNull()
+  })
+
+  it('has no JavaScript that decides whether the nav is visible', async () => {
+    const { readFileSync } = await import('node:fs')
+    const js = readFileSync(new URL('../../site/app.js', import.meta.url), 'utf8')
+    expect(js).not.toMatch(/nav-disclosure|initNavDisclosure/)
+    // The two surviving matchMedia calls are both READER PREFERENCE queries —
+    // prefers-reduced-motion and prefers-color-scheme. Neither reads a width,
+    // and that is the actual invariant: the moment JavaScript here branches on
+    // viewport width, it is deciding layout the stylesheet should own, which is
+    // precisely how the nav came to depend on a script agreeing with a media
+    // query. Asserted as "no width query" rather than as an exact list, so
+    // adding another preference query does not fail this for no reason.
+    for (const call of js.match(/matchMedia\([^)]*\)/g) ?? []) {
+      expect(call).toMatch(/prefers-/)
+      expect(call).not.toMatch(/width/)
+    }
+  })
+})

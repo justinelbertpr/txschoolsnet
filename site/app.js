@@ -1645,80 +1645,76 @@ function initThemeToggle() {
   })
 }
 
-/* ------------------------------------------------------ header height --
+/* ---------------------------------------------------- masthead geometry --
 
-   Publishes header.site's real rendered height as --header-h so every
-   sticky element below it (the stickybar, the rail, .data's sticky column
-   headers) can stack correctly instead of hiding underneath it — see the
-   var(--header-h, 0px) reads in site/style.css next to each of those rules.
-   A ResizeObserver, not a resize listener, because the header's height
-   changes for reasons that have nothing to do with the viewport resizing —
-   the mobile nav-disclosure opening, the "Unofficial" line wrapping to a
-   second line at an in-between width, a webfont swap changing line height.
-   Unset (0px, via the CSS fallback) until this runs, which is the same
-   layout the site already had — never a broken one. */
-function initHeaderH() {
+   Two numbers, one observer.
+
+   --mast-scroll is how much of the masthead may leave the screen before it
+   pins: the nameplate band (mark, disclaimer, theme control) plus the padding
+   above it. site/style.css feeds it straight into
+   `header.site { top: calc(-1 * var(--mast-scroll, 0px)) }`, so what follows
+   a reader down a 10,000px page is the nav and the search box rather than
+   200px of identity they have already read.
+
+   --header-h is what is LEFT once that has happened — the height that
+   actually occludes the top of the viewport. Every consumer of it wants
+   exactly that number and none of their rules change: scroll-padding-top,
+   .data thead th, .rail, .stickybar. The two stay flush at every scroll
+   offset by construction: at offset S the header's rendered bottom is
+   full - min(S, mastScroll), while .stickybar's flow position is full - S,
+   and those are equal for S <= mastScroll and both equal full - mastScroll
+   after it.
+
+   Measured against the header's own top rather than the viewport's, so the
+   number is identical whether the header is at rest, mid-slide or pinned.
+   Clamped into [0, full]: the worst a bad measurement can do is make the
+   whole header stick, which is where this started.
+
+   A ResizeObserver rather than a resize listener, because this geometry
+   changes for reasons the viewport never sees — the disclaimer rewrapping to
+   a second line at an in-between width, the nav wrapping to a second row on a
+   narrow phone, a webfont swap changing a line height. It watches BOTH boxes,
+   which is provably sufficient: the split cannot move while the header's and
+   the tools band's heights are both constant, since the header is padding +
+   nameplate + gap + tools. No feedback loop — --mast-scroll feeds only `top`,
+   and `top` cannot change an element's size.
+
+   Unset until this runs, `top: calc(-1 * 0px)` is `top: 0` and --header-h
+   falls back to 0px: the layout this site had before any of it existed, never
+   a broken one — and never a missing nav, because this header carries no
+   collapsed state for this function to get wrong. */
+function initMasthead() {
   const header = document.querySelector('header.site')
   if (!header || !('ResizeObserver' in window)) return
-  const set = () =>
-    document.documentElement.style.setProperty('--header-h', `${Math.round(header.getBoundingClientRect().height)}px`)
-  new ResizeObserver(set).observe(header)
+  const root = document.documentElement
+  const tools = header.querySelector('.masthead-tools')
+
+  const set = () => {
+    const box = header.getBoundingClientRect()
+    const full = Math.round(box.height)
+    const away = tools ? Math.round(tools.getBoundingClientRect().top - box.top) : 0
+    const scroll = Math.min(Math.max(away, 0), full)
+    root.style.setProperty('--mast-scroll', `${scroll}px`)
+    root.style.setProperty('--header-h', `${full - scroll}px`)
+  }
+
+  const ro = new ResizeObserver(set)
+  ro.observe(header)
+  if (tools) ro.observe(tools)
   set()
 }
 
-/* --------------------------------------------------------- nav disclosure -- */
-
-/**
- * Guarantees the primary nav can never end up unreachable.
- *
- * The nav lives in a <details> that ships `open` in the markup, and shell.js's
- * inline NAV_INIT_SCRIPT closes it before first paint on a narrow viewport so a
- * phone does not open on a full-height link list. Above 40rem the <summary>
- * that reopens it is display:none — the links are supposed to be laid out
- * inline there, with no toggle at all.
- *
- * Those two facts compose into a trap: load narrow (script closes it), then
- * widen — rotate a phone to landscape, drag a narrow window wider — and you are
- * left with a CLOSED <details> whose only control is hidden. The nav is gone
- * with no way back, which is exactly the failure style.css's MASTHEAD comment
- * warned about when it said the `open` attribute must always ship.
- *
- * So: whenever the viewport is at or above the breakpoint, force it open. The
- * one state that must never persist is "closed while the toggle is hidden", and
- * this makes that state unrepresentable rather than merely unlikely. Uses the
- * same 39.99rem breakpoint as NAV_INIT_SCRIPT and style.css, and runs on load
- * as well as on change so a page that loads wide is correct too.
- *
- * With JavaScript off none of this runs — but neither does NAV_INIT_SCRIPT, so
- * the <details> keeps the `open` attribute it was served with and the nav is
- * simply always visible. The no-JS path cannot reach the trap at all.
- */
-function initNavDisclosure() {
-  const nav = document.querySelector('.nav-disclosure')
-  if (!nav) return
-  const narrow = matchMedia('(max-width: 39.99rem)')
-  const sync = () => { if (!narrow.matches) nav.open = true }
-  sync()
-  // Two sources, deliberately. The matchMedia 'change' event is the precise
-  // one — it fires only on the crossing that matters — but it is also the one
-  // that did not fire under automated viewport changes during testing, and a
-  // nav that becomes unreachable is too severe a failure to hang on a single
-  // event firing. 'resize' is noisier but fires unconditionally, and sync() is
-  // idempotent and does nothing but read a media query and set an attribute
-  // that is usually already set, so the redundancy costs nothing measurable.
-  narrow.addEventListener('change', sync)
-  addEventListener('resize', sync, { passive: true })
-}
-
-/* ------------------------------------------------------------------ init -- */
+/* ------------------------------------------------------------------ init --
+   initThemeToggle and initMasthead go FIRST: both own header chrome, and a
+   throw in a chart initialiser must not be able to leave the theme control
+   announcing the wrong state or the sticky offsets unpublished. */
+initThemeToggle()
+initMasthead()
 
 const charts = [...document.querySelectorAll('[data-chart="trajectory"]')].map(initTrajectory).filter(Boolean)
 initBars()
 initCohorts(charts[0])
 initCopy()
 initSpy()
-initNavDisclosure()
-initHeaderH()
 initStickybar()
 initPins(charts[0])
-initThemeToggle()

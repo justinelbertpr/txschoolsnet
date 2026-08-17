@@ -23,22 +23,6 @@ export const SITE_ORIGIN = 'https://txschools.net'
 export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}`
 
 /**
- * The mobile nav ships `open` in the markup unconditionally (see .nav-toggle
- * in style.css for why: a native <details> closed by default has a failure
- * mode on a width this file guessed wrong about, so open-by-default is the
- * only state with no way to end up unrecoverable). That is the correct
- * fallback for a reader with no JavaScript, but it means a reader WITH
- * JavaScript sees the full nav list expanded on every phone-width load,
- * which is not what "Menu" behind a summary is for. This closes it, once, on
- * narrow viewports, before first paint — same technique as THEME_INIT_SCRIPT
- * above, placed as a sibling script immediately after the element itself
- * (site/render/shell.js's header markup) so the DOM node already exists by
- * the time this runs, without waiting on app.js or risking a flash of open
- * then closed. matches style.css's own mobile breakpoint for this control.
- */
-export const NAV_INIT_SCRIPT = `try{if(matchMedia('(max-width:39.99rem)').matches)document.currentScript.previousElementSibling.removeAttribute('open')}catch(e){}`
-
-/**
  * CSP's `require-trusted-types-for 'script'` (site/_headers) turns every
  * assignment to a Trusted-Types-guarded DOM sink into a thrown TypeError
  * unless the value is a Trusted Types object rather than a plain string.
@@ -197,7 +181,10 @@ const PRIMARY_NAV = [
   // links, never from the persistent nav itself — added here so it is one
   // click from every page, the way Download and About already are.
   { href: '/rankings', label: 'Rankings', match: (p) => p === '/rankings' || p.startsWith('/rankings/') },
-  { href: '/download', label: 'Download data', match: (p) => p === '/download' },
+  // "Download", not "Download data": the shorter label is what lets all five
+  // destinations hold a single row at 375px, which is what makes a collapsed
+  // mobile menu unnecessary. Nothing asserts the longer string.
+  { href: '/download', label: 'Download', match: (p) => p === '/download' },
   { href: '/about', label: 'About', match: (p) => p === '/about' },
 ]
 
@@ -210,11 +197,19 @@ export const pathOf = (canonical) => {
   }
 }
 
+/**
+ * `navlist-site` exists so the masthead's own styling cannot reach the five
+ * OTHER navList() call sites (the two hubs, /search's A–Z strip, sections, the
+ * rankings boards), which share `.navlist` and want the running-text treatment
+ * this one deliberately drops. navList() already takes `className` and lands it
+ * on the <ul>, so nothing about its signature or its `<nav class="sitenav">`
+ * wrapper changes.
+ */
 export const siteNav = (canonical) => {
   const here = pathOf(canonical)
   return navList(
     PRIMARY_NAV.map(({ href, label, match }) => ({ href, label, current: match(here) })),
-    { label: 'Site' }
+    { label: 'Site', className: 'navlist-site' }
   )
 }
 
@@ -341,26 +336,19 @@ ${main}`
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="site">
-  <a class="wordmark" href="/">txschools<span>.net</span></a>
-  <details class="nav-disclosure" open>
-    <summary class="nav-toggle">
-      <svg class="hamburger" aria-hidden="true" viewBox="0 0 20 20">
-        <path class="bar bar-top" d="M3 6h14"/>
-        <path class="bar bar-mid" d="M3 10h14"/>
-        <path class="bar bar-bot" d="M3 14h14"/>
-      </svg>
-      <span class="sr-only">Menu</span>
-    </summary>
+  <div class="masthead-id">
+    <a class="wordmark" href="/">txschools<span>.net</span></a>
+    <p class="unofficial">Unofficial &middot; not affiliated with the Texas Education Agency &middot; <a href="/about">what this is</a></p>
+    <button type="button" class="theme-toggle" data-theme-toggle>
+      <svg class="ti ti-moon" aria-hidden="true" viewBox="0 0 20 20"><path d="M17.3 12.5A7.3 7.3 0 0 1 7.5 2.7a7.6 7.6 0 1 0 9.8 9.8Z" fill="currentColor"/></svg>
+      <svg class="ti ti-sun" aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M15.7 4.3l-1.4 1.4M5.7 14.3l-1.4 1.4M15.7 15.7l-1.4-1.4M5.7 5.7 4.3 4.3"/></g></svg>
+      <span class="sr-only" data-theme-label>Switch theme</span>
+    </button>
+  </div>
+  <div class="masthead-tools">
     ${siteNav(canonical)}
-  </details>
-  <script>${NAV_INIT_SCRIPT}</script>
-  ${renderSearch({ id: 'header-search', variant: 'header', assets: false })}
-  <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false">
-    <svg class="ti ti-moon" aria-hidden="true" viewBox="0 0 20 20"><path d="M17.3 12.5A7.3 7.3 0 0 1 7.5 2.7a7.6 7.6 0 1 0 9.8 9.8Z" fill="currentColor"/></svg>
-    <svg class="ti ti-sun" aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M15.7 4.3l-1.4 1.4M5.7 14.3l-1.4 1.4M15.7 15.7l-1.4-1.4M5.7 5.7 4.3 4.3"/></g></svg>
-    <span class="sr-only" data-theme-label>Switch to dark theme</span>
-  </button>
-  <p class="unofficial">Unofficial &middot; not affiliated with the Texas Education Agency &middot; <a href="/about">what this is</a></p>
+    ${renderSearch({ id: 'header-search', variant: 'header', assets: false })}
+  </div>
 </header>
 
 ${frame}
