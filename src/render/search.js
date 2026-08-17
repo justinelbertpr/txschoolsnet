@@ -455,6 +455,27 @@ export function renderSearchPage({ districts = [], campuses = [], letter = null,
  *
  *   The active option is marked by a left bar as well as a fill, because a
  *   background alone is a colour-only cue.
+ *
+ *   The :has() lift sets `position: relative` on .hero and section, but on
+ *   `header` it sets z-index ONLY. This block is emitted as an inline <style>
+ *   AFTER the stylesheet link, so `header:has(…)` at (0,2,1) outranked
+ *   `header.site`'s own (0,1,1) `position: sticky` on both specificity and
+ *   source order — opening the header's autocomplete dropped the masthead out
+ *   of sticky and snapped it to the top of the document under a reader
+ *   mid-typing. header.site is already a positioned stacking context
+ *   (position: sticky, z-index: 30), so the z-index was all this rule ever
+ *   needed; the position was the accident.
+ *
+ *   .sitesearch-input's border is --ink-3, not --line. --line reads ~1.2:1
+ *   against --ground and ~1.3:1 against the input's own --surface fill, and
+ *   this is the only visible boundary of the control this codebase calls the
+ *   site's single highest-value one; WCAG 1.4.11 wants 3:1, which --ink-3
+ *   clears in both themes. Set here rather than in style.css so the home
+ *   page's hero search gets it too.
+ *
+ *   NOTE: no comments inside the template literal below — it ships inline on
+ *   every one of ~9,500 pages, and test/render/search.test.js asserts their
+ *   absence. Explanations belong here instead.
  */
 const SEARCH_CSS = `
 .sitesearch{display:block;margin:0}
@@ -462,7 +483,7 @@ const SEARCH_CSS = `
 .sitesearch-row{display:flex;gap:.5rem;align-items:stretch}
 .sitesearch-input{flex:1 1 auto;min-width:0;font:inherit;font-size:1rem;line-height:1.3;
  padding:.6rem .75rem;color:var(--ink);background:var(--surface);
- border:1px solid var(--line);border-radius:var(--radius)}
+ border:1px solid var(--ink-3);border-radius:var(--radius)}
 .sitesearch-input::placeholder{color:var(--ink-3)}
 .sitesearch-go{font:inherit;font-size:1rem;padding:.6rem 1rem;cursor:pointer;
  color:var(--surface);background:var(--accent);border:1px solid var(--accent);border-radius:var(--radius)}
@@ -480,8 +501,8 @@ const SEARCH_CSS = `
  max-height:min(60vh,26rem);overflow:auto;background:var(--raised);border:1px solid var(--line);
  border-radius:var(--radius);box-shadow:var(--shadow-raised)}
 .hero:has(.sitesearch-panel:not([hidden])),
-header:has(.sitesearch-panel:not([hidden])),
 section:has(.sitesearch-panel:not([hidden])){position:relative;z-index:70}
+header:has(.sitesearch-panel:not([hidden])){z-index:70}
 .sitesearch-results{list-style:none;margin:0;padding:0}
 .sitesearch-results li{padding:.5rem .75rem;cursor:pointer;border-left:3px solid transparent;
  border-bottom:1px solid var(--line-2)}

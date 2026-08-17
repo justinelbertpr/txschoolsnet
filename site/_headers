@@ -52,22 +52,25 @@
 #   script-src   'self' covers the three same-origin module/external scripts
 #                (/app.js, /search.js, /rankings.js — all <script src=...>,
 #                loaded from this origin only). Every *inline* <script> the
-#                build ever emits is one of four byte-identical constants —
-#                THEME_INIT_SCRIPT, NAV_INIT_SCRIPT and
-#                TRUSTED_TYPES_INIT_SCRIPT in src/render/shell.js (on every
-#                page), and RANKINGS_GROUP_FILTER_JS in
-#                src/render/rankings-page.js (site/rankings.html only) — so
-#                each gets its own 'sha256-...' source instead of
-#                'unsafe-inline'. Verified against a full `npm run site`
-#                build: exactly these four hashes occur across all 9,531
-#                rendered pages, nothing else does. `<script type=
-#                "application/json" data-cohorts|data-own|data-trajectory|
-#                data-pin-source|data-rankings-lookups>` data-island tags are
-#                inert JSON, never executed, and need no script-src entry at
-#                all — only the four above actually run as script.
+#                build ever emits is one of three byte-identical constants —
+#                THEME_INIT_SCRIPT and TRUSTED_TYPES_INIT_SCRIPT in
+#                src/render/shell.js (on every page), and
+#                RANKINGS_GROUP_FILTER_JS in src/render/rankings-page.js
+#                (site/rankings.html only) — so each gets its own
+#                'sha256-...' source instead of 'unsafe-inline'. Verified
+#                against a full `npm run site` build: exactly these three
+#                hashes occur across all 9,531 rendered pages, nothing else
+#                does. (A fourth, NAV_INIT_SCRIPT, was removed with the
+#                mobile nav disclosure it closed — see the MASTHEAD note in
+#                site/style.css for why that mechanism is gone.)
+#                `<script type="application/json" data-cohorts|data-own|
+#                data-trajectory|data-pin-source|data-rankings-lookups>`
+#                data-island tags are inert JSON, never executed, and need no
+#                script-src entry at all — only the three above actually run
+#                as script.
 #
 #                IMPORTANT — these hashes are tied to exact bytes: editing
-#                any of the four constants named above changes its rendered
+#                any of the three constants named above changes its rendered
 #                <script> content and therefore its hash, silently breaking
 #                that inline script under this CSP (the browser drops it,
 #                no console-visible failure beyond a CSP violation report)
@@ -121,7 +124,7 @@
 # unconditionally — wrangler.jsonc's custom_domain is already HTTPS-only, so
 # there is no plain-HTTP origin this could ever lock a reader out of.
 /*
-  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-wBdtWdXsHnAU2DdByySW4LlXFAScrBvmBgkXtydwJdg=' 'sha256-d6OfB9fxyGMyAr4e2q+WElyKt73Of+IEOVYzkdgm2ZQ=' 'sha256-at86aj+4J4wwkAqYTaG7W3nWe9lXEbf5AmxtNM1HBDM=' 'sha256-PiJjrtl4vqQqu+0o5I9S5RQz6NEFIbhAU7prdNQpiVE=' https://static.cloudflareinsights.com https://*.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self' https://static.cloudflareinsights.com https://*.cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; require-trusted-types-for 'script'; trusted-types default; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-wBdtWdXsHnAU2DdByySW4LlXFAScrBvmBgkXtydwJdg=' 'sha256-d6OfB9fxyGMyAr4e2q+WElyKt73Of+IEOVYzkdgm2ZQ=' 'sha256-PiJjrtl4vqQqu+0o5I9S5RQz6NEFIbhAU7prdNQpiVE=' https://static.cloudflareinsights.com https://*.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self' https://static.cloudflareinsights.com https://*.cloudflareinsights.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; require-trusted-types-for 'script'; trusted-types default; upgrade-insecure-requests
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin
   X-Frame-Options: DENY

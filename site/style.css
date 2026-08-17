@@ -164,6 +164,11 @@
      below for the other sitewide constant this file centralises. */
   --radius: 0;
   --radius-card: 0;
+  /* How much of the masthead is allowed to leave the screen before it pins —
+     the nameplate band plus the padding above it. app.js's initMasthead
+     measures it; 0px is the honest default, and makes `top: calc(-1 * 0px)`
+     resolve to `top: 0`, i.e. exactly the behaviour this file had before. */
+  --mast-scroll: 0px;
   --measure: 68ch;
   --measure-display: 36em;
   /* The one container width for the whole site — header, main, footer, and
@@ -269,9 +274,14 @@
 /* Anchor jumps and programmatic focus must land below the sticky bar, not
    under it. Only pages carrying a sticky bar need the offset; an
    unconditional rule lands every in-page link 52px short on hub pages. */
-/* --header-h (app.js's ResizeObserver on header.site, degrades to 0 without
-   JS) always counts; --sb-h only when this page actually carries a sticky
-   bar to reserve room for. */
+/* --header-h is the height of the part of the masthead that stays PINNED —
+   header total minus --mast-scroll, published by app.js's initMasthead. That
+   is what actually occludes the top of the viewport once the nameplate band
+   has scrolled off, and it is the number every rule below wants: this one,
+   .stickybar, .rail and .data thead th. Anything added later that needs the
+   header's FULL height must measure it rather than read this. Degrades to
+   0px without JS, exactly as before. --sb-h only counts when this page
+   actually carries a sticky bar to reserve room for. */
 html { scroll-padding-top: calc(var(--header-h, 0px) + 1rem); }
 html:has(.stickybar) { scroll-padding-top: calc(var(--header-h, 0px) + var(--sb-h) + 1rem); }
 
@@ -307,28 +317,95 @@ body {
    A 2px rule the width of the measure. Achromatic, so it is identity without
    spending any of the colour budget, and it says "publication" rather than
    "app chrome".
+
+   TWO BANDS INSIDE ONE STICKY BOX.
+
+     .masthead-id     the NAMEPLATE — the mark, the disclaimer that qualifies
+                      the mark, and the theme control. Read once. Allowed to
+                      scroll away.
+     .masthead-tools  the TOOLS — the five destinations and the search box.
+                      Used continuously. Stays pinned.
+
+   The split is one declaration: this element is sticky with a NEGATIVE top
+   equal to the nameplate's measured height, so the browser lets exactly that
+   slice scroll off and pins the rest — 65px on a desktop, 119px on a phone,
+   against 107-135px and 157px before, while everything is now visible at
+   every width. app.js's initMasthead publishes the slice as --mast-scroll and
+   the remainder as --header-h (see the contract above scroll-padding-top).
+   With JavaScript off --mast-scroll is 0px, the whole masthead pins, and
+   --header-h stays at its 0px fallback: the layout this site already had,
+   taller, never broken. The mark and the disclaimer scroll away TOGETHER,
+   deliberately — a pinned bar carrying this site's name without its
+   non-affiliation line would be worse than one carrying neither.
+
+   THERE IS NO DISCLOSURE HERE, AND THAT IS THE POINT.
+
+   The nav used to live in a <details> that an inline script closed below
+   640px while a media query hid the <summary> above it, so a narrow load
+   followed by a widen — a phone rotating, a window dragged — left a closed
+   panel with no control: nav gone, no way back, hidden by the UA outside the
+   cascade where no rule here could reach it. Five short links do not need a
+   door. Nothing below sets display, visibility or any state selector on the
+   header nav at any width; the only rule in this file that hides anything in
+   the header is @media print, and it hides the tools band. That state is not
+   guarded against, it is unrepresentable. The 39.99/40rem constant that used
+   to live in four files now lives in exactly one media query, below.
+
+   MOBILE-FIRST, so no rule here ever has to out-order another to undo it: the
+   base rules ARE the narrow layout, and the single (min-width: 40rem) block
+   only ADDS placement and sizing. It turns nothing off.
    ========================================================================== */
 
-/* Sticky: pages here routinely run 10,000+px, and the search box — the
-   site's single highest-value control, per the "TEXAS PUBLIC SCHOOLS" hero
-   copy itself — used to be reachable only by scrolling back to the very
-   top. app.js's initHeaderH (a ResizeObserver on this element) publishes
-   its real rendered height as --header-h so .stickybar, .rail and .data's
-   sticky table headers can stack correctly below it rather than under it;
-   see each of those rules for the same variable. Without JS, --header-h
-   stays unset (0px) and only this element sticks — a smaller win, never a
-   broken layout. */
 header.site {
-  display: flex; flex-wrap: wrap; gap: .35rem 1.5rem; align-items: baseline;
-  padding: 1.1rem 1.25rem .9rem;
+  display: flex; flex-direction: column;
+  padding: .9rem 1.25rem .7rem;        /* padding-inline drops to 1rem below 34rem */
   border-bottom: 2px solid var(--ink);
   max-width: var(--content-max); margin: 0 auto;
-  position: sticky; top: 0; z-index: 30;
   background: var(--ground);
+  position: sticky; top: calc(-1 * var(--mast-scroll, 0px)); z-index: 30;
+}
+
+/* src/render/search.js ships
+     header:has(.sitesearch-panel:not([hidden])){position:relative;z-index:70}
+   at specificity (0,2,1) in a <style> emitted AFTER this file, so it beats
+   `header.site` (0,1,1) on BOTH counts and drops the masthead out of
+   position:sticky the instant the header autocomplete opens — the whole
+   header snaps back to the top of the document under a reader mid-typing.
+   That is fixed at source (see SEARCH_CSS), and this is the belt to its
+   braces: (0,3,1), so it wins on specificity alone and stays correct if
+   anyone re-edits that module. It restates `position` only; `top` above is
+   untouched. */
+header.site:has(.sitesearch-panel:not([hidden])) { position: sticky; z-index: 70; }
+
+/* ---------- band one: the nameplate ---------- */
+
+/* Plain flex-wrap, no media query: the disclaimer sits on the wordmark's
+   baseline while there is room and drops to its own line when there is not,
+   at whatever width that happens to be for the reader's rendered font. One
+   rule covers 320px to 1312px.
+
+   The basis is 14rem, and it is bounded on both sides — both bounds measured,
+   not guessed. Too small (12rem) and the disclaimer squeezes in beside the
+   wordmark on a phone, wrapping to three cramped lines and pushing the theme
+   toggle onto a row of its own with nothing beside it. Too large (15rem+) and
+   at 320px the basis plus the column-gap plus the toggle's 44px exceeds the
+   288px content width, so flex breaks them onto separate lines BEFORE any
+   shrinking happens — line-breaking uses the hypothetical main size, and
+   shrink only applies within a line once broken — and the toggle is stranded
+   again at the one width least able to spare a row. The arithmetic at 320px,
+   gap included: 224 + 18.4 + 44 = 286.4, inside 288. And 224 is still wide
+   enough that wordmark + gap + basis overflows a 375px phone, so the
+   nameplate reads as two clean rows there: mark, then disclaimer with the
+   toggle at its right. On a desktop there is room for both on one line and it
+   grows from there, which is what pushes the toggle to the right margin. */
+.masthead-id {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  column-gap: 1.15rem; row-gap: .1rem;
 }
 .wordmark {
+  flex: 0 0 auto;
   font-family: var(--font-display);
-  font-weight: 700; font-size: 1.35rem; letter-spacing: -.015em;
+  font-weight: 700; font-size: 1.35rem; line-height: 1.15; letter-spacing: -.015em;
   color: var(--ink); text-decoration: none;
 }
 .wordmark span {
@@ -336,164 +413,118 @@ header.site {
   color: var(--ink-3); letter-spacing: 0;
 }
 .wordmark:hover { text-decoration: underline; text-underline-offset: 3px; }
+
 /* A masthead line, not a footnote: full ink-2 and real weight, the same
-   register as the nav beside it. A site one character from a .gov domain
-   does not get to whisper its own disclaimer. */
-.unofficial { margin: 0; font-size: var(--t-small); color: var(--ink-2); font-weight: 550; }
+   register as the nav below it. A site one character from a .gov domain does
+   not get to whisper its own disclaimer — and the layout this replaces did
+   worse than whisper, it set display:none on every phone-width load. The
+   flex-grow is also what pushes the theme toggle to the right margin, so the
+   sentence occupies the width the old header wasted. */
+.unofficial {
+  flex: 1 1 14rem;
+  margin: 0; font-size: var(--t-small); line-height: 1.45;
+  color: var(--ink-2); font-weight: 550;   /* 8.10:1 on --ground light */
+}
 .unofficial a { color: var(--ink); text-decoration-color: var(--navlink); }
 
-/* Site nav sits inside the masthead rule, between the wordmark and the
-   disclaimer. It is navigation, not content, so it takes label type rather
-   than link blue — the current page is marked by weight and an underline,
-   which survives greyscale. */
-.sitenav { margin-right: auto; }
+/* ---------- band two: the tools ---------- */
 
-/* Below 640px, the 5-item flat list plus the disclaimer plus the search box
-   was the tallest part of the page before any content. <details> makes it a
-   real, native, zero-JS collapse there.
-
-   Shipped with the `open` attribute ALWAYS present in the markup — this is
-   deliberate, not a placeholder. A closed <details> hides its content via
-   the UA itself, outside the normal cascade (in Chromium, via an internal
-   content-visibility switch, not a plain `display:none` a stronger rule can
-   override) — so a nav wrapped in one and closed by default can end up
-   genuinely unrecoverable at a width this file guessed wrong about, on a
-   browser this file did not test. Open-by-default has no such failure mode:
-   the reader always sees the nav; below 640px they can additionally
-   collapse it if they want to, and native <details> toggling handles that
-   direction (open → closed → open) correctly on every engine, because nothing
-   here is asking a browser to override its own hidden-content behaviour —
-   only ever to apply it, which is the one direction that is reliable. */
-/* An icon button, same footprint as .theme-toggle beside it (see below) so
-   the two read as a matched pair of header utilities rather than a text
-   link and a circle. Pinned via position:absolute in the mobile layout
-   below — see that block for why a single <details> element needs its
-   summary pulled out of normal flow to sit fixed at the header's top-right
-   corner while the link list under it is free to occupy its own row. */
-.nav-toggle {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 2.25rem; height: 2.25rem; padding: 0;
-  color: var(--ink-2); background: transparent;
-  border: 1px solid var(--ink-3);
-  cursor: pointer; list-style: none;
-}
-@media (pointer: coarse) {
-  .nav-toggle { width: 2.75rem; height: 2.75rem; }
-}
-.nav-toggle:hover { color: var(--ink); border-color: var(--ink); }
-.nav-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.nav-toggle::-webkit-details-marker { display: none; }
-.hamburger { width: 1.15rem; height: 1.15rem; }
-.hamburger .bar {
-  fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
-  transform-box: fill-box; transform-origin: center;
-}
-/* Hamburger -> X on open, same three bars: the top and bottom slide to the
-   middle bar's line and rotate into an X; the middle bar just fades. Shows
-   what tapping again DOES (closes it), same convention as .theme-toggle's
-   sun/moon swap below. */
-.nav-disclosure[open] .bar-top { transform: translateY(4px) rotate(45deg); }
-.nav-disclosure[open] .bar-mid { opacity: 0; }
-.nav-disclosure[open] .bar-bot { transform: translateY(-4px) rotate(-45deg); }
-@media (prefers-reduced-motion: no-preference) {
-  .hamburger .bar { transition: transform .18s cubic-bezier(.22,.61,.36,1), opacity .18s; }
-}
-.nav-disclosure .sitenav { margin: .5rem 0 0; }
-.nav-disclosure .navlist { flex-direction: column; gap: .1rem; }
-/* line-height was inheriting body's 1.6 prose leading, meant for wrapped
-   paragraphs — on a one-line link label that just pads the row with height
-   nothing is reading. 1.25 plus a trimmed padding-block keeps each row a
-   comfortable tap target (~34px) without the five-item list running to a
-   quarter of a phone screen. */
-.nav-disclosure .navlist a { display: block; padding-block: .45rem; line-height: 1.25; }
-
-@media (max-width: 39.99rem) {
-  /* A grid of FIXED rows, not flex-wrap: the old flow-based layout meant
-     every item's position depended on how much room the items before it
-     took, so opening the menu (which changes .nav-disclosure's height)
-     could reshuffle everything after it — including the search box, which
-     should never move. Explicit grid-row per item means only the rows that
-     are actually supposed to grow (the open menu panel and whatever the
-     reader now sees below it) do; search stays put in row 2 regardless.
-     Row 1 is set to the toggle button's own height (not "auto") because the
-     toggle is pulled out of flow below and would otherwise have nothing
-     sizing that row to make room for it. */
-  header.site {
-    display: grid;
-    grid-template-rows: 2.75rem auto auto auto auto;
-    row-gap: .5rem;
-  }
-  .wordmark { grid-row: 1; align-self: center; }
-  header.site > form.sitesearch { grid-row: 2; }
-  .nav-disclosure { grid-row: 3; margin: 0; }
-  /* Pulled out of the grid entirely and pinned to the header's own top-right
-     padding corner — see the comment on .nav-toggle in the MASTHEAD section
-     for why. Both open and closed, the button stays exactly where a reader
-     tapped it; only the icon under it (hamburger -> X) and the link list
-     below (row 3) change. */
-  .nav-toggle { position: absolute; top: 0; right: 0; }
-  /* Hidden until the menu is open, then read as the rest of the same
-     dropdown as the links above them, not separate always-on header rows.
-     WCAG 2.4.3 focus order still holds: a display:none element is
-     untabbable regardless of where it sits, and both become visible AND
-     reachable together the instant .nav-disclosure gains [open]. */
-  /* Two-class specificity (.nav-disclosure ~ .theme-toggle), not a bare
-     .theme-toggle, so this reliably beats the base .theme-toggle rule's
-     display:inline-flex further down the file regardless of which one the
-     cascade would otherwise prefer by source order alone. */
-  .nav-disclosure ~ .theme-toggle { grid-row: 4; justify-self: start; display: none; }
-  .nav-disclosure ~ .unofficial { grid-row: 5; display: none; }
-  .nav-disclosure[open] ~ .theme-toggle { display: inline-flex; }
-  .nav-disclosure[open] ~ .unofficial { display: block; }
+/* space-between rather than an auto margin on the search: the search must
+   grow (to fill a tablet line), cap (so it is not a 900px input on a 1280px
+   page) and sit right (so the right edge is never dead). Growing to
+   max-width and letting space-between distribute the rest does all three
+   across the whole desktop range with no extra breakpoint. */
+.masthead-tools {
+  display: flex; flex-wrap: wrap; align-items: center;
+  justify-content: space-between;
+  gap: .5rem 1.5rem;
+  margin-top: .6rem; padding-top: .55rem;
+  border-top: 1px solid var(--line);      /* a divider, never a control's boundary */
 }
 
-@media (min-width: 40rem) {
-  /* The mobile layout needs the toggle (inside .nav-disclosure) ahead of
-     the search form in the DOM, so a keyboard user's tab order matches
-     its top-right visual position instead of jumping backward past the
-     search row to reach it (see the mobile block below). Desktop's own
-     visual/tab order — wordmark, search, nav, theme toggle, disclaimer —
-     predates that change and stays exactly what it was; explicit `order`
-     restores it despite the new source order, rather than the reverse. */
-  .wordmark { order: 1; }
-  form.sitesearch { order: 2; }
-  /* .nav-disclosure, not .sitenav, is the actual flex item now — the details
-     wrapper sits where .sitenav used to sit directly in header.site's flow. */
-  .nav-disclosure { order: 3; margin-right: auto; }
-  .theme-toggle { order: 4; }
-  .unofficial { order: 5; }
-  .nav-toggle { display: none; }
-  .nav-disclosure .sitenav { margin: 0; }
-  .nav-disclosure .navlist { flex-direction: row; gap: .25rem 1.15rem; }
-  .nav-disclosure .navlist a { display: inline; padding-block: .15rem; }
+/* .sitenav { margin-right: auto } below is SHARED with five other navList()
+   call sites (hubs, /search's A-Z, sections, rankings boards) and is left
+   exactly as it was; this neutralises it inside the header only. (0,2,1)
+   against (0,1,0). */
+header.site .sitenav { flex: 1 1 100%; min-width: 0; margin: 0; }
+
+/* Every selector in this block is written at element+class specificity on
+   purpose: the shared .navlist rules live LATER in this file and a
+   same-specificity rule further down would win on source order alone. The
+   compounds here are (0,2,1)/(0,3,2) against (0,1,0)/(0,2,1), so this block
+   is correct wherever it sits. The negative margin pulls the first label's
+   glyphs into optical alignment with the wordmark, with main and with
+   footer.site, all of which share --content-max and this padding-inline. */
+header.site .navlist-site {
+  flex-wrap: wrap;                  /* WRAPS, never scrolls: nothing in this header
+                                       is ever off-screen at any width */
+  gap: .1rem .25rem;
+  margin-left: -.4rem;
+  font-size: var(--t-small);
 }
+/* No underline on these five: this is a masthead strip, not running text —
+   the same exception .navlist-letters a already takes, and consistent with
+   .navlist a's own reasoning, which is about lists that sit IN running
+   content and read as plain sentences without one. The current page is still
+   marked twice over, by weight and by a 2px --ink rule — the masthead's own
+   motif — so the cue survives greyscale and colour-blindness. */
+header.site .navlist-site a {
+  display: inline-flex; align-items: center;
+  min-height: 2.25rem; padding: 0 .4rem;
+  color: var(--navlink);            /* 4.77:1 on --ground light · 5.07:1 dark */
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+header.site .navlist-site a:hover { color: var(--ink); border-bottom-color: var(--ink-3); }
+header.site .navlist-site a[aria-current='page'] {
+  color: var(--ink); font-weight: 650; border-bottom-color: var(--ink);
+}
+header.site .navlist-site a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 44px on anything touched with a finger, per WCAG 2.5.5 — scoped by POINTER,
+   not by width, so a tablet at 768px gets it too. */
+@media (pointer: coarse) { header.site .navlist-site a { min-height: 2.75rem; } }
+
+/* SEARCH_CSS (src/render/search.js) owns this control and is emitted as an
+   inline <style> AFTER the stylesheet link, so a bare .sitesearch-* rule here
+   would lose the tie. header.site .sitesearch-input is (0,2,1) vs (0,1,0);
+   the same holds against SEARCH_CSS's own (max-width:44rem) block. font-size
+   stays 1rem — 16px is what stops iOS zooming the viewport on focus, so the
+   height comes off the padding instead. */
+/* min-width: 0 for the same reason .sitenav above has it: a flex item's
+   default min-width is `auto`, i.e. its min-content size, which is a FLOOR
+   that flex-basis cannot push below. Without it this form refuses to go
+   narrower than the input+button row's intrinsic width and punches ~20px
+   past the header's content box at 320px, taking the whole page into
+   horizontal scroll. Measured at 320px: 308px wide inside a 288px box. */
+header.site .sitesearch { flex: 1 1 100%; min-width: 0; margin: 0; }
+header.site .sitesearch-input,
+header.site .sitesearch-go { padding-block: .45rem; }
+/* .sitesearch-row is align-items:stretch, so one min-height on the row makes
+   BOTH the input and the Search button 44px. */
+@media (pointer: coarse) { header.site .sitesearch-row { min-height: 2.75rem; } }
 
 /* ---------- theme toggle ---------- */
 
 .theme-toggle {
-  align-self: center; flex: none;
+  flex: none; align-self: center;
   display: inline-flex; align-items: center; justify-content: center;
   width: 2.25rem; height: 2.25rem; padding: 0;
   color: var(--ink-2); background: transparent;
-  /* --line reads as ~1.2:1 against --ground — fine for a decorative card
-     divider, not enough for the only visible boundary of an interactive
-     control (WCAG 1.4.11 wants 3:1). --ink-3 clears that at rest in both
-     themes; hover/focus escalate further, matching the aria-current pattern
-     in .navlist a above. */
-  border: 1px solid var(--ink-3); border-radius: 999px;
+  /* --line reads as ~1.2:1 against --ground — fine for a divider, not enough
+     for the only visible boundary of an interactive control (WCAG 1.4.11
+     wants 3:1). --ink-3 clears that at rest in both themes. */
+  border: 1px solid var(--ink-3);
+  /* Square, like every other corner on the site. This was the one
+     border-radius: 999px left in the file, against --radius: 0. */
+  border-radius: var(--radius);
   cursor: pointer;
 }
-/* 44px on anything touched with a finger, per WCAG 2.5.5's enhanced target
-   size — same convention as .navlist-letters a and .rk-btn below. */
-@media (pointer: coarse) {
-  .theme-toggle { width: 2.75rem; height: 2.75rem; }
-}
+@media (pointer: coarse) { .theme-toggle { width: 2.75rem; height: 2.75rem; } }
 .theme-toggle:hover { color: var(--ink); border-color: var(--ink); }
 .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .theme-toggle .ti { width: 1.1rem; height: 1.1rem; }
 /* Icon shows what pressing it DOES, not the current state — CSS-only, so
-   there is no flash: light (system default or [data-theme="light"]) shows
-   the moon; dark shows the sun. */
+   there is no flash: light shows the moon, dark shows the sun. */
 .theme-toggle .ti-sun { display: none; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) .theme-toggle .ti-moon { display: none; }
@@ -501,6 +532,26 @@ header.site {
 }
 :root[data-theme='dark'] .theme-toggle .ti-moon { display: none; }
 :root[data-theme='dark'] .theme-toggle .ti-sun { display: block; }
+
+/* ---------- 40rem and up: the only breakpoint in this section ----------
+   It ADDS sizing. It turns nothing off, and nothing below it turns anything
+   back on. */
+
+@media (min-width: 40rem) {
+  /* flex: 0 0 auto, not 0 1 auto — the nav must never be squeezed narrower
+     than its content and spill into the search box. The search absorbs
+     instead, which is the only failure mode worth having. */
+  header.site .sitenav { flex: 0 0 auto; }
+  header.site .navlist-site { gap: .1rem .25rem; font-size: var(--t-meta); }
+  header.site .navlist-site a { min-height: 2.25rem; }
+  /* basis 19rem, not 20rem or 22rem: nav (~356px) + gap (24px) + 304px = 684,
+     which still fits the 728px content width of a 768px tablet, so the tools
+     band stays ONE line there. It grows to the 30rem cap and space-between
+     parks it on the right margin. Between roughly 640px and 724px the two
+     bases no longer fit one line and the search takes its own, left-aligned
+     under the nav — two rows, nothing clipped, nothing hidden. */
+  header.site .sitesearch { flex: 1 1 19rem; max-width: 30rem; }
+}
 .navlist {
   list-style: none; display: flex; flex-wrap: wrap; gap: .25rem 1.15rem;
   margin: 0; padding: 0; font-size: var(--t-meta);
@@ -1768,9 +1819,13 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 @media print {
   .rail, .stickybar, .skip, .rail-sheet { display: none !important; }
   /* The header's controls print as dead chrome — a search box with nothing
-     behind it, a theme toggle with nothing to switch. The mark and the
-     disclaimer are the two things worth a printed page's first inches. */
-  header.site .sitesearch, header.site .nav-disclosure, header.site .theme-toggle { display: none !important; }
+     behind it, a theme toggle with nothing to switch, five links a reader
+     cannot click on paper. The mark and the disclaimer are the two things
+     worth a printed page's first inches, and they are the nameplate band.
+     position:static matters more than it did: a negative sticky `top` on a
+     paged medium is not something to leave to a print engine. */
+  header.site { position: static; }
+  header.site .masthead-tools, header.site .theme-toggle { display: none !important; }
   .layout { display: block; max-width: none; padding: 0; }
   main > section { box-shadow: none; break-inside: avoid-page; }
   .data thead th { position: static; }
