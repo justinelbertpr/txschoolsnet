@@ -604,7 +604,6 @@ const scopedHomeStats = (items) =>
 const homeHero = ({ place, search }) => `<section class="hero hero-home">
   <div class="home-hero-grid">
     <div class="home-hero-copy">
-      <p class="eyebrow">Traditional public schools in Texas</p>
       <h1>Texas school ratings</h1>
       <p class="place">${place}</p>
     </div>

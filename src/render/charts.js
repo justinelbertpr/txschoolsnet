@@ -384,16 +384,27 @@ export function comparisonChart({ years, series, w = 640, h = 320, fmt = (v) => 
     })
     .join('')
 
+  // A dot on EVERY reading, not just the last one. Without them the chart is
+  // three bare lines: a reader can see the shape but not where the actual
+  // measurements fall, so a bend between two years is indistinguishable from a
+  // year with no data at all — and on a phone, where the plot is ~250px wide,
+  // that was the whole complaint. The final dot stays larger, because it is
+  // the figure the surrounding prose quotes.
   const lines = series
     .map((s) => {
       const run = valuePath(s.values, x, y)
       const lastIndex = s.values.findLastIndex((v) => v !== null && v !== undefined)
       if (lastIndex < 0) return ''
-      const last = [x(lastIndex), y(s.values[lastIndex])]
-      return (
-        (run.hasLine ? `<path d="${run.d}" class="line line-${s.key}"/>` : '') +
-        `<circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4" class="dot dot-${s.key}"/>`
-      )
+      const dots = s.values
+        .map((v, i) =>
+          v === null || v === undefined
+            ? ''
+            : `<circle cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="${
+                i === lastIndex ? 4 : 2.6
+              }" class="dot dot-${s.key}"/>`
+        )
+        .join('')
+      return (run.hasLine ? `<path d="${run.d}" class="line line-${s.key}"/>` : '') + dots
     })
     .join('')
 

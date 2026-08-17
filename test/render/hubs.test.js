@@ -233,7 +233,11 @@ describe('home page', () => {
       ],
     })
 
-    expect(html).toContain('Traditional public schools in Texas')
+    // The scope is stated by the lede and the two stat notes below. The hero
+    // eyebrow used to say it a fourth time, above the h1, and was removed as
+    // redundant chrome on a phone — so this asserts it is gone, and that the
+    // scope survives its removal.
+    expect(html).not.toContain('<p class="eyebrow">Traditional public schools in Texas</p>')
     expect(html).toContain('Open-enrollment charter districts and campuses are not included.')
     expect(html).toContain('Traditional public school districts included in this snapshot')
     expect(html).toContain('Schools in those traditional public school districts')

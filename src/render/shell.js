@@ -356,7 +356,7 @@ ${main}`
 
 <header class="site">
   <div class="masthead-id">
-    <p class="unofficial"><strong>Independent Texas school research.</strong> TEA data, clearly explained. <a href="/about">Not affiliated with the state agency</a>.</p>
+    <p class="unofficial"><strong>Independent Texas school research.</strong> <span class="wide-only">TEA data, clearly explained. </span><a href="/about">Not affiliated with <span class="wide-only">the state agency</span><span class="narrow-only">TEA</span></a>.</p>
   </div>
   <div class="masthead-tools">
     <a class="wordmark" href="/">${mark}<span class="wordmark-copy"><strong>txschools<span>.net</span></strong><small>School data with context</small></span></a>

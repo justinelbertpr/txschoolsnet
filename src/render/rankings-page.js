@@ -1552,12 +1552,22 @@ export function renderRankingsIndexPage({
   <p class="lede">TEA publishes a rating for every district and campus. It does not publish them in
     order. These tables do, and each one states the population it ranked, how many entities that was,
     and which were left out and why. Only the better-performing end of each ordering is published —
-    never a standalone list of the worst.</p>
+    never a standalone list of the worst.</p>${
+      toolMarkup
+        ? `\n  <p class="downloads"><a href="#build">Build your own ranking</a></p>`
+        : ''
+    }
 </section>`,
-      section(
-        'how',
-        'How to read these',
-        `<ul>
+      // Reference material, not the page's content: a reader who came for a
+      // ranked list should not have to scroll two phone screens of rules to
+      // reach one. A native <details> keeps every word on the page and one tap
+      // away, and costs a collapsed row until someone wants it. The lists
+      // themselves used to start 7.3 screens down on a phone.
+      `<section id="how">
+  <details class="reading-notes">
+    <summary><h2>How to read these</h2></summary>
+    <div class="reading-notes-body">
+  <ul>
     <li>Every list names its population and its n.</li>
     <li>Ties are shown as ties: two districts sharing 3rd both read 3rd, and the next reads 5th.</li>
     <li>Entities TEA did not rate are excluded, not counted as zero, and each page says how many.</li>
@@ -1572,21 +1582,29 @@ export function renderRankingsIndexPage({
      over time, the underlying figure is one TEA publishes for several years — the overall score,
      the domain scores, per-student spending. Nothing else here is presented as a trend.</p>
   ${povertyCaveat()}
-  ${note ? `<p class="note">${esc(note)}</p>` : ''}`
-      ),
+  ${note ? `<p class="note">${esc(note)}</p>` : ''}
+    </div>
+  </details>
+</section>`,
+      groups.length ? groupFilterInput() : null,
+      ...(bucketSections.length
+        ? bucketSections
+        : [section('none', 'No ranked lists', '<p class="note na">No ranked lists were built for this snapshot.</p>')]),
+      // AFTER the ready-made lists, not before them. The tool is the best thing
+      // on this page and it is also 4.2 phone screens tall, which put every
+      // list below it out of reach of anyone who did not already know they were
+      // there — and a reader who wants "the best districts in Harris County" is
+      // better served by tapping a list that already exists than by building
+      // it. The hero links down to it, so it stays one tap from the top.
       toolMarkup
         ? section(
             'build',
             'Build your own ranking',
             toolMarkup,
-            `Everything else on this page is fixed. This one is not: choose a measure, an area and a level,
+            `Every list above is fixed. This one is not: choose a measure, an area and a level,
              and the table below recomputes without leaving the page.`
           )
         : null,
-      groups.length ? groupFilterInput() : null,
-      ...(bucketSections.length
-        ? bucketSections
-        : [section('none', 'No ranked lists', '<p class="note na">No ranked lists were built for this snapshot.</p>')]),
       sourceSection(snapshotDate),
     ],
   })

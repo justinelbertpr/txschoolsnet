@@ -440,7 +440,23 @@ describe('comparisonChart', () => {
   it('draws no point for a missing year, rather than a point at zero', () => {
     const svg = cmpChart({ series: [{ key: 'entity', values: [10_000, null, 12_000] }] })
     expect(svg).not.toContain('NaN')
-    expect(circles(svg)).toBe(1) // one end-of-line dot, not one per year
+    // A dot per READING: two here, not three — the missing year gets none, so
+    // a gap in the data never reads as a measurement.
+    expect(circles(svg)).toBe(2)
+  })
+
+  it('marks every reading, not only the last one', () => {
+    // Three bare lines let a reader see the shape but not where the actual
+    // measurements fall. Five years of data is five dots per series.
+    const svg = cmpChart({ series: [{ key: 'entity', values: [1, 2, 3, 4, 5] }] })
+    expect(circles(svg)).toBe(5)
+  })
+
+  it('keeps the final reading the largest dot, since the prose quotes it', () => {
+    const svg = cmpChart({ series: [{ key: 'entity', values: [1, 2, 3] }] })
+    const radii = [...svg.matchAll(/<circle[^>]*r="([\d.]+)"/g)].map((m) => Number(m[1]))
+    expect(radii).toHaveLength(3)
+    expect(radii.at(-1)).toBeGreaterThan(radii[0])
   })
 
   it('breaks the line at a missing year instead of bridging the gap', () => {
