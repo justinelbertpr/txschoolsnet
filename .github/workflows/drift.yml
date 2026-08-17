@@ -1,0 +1,69 @@
+# Asks TEA, once a week, whether any of the 14 source files has changed since
+# the committed snapshot was taken.
+#
+# WHY A JOB AND NOT A HUMAN. TEA overwrites its data files in place — no version
+# in the URL, no changelog, no notification. Without this, the only way anyone
+# learns that upstream moved is by running `npm run fetch` and noticing the diff,
+# which on a site that refreshes about once a year means the answer to "is this
+# still current?" is unknown for months at a time.
+#
+# WHAT IT DOES NOT DO. It does not fetch, rebuild, or deploy. Drift is reported
+# and left for a person: `npm run drift` says which files moved, and the response
+# is a deliberate `npm run fetch`, a review of the diff, and a commit. Automating
+# that would defeat the point of archiving snapshots in the first place — the
+# archive exists so that published numbers trace to bytes somebody chose to
+# publish, not to whatever the server happened to be serving that morning.
+#
+# THE SCHEDULE CAVEAT, stated because refresh.yml's own header calls it out:
+# GitHub disables scheduled workflows in PUBLIC repositories after 60 days with
+# no repository activity. This repo is currently active, so the cron runs — but
+# it is not a guarantee, and it is the reason refresh.yml deliberately has no
+# schedule. If this repo ever goes quiet for two months, this check stops
+# silently. workflow_dispatch is here so it can always be run by hand, and the
+# honest backstop for a dormant repo remains a calendar reminder.
+#
+# Weekly, not daily: the thing being watched changes roughly annually, and 14
+# HEAD requests a week against a government host is a courteous rate for a
+# question that is almost always "no".
+name: Upstream drift check
+
+on:
+  schedule:
+    # Mondays, 14:00 UTC (~9am Central) — a working morning in Texas, so a
+    # positive lands when someone can act on it rather than overnight.
+    - cron: '0 14 * * 1'
+  workflow_dispatch:
+
+# Read-only: this job never writes to the repository. A failed run is the
+# notification — GitHub emails the owner when a scheduled workflow fails.
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      # No `npm ci` — src/drift.js imports nothing outside node: builtins and
+      # this repo's own modules, so installing devDependencies would only add a
+      # minute and a supply-chain surface to a job that makes 14 HEAD requests.
+
+      # Integrity first, and independent of the network. If the committed
+      # snapshot has itself drifted from its manifest, that is a more urgent
+      # problem than anything upstream — and it would make the drift comparison
+      # meaningless, since the validators it compares against live in that same
+      # manifest.
+      - name: Verify the committed snapshot still matches its manifest
+        run: npm run verify
+
+      # Exit codes are the interface (see src/drift.js):
+      #   0  everything still matches
+      #   1  something changed upstream  -> fail, notify
+      #   2  could not be determined     -> fail, notify, distinguishable in the log
+      - name: Compare against live TEA files
+        run: npm run drift
