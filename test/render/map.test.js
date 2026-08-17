@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest'
 import {
   BUCKETS,
   GRADES,
+  MAP_PALETTES,
+  NEUTRAL_RAMP,
+  PERFORMANCE_RAMP,
   RAMP,
   bucketOf,
   bucketRanges,
@@ -52,7 +55,7 @@ const layerFor = (values) =>
     key: 'score',
     label: 'Overall score',
     fmt: 'points',
-    direction: 'Darkest districts have the highest figure.',
+    dir: 'higher',
     values: new Map(values),
     order: districts.map((d) => d.teaId),
   })
@@ -175,10 +178,44 @@ describe('layers', () => {
     expect(l.counted).toBe(1)
   })
 
+  it('maps higher-is-better values from low red to high green', () => {
+    const l = layerFor([['000001', 10], ['000002', 90]])
+    expect(l.palette).toBe(MAP_PALETTES.HIGHER)
+    expect(l.buckets[0]).toBeGreaterThan(l.buckets[1])
+    expect(l.ranges[0]).toMatch(/90/)
+    expect(l.ranges.at(-1)).toMatch(/10/)
+    expect(l.direction).toMatch(/Green marks the highest range; red marks the lowest/)
+  })
+
+  it('maps lower-is-better values from low green to high red', () => {
+    const l = buildLayer({
+      key: 'absenteeism', label: 'Chronically absent', fmt: 'pct', dir: 'lower',
+      values: new Map([['000001', 5], ['000002', 25]]),
+      order: districts.map((d) => d.teaId),
+    })
+    expect(l.palette).toBe(MAP_PALETTES.LOWER)
+    expect(l.buckets[0]).toBeLessThan(l.buckets[1])
+    expect(l.ranges[0]).toMatch(/5\.0%/)
+    expect(l.ranges.at(-1)).toMatch(/25\.0%/)
+    expect(l.direction).toMatch(/Green marks the lowest range; red marks the highest/)
+  })
+
+  it('uses a neutral sequential palette for dollar measures', () => {
+    const l = buildLayer({
+      key: 'spend', label: 'Per-student spending', fmt: 'usd', dir: 'higher',
+      values: new Map([['000001', 10_000], ['000002', 20_000]]),
+      order: districts.map((d) => d.teaId),
+    })
+    expect(l.palette).toBe(MAP_PALETTES.NEUTRAL)
+    expect(l.buckets[0]).toBeLessThan(l.buckets[1])
+    expect(l.direction).toMatch(/not a judgment of quality/)
+  })
+
   it('keeps the rating layer categorical, one shade per letter', () => {
     const l = ratingFor([['000001', 'A'], ['000002', 'F']])
     expect(l.buckets).toEqual([0, GRADES.length - 1])
     expect(l.ranges).toEqual(GRADES)
+    expect(l.palette).toBe(MAP_PALETTES.RATING)
   })
 
   it('gives an unrated district no shade rather than an F', () => {
@@ -245,7 +282,7 @@ describe('renderMapPage', () => {
     // render, and every district after the first gap gets its neighbour's
     // figure — a map that looks entirely normal and is entirely wrong.
     const wrong = buildLayer({
-      key: 'score', label: 'Overall score', fmt: 'points', direction: '',
+      key: 'score', label: 'Overall score', fmt: 'points', dir: 'higher',
       values: new Map([['000001', 10]]),
       order: ['000001', '000002', '000003'],
     })
@@ -271,10 +308,25 @@ describe('renderMapPage', () => {
     // asserting anything — a green test guarding nothing, under a name that had
     // become false.
     expect(RAMP).toHaveLength(BUCKETS)
-    expect(RAMP).toEqual(['#0f5132', '#7cb342', '#ffe9a8', '#e8590c', '#7a0b16'])
+    expect(RAMP).toBe(PERFORMANCE_RAMP)
+    expect(PERFORMANCE_RAMP).toEqual(['#0f5132', '#7cb342', '#ffe9a8', '#e8590c', '#7a0b16'])
+    expect(NEUTRAL_RAMP).toEqual(['#dbebea', '#8ac4c9', '#3d95a2', '#155f70', '#082f39'])
     for (const classic of ['#1a9641', '#a6d96a', '#ffffbf', '#fdae61', '#d7191c']) {
       expect(RAMP).not.toContain(classic)
     }
+  })
+
+  it('keeps the browser palette and layer-switching contract wired to those stops', async () => {
+    const { readFileSync } = await import('node:fs')
+    const css = readFileSync(new URL('../../site/style.css', import.meta.url), 'utf8')
+    const client = readFileSync(new URL('../../site/map.js', import.meta.url), 'utf8')
+    PERFORMANCE_RAMP.forEach((stop, i) => expect(css).toContain(`--map-b${i}: ${stop};`))
+    NEUTRAL_RAMP.forEach((stop, i) => expect(css).toContain(`--map-b${i}: ${stop};`))
+    expect(css).toMatch(/\.map-svg :where\(\[data-map-shapes\]\) path\s*\{[^}]*fill:\s*var\(--line-2\)/)
+    expect(css).toMatch(/\.map-svg :where\(\[data-map-shapes\]\) path:not\(\[data-b\]\)\s*\{\s*fill:\s*url\(#map-missing-pattern\)/)
+    expect(css).toMatch(/\.map-no-data-key\[hidden\]\s*\{\s*display:\s*none/)
+    expect(client).toMatch(/figure\.setAttribute\('data-map-palette', layer\.palette\)/)
+    expect(client).toMatch(/missingKey\.hidden\s*=\s*missing === 0/)
   })
 
   it('inlines the low-fidelity geometry but projects from the high-fidelity bounds', () => {
@@ -322,5 +374,23 @@ describe('renderMapPage', () => {
     expect(json.order).toEqual(['4800001', '4800002'])
     for (const l of json.layers) expect(l.buckets).toHaveLength(json.order.length)
     expect(json.layers[0].key).toBe('rating')
+    expect(json.layers[0].palette).toBe(MAP_PALETTES.RATING)
+  })
+
+  it('labels missing values instead of leaving an unlabelled gray shape', () => {
+    const html = page({ rating: ratingFor([['000001', 'A'], ['000002', 'Not Rated']]) })
+    expect(html).toContain('aria-label="Beta ISD, overall rating not reported"')
+    expect(html).toContain('<title>Beta ISD — not reported</title>')
+    expect(html).toContain('map-swatch-missing')
+    expect(html).toContain('id="map-missing-pattern"')
+    expect(html).toMatch(/data-map-missing-key><span/)
+    expect(html).toContain('1 of 2 districts has a published rating; 1 is shown as not reported.')
+  })
+
+  it('hides the not-reported key when the active layer has complete coverage', () => {
+    const html = page()
+    expect(html).toMatch(/data-map-missing-key hidden/)
+    expect(html).toContain('2 of 2 districts have a published rating.')
+    expect(html).not.toContain('shown as not reported')
   })
 })

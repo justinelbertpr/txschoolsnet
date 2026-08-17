@@ -375,13 +375,34 @@ describe('the primary nav cannot become unreachable', () => {
     const tools = header.slice(header.indexOf('<div class="masthead-tools">'))
     expect(html).toContain('class="wordmark" href="/"')
     expect(html).toContain('<div class="desktop-nav">')
-    for (const href of ['/search', '/districts/a', '/rankings', '/download', '/about']) {
+    for (const href of ['/districts/a', '/rankings', '/download', '/about']) {
       expect(tools.match(new RegExp(`<a href="${href}"`, 'g'))).toHaveLength(2)
     }
+    // Search is words in the mobile menu and a compact icon on desktop, not
+    // two adjacent links that both lead to the same place.
+    expect(tools.match(/href="\/search"/g)).toHaveLength(2)
+    expect(tools.match(/>Find schools<\/a>/g)).toHaveLength(1)
+    expect(tools).toContain(
+      '<a class="desktop-search" href="/search" aria-label="Search schools and districts" title="Search"'
+    )
+    expect(tools.match(/class="desktop-search"/g)).toHaveLength(1)
+    expect(tools).toMatch(/class="desktop-search"[\s\S]*?<svg aria-hidden="true"/)
     expect(header.match(/<nav class="sitenav" aria-label="Site">/g)).toHaveLength(2)
     expect(html).toContain('<details class="nav-menu">')
     expect(html).toContain('<summary><span>Menu</span>')
     expect(html).toContain('<div class="nav-menu-panel">')
+  })
+
+  it('marks the desktop search control current throughout the search hub', () => {
+    const html = shell({
+      title: 'Search',
+      description: 'D',
+      canonical: 'https://txschools.net/search/a',
+      sections: ['<section id="a"><h2>A</h2></section>'],
+    })
+    expect(html).toContain(
+      '<a class="desktop-search" href="/search" aria-label="Search schools and districts" title="Search" aria-current="page"'
+    )
   })
 
   it('emits no inline script inside the header', () => {
@@ -397,6 +418,14 @@ describe('the primary nav cannot become unreachable', () => {
     expect(css).toMatch(/@media \(min-width: 48rem\)[\s\S]*\.desktop-nav \{ display: flex;[\s\S]*\.nav-menu \{ display: none; \}/)
     expect(css).toMatch(/@media \(max-width: 47\.99rem\)[\s\S]*\.desktop-nav \{ display: none; \}[\s\S]*\.nav-menu > summary/)
     expect(css).not.toMatch(/nav-disclosure|initNavDisclosure/)
+  })
+
+  it('lets entity-page charts use the full data card width', async () => {
+    const { readFileSync } = await import('node:fs')
+    const css = readFileSync(new URL('../../site/style.css', import.meta.url), 'utf8')
+    const redesign = css.slice(css.indexOf('2026 PRODUCT REDESIGN'))
+    expect(css).toMatch(/\.chart\s*\{\s*width:\s*100%/)
+    expect(redesign).toMatch(/\.layout\s*\{[^}]*--chart-max:\s*100%/)
   })
 
   it('has no JavaScript that decides whether the nav is visible', async () => {

@@ -33,6 +33,8 @@
   const title = document.querySelector('[data-map-legend-title]')
   const items = document.querySelector('[data-map-legend-items]')
   const note = document.querySelector('[data-map-legend-note]')
+  const figure = root.closest('[data-map-palette]')
+  const missingKey = document.querySelector('[data-map-missing-key]')
 
   // The accessible name of each district is rebuilt per layer, because "Klein
   // ISD, rated B" is wrong once the map is shading by dropout rate. Everything
@@ -47,12 +49,13 @@
       const b = buckets[i]
       if (b == null) shapes[i].removeAttribute('data-b')
       else shapes[i].setAttribute('data-b', String(b))
-      const band = b == null ? 'no figure' : ranges[b]
+      const band = b == null ? 'not reported' : ranges[b]
       const a = links[i]
       if (a) a.setAttribute('aria-label', `${names[i]}, ${label}: ${band}`)
       const t = shapes[i].querySelector('title')
       if (t) t.textContent = `${names[i]} — ${band}`
     }
+    if (figure && layer.palette) figure.setAttribute('data-map-palette', layer.palette)
     if (title) title.textContent = label
     // The key entries are the filter's checkboxes now, so only their TEXT is
     // rewritten per layer — rebuilding the list would throw away which classes
@@ -63,7 +66,13 @@
         if (t) t.textContent = r
       })
     }
-    if (note) note.textContent = `${direction} ${nf.format(counted)} districts shown.`
+    const missing = buckets.length - counted
+    if (note) {
+      const coverage = `${nf.format(counted)} of ${nf.format(buckets.length)} districts ${counted === 1 ? 'reports' : 'report'} this measure` +
+        (missing ? `; ${nf.format(missing)} ${missing === 1 ? 'is' : 'are'} shown as not reported` : '') + '.'
+      note.textContent = `${direction} ${coverage}`
+    }
+    if (missingKey) missingKey.hidden = missing === 0
     root.setAttribute('aria-label', `Texas school districts shaded by ${label}`)
   }
 

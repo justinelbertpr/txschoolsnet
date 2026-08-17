@@ -3,10 +3,12 @@
 //
 // ------------------------------------------------------------------ ENCODING
 //
-// Green through red, at the site owner's explicit instruction. site/style.css
-// rule 3 says grades are never colour-coded and gives the measurement behind
-// it; that rule now records this page as a deliberate exception rather than
-// being quietly contradicted by it.
+// Performance layers use green for the stronger end and red for the weaker
+// end, at the site owner's explicit instruction. Which numeric end receives
+// which colour follows the metric's declared direction; resource measures
+// use a neutral single-hue scale because more dollars are not inherently
+// better or worse. site/style.css records the map as a deliberate exception
+// to the site's otherwise neutral grade treatment.
 //
 // The measurements are on RAMP below. The short version: the classic
 // green-amber-red ramp fails not on its adjacent pairs but on B/D, which close
@@ -36,6 +38,7 @@
 // at all and this site does not publish them.
 
 import { esc, num, pct, section, shell, usd, SITE_ORIGIN } from './shell.js'
+import { HIGHER, LOWER } from './metrics.js'
 
 export const MAP_HREF = '/map'
 export const MAP_FILE = 'map.html'
@@ -69,7 +72,52 @@ export const BUCKETS = 5
  * letter remains the real encoding: it is in the legend, in every district's
  * accessible name, and in the hover readout.
  */
-export const RAMP = ['#0f5132', '#7cb342', '#ffe9a8', '#e8590c', '#7a0b16']
+/**
+ * Palette semantics are data, not an inference the browser makes from a label.
+ *
+ * `rating`, `higher` and `lower` all use the measured good-to-bad traffic-light
+ * ramp. Their bucket ORDER differs: higher-is-better measures reverse their
+ * numeric quantiles before they reach the palette, while lower-is-better
+ * measures and A-to-F ratings already run from strongest to weakest.
+ *
+ * Dollar measures are `neutral`. More spending or higher pay is not inherently
+ * a better or worse result, so those layers use a single-hue sequential ramp
+ * and say explicitly that the colour is not a quality judgment.
+ */
+export const MAP_PALETTES = Object.freeze({
+  RATING: 'rating',
+  HIGHER: 'higher',
+  LOWER: 'lower',
+  NEUTRAL: 'neutral',
+})
+
+export const PERFORMANCE_RAMP = ['#0f5132', '#7cb342', '#ffe9a8', '#e8590c', '#7a0b16']
+export const NEUTRAL_RAMP = ['#dbebea', '#8ac4c9', '#3d95a2', '#155f70', '#082f39']
+// Kept as the public name used by the existing palette regression test.
+export const RAMP = PERFORMANCE_RAMP
+
+export function mapPaletteFor({ fmt, dir }) {
+  if (fmt === 'usd') return MAP_PALETTES.NEUTRAL
+  if (dir === HIGHER) return MAP_PALETTES.HIGHER
+  if (dir === LOWER) return MAP_PALETTES.LOWER
+  throw new Error(`map: metric direction must be ${HIGHER} or ${LOWER}, got ${JSON.stringify(dir)}`)
+}
+
+export function mapDirectionNote(palette) {
+  if (palette === MAP_PALETTES.RATING) {
+    return 'A is the strongest result and F is the weakest. Green marks A; red marks F.'
+  }
+  if (palette === MAP_PALETTES.HIGHER) {
+    return 'Higher values are better for this measure. Green marks the highest range; red marks the lowest.'
+  }
+  if (palette === MAP_PALETTES.LOWER) {
+    return 'Lower values are better for this measure. Green marks the lowest range; red marks the highest.'
+  }
+  if (palette === MAP_PALETTES.NEUTRAL) {
+    return 'Darker teal marks a higher dollar amount. Color is not a judgment of quality.'
+  }
+  throw new Error(`map: unknown palette ${JSON.stringify(palette)}`)
+}
 
 /** Districts TEA rates but NCES draws no polygon for. */
 export const NO_SHAPE_NOTE =
@@ -291,20 +339,34 @@ export const mappableDistricts = (topo, districts) => {
  * by POSITION in `order`, because the payload repeats once per district per
  * measure and an id per entry would roughly triple it.
  */
-export function buildLayer({ key, label, fmt, direction, values, order }) {
+export function buildLayer({ key, label, fmt, dir, values, order }) {
   const vals = order.map((id) => {
     const v = values.get(id)
     return finite(v) ? v : null
   })
   const breaks = quantileBreaks(vals)
+  const palette = mapPaletteFor({ fmt, dir })
+  const ascendingRanges = bucketRanges(vals, breaks, fmt)
+  const ascendingBuckets = vals.map((v) => bucketOf(v, breaks))
+
+  // data-b is a SEMANTIC palette position for evaluative layers: 0 is the
+  // strongest/green end and 4 is the weakest/red end. Numeric quantiles are
+  // low-to-high, so only a higher-is-better measure needs to be reversed.
+  // Neutral dollar layers stay low-to-high because their separate sequential
+  // palette runs from light (less) to dark (more), without a good/bad claim.
+  const reverse = palette === MAP_PALETTES.HIGHER
+  const ranges = reverse ? [...ascendingRanges].reverse() : ascendingRanges
+  const buckets = ascendingBuckets.map((b) => (b == null || !reverse ? b : BUCKETS - 1 - b))
   return {
     key,
     label,
     fmt,
-    direction,
+    dir,
+    palette,
+    direction: mapDirectionNote(palette),
     breaks,
-    ranges: bucketRanges(vals, breaks, fmt),
-    buckets: vals.map((v) => bucketOf(v, breaks)),
+    ranges,
+    buckets,
     counted: vals.filter(finite).length,
   }
 }
@@ -329,7 +391,8 @@ export function buildRatingLayer({ ratings, order }) {
     key: 'rating',
     label: 'Overall rating',
     fmt: 'grade',
-    direction: 'A is the best result.',
+    palette: MAP_PALETTES.RATING,
+    direction: mapDirectionNote(MAP_PALETTES.RATING),
     breaks: [],
     ranges: GRADES,
     buckets,
@@ -456,9 +519,9 @@ export function renderMapPage({
       const b = rating.buckets[i]
       const grade = b == null ? null : GRADES[b]
       return (
-        `<a href="${esc(d.href)}" aria-label="${esc(d.name)}${grade ? `, rated ${grade}` : ''}">` +
+        `<a href="${esc(d.href)}" aria-label="${esc(d.name)}${grade ? `, rated ${grade}` : ', overall rating not reported'}">` +
         `<path d="${pathData(inlineRings.get(d.geoid), project)}"${b == null ? '' : ` data-b="${b}"`}>` +
-        `<title>${esc(d.name)}${grade ? ` — ${grade}` : ''}</title></path></a>`
+        `<title>${esc(d.name)} — ${grade ?? 'not reported'}</title></path></a>`
       )
     })
     .join('')
@@ -475,6 +538,7 @@ export function renderMapPage({
       key: l.key,
       label: l.label,
       fmt: l.fmt,
+      palette: l.palette,
       direction: l.direction,
       ranges: l.ranges,
       buckets: l.buckets,
@@ -517,10 +581,16 @@ export function renderMapPage({
   // It also has to sit there for the filtering to work at all: the CSS reaches
   // the paths with `~`, which only looks forward among SIBLINGS, and inside
   // the figure the figcaption and the svg are siblings.
+  const missing = drawn.length - rating.counted
+  const noDataKey = `<li class="map-no-data-key" data-map-missing-key${missing ? '' : ' hidden'}><span class="map-swatch map-swatch-missing" aria-hidden="true"></span><span>Not reported</span></li>`
   const legend = `<figcaption class="map-legend map-classes" data-map-legend>
       <p class="map-legend-title"><span data-map-legend-title>${esc(rating.label)}</span><span class="map-legend-hint"> &mdash; untick a class to hide it</span></p>
-      <ul data-map-legend-items>${rating.ranges.map((r, i) => swatch(i, r)).join('')}</ul>
+      <ul data-map-legend-items>${rating.ranges.map((r, i) => swatch(i, r)).join('')}${noDataKey}</ul>
     </figcaption>`
+
+  const coverage = `${num(rating.counted)} of ${num(drawn.length)} districts ${rating.counted === 1 ? 'has' : 'have'} a published rating${
+    missing ? `; ${num(missing)} ${missing === 1 ? 'is' : 'are'} shown as not reported` : ''
+  }.`
 
   return shell({
     title: 'Map of Texas school districts — txschools.net',
@@ -545,16 +615,17 @@ export function renderMapPage({
         'The map',
         `${controls}
   <form class="map-form">
-    <figure class="map-figure">
+    <figure class="map-figure" data-map-palette="${esc(rating.palette)}">
     ${legend}
     <svg class="map-svg" viewBox="0 0 ${width} ${height}" role="group"
          aria-label="Texas school districts shaded by rating" data-map data-base-view="0 0 ${width} ${height}">
+      <defs><pattern id="map-missing-pattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="var(--line-2)"/><path d="M-2 2L2-2M0 6L6 0M4 8L8 4" fill="none" stroke="var(--ink-3)" stroke-width=".7" opacity=".38"/></pattern></defs>
       <g data-map-shapes>${paths}</g>
     </svg>
     </figure>
     <p class="map-reset"><button type="reset">Show every class</button></p>
   </form>
-  <p class="note" data-map-legend-note>${esc(rating.direction)} ${esc(`${num(rating.counted)} districts shown.`)}</p>
+  <p class="note" data-map-legend-note>${esc(rating.direction)} ${esc(coverage)}</p>
   <div class="map-tip" data-map-tip hidden aria-hidden="true"></div>
   <script type="application/json" data-map-payload>${JSON.stringify(payload).replace(/</g, '\\u003c')}</script>`
       ),

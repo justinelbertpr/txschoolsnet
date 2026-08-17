@@ -287,15 +287,32 @@ describe('sourceBundles', () => {
     expect(b.get('d1').grad).toEqual([null, null, 94, null])
   })
 
-  it('BUG (reported, not fixed): a blank or null cell becomes 0 instead of null', () => {
-    // numPct does `Number(String(v ?? ''))`, and Number('') is 0 — so a blank
-    // dropout cell would publish a real 0.0% and rank the entity first for the
-    // lowest dropout rate. No blank cells exist in the 2026-08 snapshot, so this
-    // is latent rather than live. Locked down here so a fix is a visible change.
+  it('nulls blank percentage cells rather than turning them into zero', () => {
     const b = sourceBundles(
       universe({ achievement: [{ id: 'd1', subject: ['Reading'], approach: [''], meet: [null], master: ['30%'] }] })
     )
-    expect(b.get('d1').staar).toEqual([[0], [0], [30]]) // should be [[null], [null], [30]]
+    expect(b.get('d1').staar).toEqual([[null], [null], [30]])
+  })
+
+  it('nulls TEA negative sentinels and every other out-of-range percentage', () => {
+    const b = sourceBundles(
+      universe({
+        achievement: [
+          {
+            id: 'd1',
+            subject: ['Science', 'Social Studies'],
+            approach: [-1, '101%'],
+            meet: ['-1%', 100],
+            master: [0, 100.1],
+            grad_rate_col2: [-1, '101%', 100, 0],
+            ccmr_col2: [-1, '101%', 100, 0],
+          },
+        ],
+      })
+    ).get('d1')
+    expect(b.staar).toEqual([[null, null], [null, 100], [0, null]])
+    expect(b.grad).toEqual([null, null, 100, 0])
+    expect(b.ccmr).toEqual([null, null, 100, 0])
   })
 
   it('ignores a single-element CCMR array, which carries no criteria', () => {

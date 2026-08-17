@@ -11,6 +11,22 @@ export const num = (v) => {
   return Number.isFinite(n) ? n : null
 }
 
+/**
+ * TEA percentage fields use negative numbers as missing-value sentinels. Parse
+ * those fields separately from ordinary numbers so a sentinel can never become
+ * a real rate, while measurements where a negative is meaningful keep using
+ * `num` unchanged.
+ */
+export const percentage = (v) => {
+  if (v === null || v === undefined) return null
+  const s = String(v).trim()
+  if (!s) return null
+  const raw = s.endsWith('%') ? s.slice(0, -1).trim() : s
+  if (!raw) return null
+  const n = Number(raw)
+  return Number.isFinite(n) && n >= 0 && n <= 100 ? n : null
+}
+
 export function toEntity(rec, level) {
   return {
     id: rec.id,

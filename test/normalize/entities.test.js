@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toEntity } from '../../src/normalize/entities.js'
+import { num, percentage, toEntity } from '../../src/normalize/entities.js'
 
 const district = {
   id: '001902', district_id: '001902', district_name: 'Cayuga ISD',
@@ -79,5 +79,27 @@ describe('toEntity', () => {
 
   it('nulls a non-numeric score rather than emitting NaN', () => {
     expect(toEntity({ ...district, score: '' }, 'district').score).toBeNull()
+  })
+})
+
+describe('numeric normalization', () => {
+  it('keeps negative ordinary numbers, where a negative can be meaningful', () => {
+    expect(num(-12)).toBe(-12)
+    expect(num('-0.5')).toBe(-0.5)
+  })
+
+  it('parses only percentages inside the inclusive 0–100 range', () => {
+    expect(percentage(0)).toBe(0)
+    expect(percentage('42.5%')).toBe(42.5)
+    expect(percentage(' 100 % ')).toBe(100)
+    expect(percentage(-1)).toBeNull()
+    expect(percentage('-1%')).toBeNull()
+    expect(percentage(100.1)).toBeNull()
+  })
+
+  it('does not turn blank or suppressed percentage cells into zero', () => {
+    for (const v of [null, undefined, '', '   ', '-', 'No Data', '( 1.0%)']) {
+      expect(percentage(v), String(v)).toBeNull()
+    }
   })
 })
