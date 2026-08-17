@@ -252,11 +252,19 @@ export const siteNav = (canonical) => {
  * og:site_name carries "(unofficial)". The card is the one surface where a reader
  * meets this site with no page around it, so it is the one place the
  * non-affiliation line cannot be a footer.
+ *
+ * `prev`/`next` are absolute URLs, and only a page that is one of a numbered
+ * series passes them — the ranking boards, which run to 16 pages on the widest
+ * statewide campus ordering (rankings-page.js:boardPages). Each such page is
+ * its OWN canonical; these two links are what say the pages are one ordering
+ * rather than near-duplicates of each other.
  */
 export function shell({
   title,
   description,
   canonical,
+  prev = null,
+  next = null,
   crumbs = [],
   sections,
   rail = null,
@@ -316,7 +324,9 @@ ${main}`
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
-<link rel="canonical" href="${esc(canonical)}">
+<link rel="canonical" href="${esc(canonical)}">${
+    prev ? `\n<link rel="prev" href="${esc(prev)}">` : ''
+  }${next ? `\n<link rel="next" href="${esc(next)}">` : ''}
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="${esc(APPLE_TOUCH_ICON.path)}">
 <meta name="theme-color" content="${BRAND.themeLight}" media="(prefers-color-scheme: light)">

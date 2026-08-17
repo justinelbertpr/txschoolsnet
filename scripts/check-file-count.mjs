@@ -20,17 +20,19 @@
 //     dashboard payload, search index            2
 //     favicon.svg, og.png,
 //       apple-touch-icon.png                     3
-//     ranking boards + CSVs                    229   115 boards (metric x scope,
+//     ranking board pages + CSVs               395   114 boards (metric x scope,
 //                                                     ONE flattering end per
 //                                                     ordering — the site owner's
 //                                                     call not to compile a
 //                                                     "worst of" list; see Rule 3,
 //                                                     src/render/rankings-page.js)
-//                                                     + 114 CSVs beside them — see
-//                                                     THE FILE BUDGET in
-//                                                     src/prerender.js
+//                                                     spread over 280 pages of 500
+//                                                     rows, + the /rankings index
+//                                                     + 114 CSVs, one whole
+//                                                     ordering each — see THE FILE
+//                                                     BUDGET in src/prerender.js
 //     ------------------------------------------
-//                                           13,200   4,800 under the guard
+//                                           13,366   4,634 under the guard
 //
 // The rows above the ranking-boards one are not re-measured here; they were
 // already approximate before this edit and are not what changed. The ranking

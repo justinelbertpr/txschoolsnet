@@ -1637,6 +1637,45 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 .pin-remove:hover { color: var(--ink); background: var(--ground); }
 .pin-remove:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
+/* ---------- pager ----------
+   The page-to-page navigation under a long ranked list
+   (src/render/rankings-page.js:pager). Plain links, so the ordering is
+   walkable with JavaScript off and with a keyboard.
+
+   Every target is at least 2.75rem in both directions — the same touch-target
+   floor .legend li > a uses further down — because this control is the one
+   thing on the page a phone reader has to hit accurately, and a row of bare
+   digits is otherwise the smallest tap target the site ships. */
+
+.pager { margin: 1.25rem 0 0; }
+.pager ul {
+  list-style: none; display: flex; flex-wrap: wrap; align-items: center;
+  gap: .3rem; margin: 0; padding: 0;
+  font-size: var(--t-small);
+}
+.pager a,
+.pager [aria-current='page'],
+.pager .pager-off {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 2.75rem; min-height: 2.75rem; padding: 0 .6rem;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  text-decoration: none;
+}
+.pager a { color: var(--ink-2); background: var(--surface); }
+.pager a:hover { color: var(--ink); background: var(--hover); border-color: var(--line-2); }
+.pager [aria-current='page'] {
+  color: var(--ink); background: var(--ground);
+  border-color: var(--ink-3); font-variant-numeric: tabular-nums;
+}
+/* Previous/Next at the ends of the ordering stay in place rather than
+   disappearing: a control row that changes width on the first and last page
+   moves the other targets under the reader's thumb. */
+.pager .pager-off { color: var(--ink-3); border-color: var(--line); opacity: .55; }
+.pager .pager-gap {
+  padding: 0 .2rem; color: var(--ink-3);
+  min-height: 2.75rem; display: inline-flex; align-items: center;
+}
+
 /* ---------- sticky bar ---------- */
 
 .stickybar {
