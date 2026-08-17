@@ -1,7 +1,7 @@
 // Shapes raw tables into ONE object per entity. Sections never touch raw data,
 // so a change in TEA's field names lands here and nowhere else.
 
-import { num, str } from '../normalize/entities.js'
+import { num, percentage, str } from '../normalize/entities.js'
 import { CCMR, GRADUATION, COMPLETION, DOMAIN_ORDER } from './labels.js'
 import { DOMAIN_LABELS } from '../normalize/domains.js'
 import { metricSpecs, sourceBundles, cohortMetrics, buildCohorts, rankAll, standouts } from './metrics.js'
@@ -173,11 +173,6 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
 
   const ach = achievement?.find((a) => a.id === entity.id) ?? null
   const gradLabels = entity.isAlt ? COMPLETION : GRADUATION
-  const pctNum = (v) => {
-    const n = Number(String(v ?? '').replace('%', ''))
-    return Number.isFinite(n) ? n : null
-  }
-
   // One comparison engine for every metric on the page. Declaring a metric in
   // metrics.js is what makes it comparable — a section cannot ship a number
   // without its context, because the context is computed for all of them at once.
@@ -238,19 +233,21 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
 
     staar:
       ach?.subject?.length && ach?.approach?.length
-        ? { subjects: ach.subject, levels: [ach.approach, ach.meet, ach.master].map((lvl) => lvl.map(pctNum)) }
+        ? { subjects: ach.subject, levels: [ach.approach, ach.meet, ach.master].map((lvl) => lvl.map(percentage)) }
         : null,
     graduation:
       ach?.grad_rate_col2?.length
         ? ach.grad_rate_col2
-            .map((v, i) => ({ label: gradLabels[i] ?? `Measure ${i + 1}`, value: pctNum(v) }))
+            .map((v, i) => ({ label: gradLabels[i] ?? `Measure ${i + 1}`, value: percentage(v) }))
             .filter((g) => g.value != null)
         : null,
     ccmr:
       ach?.ccmr_col2?.length > 1
-        ? CCMR.map((label, i) => ({ label, value: ach.ccmr_col2[i] ?? null, compare: ach.ccmr_col3?.[i] ?? null })).filter(
-            (c) => c.value != null
-          )
+        ? CCMR.map((label, i) => ({
+            label,
+            value: percentage(ach.ccmr_col2[i]) == null ? null : ach.ccmr_col2[i],
+            compare: percentage(ach.ccmr_col3?.[i]) == null ? null : ach.ccmr_col3[i],
+          })).filter((c) => c.value != null)
         : null,
 
     finance: fin.length

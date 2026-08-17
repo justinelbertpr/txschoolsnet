@@ -25,4 +25,21 @@ describe('toProfile', () => {
   it('nulls a non-numeric eco-dis', () => {
     expect(toProfile([{ id: 'x', Eco_Dis: '.' }])[0].ecoDisPct).toBeNull()
   })
+
+  it('nulls TEA sentinels and out-of-range values in percentage fields only', () => {
+    const p = toProfile([
+      {
+        id: 'x', Eco_Dis: -1, Spec_Ed: '101%', Eng_Lrn: '12%',
+        Attendance: '-1%', Absenteeism: 100.1, Avg_Salary: 58_000,
+      },
+    ])[0]
+    expect(p).toMatchObject({
+      ecoDisPct: null,
+      specEdPct: null,
+      engLrnPct: 12,
+      attendance: null,
+      absenteeism: null,
+      avgSalary: 58_000,
+    })
+  })
 })

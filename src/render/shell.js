@@ -251,10 +251,12 @@ export const pathOf = (canonical) => {
  * on the <ul>, so nothing about its signature or its `<nav class="sitenav">`
  * wrapper changes.
  */
-export const siteNav = (canonical) => {
+export const siteNav = (canonical, { includeSearch = true } = {}) => {
   const here = pathOf(canonical)
   return navList(
-    PRIMARY_NAV.map(({ href, label, match }) => ({ href, label, current: match(here) })),
+    PRIMARY_NAV
+      .filter(({ href }) => includeSearch || href !== '/search')
+      .map(({ href, label, match }) => ({ href, label, current: match(here) })),
     { label: 'Site', className: 'navlist-site' }
   )
 }
@@ -437,7 +439,7 @@ ${main}`
   <div class="masthead-tools">
     <a class="wordmark" href="/">${mark}<span class="wordmark-copy"><strong>txschools<span>.net</span></strong><small>School data with context</small></span></a>
     <div class="desktop-nav">
-      ${siteNav(canonical)}${desktopSearch}
+      ${siteNav(canonical, { includeSearch: false })}${desktopSearch}
     </div>
     <details class="nav-menu">
       <summary><span>Menu</span><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M3 5.5h14M3 10h14M3 14.5h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></summary>

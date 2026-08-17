@@ -349,4 +349,22 @@ describe('buildViewModel', () => {
     expect(vm.graduation[0].label).toBe('Four-Year Completion Rate')
     expect(build().graduation[0].label).toBe('Four-Year Graduation Rate')
   })
+
+  it('never exposes out-of-range achievement percentages as real results', () => {
+    const u = makeUniverse()
+    u.achievement[0] = {
+      ...u.achievement[0],
+      approach: [-1, '101%'],
+      meet: [0, 100],
+      grad_rate_col2: [-1, '101%', 100, 0],
+      ccmr_col2: [-1, '101%', '50%', '0%'],
+      ccmr_col3: [-1, '101%', '40%', '0%'],
+    }
+    const vm = build({ achievement: u.achievement })
+    expect(vm.staar.levels[0]).toEqual([null, null])
+    expect(vm.staar.levels[1]).toEqual([0, 100])
+    expect(vm.graduation.map((g) => g.value)).toEqual([100, 0])
+    expect(vm.ccmr.map((c) => c.value)).toEqual(['50%', '0%'])
+    expect(vm.ccmr.map((c) => c.compare)).toEqual(['40%', '0%'])
+  })
 })

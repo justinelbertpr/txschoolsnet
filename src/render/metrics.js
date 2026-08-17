@@ -11,11 +11,7 @@
 
 import { CCMR, GRADUATION, COMPLETION, STAAR_LEVELS } from './labels.js'
 import { DOMAIN_LABELS } from '../normalize/domains.js'
-
-const numPct = (v) => {
-  const n = Number(String(v ?? '').replace('%', ''))
-  return Number.isFinite(n) ? n : null
-}
+import { percentage } from '../normalize/entities.js'
 
 const mean = (xs) => {
   const v = xs.filter((x) => typeof x === 'number' && Number.isFinite(x))
@@ -209,10 +205,10 @@ export function sourceBundles({ entities, ratings, domains, profile, finance, ac
     if (!cur) continue
     if (a.subject?.length) {
       cur.subjects = a.subject
-      cur.staar = [a.approach, a.meet, a.master].map((lvl) => (lvl ?? []).map(numPct))
+      cur.staar = [a.approach, a.meet, a.master].map((lvl) => (lvl ?? []).map(percentage))
     }
-    if (a.grad_rate_col2?.length) cur.grad = a.grad_rate_col2.map(numPct)
-    if (a.ccmr_col2?.length > 1) cur.ccmr = a.ccmr_col2.map(numPct)
+    if (a.grad_rate_col2?.length) cur.grad = a.grad_rate_col2.map(percentage)
+    if (a.ccmr_col2?.length > 1) cur.ccmr = a.ccmr_col2.map(percentage)
   }
 
   return byId

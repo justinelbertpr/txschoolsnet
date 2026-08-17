@@ -172,22 +172,6 @@ async function readBoundaries(file = BOUNDARY_FILE) {
   }
 }
 
-/**
- * Which end of a measure is the good end, in the words the legend prints.
- *
- * The map ramp runs dark-to-light on every layer, so without this sentence a
- * reader has no way to know whether the dark shading on "chronically absent"
- * is the districts doing well or badly. Stated per layer rather than inferred
- * from the ramp, for the same reason the ranking pages state their direction.
- */
-function mapDirection(metric) {
-  const lowerBetter = /absentee|dropout|grad:3/.test(String(metric.key))
-  if (metric.fmt === 'usd') return 'Darkest districts spend or pay the most; the ramp says nothing about whether that is good.'
-  return lowerBetter
-    ? 'Darkest districts have the highest figure, which is the worse result for this measure.'
-    : 'Darkest districts have the highest figure.'
-}
-
 export const SITE_ORIGIN = 'https://txschools.net'
 
 // The escapeHtml that used to live here is gone with the renderer that used it.
@@ -1539,7 +1523,7 @@ export async function prerender({ concurrency } = {}) {
       mapLayers.push(
         buildLayer({
           key: m.key, label: m.label, fmt: m.fmt,
-          direction: mapDirection(m),
+          dir: m.dir,
           values, order,
         })
       )
