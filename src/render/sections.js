@@ -829,9 +829,19 @@ export const claimSentence = (vm, r) => {
     : r.cohort === 'peer' ? `${unit} serving a similar share of economically disadvantaged students`
     : `${unit} in ${r.cohortLabel}`
   const tie = r.tied > 0 ? `, tied with ${r.tied} other${r.tied === 1 ? '' : 's'}` : ''
-  const reporting = ' that report this measure'
   const dir = r.lowerIsBetter ? 'lowest' : 'highest'
-  return `${vm.name} ranks ${r.rank}${ordSuffix(r.rank)} of ${r.of} ${scope}${reporting} for ${r.label} (${dir}, 2025-26)${tie}. Source: txschools.net`
+  // The measure is named where the sentence first refers to it. It used to read
+  // "...of 19 districts in Harris County that report this measure for College,
+  // career or military ready" — "this measure" pointing at something not yet
+  // named, and the name bolted on after the denominator. Pasted into an email
+  // or a story, that reads as a rank with no measure attached until the very
+  // end, which is the one thing a citable sentence cannot afford.
+  //
+  // "among the N ... that report it" keeps the denominator qualifier doing its
+  // job — the n is a count of who reports THIS measure, not of who exists —
+  // while letting "it" refer back to a measure the reader has already been
+  // given. Entity first, because a citation is about the entity.
+  return `${vm.name} ranks ${r.rank}${ordSuffix(r.rank)} for ${r.label} among the ${r.of} ${scope} that report it (${dir}, 2025-26)${tie}. Source: txschools.net`
 }
 
 export function standouts(vm) {
