@@ -378,10 +378,27 @@ describe('the primary nav cannot become unreachable', () => {
     for (const href of ['/search', '/districts/a', '/rankings', '/download', '/about']) {
       expect(tools.match(new RegExp(`<a href="${href}"`, 'g'))).toHaveLength(2)
     }
+    expect(tools).toContain(
+      '<a class="desktop-search" href="/search" aria-label="Search schools and districts" title="Search"'
+    )
+    expect(tools.match(/class="desktop-search"/g)).toHaveLength(1)
+    expect(tools).toMatch(/class="desktop-search"[\s\S]*?<svg aria-hidden="true"/)
     expect(header.match(/<nav class="sitenav" aria-label="Site">/g)).toHaveLength(2)
     expect(html).toContain('<details class="nav-menu">')
     expect(html).toContain('<summary><span>Menu</span>')
     expect(html).toContain('<div class="nav-menu-panel">')
+  })
+
+  it('marks the desktop search control current throughout the search hub', () => {
+    const html = shell({
+      title: 'Search',
+      description: 'D',
+      canonical: 'https://txschools.net/search/a',
+      sections: ['<section id="a"><h2>A</h2></section>'],
+    })
+    expect(html).toContain(
+      '<a class="desktop-search" href="/search" aria-label="Search schools and districts" title="Search" aria-current="page"'
+    )
   })
 
   it('emits no inline script inside the header', () => {

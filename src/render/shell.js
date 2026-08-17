@@ -371,6 +371,15 @@ ${main}`
   const headerSearch = currentPath === '/' || currentPath === '/search'
     ? ''
     : renderSearch({ id: 'header-search', variant: 'header', assets: false })
+  // Desktop gets a persistent, compact way into the global finder without
+  // adding another autocomplete form to every page. The mobile menu already
+  // carries the full search experience where it is useful, so this link lives
+  // inside `.desktop-nav` and disappears with that desktop-only wrapper.
+  const desktopSearch = `<a class="desktop-search" href="/search" aria-label="Search schools and districts" title="Search"${
+    currentPath === '/search' || currentPath.startsWith('/search/') ? ' aria-current="page"' : ''
+  }>
+    <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.25" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m12.4 12.4 4.1 4.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+  </a>`
   const mark = `<svg class="brand-mark" aria-hidden="true" viewBox="0 0 32 32">
     <rect class="brand-mark-tile" width="32" height="32" rx="8"/>
     ${MARK_BARS.map((b) => `<rect class="brand-mark-bar" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx=".75"/>`).join('')}
@@ -428,7 +437,7 @@ ${main}`
   <div class="masthead-tools">
     <a class="wordmark" href="/">${mark}<span class="wordmark-copy"><strong>txschools<span>.net</span></strong><small>School data with context</small></span></a>
     <div class="desktop-nav">
-      ${siteNav(canonical)}
+      ${siteNav(canonical)}${desktopSearch}
     </div>
     <details class="nav-menu">
       <summary><span>Menu</span><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M3 5.5h14M3 10h14M3 14.5h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></summary>
