@@ -165,6 +165,34 @@ export function pathData(rings, project, precision = 1) {
     .join('')
 }
 
+/** GEOID -> rings, for one parsed topology. */
+export function ringsByGeoid(topo) {
+  const arcs = decodeArcs(topo)
+  const out = new Map()
+  for (const o of Object.values(topo.objects ?? {})) {
+    for (const g of o.geometries ?? []) out.set(String(g.properties?.GEOID ?? ''), ringsOf(g, arcs))
+  }
+  return out
+}
+
+/**
+ * The high-fidelity path for every drawn district, as { geoid: "M…Z" }.
+ *
+ * Pre-rendered server-side rather than shipping the TopoJSON and decoding it in
+ * the browser: the client then needs no topology code at all, and the swap is
+ * one setAttribute per district. Uses the SAME projection the page was built
+ * with — which is why fitProjection reads the high-fidelity bounds even though
+ * the inline paths are the low-fidelity ones.
+ */
+export function hiFiPaths({ topo, districts, width = 900 }) {
+  const byGeoid = ringsByGeoid(topo)
+  const drawn = districts.filter((d) => byGeoid.has(d.geoid))
+  const { project } = fitProjection(drawn.map((d) => byGeoid.get(d.geoid)), width)
+  const out = {}
+  for (const d of drawn) out[d.geoid] = pathData(byGeoid.get(d.geoid), project)
+  return out
+}
+
 /* --------------------------------------------------------------- buckets -- */
 
 /**
@@ -309,14 +337,24 @@ const swatch = (i, label) =>
  *   layers    buildLayer() results, in the order the picker offers them
  *   rating    buildRatingLayer() result — the layer drawn server-side
  */
-export function renderMapPage({ topo, districts, layers = [], rating, snapshotDate = null, width = 900 }) {
-  const arcs = decodeArcs(topo)
-  const byGeoid = new Map()
-  for (const g of Object.values(topo.objects)[0].geometries) {
-    byGeoid.set(String(g.properties?.GEOID ?? ''), ringsOf(g, arcs))
-  }
+export function renderMapPage({
+  topo,
+  topoLo = null,
+  districts,
+  layers = [],
+  rating,
+  snapshotDate = null,
+  width = 900,
+  hiFiHref = null,
+}) {
+  const byGeoid = ringsByGeoid(topo)
+  // The LOW-fidelity geometry is what ships inline; the high-fidelity file is
+  // fetched only where a screen can resolve it. Bounds come from the HIGH
+  // fidelity either way, so both sets of paths land on the same projection and
+  // swapping one for the other cannot shift the map by a pixel.
+  const inlineRings = topoLo ? ringsByGeoid(topoLo) : byGeoid
 
-  const drawn = districts.filter((d) => byGeoid.has(d.geoid))
+  const drawn = districts.filter((d) => byGeoid.has(d.geoid) && inlineRings.has(d.geoid))
 
   // Every layer's `buckets` is indexed by POSITION in this list — that is what
   // makes the payload small enough to ship. So a caller that built its layers
@@ -345,13 +383,16 @@ export function renderMapPage({ topo, districts, layers = [], rating, snapshotDa
       const grade = b == null ? null : GRADES[b]
       return (
         `<a href="${esc(d.href)}" aria-label="${esc(d.name)}${grade ? `, rated ${grade}` : ''}">` +
-        `<path d="${pathData(byGeoid.get(d.geoid), project)}"${b == null ? '' : ` data-b="${b}"`}>` +
+        `<path d="${pathData(inlineRings.get(d.geoid), project)}"${b == null ? '' : ` data-b="${b}"`}>` +
         `<title>${esc(d.name)}${grade ? ` — ${grade}` : ''}</title></path></a>`
       )
     })
     .join('')
 
   const payload = {
+    // Where site/map.js can fetch the sharper geometry, and the width it was
+    // projected at. Null when there is no second fidelity to fetch.
+    hiFi: topoLo && hiFiHref ? { href: hiFiHref, width } : null,
     order: drawn.map((d) => d.geoid),
     layers: [rating, ...layers].map((l) => ({
       key: l.key,

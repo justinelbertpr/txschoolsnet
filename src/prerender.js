@@ -153,8 +153,8 @@ import {
 // lets the write loop below degrade to "skip the CSV for this build" rather than
 // "fail every page render". See the loop for how the presence check is made.
 import * as rankingsPageModule from './render/rankings-page.js'
-import { MAP_FILE, MAP_HREF, buildLayer, buildRatingLayer, mappableDistricts, renderMapPage } from './render/map.js'
-import { BOUNDARY_FILE } from './boundaries.js'
+import { MAP_FILE, MAP_HREF, buildLayer, buildRatingLayer, hiFiPaths, mappableDistricts, renderMapPage } from './render/map.js'
+import { BOUNDARY_FILE, BOUNDARY_FILE_LO } from './boundaries.js'
 
 /**
  * The archived district geometry, or null when it has never been fetched.
@@ -163,9 +163,9 @@ import { BOUNDARY_FILE } from './boundaries.js'
  * `npm run fetch:boundaries` should still build the other 11,868 files. The map
  * is the only page that depends on this, and it simply is not written.
  */
-async function readBoundaries() {
+async function readBoundaries(file = BOUNDARY_FILE) {
   try {
-    const gz = await readFile(BOUNDARY_FILE)
+    const gz = await readFile(file)
     return JSON.parse(gunzipSync(gz).toString('utf8'))
   } catch {
     return null
@@ -1500,6 +1500,7 @@ export async function prerender({ concurrency } = {}) {
   // from, so a district's shade and its row on a board can never disagree.
   let mapWritten = 0
   const topo = await readBoundaries()
+  const topoLo = await readBoundaries(BOUNDARY_FILE_LO)
   if (!topo) {
     console.log('  (no data/boundaries archive — /map skipped; run `npm run fetch:boundaries`)')
   } else {
@@ -1539,9 +1540,21 @@ export async function prerender({ concurrency } = {}) {
       )
     }
 
-    await write(MAP_FILE, renderMapPage({ topo, districts: drawable, layers: mapLayers, rating, snapshotDate }))
+    // The sharper geometry is a separate asset so a phone never downloads it
+    // and a desktop caches it independently of the page.
+    const hiFiHref = topoLo ? '/map-hi.json' : null
+    if (hiFiHref) {
+      await write('map-hi.json', JSON.stringify(hiFiPaths({ topo, districts: drawable })))
+    }
+    await write(
+      MAP_FILE,
+      renderMapPage({ topo, topoLo, districts: drawable, layers: mapLayers, rating, snapshotDate, hiFiHref })
+    )
     mapWritten = mapLayers.length + 1
-    console.log(`  map: ${drawable.length} districts drawn, ${mapWritten} layers`)
+    console.log(
+      `  map: ${drawable.length} districts drawn, ${mapWritten} layers` +
+        (topoLo ? ' (1% inline, 3% fetched on wide screens)' : ' (single fidelity)')
+    )
   }
 
   // The 404 page was hand-written in the first commit and never regenerated, so it

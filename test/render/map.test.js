@@ -13,6 +13,7 @@ import {
   mappableDistricts,
   pathData,
   quantileBreaks,
+  hiFiPaths,
   renderMapPage,
   ringsOf,
 } from '../../src/render/map.js'
@@ -265,6 +266,45 @@ describe('renderMapPage', () => {
     for (const c of ['#1a7f5a', '#63a86c', '#e0a731', '#d9782d', '#c2453c']) {
       expect(html.toLowerCase()).not.toContain(c)
     }
+  })
+
+  it('inlines the low-fidelity geometry but projects from the high-fidelity bounds', () => {
+    // A coarser copy of the same two shapes: fewer points, same extent.
+    const lo = {
+      ...TOPO,
+      arcs: [[[0, 0], [0, 10], [10, -10]], [[10, 0], [-10, 0]], [[10, 0], [10, 10], [-10, -10]]],
+    }
+    const html = page({ topoLo: lo, hiFiHref: '/map-hi.json' })
+    const hi = page()
+    const dOf = (h) => h.slice(h.indexOf('data-map-shapes')).match(/ d="([^"]+)"/)[1]
+    // Different geometry inline...
+    expect(dOf(html)).not.toBe(dOf(hi))
+    // ...but the SAME viewBox, so swapping one for the other cannot move the
+    // map. This is the whole reason bounds come from the high fidelity.
+    const vb = (h) => h.match(/viewBox="([^"]+)"/g).find((v) => !v.includes('0 0 32 32'))
+    expect(vb(html)).toBe(vb(hi))
+  })
+
+  it('tells the client where the sharper geometry is, and only when there is one', () => {
+    const withLo = JSON.parse(
+      page({ topoLo: TOPO, hiFiHref: '/map-hi.json' })
+        .match(/data-map-payload>(.*?)<\/script>/s)[1].replace(/\\u003c/g, '<')
+    )
+    expect(withLo.hiFi).toEqual({ href: '/map-hi.json', width: 900 })
+    // No second fidelity: nothing to advertise, so the client never fetches.
+    const single = JSON.parse(
+      page().match(/data-map-payload>(.*?)<\/script>/s)[1].replace(/\\u003c/g, '<')
+    )
+    expect(single.hiFi).toBeNull()
+  })
+
+  it('pre-renders the high-fidelity paths on the same projection as the page', () => {
+    const paths = hiFiPaths({ topo: TOPO, districts })
+    expect(Object.keys(paths).sort()).toEqual(['4800001', '4800002'])
+    // Identical to what the page inlines when there is no low-fidelity copy.
+    const html = page()
+    const inline = html.slice(html.indexOf('data-map-shapes')).match(/ d="([^"]+)"/)[1]
+    expect(paths['4800001']).toBe(inline)
   })
 
   it('carries every layer in the payload, indexed the same way as the paths', () => {

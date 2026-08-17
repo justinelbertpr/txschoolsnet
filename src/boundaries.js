@@ -55,6 +55,7 @@ const run = promisify(execFile)
 
 export const BOUNDARY_DIR = 'data/boundaries'
 export const BOUNDARY_FILE = `${BOUNDARY_DIR}/tx-districts.topo.json.gz`
+export const BOUNDARY_FILE_LO = `${BOUNDARY_DIR}/tx-districts-lo.topo.json.gz`
 export const BOUNDARY_MANIFEST = `${BOUNDARY_DIR}/manifest.json`
 
 /**
@@ -82,12 +83,11 @@ export const CCD_URL =
   'https://educationdata.urban.org/api/v1/school-districts/ccd/directory/2022/?fips=48&limit=2000'
 
 /**
- * How hard the geometry is simplified, as a mapshaper percentage of retained
- * vertices. Measured rather than guessed: at 3% the whole state is 412 KB of
- * TopoJSON (136 KB gzipped) and every district is still recognisable at the
- * ~350px width a phone renders it at. 5% costs 35% more bytes and is not
- * visibly better at that size; 1% starts to round off the coastline and the
- * Panhandle county lines.
+ * The DESKTOP fidelity, fetched on demand by site/map.js. 476 KB of TopoJSON,
+ * 171 KB gzipped. This is where the extra detail actually earns its bytes: on
+ * a wide screen the state is drawn 900px+ across and the difference between
+ * this and SIMPLIFY_LO is visible in the coastline and the small East Texas
+ * districts. 5% costs 35% more again and is not visibly better even there.
  *
  * `keep-shapes` is what stops the smallest districts — the single-campus rural
  * ones — from being simplified out of existence entirely. Without it a
@@ -95,6 +95,22 @@ export const CCD_URL =
  * someone's own.
  */
 export const SIMPLIFY = '3%'
+
+/**
+ * The phone fidelity, and the one that ships INLINE in the page.
+ *
+ * At the ~350px a phone renders the state at, 1% and 3% are indistinguishable
+ * — rendered side by side at that width, the coastline, the Panhandle county
+ * lines and every district border read identically. The detail 3% carries only
+ * becomes visible on a wide screen, so a phone paying 40% more bytes for it is
+ * paying for nothing it can see.
+ *
+ * So 1% is the default everywhere, and site/map.js swaps in the 3% geometry
+ * only where the viewport is wide enough to resolve it. Both files are built
+ * from the same source in the same projection, and the page computes its
+ * projection from the 3% bounds for BOTH, so the swap cannot shift the map.
+ */
+export const SIMPLIFY_LO = '1%'
 
 /**
  * Albers equal-area, with standard parallels set for Texas.
@@ -157,20 +173,31 @@ export async function fetchBoundaries({ dir = BOUNDARY_DIR, log = console.log } 
   // mapshaper is a devDependency and is only ever needed HERE. The build never
   // calls it — it reads the committed output — so a missing install should stop
   // this script with a sentence, not fail somewhere inside the site build.
-  log(`projecting and simplifying (${SIMPLIFY}, equal-area)…`)
-  await run('npx', [
-    'mapshaper',
-    `${tmp}/tl_2024_48_unsd.shp`,
-    '-filter-fields', 'GEOID',
-    '-proj', PROJECTION,
-    '-simplify', SIMPLIFY, 'keep-shapes',
-    '-o', 'format=topojson', 'precision=1', `${tmp}/tx.topo.json`,
-  ])
+  const simplifyTo = async (pct, out) => {
+    log(`projecting and simplifying (${pct}, equal-area)…`)
+    await run('npx', [
+      'mapshaper',
+      `${tmp}/tl_2024_48_unsd.shp`,
+      '-filter-fields', 'GEOID',
+      '-proj', PROJECTION,
+      '-simplify', pct, 'keep-shapes',
+      '-o', 'format=topojson', 'precision=1', out,
+    ])
+    const parsed = JSON.parse(await readFile(out, 'utf8'))
+    const n = Object.values(parsed.objects)[0]?.geometries?.length ?? 0
+    if (n < 900) throw new Error(`only ${n} polygons survived ${pct} simplification; expected ~1,017`)
+    return parsed
+  }
 
-  const topo = JSON.parse(await readFile(`${tmp}/tx.topo.json`, 'utf8'))
-  const layer = Object.values(topo.objects)[0]
-  const features = layer?.geometries?.length ?? 0
-  if (features < 900) throw new Error(`only ${features} polygons survived simplification; expected ~1,017`)
+  const topo = await simplifyTo(SIMPLIFY, `${tmp}/tx.topo.json`)
+  const topoLo = await simplifyTo(SIMPLIFY_LO, `${tmp}/tx-lo.topo.json`)
+  const features = Object.values(topo.objects)[0].geometries.length
+  // Both fidelities must cover the SAME districts, or a phone would silently be
+  // missing polygons the desktop draws.
+  const loCount = Object.values(topoLo.objects)[0].geometries.length
+  if (loCount !== features) {
+    throw new Error(`fidelities disagree: ${features} polygons at ${SIMPLIFY}, ${loCount} at ${SIMPLIFY_LO}`)
+  }
 
   // The crosswalk travels WITH the geometry. A consumer that has the file has
   // everything it needs to join TEA ids to shapes, with no second lookup and no
@@ -181,14 +208,28 @@ export async function fetchBoundaries({ dir = BOUNDARY_DIR, log = console.log } 
     simplify: SIMPLIFY,
   }
 
+  topoLo.txschools = { derivedFrom: SIMPLIFY_LO }
+
   const json = JSON.stringify(topo)
   const gz = gzipSync(Buffer.from(json), { level: 9 })
+  const jsonLo = JSON.stringify(topoLo)
+  const gzLo = gzipSync(Buffer.from(jsonLo), { level: 9 })
   await mkdir(dir, { recursive: true })
   await writeFile(`${dir}/tx-districts.topo.json.gz`, gz)
+  await writeFile(`${dir}/tx-districts-lo.topo.json.gz`, gzLo)
 
   const manifest = {
     fetchedAt: new Date().toISOString(),
     describes: 'Texas school district boundaries, simplified and projected for the /map page',
+    derivedLo: {
+      file: 'tx-districts-lo.topo.json.gz',
+      bytes: gzLo.length,
+      uncompressedBytes: Buffer.byteLength(jsonLo),
+      polygons: loCount,
+      sha256: sha256(gzLo),
+      simplify: SIMPLIFY_LO,
+      note: 'Ships inline in /map. Indistinguishable from the full fidelity at phone width.',
+    },
     derived: {
       file: 'tx-districts.topo.json.gz',
       bytes: gz.length,
@@ -222,7 +263,9 @@ export async function fetchBoundaries({ dir = BOUNDARY_DIR, log = console.log } 
   await rm(tmp, { recursive: true, force: true })
 
   log(`\nwrote ${BOUNDARY_FILE}`)
-  log(`  ${features} polygons, ${(gz.length / 1024).toFixed(0)} KB gzipped (${(json.length / 1024).toFixed(0)} KB raw)`)
+  log(`  ${features} polygons at ${SIMPLIFY}, ${(gz.length / 1024).toFixed(0)} KB gzipped (${(json.length / 1024).toFixed(0)} KB raw)`)
+  log(`wrote ${BOUNDARY_FILE_LO}`)
+  log(`  ${loCount} polygons at ${SIMPLIFY_LO}, ${(gzLo.length / 1024).toFixed(0)} KB gzipped (${(jsonLo.length / 1024).toFixed(0)} KB raw)`)
   return { features, bytes: gz.length, bridge }
 }
 

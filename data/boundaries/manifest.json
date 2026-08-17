@@ -1,6 +1,15 @@
 {
-  "fetchedAt": "2026-08-17T14:32:55.837Z",
+  "fetchedAt": "2026-08-17T15:17:37.775Z",
   "describes": "Texas school district boundaries, simplified and projected for the /map page",
+  "derivedLo": {
+    "file": "tx-districts-lo.topo.json.gz",
+    "bytes": 100476,
+    "uncompressedBytes": 294875,
+    "polygons": 1017,
+    "sha256": "fffa23d71e5c8328dfd833027099b6f30a28c505e7b95cc877e338fb236da922",
+    "simplify": "1%",
+    "note": "Ships inline in /map. Indistinguishable from the full fidelity at phone width."
+  },
   "derived": {
     "file": "tx-districts.topo.json.gz",
     "bytes": 180099,

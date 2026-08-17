@@ -75,4 +75,33 @@
   })
 
   controls.hidden = false
+
+  /* ---- sharper geometry, where a screen can actually resolve it ----------
+     The page ships the 1% simplification inline. At the ~350px a phone draws
+     the state at, that is indistinguishable from the 3% version — but it is
+     40% fewer bytes, and a phone on cell data should not pay for detail it
+     cannot see. On a wide screen the difference IS visible, so the sharper
+     paths are fetched and swapped in.
+
+     Both were projected from the same bounds at build time, so this is a pure
+     `d` swap: nothing moves, no reflow, and the links, shading and accessible
+     names are all untouched. Any failure — offline, 404, malformed — simply
+     leaves the inline geometry in place, which is a complete map. */
+  const hi = payload.hiFi
+  if (!hi?.href || typeof fetch !== 'function') return
+  // Below this the sharper geometry is bytes with nothing to show for them.
+  if (!window.matchMedia?.('(min-width: 48rem)')?.matches) return
+  // Honour an explicit request to save data over a nicety.
+  if (navigator.connection?.saveData) return
+
+  fetch(hi.href, { cache: 'force-cache' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((paths) => {
+      if (!paths) return
+      for (let i = 0; i < shapes.length; i += 1) {
+        const d = paths[payload.order[i]]
+        if (d) shapes[i].setAttribute('d', d)
+      }
+    })
+    .catch(() => {})
 })()
