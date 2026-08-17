@@ -43,15 +43,18 @@ rather than quietly going stale.
 
 ```
 npm run fetch      download the 14 TEA source files into data/raw/<YYYY-MM>/
+npm run verify     re-hash the committed snapshot against its manifest
+npm run drift      ask TEA whether any source file has changed since the snapshot
 npm run build      normalize the newest snapshot into build/*.ndjson
 npm run export     build the dashboard payload into site/data/
 npm run prerender  render 9,086 entity pages into site/
-npm run site       build + export + prerender
-npm test           141 tests, including the published-figure regression suite
+npm run site       verify + build + export + prerender
+npm test           949 tests, including the published-figure regression suite
 ```
 
-`npm run fetch` hits a live government server and is rarely needed — the dated snapshot is
-committed, so `npm run site` reproduces the entire site offline.
+`npm run fetch` and `npm run drift` are the only commands that touch the network. `fetch` is
+rarely needed — the dated snapshot is committed, so `npm run site` reproduces the entire site
+offline.
 
 ## Architecture
 
@@ -73,6 +76,26 @@ TEA overwrites those files in place on each release, so each fetch is archived u
 `data/raw/<YYYY-MM>/` and committed, with a manifest recording a sha256 of every file's
 decompressed content alongside the server's ETag. Every published number traces back to the exact
 bytes TEA served on a given date.
+
+Two checks keep that claim honest rather than merely stated, because a hash written once and never
+read again proves nothing:
+
+**`npm run verify`** re-derives the sha256, byte count and row count of every committed file and
+compares them to the manifest. It runs first in `npm run site`, so a corrupted or hand-edited
+snapshot fails the build instead of shipping numbers nobody can trace. The row count is checked
+alongside the hash because a snapshot that lost records is still valid JSON and still builds — it
+just quietly publishes less than TEA released.
+
+**`npm run drift`** answers the other direction: has TEA changed anything since? It sends a HEAD to
+each of the 14 URLs and compares the ETag (falling back to Last-Modified) against the manifest, so
+it costs 14 requests and no data transfer. `.github/workflows/drift.yml` runs it weekly and fails —
+which emails the owner — when something moves. It never re-fetches on its own: drift is reported
+for a person to act on with a deliberate `npm run fetch` and a reviewed diff, because an archive
+that silently updated itself would not be an archive.
+
+Note the caveat `.github/workflows/refresh.yml` also documents: GitHub disables scheduled workflows
+in public repositories after 60 days without repository activity. If this repo goes quiet, the
+weekly check stops silently; `workflow_dispatch` and a calendar reminder are the backstop.
 
 ## A note on "six years"
 
