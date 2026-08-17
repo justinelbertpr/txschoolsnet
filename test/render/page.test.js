@@ -323,14 +323,18 @@ describe('renderEntity', () => {
     for (const [, id] of html.matchAll(/href="#([a-z]+)"/g)) expect(html).toContain(`id="${id}"`)
   })
 
-  it('puts the cohort switch in the rail and nowhere else on the page', () => {
+  it('puts a synchronized cohort switch near the top on mobile without duplicating its data', () => {
     const html = renderEntity(vm(), { payload: PAYLOAD })
-    expect(html.match(/chip-cohort/g)).toHaveLength(2) // one chip per cohort, once each
+    expect(html.match(/chip-cohort/g)).toHaveLength(4) // two cohorts in the rail and the mobile copy
     expect(html.match(/data-cohorts/g)).toHaveLength(1)
     expect(html.match(/data-own/g)).toHaveLength(1)
     const rail = html.slice(html.indexOf('<aside class="rail"'), html.indexOf('</aside>'))
+    const main = html.slice(html.indexOf('<main id="main">'))
     expect(rail).toContain('chip-cohort')
-    expect(html.slice(html.indexOf('<main id="main">'))).not.toContain('chip-cohort')
+    expect(main).toContain('class="mobile-compare"')
+    expect(main.match(/chip-cohort/g)).toHaveLength(2)
+    expect(main).not.toContain('data-cohorts')
+    expect(main).not.toContain('data-own')
   })
 
   it('renders an entity with nothing but a name, rail and all', () => {
@@ -347,16 +351,12 @@ describe('renderEntity', () => {
 
 /* -------------------------------------------- the nav cannot go unreachable --
 
-   The header used to wrap the nav in a <details> that an inline script closed
-   below 640px while a media query hid the <summary> above it: load narrow,
-   widen — a phone rotating to landscape, a window dragged — and the nav was
-   gone with no control to bring it back, hidden by the UA outside the cascade
-   where no stylesheet rule could reach it.
-
-   Three of the four assertions below are source-level on purpose. The bug was a
-   MECHANISM, so the test forbids the mechanism rather than sampling a
-   rendering — a rendering checked at two widths is exactly what missed it, because
-   the failure only appears in the transition between them. */
+   Mobile now uses a native <details>: no JavaScript owns its state, and every
+   destination is server-rendered in both layouts. Desktop and mobile have
+   separate CSS-owned navigation shells because browsers remove the content of
+   a closed <details> from layout even when a display override wins the cascade.
+   That is the rotation/resize invariant — a closed phone menu has no bearing on
+   the dedicated desktop navigation after the layout widens. */
 
 describe('the primary nav cannot become unreachable', () => {
   const page = () =>
@@ -367,15 +367,19 @@ describe('the primary nav cannot become unreachable', () => {
       sections: ['<section id="a"><h2>A</h2></section>'],
     })
 
-  it('ships every destination as a plain link, with no disclosure widget', () => {
+  it('ships every destination as a plain link inside a native mobile menu', () => {
     const html = page()
-    for (const href of ['/', '/districts/a', '/rankings', '/download', '/about']) {
-      expect(html).toContain(`<a href="${href}"`)
+    const header = html.slice(html.indexOf('<header class="site">'), html.indexOf('</header>'))
+    const tools = header.slice(header.indexOf('<div class="masthead-tools">'))
+    expect(html).toContain('class="wordmark" href="/"')
+    expect(html).toContain('<div class="desktop-nav">')
+    for (const href of ['/search', '/districts/a', '/rankings', '/download', '/about']) {
+      expect(tools.match(new RegExp(`<a href="${href}"`, 'g'))).toHaveLength(2)
     }
-    expect(html).toContain('<nav class="sitenav" aria-label="Site">')
-    expect(html).not.toContain('<details')
-    expect(html).not.toContain('<summary')
-    expect(html).not.toMatch(/nav-disclosure|nav-toggle|hamburger/)
+    expect(header.match(/<nav class="sitenav" aria-label="Site">/g)).toHaveLength(2)
+    expect(html).toContain('<details class="nav-menu">')
+    expect(html).toContain('<summary><span>Menu</span>')
+    expect(html).toContain('<div class="nav-menu-panel">')
   })
 
   it('emits no inline script inside the header', () => {
@@ -385,16 +389,12 @@ describe('the primary nav cannot become unreachable', () => {
     expect(header).not.toContain('matchMedia')
   })
 
-  it('has no stylesheet rule that can hide the header nav', async () => {
+  it('uses CSS to swap the dedicated desktop nav and native mobile menu', async () => {
     const { readFileSync } = await import('node:fs')
     const css = readFileSync(new URL('../../site/style.css', import.meta.url), 'utf8')
-    expect(css).not.toMatch(/nav-disclosure|nav-toggle/)
-    // Every rule mentioning the header nav, checked for a visibility switch.
-    // @media print may hide .masthead-tools; nothing may hide these.
-    for (const block of css.match(/[^{}]*\.navlist-site[^{}]*\{[^}]*\}/g) ?? []) {
-      expect(block).not.toMatch(/display\s*:\s*none|visibility\s*:\s*hidden|content-visibility/)
-    }
-    expect(css.match(/\.sitenav[^{}]*\{[^}]*display\s*:\s*none/g)).toBeNull()
+    expect(css).toMatch(/@media \(min-width: 48rem\)[\s\S]*\.desktop-nav \{ display: flex;[\s\S]*\.nav-menu \{ display: none; \}/)
+    expect(css).toMatch(/@media \(max-width: 47\.99rem\)[\s\S]*\.desktop-nav \{ display: none; \}[\s\S]*\.nav-menu > summary/)
+    expect(css).not.toMatch(/nav-disclosure|initNavDisclosure/)
   })
 
   it('has no JavaScript that decides whether the nav is visible', async () => {

@@ -63,35 +63,6 @@ const signed = (v) => `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(
 /** Rounded to one decimal on both sides, so this is equality, not a tolerance. */
 const near = (a, b) => a !== null && a !== undefined && b !== null && b !== undefined && Math.abs(a - b) <= 0.051
 
-/**
- * A bar chart's value -> x mapping, recovered from what the server already drew
- * rather than restated here.
- *
- * Every bar and every tick on one of these charts sits on one linear track: a
- * bar's left edge is zero and its right edge is the value printed beside it, and
- * a tick's tooltip states the value it stands on. A least-squares fit through
- * all of those points returns the scale the renderer used — and goes on
- * returning it if the renderer's padding, width or viewBox changes, which is the
- * whole reason none of those numbers appear in this file. It also still works on
- * a page where TEA published no score at all and the only marks on the chart are
- * the cohort ticks.
- */
-const fitScale = (points) => {
-  if (points.length < 2) return null
-  const n = points.length
-  const mv = points.reduce((a, p) => a + p.v, 0) / n
-  const mx = points.reduce((a, p) => a + p.x, 0) / n
-  let num = 0
-  let den = 0
-  for (const p of points) {
-    num += (p.v - mv) * (p.x - mx)
-    den += (p.v - mv) ** 2
-  }
-  if (!(den > 1e-6)) return null // every point on the same value: no scale to read
-  const unit = num / den
-  return unit > 0 ? { base: mx - unit * mv, unit } : null
-}
-
 /** The nouns this site uses for the two levels, matching the server's prose. */
 const UNIT = location.pathname.startsWith('/campus/') ? 'campuses' : 'districts'
 
@@ -198,12 +169,18 @@ function initTrajectory(svg) {
 
   const X = (i) => pl + (n === 1 ? iw / 2 : (i * iw) / (n - 1))
   const Y = (v, d) => pt + ih - ((v - d.lo) / (d.hi - d.lo)) * ih
-  const toPath = (vals, d) =>
-    vals
-      .map((v, i) => (v == null ? null : [X(i), Y(v, d)]))
+  const toPath = (vals, d) => {
+    let open = false
+    return vals
+      .map((v, i) => {
+        if (v == null) { open = false; return '' }
+        const command = open ? 'L' : 'M'
+        open = true
+        return `${command}${X(i).toFixed(1)} ${Y(v, d).toFixed(1)}`
+      })
       .filter(Boolean)
-      .map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`)
       .join(' ')
+  }
 
   const ensurePath = (key) => {
     let el = linesG.querySelector(`[data-key="${key}"]`)
@@ -502,12 +479,12 @@ function initBars() {
  *   population the page names (see `placement`).
  *
  *   Anything that cannot be identified with certainty is left exactly as the
- *   server drew it. src/render emits no metric key on a chart row or a table
- *   row and this file does not own src/render, so rows are identified by
- *   matching the numbers they already print against the JSON (see `assign`). A
- *   row that cannot be matched is never guessed at, and a cohort with no value
- *   for a metric hides its mark rather than leaving it pointing at the previous
- *   cohort's number.
+ *   server drew it. The HTML bar lists publish a metric key on every row, so
+ *   their ticks and visible comparison text are updated directly. Older tables
+ *   without keys are identified by matching the numbers they already print
+ *   against the JSON (see `assign`). A row that cannot be matched is never
+ *   guessed at, and a cohort with no value for a metric hides its mark rather
+ *   than leaving it pointing at the previous cohort's number.
  */
 function initCohorts(chart) {
   const cohortsTag = document.querySelector('script[data-cohorts]')
@@ -535,27 +512,12 @@ function initCohorts(chart) {
 
   /* ---- small DOM helpers ---- */
 
-  const title = (el, text) => {
-    let t = el.querySelector('title')
-    if (!t) { t = document.createElementNS(SVGNS, 'title'); el.appendChild(t) }
-    t.textContent = text
-  }
-
   /** A legend entry is a swatch element plus a bare text node; only the text moves. */
   const legendText = (swatch, text) => {
     const li = swatch.parentElement
     if (!li) return
     for (const n of [...li.childNodes]) if (n.nodeType === 3) n.remove()
     li.append(document.createTextNode(text))
-  }
-
-  /** A cohort label can itself contain ": " ("Region 10: Richardson"), so split last. */
-  const readMark = (el) => {
-    const t = el.querySelector('title')?.textContent ?? ''
-    const at = t.lastIndexOf(': ')
-    if (at < 0) return null
-    const v = Number(t.slice(at + 2).replace('%', ''))
-    return Number.isFinite(v) ? { label: t.slice(0, at), value: v } : null
   }
 
   /**
@@ -650,222 +612,182 @@ function initCohorts(chart) {
     }
   }
 
-  /* ---- the domain bars ---- */
+  /* ---- the HTML bar lists ---- */
 
-  const domainBars = () => {
-    const svg = document.querySelector('#domains svg.chart-bars')
-    if (!svg) return null
+  // The renderer paints cohort ticks inline because these are HTML spans, not
+  // SVG lines. A switched tick has to carry the selected cohort's pattern as
+  // well as its hue; colour alone is not enough to distinguish comparisons.
+  const hbarPaint = {
+    peer: { ink: 'var(--c-peer)', dash: null },
+    state: { ink: 'var(--c-state)', dash: [2, 3] },
+    region: { ink: 'var(--s3)', dash: [1, 5] },
+    county: { ink: 'var(--s4)', dash: [7, 4] },
+    size: { ink: 'var(--s5)', dash: [2, 4] },
+    tea: { ink: 'var(--c-tea)', dash: [8, 4] },
+  }
+  const cohortKeys = new Set([...Object.keys(hbarPaint), ...cohorts.map((c) => c.key)])
+  const finite = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
 
-    // The rows are flat siblings, so a row is "a row label and everything up to
-    // the next one".
-    const rows = []
-    let row = null
-    for (const el of svg.children) {
-      const cls = el.classList
-      if (cls.contains('row-label')) { row = { label: el, marks: [] }; rows.push(row); continue }
-      if (!row) continue
-      if (cls.contains('row-sub')) row.sub = el
-      else if (cls.contains('bar')) row.bar = el
-      else if (cls.contains('bar-value')) row.value = el
-      else if (cls.contains('mark')) row.marks.push(el)
+  const paintHbarMark = (mark, c, value, unit) => {
+    const paint = hbarPaint[c.key] ?? hbarPaint.peer
+    const background = paint.dash
+      ? `repeating-linear-gradient(180deg,${paint.ink} 0 ${paint.dash[0]}px,transparent ${paint.dash[0]}px ${
+          paint.dash[0] + paint.dash[1]
+        }px)`
+      : paint.ink
+
+    for (const key of cohortKeys) mark.classList.remove(`hbar-mark-${key}`)
+    mark.classList.add(`hbar-mark-${c.key}`)
+    mark.dataset.mark = c.key
+    mark.dataset.value = String(value)
+    mark.style.setProperty('--m', String(Math.max(0, Math.min(100, value))))
+    mark.style.background = background
+    mark.title = `${label(c)}: ${value}${unit}`
+    mark.hidden = false
+    mark.style.display = ''
+  }
+
+  const comparisonText = (mine, theirs, c, digits, unit, metric) => {
+    const reportingN = finite(c.metricN?.[metric])
+    const coverage = reportingN === null ? '' : ` · ${num(reportingN)} reporting`
+    return (mine === null
+      ? `${c.short ?? label(c)} ${theirs}${unit}`
+      : `${mine > theirs ? '+' : mine < theirs ? '−' : '±'}${Math.abs(mine - theirs).toFixed(digits)} vs ${c.short ?? label(c)}`) + coverage
+  }
+
+  /**
+   * Update one current HTML bar family. The visible sentence is the accessible
+   * representation; the track remains aria-hidden decoration. Domain bars keep
+   * the renderer's second, fixed cohort for context, except when it is the cohort
+   * selected page-wide, when drawing and naming it twice would be misleading.
+   */
+  const hbarUpdater = (root, { digits, unit = '', keepFixed = false, legendPrefix = '' }) => {
+    const rows = [...root.querySelectorAll('.hbar[data-metric]')]
+      .map((row) => {
+        const key = row.dataset.metric
+        const marks = [...row.querySelectorAll('.hbar-mark[data-mark]')]
+        const active = marks.find((mark) => mark.dataset.mark === base.key) ?? null
+        const fixed = keepFixed
+          ? marks
+              .filter((mark) => mark !== active)
+              .map((mark) => ({ mark, cohort: cohorts.find((c) => c.key === mark.dataset.mark) ?? null }))
+              .filter((item) => item.cohort)
+          : []
+        return {
+          row,
+          key,
+          mine: finite(own[key]),
+          track: row.querySelector('.hbar-track'),
+          sub: row.querySelector('.hbar-sub'),
+          active,
+          fixed,
+        }
+      })
+      .filter((row) => row.key && row.track)
+    if (!rows.length) return null
+
+    const section = root.closest('section') ?? root.parentElement
+    const swatches = [...(section?.querySelectorAll('.legend .swatch') ?? [])]
+    const activeSwatch = swatches.find((swatch) => swatch.classList.contains(`swatch-${base.key}`)) ?? null
+    const fixedLegend = new Map(
+      cohorts
+        .filter((c) => c !== base)
+        .map((c) => [c.key, swatches.find((swatch) => swatch.classList.contains(`swatch-${c.key}`))?.parentElement ?? null])
+        .filter(([, item]) => item)
+    )
+    const fixedCohorts = [...new Map(rows.flatMap((row) => row.fixed.map((item) => [item.cohort.key, item.cohort]))).values()]
+
+    const ensureMark = (row) => {
+      if (row.active) return row.active
+      const mark = document.createElement('span')
+      mark.className = 'hbar-mark'
+      row.track.append(mark)
+      row.active = mark
+      return mark
     }
 
-    // One track for the whole chart, fitted through every bar edge and every
-    // tick on it. Rows share it, which is what lets a domain TEA published no
-    // score for — no bar, no value, but cohort ticks all the same — move with
-    // the switch instead of being left pointing at the previous cohort.
-    const points = []
-    for (const r of rows) {
-      const printed = r.value ? Number(r.value.textContent) : NaN
-      r.mine = Number.isFinite(printed) ? printed : null
-      const x = Number(r.bar?.getAttribute('x'))
-      const w = Number(r.bar?.getAttribute('width'))
-      if (Number.isFinite(x) && Number.isFinite(w) && r.mine >= 0) points.push({ v: 0, x }, { v: r.mine, x: x + w })
-      for (const m of r.marks) {
-        const read = readMark(m)
-        const mx = Number(m.getAttribute('x1'))
-        if (read && read.value >= 0 && Number.isFinite(mx)) points.push({ v: read.value, x: mx })
+    const writeSub = (row, comparisons) => {
+      const parts = []
+      if (row.mine === null) parts.push(document.createTextNode('Not reported'))
+      for (const { cohort, value } of comparisons) {
+        const delta = document.createElement('span')
+        delta.className = 'hbar-delta'
+        delta.dataset.delta = cohort.key
+        delta.textContent = comparisonText(row.mine, value, cohort, digits, unit, row.key)
+        parts.push(delta)
       }
-      r.primary = r.marks.find((m) => readMark(m)?.label === label(base)) ?? r.marks[0] ?? null
-      r.other = r.primary ? readMark(r.primary)?.value ?? null : null
-    }
-    const geo = fitScale(points)
-    if (!geo) return null
 
-    const usable = rows.filter((r) => r.primary || r.bar)
-    if (!usable.length) return null
-    const keys = assign(usable, keysLike('domain:'))
-    if (!keys) return null
-    usable.forEach((r, i) => { r.key = keys[i] })
-    const swatch = document.querySelector('#domains .legend .swatch-peer')
-
-    // The chart carries a second, fixed cohort tick. Switching the first one to
-    // the cohort the second already shows would draw two ticks on the same pixel
-    // and print its name twice in the legend, so the fixed one steps aside for
-    // as long as the switch is pointed at it. Hidden with style rather than
-    // [hidden], which .legend li's own display rule would override.
-    const fixed = usable.flatMap((r) => r.marks.filter((m) => m !== r.primary))
-    const fixedLabel = fixed.length ? readMark(fixed[0])?.label ?? null : null
-    const fixedLegend = document.querySelector('#domains .legend .swatch-state')?.parentElement ?? null
-
-    /** A cohort the server drew no tick for still gets one when it has a value. */
-    const ensureMark = (r) => {
-      if (!r.bar) return null // a row with neither a bar nor a tick has no geometry to hang one on
-      const y = Number(r.bar.getAttribute('y'))
-      const h = Number(r.bar.getAttribute('height'))
-      if (!Number.isFinite(y) || !Number.isFinite(h)) return null
-      const el = document.createElementNS(SVGNS, 'line')
-      el.setAttribute('class', 'mark mark-peer')
-      el.setAttribute('y1', (y - 4).toFixed(1))
-      el.setAttribute('y2', (y + h + 4).toFixed(1))
-      ;(r.value ?? r.bar).after(el)
-      r.primary = el
-      return el
-    }
-
-    const ensureSub = (r) => {
-      const y = Number(r.label.getAttribute('y'))
-      if (!Number.isFinite(y)) return null
-      const el = document.createElementNS(SVGNS, 'text')
-      el.setAttribute('x', r.label.getAttribute('x') ?? '0')
-      el.setAttribute('y', (y + 14).toFixed(1))
-      el.setAttribute('class', 'row-sub')
-      r.label.after(el)
-      r.sub = el
-      return el
+      if (!row.sub && parts.length) {
+        row.sub = document.createElement('span')
+        row.sub.className = 'hbar-sub'
+        row.row.append(row.sub)
+      }
+      if (!row.sub) return
+      row.sub.textContent = ''
+      parts.forEach((part, i) => {
+        if (i) row.sub.append(document.createTextNode(' · '))
+        row.sub.append(part)
+      })
+      row.sub.hidden = parts.length === 0
+      row.sub.style.display = parts.length === 0 ? 'none' : ''
     }
 
     return (c) => {
-      for (const r of usable) {
-        const v = c.metrics[r.key]
-        const mark = r.primary ?? (v == null ? null : ensureMark(r))
+      for (const row of rows) {
+        const value = finite(c.metrics[row.key])
+        const mark = row.active ?? (value === null ? null : ensureMark(row))
         if (mark) {
-          mark.style.display = v == null ? 'none' : ''
-          if (v != null) {
-            const x = (geo.base + geo.unit * v).toFixed(1)
-            mark.setAttribute('x1', x)
-            mark.setAttribute('x2', x)
-            title(mark, `${label(c)}: ${v}`)
-          }
+          mark.hidden = value === null
+          mark.style.display = value === null ? 'none' : ''
+          if (value !== null) paintHbarMark(mark, c, value, unit)
         }
-        // No score, no difference to state: the delta belongs to rows TEA
-        // published a number for.
-        if (own[r.key] == null) continue
-        const sub = r.sub ?? (v == null ? null : ensureSub(r))
-        if (sub) {
-          const d = own[r.key] - v
-          sub.textContent = v == null ? '' : `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} vs ${c.short}`
+
+        for (const item of row.fixed) {
+          const duplicate = item.cohort.key === c.key
+          item.mark.hidden = duplicate
+          item.mark.style.display = duplicate ? 'none' : ''
         }
+
+        const comparisons = value === null ? [] : [{ cohort: c, value }]
+        for (const fixed of fixedCohorts) {
+          if (fixed.key === c.key) continue
+          const fixedValue = finite(fixed.metrics[row.key])
+          if (fixedValue !== null) comparisons.push({ cohort: fixed, value: fixedValue })
+        }
+        writeSub(row, comparisons)
       }
-      if (swatch) legendText(swatch, `${label(c)} (${num(c.n)})`)
-      const duplicate = fixedLabel !== null && label(c) === fixedLabel
-      for (const m of fixed) m.style.display = duplicate ? 'none' : ''
-      if (fixedLegend) fixedLegend.style.display = duplicate ? 'none' : ''
+
+      if (activeSwatch) {
+        for (const key of cohortKeys) activeSwatch.classList.remove(`swatch-${key}`)
+        activeSwatch.classList.add(`swatch-${c.key}`)
+        legendText(activeSwatch, `${legendPrefix}${label(c)} (${num(c.n)} in cohort)`)
+      }
+      for (const [key, item] of fixedLegend) item.style.display = key === c.key ? 'none' : ''
     }
   }
 
-  /* ---- the STAAR bars ---- */
+  const domainBars = () => {
+    const root = document.querySelector('[data-bars="domain"]')
+    return root ? hbarUpdater(root, { digits: 1, keepFixed: true }) : null
+  }
 
   const staarBars = () => {
-    const svg = document.querySelector('#outcomes svg.chart-grouped')
-    if (!svg) return null
+    const root = document.querySelector('[data-bars="staar"]')
+    if (!root) return null
+    const update = hbarUpdater(root, { digits: 0, unit: '%', legendPrefix: 'Tick: ' })
+    if (!update) return null
 
-    const rows = []
-    const points = []
-    for (const rect of svg.querySelectorAll('rect.gb')) {
-      // The bar's own tooltip names the subject and the level, which is the
-      // metric key: "All Subjects · Meets grade level: 50%".
-      const tip = rect.querySelector('title')?.textContent ?? ''
-      const subject = tip.split(' · ')[0]
-      const level = [...rect.classList].map((cls) => /^gb-l(\d)$/.exec(cls)).find(Boolean)?.[1]
-      const key = `staar:${subject}:${level}`
-      if (!subject || level === undefined) continue
-      // The bar's own value, taken from the JSON where it is there and from the
-      // tooltip the bar already shows where it is not, so a row is still tracked
-      // when the two sources disagree about a masked cell.
-      const printed = readMark(rect)?.value
-      const mine = own[key] ?? (Number.isFinite(printed) ? printed : null)
-      if (mine == null) continue
-      const x = Number(rect.getAttribute('x'))
-      const w = Number(rect.getAttribute('width'))
-      if (!Number.isFinite(x) || !Number.isFinite(w)) continue
-      // A subject where nobody reached the level has a zero-width bar, and TEA
-      // masks some cells with a negative sentinel the renderer prints as it
-      // finds it. Neither can anchor a scale on its own; the fit below is over
-      // every group's bars and ticks, which all sit on one track.
-      if (mine >= 0) points.push({ v: 0, x }, { v: mine, x: x + w })
-
-      let mark = null
-      let value = null
-      for (let el = rect.nextElementSibling; el; el = el.nextElementSibling) {
-        if (el.classList.contains('mark')) mark = el
-        else if (el.classList.contains('bar-value')) { value = el; break }
-        else break // the next group has started
-      }
-      if (mark) {
-        const read = readMark(mark)
-        const mx = Number(mark.getAttribute('x1'))
-        if (read && read.value >= 0 && Number.isFinite(mx)) points.push({ v: read.value, x: mx })
-      }
-      rows.push({ key, mine, rect, mark, value, len: Math.max(0, w) })
-    }
-    if (!rows.length) return null
-    const geo = fitScale(points)
-    if (!geo) return null
-
-    const swatch = document.querySelector('#outcomes .legend .swatch-peer')
     const note = [...document.querySelectorAll('#outcomes p.note')].find((p) => /tick on each bar/i.test(p.textContent)) ?? null
     const noteHtml = note?.innerHTML ?? null
-
-    const ensureMark = (r) => {
-      const y = Number(r.rect.getAttribute('y'))
-      const h = Number(r.rect.getAttribute('height'))
-      if (!Number.isFinite(y) || !Number.isFinite(h)) return null
-      const el = document.createElementNS(SVGNS, 'line')
-      el.setAttribute('class', 'mark mark-peer')
-      el.setAttribute('y1', (y - 2).toFixed(1))
-      el.setAttribute('y2', (y + h + 2).toFixed(1))
-      r.rect.after(el)
-      r.mark = el
-      return el
-    }
-
-    const ensureDelta = (text) => {
-      const el = document.createElementNS(SVGNS, 'tspan')
-      el.setAttribute('class', 'delta')
-      text.append(document.createTextNode(' '), el)
-      return el
-    }
-
     return (c) => {
-      for (const r of rows) {
-        const v = c.metrics[r.key]
-        const mark = r.mark ?? (v == null ? null : ensureMark(r))
-        if (mark) {
-          mark.style.display = v == null ? 'none' : ''
-          if (v != null) {
-            const x = (geo.base + geo.unit * v).toFixed(1)
-            mark.setAttribute('x1', x)
-            mark.setAttribute('x2', x)
-            title(mark, `${label(c)}: ${v}%`)
-          }
-        }
-        if (!r.value) continue
-        const delta = r.value.querySelector('.delta') ?? (v == null ? null : ensureDelta(r.value))
-        if (delta) delta.textContent = v == null ? '' : `${r.mine >= v ? '+' : '−'}${Math.abs(r.mine - v).toFixed(0)}`
-        // The value label clears whichever is further right, the bar or the tick.
-        const reach = v == null ? r.len : Math.max(r.len, geo.unit * v)
-        r.value.setAttribute('x', (geo.base + reach + 7).toFixed(1))
-      }
-      if (swatch) legendText(swatch, `Tick: ${label(c)} (${num(c.n)})`)
-      if (note) {
-        if (c === base) note.innerHTML = noteHtml
-        else {
-          note.textContent =
-            `Percentage of tests at or above each level. Masters is a subset of Meets, which is a subset of ` +
-            `Approaches. The tick on each bar is the average for ${label(c)} — ${num(c.n)} ${UNIT} — a ` +
-            `comparison TEA does not publish.`
-        }
+      update(c)
+      if (!note) return
+      if (c === base) note.innerHTML = noteHtml
+      else {
+        note.textContent =
+          `Percentage of tests at or above each level. Masters is a subset of Meets, which is a subset of ` +
+          `Approaches. The tick on each bar is the average for ${label(c)}. The row gives the number ` +
+          `reporting that measure; ${num(c.n)} ${UNIT} are in the full cohort. This comparison is not published by TEA.`
       }
     }
   }

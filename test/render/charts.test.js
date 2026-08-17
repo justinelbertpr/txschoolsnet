@@ -18,6 +18,7 @@
 // markup.
 
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
 import { trajectoryChart, scoreBars, stackedShare, comparisonChart, groupedBars, esc, SERIES } from '../../src/render/charts.js'
 
 const count = (s, re) => (s.match(re) ?? []).length
@@ -217,6 +218,15 @@ describe('trajectoryChart', () => {
     expect(svg).not.toMatch(/class="pt-label"[^>]*>0</)
   })
 
+  it('breaks the line at a missing year instead of implying continuous reporting', () => {
+    const svg = trajectoryChart({
+      years: ['2020-21', '2021-22', '2022-23', '2023-24', '2024-25'],
+      series: [{ key: 'entity', label: 'X', values: [70, 75, null, 80, 85] }],
+    })
+    const d = svg.match(/<path d="([^"]+)" class="line line-entity"/)?.[1] ?? ''
+    expect(d.match(/M/g)).toHaveLength(2)
+  })
+
   it('draws no points at all when the entity reports nothing', () => {
     const svg = traj({
       series: [
@@ -326,9 +336,10 @@ describe('scoreBars', () => {
 
   it('names the cohort a delta is measured against', () => {
     const html = bars([
-      { label: 'Student Achievement', score: 88, markers: [{ key: 'peer', label: 'Similar', short: 'similar', value: 70 }] },
+      { label: 'Student Achievement', score: 88, markers: [{ key: 'peer', label: 'Similar', short: 'similar', value: 70, n: 286 }] },
     ])
     expect(visible(html)).toContain('+18.0 vs similar')
+    expect(visible(html)).toContain('286 reporting')
   })
 
   it('marks a shortfall with a minus rather than a bare number', () => {
@@ -432,6 +443,15 @@ describe('comparisonChart', () => {
     expect(circles(svg)).toBe(1) // one end-of-line dot, not one per year
   })
 
+  it('breaks the line at a missing year instead of bridging the gap', () => {
+    const svg = comparisonChart({
+      years: ['2020-21', '2021-22', '2022-23', '2023-24', '2024-25'],
+      series: [{ key: 'entity', values: [10_000, 11_000, null, 12_000, 13_000] }],
+    })
+    const d = svg.match(/<path d="([^"]+)" class="line line-entity"/)?.[1] ?? ''
+    expect(d.match(/M/g)).toHaveLength(2)
+  })
+
   it('omits a series with fewer than two reported years', () => {
     const svg = cmpChart({ series: [{ key: 'peer', values: [null, null, 12_000] }] })
     expect(count(svg, /<path/g)).toBe(0)
@@ -483,15 +503,22 @@ describe('groupedBars', () => {
 
   it('draws a cohort tick and a signed gap only where a comparison exists', () => {
     const html = grouped({
-      series: [{ key: 'l0', label: 'Approaches', values: [80, 75], compare: [70, null] }],
+      series: [{ key: 'l0', label: 'Approaches', values: [80, 75], compare: [70, null], compareN: [2106, null] }],
     })
     expect(count(html, /data-mark="peer"/g)).toBe(1)
     expect(visible(html)).toContain('+10 vs Similar schools')
+    expect(visible(html)).toContain('2,106 reporting')
   })
 
   it('marks a shortfall against the cohort with a minus', () => {
     const html = grouped({ series: [{ key: 'l0', label: 'Approaches', values: [60, 75], compare: [70, 70] }] })
     expect(visible(html)).toContain('−10 vs')
+  })
+
+  it('marks an equal value as level rather than a positive gain', () => {
+    const html = grouped({ series: [{ key: 'l0', label: 'Approaches', values: [70, 75], compare: [70, 70] }] })
+    expect(visible(html)).toContain('±0 vs')
+    expect(visible(html)).not.toContain('+0 vs')
   })
 
   // metrics.js keys this cell "staar:<subject>:<level>". Publishing that key on
@@ -531,5 +558,51 @@ describe('groupedBars', () => {
     const three = groupedBars({ groups: ['A', 'B', 'C'], series: [{ key: 'l0', label: 'A', values: [50, 50, 50] }] })
     expect(count(three, /class="hbar-group"/g)).toBe(3)
     expect(count(one, /class="hbar-group"/g)).toBe(1)
+  })
+
+  it('can keep the all-subjects overview open while disclosing subject detail', () => {
+    const html = groupedBars({
+      groups: ['All Subjects', 'Reading', 'Mathematics'],
+      series: [{ key: 'l0', label: 'Approaches', values: [80, 75, 70] }],
+      collapseAfterFirst: true,
+    })
+    expect(html).toContain('<div class="hbar-group"><h4 class="hbar-group-label">All Subjects</h4>')
+    expect(html.match(/<details class="hbar-group hbar-group-disclosure">/g)).toHaveLength(2)
+    expect(html).toContain('role="heading" aria-level="4">Reading</span>')
+  })
+})
+
+/* --------------------------------------- cohort-switch enhancement contract --
+
+   These are source-level assertions because site/app.js is a dependency-free
+   browser script and the project deliberately has no simulated-DOM test stack.
+   The regression was the selector contract itself: the renderer moved both bar
+   families from SVG to keyed HTML lists while the enhancement kept querying the
+   removed SVG classes. Keep the client on the current, explicit data hooks. */
+
+describe('the cohort switch targets the current HTML bar contract', () => {
+  const js = readFileSync(new URL('../../site/app.js', import.meta.url), 'utf8')
+
+  it('finds both hbar families and identifies their rows by published metric key', () => {
+    expect(js).toContain("document.querySelector('[data-bars=\"domain\"]')")
+    expect(js).toContain("document.querySelector('[data-bars=\"staar\"]')")
+    expect(js).toContain("root.querySelectorAll('.hbar[data-metric]')")
+    expect(js).not.toMatch(/svg\.chart-bars|svg\.chart-grouped/)
+  })
+
+  it('moves the keyed mark and rewrites a keyed, visible delta description', () => {
+    expect(js).toContain("mark.style.setProperty('--m'")
+    expect(js).toContain('mark.dataset.mark = c.key')
+    expect(js).toContain('delta.dataset.delta = cohort.key')
+    expect(js).toContain('delta.textContent = comparisonText')
+    expect(js).toContain('c.metricN?.[metric]')
+  })
+
+  it('remains a valid standalone browser script', () => {
+    expect(() => new Function(js)).not.toThrow()
+  })
+
+  it('also restarts an interactively redrawn trajectory after a missing year', () => {
+    expect(js).toContain("if (v == null) { open = false; return '' }")
   })
 })

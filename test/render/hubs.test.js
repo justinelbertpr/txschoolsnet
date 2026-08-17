@@ -225,6 +225,61 @@ describe('home page', () => {
     expect(html).toContain('href="/about"')
   })
 
+  it('states the traditional-public-school scope without claiming every Texas public school', () => {
+    const html = renderHomePage({
+      stats: [
+        ['Districts', 1020, 'Every Texas public school district in this snapshot'],
+        ['Campuses', 8066, 'Individual schools, each with a page of its own'],
+      ],
+    })
+
+    expect(html).toContain('Traditional public schools in Texas')
+    expect(html).toContain('Open-enrollment charter districts and campuses are not included.')
+    expect(html).toContain('Traditional public school districts included in this snapshot')
+    expect(html).toContain('Schools in those traditional public school districts')
+    expect(html).not.toContain('Search every Texas public school')
+    expect(html).not.toContain('Every Texas public school district in this snapshot')
+  })
+
+  it('exposes a two-column hero and a three-part trust strip', () => {
+    const html = renderHomePage({ snapshotDate: '15 August 2026' })
+    expect(html).toContain('<div class="home-hero-grid">')
+    expect(html).toContain('<div class="home-hero-copy">')
+    expect(html).toContain('<div class="home-hero-action">')
+    expect(html).toContain('<aside class="home-trust-strip"')
+    expect(html).toContain('home-trust-independent')
+    expect(html).toContain('home-trust-coverage')
+    expect(html).toContain('home-trust-source')
+    expect(html).toContain('fetched 15 August 2026')
+  })
+
+  it('offers explicit paths for families, ranking readers and journalists', () => {
+    const html = renderHomePage({ rankingsIndex: '/rankings' })
+    expect(html).toContain('home-task-card-families')
+    expect(html).toContain('home-task-card-rankings')
+    expect(html).toContain('home-task-card-journalists')
+    expect(html).toContain('href="/search">Search and browse schools</a>')
+    expect(html).toContain('href="/rankings">Explore rankings</a>')
+    expect(html).toContain('href="/download">Get data and documentation</a>')
+  })
+
+  it('adds stable hooks to the scannable homepage sections', () => {
+    const html = renderHomePage({
+      regions: [{ id: '10', name: 'Region 10' }],
+      stats: { Districts: 1020 },
+      rankings: [{ href: '/rankings/example', label: 'Example ranking', meta: '10 districts' }],
+      rankingsIndex: '/rankings',
+    })
+    expect(html).toContain('<section id="rankings" class="home-section home-rankings">')
+    expect(html).toContain('class="navlist home-ranking-list"')
+    expect(html).toContain('<section id="statewide" class="home-section home-stats">')
+    expect(html).toContain('<section id="regions" class="home-section home-regions">')
+    expect(html).toContain('class="navlist home-region-list"')
+    expect(html).toContain('<section id="index" class="home-section home-index">')
+    expect(html).toContain('class="navlist home-az-list"')
+    expect(html).toContain('<section id="data" class="home-section home-data">')
+  })
+
   it('links every region it is given', () => {
     const html = renderHomePage({
       regions: Array.from({ length: 20 }, (_, i) => ({ id: String(i + 1).padStart(2, '0'), name: `Region ${i + 1}` })),
@@ -255,7 +310,7 @@ describe('home page', () => {
   })
 
   it('drops the stats section entirely when given no stats', () => {
-    expect(renderHomePage({})).not.toContain('Texas at a glance')
+    expect(renderHomePage({})).not.toContain('Traditional public schools at a glance')
   })
 
   it('escapes a string stat rather than injecting it', () => {
@@ -302,7 +357,7 @@ describe('ranking links on the hubs', () => {
   for (const [kind, render] of Object.entries(withRankings)) {
     it(`${kind}: links every ranking it is given, and the index`, () => {
       const html = render()
-      expect(html).toContain('<section id="rankings">')
+      expect(html).toContain('<section id="rankings"')
       expect(html).toContain('href="/rankings/region-10-districts/overall-score-highest"')
       expect(html).toContain('href="/rankings">')
     })
@@ -329,18 +384,20 @@ describe('ranking links on the hubs', () => {
     expect(html).toContain('href="/rankings">')
   })
 
-  it('home: keeps search above the rankings, which stay above the browsing tools', () => {
-    // Search is still the first control after the site header; nothing was
-    // inserted above it. The rankings sit between it and the stat grid.
+  it('home: leads with search and task paths before rankings and browsing tools', () => {
     const html = renderHomePage({
       regions: [{ id: '10', name: 'Region 10' }],
       stats: { Districts: 1199 },
       rankings: boards,
       rankingsIndex: '/rankings',
     })
-    expect(html.indexOf('home-search')).toBeLessThan(html.indexOf('Texas schools, ranked'))
-    expect(html.indexOf('Texas schools, ranked')).toBeLessThan(html.indexOf('Texas at a glance'))
-    expect(html.indexOf('Texas at a glance')).toBeLessThan(html.indexOf('education service regions'))
+    expect(html.indexOf('home-search')).toBeLessThan(html.indexOf('home-trust-strip'))
+    expect(html.indexOf('home-trust-strip')).toBeLessThan(html.indexOf('home-task-grid'))
+    expect(html.indexOf('home-task-grid')).toBeLessThan(html.indexOf('Texas schools, ranked'))
+    expect(html.indexOf('Texas schools, ranked')).toBeLessThan(html.indexOf('Traditional public schools at a glance'))
+    expect(html.indexOf('Traditional public schools at a glance')).toBeLessThan(
+      html.indexOf('education service regions')
+    )
   })
 
   it('names the population each hub ranks in its own heading', () => {

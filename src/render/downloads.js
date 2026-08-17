@@ -209,7 +209,7 @@ export function entityRows(vm) {
   for (const h of vm.history ?? []) {
     push({ section: 'rating_history', metric: 'rating', label: 'Overall rating', year: h.year, value: h.rating, unit: 'grade' })
     const lines = [
-      vm.peerByYear ? ['peer', 'Similar student population', vm.peerN ?? cohortN('peer'), vm.peerByYear[h.year] ?? null] : null,
+      vm.peerByYear ? ['peer', 'Similar economic-disadvantage rate', vm.peerN ?? cohortN('peer'), vm.peerByYear[h.year] ?? null] : null,
       vm.stateByYear ? ['state', 'Texas average', cohortN('state'), vm.stateByYear[h.year] ?? null] : null,
     ].filter(Boolean)
     if (!lines.length) {

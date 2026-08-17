@@ -218,8 +218,8 @@ export function sourceBundles({ entities, ratings, domains, profile, finance, ac
   return byId
 }
 
-/** Average every metric across one cohort. */
-export function cohortMetrics(specs, bundles, ids) {
+/** Average every metric across one cohort and retain its reporting coverage. */
+export function cohortMetricSummary(specs, bundles, ids) {
   const acc = new Map(specs.map((s) => [s.key, []]))
   for (const id of ids) {
     const b = bundles.get(id)
@@ -229,13 +229,21 @@ export function cohortMetrics(specs, bundles, ids) {
       if (typeof v === 'number' && Number.isFinite(v)) acc.get(s.key).push(v)
     }
   }
-  const out = {}
+  const metrics = {}
+  const metricN = {}
   for (const s of specs) {
-    const m = mean(acc.get(s.key))
-    if (m !== null) out[s.key] = Math.round(m * 10) / 10
+    const values = acc.get(s.key)
+    const m = mean(values)
+    if (m !== null) {
+      metrics[s.key] = Math.round(m * 10) / 10
+      metricN[s.key] = values.length
+    }
   }
-  return out
+  return { metrics, metricN }
 }
+
+/** Backwards-compatible average-only view used for the entity's own values. */
+export const cohortMetrics = (specs, bundles, ids) => cohortMetricSummary(specs, bundles, ids).metrics
 
 /** The three cohorts every metric is compared against. */
 export function buildCohorts({ entity, entities, bundles, specs, band, regionName, countyName }) {
@@ -247,8 +255,8 @@ export function buildCohorts({ entity, entities, bundles, specs, band, regionNam
     band.n > 1
       ? {
           key: 'peer',
-          label: 'Similar student population',
-          short: 'similar',
+          label: 'Similar economic-disadvantage rate',
+          short: 'similar economic context',
           note: `Within 10 points of this ${entity.level}'s economically disadvantaged share`,
           ids: [...band.ids],
         }
@@ -265,7 +273,10 @@ export function buildCohorts({ entity, entities, bundles, specs, band, regionNam
   // `of`, which counts only the members that actually carried a value.
   const ids = Object.fromEntries(defs.map((d) => [d.key, d.ids]))
   return {
-    cohorts: defs.map((d) => ({ ...d, n: d.ids.length, metrics: cohortMetrics(specs, bundles, d.ids), ids: undefined })),
+    cohorts: defs.map((d) => {
+      const summary = cohortMetricSummary(specs, bundles, d.ids)
+      return { ...d, n: d.ids.length, ...summary, ids: undefined }
+    }),
     ids,
   }
 }

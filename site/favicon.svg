@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="t">
 <title id="t">txschools.net</title>
 <style>
-  .tile { fill: #78350f }
+  .tile { fill: #0f4c5c }
   .bar { fill: #ffffff }
   @media (prefers-color-scheme: dark) {
-    .tile { fill: #f2cd82 }
-    .bar { fill: #0d0e14 }
+    .tile { fill: #65d2c9 }
+    .bar { fill: #081c24 }
   }
 </style>
 <rect class="tile" width="32" height="32" rx="7"/>
