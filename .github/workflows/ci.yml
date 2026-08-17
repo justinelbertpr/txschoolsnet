@@ -1,8 +1,11 @@
 name: CI
 
-# Runs on every pull request and every push to main. The deploy pipeline in
-# refresh.yml is manual and annual; this is the gate that actually sees a change
-# before it lands.
+# Runs on every pull request and every push to main. This is the only gate that
+# sees a change BEFORE it lands: refresh.yml rebuilds and deploys on every push
+# to main (its own header explains why merging and going live are one event), so
+# by the time that workflow could object, the change is already on main and
+# minutes from txschools.net. A red run here is the cheap failure; a red run
+# there is a rollback.
 #
 # It builds the whole site rather than only running unit tests, because the build
 # IS the integration test: the normalizers, the cohort engine, the renderer and
