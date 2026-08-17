@@ -242,9 +242,12 @@ describe('every ranking states its population, its n and what it excluded', () =
     const nextSectionAt = html.indexOf('<section', countedAt + 1)
     const counted = html.slice(countedAt, nextSectionAt === -1 ? html.length : nextSectionAt)
     expect(counted).toContain(
-      "a comparison against the state average measures the composition of a school's intake at least as much as anything the school did"
+      'whose share of economically disadvantaged students falls within 10 percentage points of its own'
     )
+    expect(counted).toContain('This list does not: it orders by the raw figure alone.')
     expect(counted).toContain('<a href="/about#peer-cohort">How the peer group is chosen</a>')
+    // The caveat states the method; it does not argue for it.
+    expect(counted).not.toContain('at least as much as anything the school did')
   })
 })
 
@@ -371,7 +374,7 @@ describe('the top slice and the full list', () => {
     const html = page({ rows: tied, meta: { eligible: 40, leadMax: 4 } })
     expect(html).not.toContain('<h2>The top')
     expect(html).toContain('40 districts share 1st place')
-    expect(html).toContain('the same rows this list opens with')
+    expect(html).toContain('which would make one 40 rows long')
     // The tie itself is intact in the list below.
     expect(html).toContain('<h2>The full list: all 40 districts</h2>')
   })
@@ -687,8 +690,10 @@ describe('only the flattering end of an ordering is published (Rule 3)', () => {
   it('states the policy rather than reading like a gap this build happened to leave', () => {
     const html = page()
     expect(html).toContain('This site does not publish the other end of this ordering.')
-    expect(html).toContain('txschools.net does not compile one')
+    expect(html).toContain('there is no matching list of the districts doing worst on it')
     expect(html).not.toContain('is not published in this build')
+    // States the policy; does not editorialise about it.
+    expect(html).not.toContain('That is a publishing choice')
   })
 
   it('never assembles a "-lowest" or "-declines" page or link for a higher-is-better metric', () => {
@@ -1038,7 +1043,8 @@ describe('the rankings index', () => {
 
   it('states the rules the lists follow, including the one about demographics', () => {
     const html = renderRankingsIndexPage({ pages: cat })
-    expect(html).toContain('A placement without a denominator is a boast.')
+    expect(html).toContain('Every list names its population and its n.')
+    expect(html).not.toContain('is a boast')
     expect(html).toContain('never ranked')
     expect(html).toContain('TEA publishes most measures for the current year only.')
   })
@@ -1056,9 +1062,10 @@ describe('the rankings index', () => {
   it('states the poverty-context caveat, reusing the About page\'s own words, linked to it', () => {
     const html = renderRankingsIndexPage({ pages: cat })
     expect(html).toContain(
-      "a comparison against the state average measures the composition of a school's intake at least as much as anything the school did"
+      'whose share of economically disadvantaged students falls within 10 percentage points of its own'
     )
     expect(html).toContain('<a href="/about#peer-cohort">How the peer group is chosen</a>')
+    expect(html).not.toContain('at least as much as anything the school did')
   })
 })
 
