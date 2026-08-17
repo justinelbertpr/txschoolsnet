@@ -9,11 +9,11 @@ import { cmp, esc, fmtDelta, grade, legend, navList, num, ordinal, pct, section,
 import { trajectoryChart, scoreBars, stackedShare, comparisonChart, groupedBars } from './charts.js'
 import { RACE, EXPERIENCE, STAAR_LEVELS, GRADUATION, COMPLETION, CCMR } from './labels.js'
 import { closestCounted, countedDomains, isContextMetric } from './metrics.js'
-// LIST_LIMIT only — a number, not a renderer, so importing it does not pull
-// this file into rankings-page.js's own layout choices. It is what decides
-// which of the two boards for a metric actually lists this entity: see
-// rankedBoard below.
-import { LIST_LIMIT } from './rankings-page.js'
+// A page size and a URL rule — no renderer, so importing them does not pull
+// this file into rankings-page.js's own layout choices. Together they are what
+// turns "this entity is 6,000th" into the one board page that actually lists
+// its row: see rankedBoard below.
+import { PAGE_ROWS, boardPageHref } from './rankings-page.js'
 
 /* ------------------------------------------------------------------ words -- */
 
@@ -48,8 +48,8 @@ const versus = (mine, avg) => (Math.abs(mine - avg) < 0.5 ? 'level with' : mine 
  *
  * These sections build no ranking URLs. `vm.rankingLinks` is a map the build step
  * hands in (src/prerender.js), keyed by cohort, then by metric key, then by
- * end ('top' | 'bottom'), holding the { href, title } of a ranking page that
- * WAS ACTUALLY WRITTEN. Consequences, and all three are the point:
+ * end ('top' | 'bottom'), holding the { href, title, pages } of a ranking board
+ * that WAS ACTUALLY WRITTEN. Consequences, and all three are the point:
  *
  *   A link only exists where the page exists. An entity page can never point at
  *   a ranking that was not built — no scheme to keep in step with the renderer,
@@ -64,25 +64,22 @@ const versus = (mine, avg) => (Math.abs(mine - avg) < 0.5 ? 'level with' : mine 
  *   to link and a standout in that cohort is left as plain text rather than
  *   linked to a statewide list it was not measured against.
  *
- *   A link only exists where the BOARD actually lists this entity. rankings-
- *   page.js prints only the first LIST_LIMIT rows of a long ordering — the
- *   statewide campus boards run to roughly 8,500 entities and print 1,500 of
- *   them — so an entity ranked past that slice is not on the 'top' (highest-
- *   value-first) page at all, and one ranked past it from the OTHER end is
- *   not on the 'bottom' page either. Linking the wrong end, or an end that
- *   contains neither, sends the reader to a table that does not have this
- *   entity's own row in it: a verified defect on ~82% of campus pages before
- *   this existed. rankedBoard below is what closes it — it compares the
- *   entity's own rank and population against LIST_LIMIT and returns whichever
- *   end (of the up to two that could exist for a metric) actually has this
- *   entity's row on its printed page, or null when none does.
+ *   A link only exists where the BOARD actually lists this entity, and it must
+ *   point at the PAGE that lists it. A long ordering is split across pages of
+ *   PAGE_ROWS rows (rankings-page.js:boardPages) rather than cut off at one,
+ *   so every ranked entity is now on some page of every end that was built —
+ *   but the statewide campus boards run to sixteen of those pages, and a
+ *   link to page 1 for a campus ranked 6,000th lands on a table that does not
+ *   contain its row. That is the same defect this lookup was written to close
+ *   when the failure was truncation instead of paging: it was verified on ~82%
+ *   of campus pages then, and linking page 1 unconditionally would reproduce
+ *   it on exactly the same rows. rankedBoard below computes the entity's
+ *   position in the end it is linking and returns that end's page for it.
  *
  *   Since rankings-page.js's Rule 3, ordinarily only ONE end of a metric is
- *   ever built at all — the flattering one, from `goodEnd` — so this third
- *   case now has two different causes that read identically from here and are
- *   meant to: an entity outside LIST_LIMIT on the published end gets no link,
- *   and neither does an entity that only falls in the unpublished, worse-
- *   performing end's slice, because that end was never written and so was
+ *   ever built at all — the flattering one, from `goodEnd`. So the no-link
+ *   case has one cause left: an entity whose placement only exists on the
+ *   unpublished, worse-performing end, which was never written and so was
  *   never in `vm.rankingLinks` to begin with. A district with the state's
  *   worst chronic-absenteeism figure simply prints no ranking link on its own
  *   page — not a link to a "highest chronic absenteeism" leaderboard — which
@@ -91,16 +88,13 @@ const versus = (mine, avg) => (Math.abs(mine - avg) < 0.5 ? 'level with' : mine 
 const finite = (v) => typeof v === 'number' && Number.isFinite(v)
 
 /**
- * Which end of an ordering — 'top' (highest value first) or 'bottom' (lowest
- * value first) — actually prints this entity's row, given its rank OUT OF a
- * population and LIST_LIMIT (src/render/rankings-page.js), the same cutoff
- * renderRankingPage prints a page's rows to. Returns null for the (large, for
- * a statewide campus board) middle band that is on neither page.
+ * Where this entity's row sits in each end of an ordering: 1-based position in
+ * 'top' (sorted by VALUE, highest first) and in 'bottom' (by value, lowest
+ * first). Returns null when the rank or population is not usable.
  *
  * `rank` here is the GOODNESS rank metrics.js:rankAll computes — 1st is
  * always the best result, whichever direction "best" runs. The two published
- * boards are not goodness-ordered, though: 'top' is sorted by VALUE, highest
- * first, and 'bottom' by value, lowest first (rankings-page.js's own rule —
+ * boards are not goodness-ordered, though (rankings-page.js's own rule —
  * "highest"/"lowest" name the number, never the result, which is why chronic
  * absence has a "highest" page that is its worst end). For a higher-is-better
  * metric the two agree, so goodness rank IS value-descending position. For a
@@ -108,30 +102,55 @@ const finite = (v) => typeof v === 'number' && Number.isFinite(v)
  * the SMALLEST value, so it sits at the very end of the 'top' ordering and at
  * position 1 of the 'bottom' one; the formulas below swap accordingly rather
  * than assuming every metric reads the way score does.
+ *
+ * Both ends now contain every ranked row — paging replaced truncation — so
+ * this returns positions rather than picking a winner. Which end is linked is
+ * decided by which end was BUILT, which only rankedBoard can see.
  */
-export const rankingEnd = (rank, of, lowerIsBetter = false) => {
+export const rankingPositions = (rank, of, lowerIsBetter = false) => {
   if (!finite(rank) || !finite(of) || of <= 0 || rank < 1 || rank > of) return null
-  const posFromTop = lowerIsBetter ? of - rank + 1 : rank
-  const posFromBottom = lowerIsBetter ? rank : of - rank + 1
-  if (posFromTop <= LIST_LIMIT) return 'top'
-  if (posFromBottom <= LIST_LIMIT) return 'bottom'
-  return null
+  return {
+    top: lowerIsBetter ? of - rank + 1 : rank,
+    bottom: lowerIsBetter ? rank : of - rank + 1,
+  }
+}
+
+/**
+ * Which page of a board holds the row at 1-based position `pos`, clamped to the
+ * page count the build actually wrote for that board. The clamp is the whole
+ * point: `pos` comes from the entity's own cohort population and `pages` from
+ * the board's, and if those two ever disagree this returns a page that exists
+ * rather than a 404 in the middle of an entity page.
+ */
+export const boardPageOf = (pos, pages) => {
+  const wanted = Math.max(1, Math.ceil((finite(pos) && pos > 0 ? pos : 1) / PAGE_ROWS))
+  return finite(pages) && pages > 0 ? Math.min(wanted, pages) : wanted
 }
 
 /**
  * The one board — of at most two that could exist for a metric+cohort, and
  * ordinarily just one since Rule 3 (rankings-page.js) — whose printed rows
  * actually contain this entity, or null when none does — see the note above.
- * `{ href, title }`, where `title` is the board's own heading ("Texas school
- * districts with the highest overall score"), read off the index rather than
- * composed here, so a caller can label a link with a claim the linked page
- * actually makes instead of inventing its own completeness claim ("Every ...
- * ranked by ...") that a 1,500-row slice cannot back.
+ * `{ href, title, end, page }`, where `title` is the board's own heading
+ * ("Texas school districts with the highest overall score"), read off the
+ * index rather than composed here, so a caller can label a link with a claim
+ * the linked page actually makes rather than inventing its own.
+ *
+ * `href` is the page carrying THIS entity's row, not the board's front page —
+ * see the note above on why that distinction is the reason this function
+ * exists. `page` is that page's number, for a caller that wants to say it.
  */
 export const rankedBoard = (vm, metric, cohort, rank, of, lowerIsBetter = false) => {
-  const end = rankingEnd(rank, of, lowerIsBetter)
-  const board = end && vm?.rankingLinks?.[cohort]?.[metric]?.[end]
-  return board && typeof board.href === 'string' && board.href ? { ...board, end } : null
+  const pos = rankingPositions(rank, of, lowerIsBetter)
+  if (!pos) return null
+  const ends = vm?.rankingLinks?.[cohort]?.[metric]
+  // Rule 3 means at most one of these is ever populated; 'top' first is the
+  // historical preference for the vanishingly rare board set that has both.
+  const end = ends?.top?.href ? 'top' : ends?.bottom?.href ? 'bottom' : null
+  const board = end && ends[end]
+  if (!board || typeof board.href !== 'string' || !board.href) return null
+  const page = boardPageOf(pos[end], board.pages)
+  return { ...board, end, page, href: boardPageHref(board.href, page) }
 }
 
 /** The href alone, for a caller that only wants to know whether to link. */
@@ -262,16 +281,14 @@ function verdictSummary(vm, { reconcileRescore = true } = {}) {
   /* --- the rank, which is a denominator claim rather than a verdict --- */
 
   // Both placements link to the list they came out of, where one was built —
-  // and where this entity's own rank actually places it in that list's
-  // printed rows (rankedBoard; see the note above rankingEnd). The link text
-  // is the whole claim — "400th of 1,184 Texas districts" — rather than a
-  // bare "see the ranking" tacked on the end, so the destination is described
-  // by the thing the reader is already looking at. The aria-label is the
-  // linked board's OWN heading, read off the index rather than composed here
-  // — it used to say "Every Texas school ranked by overall score", which is
-  // false the moment the board is a 1,500-row slice of ~8,500 (every
-  // statewide campus board); a board's own title never claims more than it
-  // shows.
+  // specifically to the page of it holding this entity's own row (rankedBoard;
+  // see the note above rankingPositions). The link text is the whole claim —
+  // "400th of 1,184 Texas districts" — rather than a bare "see the ranking"
+  // tacked on the end, so the destination is described by the thing the reader
+  // is already looking at. The aria-label is the linked board's OWN heading,
+  // read off the index rather than composed here — it used to say "Every Texas
+  // school ranked by overall score", which was false while a board was a slice
+  // of its population; a board's own title never claims more than it shows.
   // Built inside the branch, not above it: ordinal() has no answer for a null
   // rank and throws, and an entity TEA did not rate has no placement at all.
   const share = (n) => (n > 0 ? ` (tied with ${plural(n, 'other')})` : '')
@@ -828,27 +845,25 @@ export function standouts(vm) {
   const rows = placements
     .map((r) => {
       const claim = claimSentence(vm, r)
-      // The whole ranking, not just this entity's place in it — and, since a
-      // long board prints only its first LIST_LIMIT rows, only when this
-      // entity's own row is actually one of them (rankedBoard). A placement
-      // measured against the peer band has no page to point at either way
-      // (see the note above rankingEnd) and simply carries no link, rather
-      // than borrowing a statewide list it was not measured against.
+      // The whole ranking, not just this entity's place in it — pointed at the
+      // page of it that carries this entity's own row (rankedBoard). A
+      // placement measured against the peer band has no page to point at
+      // (see the note above rankingPositions) and simply carries no link,
+      // rather than borrowing a statewide list it was not measured against.
       const board = rankedBoard(vm, r.metric, r.cohort, r.rank, r.of, r.lowerIsBetter)
-      // "full ranking" only when the board really is the whole thing: a
-      // board covering more than LIST_LIMIT entities prints a slice, and
-      // calling a slice "full" is the same false completeness claim the
-      // verdict's rank line used to make. The link text says so; the
-      // aria-label carries the board's own title either way, so a screen
-      // reader hears what the destination actually claims rather than a
-      // word this list chose for it.
-      const complete = !!board && finite(r.of) && r.of <= LIST_LIMIT
-      const linkText = !board ? '' : complete ? 'full ranking' : `ranking (${board.end} ${num(LIST_LIMIT)} shown)`
+      // "full ranking" is now true of every board: paging replaced truncation,
+      // so the ordering a reader arrives in is complete rather than its first
+      // slice. Where that ordering runs to more than one page the text says
+      // which page the link lands on, because "full ranking" pointing at page
+      // 13 of 16 would otherwise read as a promise the destination breaks.
+      // The aria-label carries the board's own title, so a screen reader hears
+      // what the destination claims rather than a word this list chose for it.
+      const linkText = !board ? '' : board.page > 1 ? `full ranking (page ${num(board.page)})` : 'full ranking'
       const ariaLabel = !board
         ? ''
-        : complete
-        ? `Full ranking: ${esc(r.label)}, ${esc(r.cohortLabel)}`
-        : esc(board.title ?? '')
+        : board.page > 1
+        ? `${esc(board.title ?? `Full ranking: ${r.label}, ${r.cohortLabel}`)}, page ${num(board.page)}`
+        : `Full ranking: ${esc(r.label)}, ${esc(r.cohortLabel)}`
       const full = board
         ? ` &middot; <a href="${esc(board.href)}" aria-label="${ariaLabel}">${linkText}</a>`
         : ''

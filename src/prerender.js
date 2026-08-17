@@ -132,11 +132,13 @@ import { renderDownloadPage, datasetCsv, entityCsv, entityJson } from './render/
 import { RANKABLE, CHANGE_METRICS, MIN_POPULATION, rankingBundles, rankBy, changeMetrics, scopeKey } from './render/rankings.js'
 import {
   DEFAULT_PLAN,
+  PAGE_ROWS,
   RANKINGS_HREF,
+  boardPages,
   isHeadlineMetric,
+  pageCountFor,
   rankingCatalogue,
   relatedFor,
-  renderRankingPage,
   renderRankingsIndexPage,
 } from './render/rankings-page.js'
 
@@ -549,6 +551,16 @@ export function hubPlan(entities, regionNames) {
 //     -----------------------------------------------------------
 //                                                                  115
 //
+// That is 115 ORDERINGS. It stopped being the file count when long orderings
+// started paging instead of truncating (rankings-page.js:PAGE_ROWS, 500 rows a
+// page): a 7,283-campus board is 15 files, a 1,199-district board is 3, and a
+// county board still fits on 1. Measured on the 2026-08 snapshot, the same 114
+// boards now write 280 pages, so this section costs 280 + 1 index + 114 CSVs =
+// 395 files where it used to cost 229 — an extra 166, against 4,800 spare. The
+// catalogue itself is unchanged at 114 entries, and MAX_RANKING_PAGES still
+// counts THAT, because a plan that grows per-entity is the failure it exists to
+// catch and paging a cohort board is not one.
+//
 // 12,971 + 115 = 13,086, which is 4,914 under the CI guard. Publishing both
 // ends cost 457 files here (228 boards x 2 + the index); one end costs 229
 // (114 boards + the index) — almost exactly half, and site/rankings/ itself
@@ -558,14 +570,18 @@ export function hubPlan(entities, regionNames) {
 // changed. `npm run site` is what re-measures this; the numbers above are
 // its actual output on this snapshot, not an estimate.
 //
-// Every one of the 114 board files (115 minus the /rankings index, which has
-// no CSV of its own) ships a CSV beside its HTML now — rankingCsv, wired in
-// the write loop below — so the true cost of this section is roughly double:
-// 115 + 114 = 229. 12,971 + 229 = 13,200, still 4,800 under the CI guard and
-// well inside the quarter of the 5,029 spare files this section is allotted:
-// RANKING_FILE_BUDGET counts the HTML catalogue only, and a CSV is exactly
-// one-for-one with an HTML board, so doubling the HTML count (already capped
-// below) is enough to know the CSV count can never overrun the budget either.
+// Every one of the 114 boards (115 minus the /rankings index, which has no CSV
+// of its own) ships ONE CSV beside its HTML — rankingCsv, wired in the write
+// loop below — and it holds the whole ordering, not one page of it: a download
+// that had to be assembled from 15 files would not be a download. So the CSV
+// count tracks boards, not pages, and RANKING_FILE_BUDGET (which counts the
+// HTML catalogue) still bounds it one-for-one.
+//
+// Pages are the term that now grows without the catalogue growing, and the
+// thing that bounds them is PAGE_ROWS against the ranked population — both
+// data, not plan. A snapshot that doubled the campus count would double this
+// section's page count; at 280 pages against 4,800 spare files, that is three
+// doublings of headroom, and the CI guard catches it either way.
 //
 // Ranking pages are cohort-shaped, not entity-shaped — one page per (metric,
 // scope) — which is why they fit at all when per-entity files do not. The guard
@@ -834,7 +850,8 @@ export function planRankings({ entities, bundles, regions, counties, latestYear 
 /**
  * level -> scope -> metric -> { top, bottom }, over the boards that were
  * actually kept. `top`/`bottom` are each either undefined (that end was never
- * built) or `{ href, title }`.
+ * built) or `{ href, title, pages }`, where `pages` is how many files that
+ * board was written as.
  *
  * Only one of the two is EVER populated for a given metric now, by
  * construction: rankings-page.js's rankingCatalogue publishes a single end per
@@ -846,29 +863,35 @@ export function planRankings({ entities, bundles, regions, counties, latestYear 
  * was too small to rank," and does not need to.
  *
  * The shape still keys by `end` explicitly rather than collapsing to a single
- * href, because src/render/sections.js:rankedBoard has to work out which end
- * (if either) actually contains a GIVEN ENTITY'S OWN row: rankings-page.js
- * prints only the first LIST_LIMIT rows of a long ranking (topSlice / the
- * `shown` slice in renderRankingPage) — overall-score-highest for campuses
- * lists the top 1,500 of roughly 8,500, not all of them — so an entity outside
- * that slice on the one published end has no board to link, full stop. It
- * does NOT fall back to the other end, because the other end does not exist:
- * for a higher-is-better metric that other end would have been the
- * worst-performers list rankings-page.js's Rule 3 refuses to publish, so
- * "no board covers this entity" is the correct, intended answer for anyone
- * who ranked badly enough to have fallen only on that unpublished side.
+ * href, because src/render/sections.js:rankedBoard has to know WHICH end it is
+ * linking before it can work out where a given entity's row falls in it: the
+ * two ends run in opposite directions, so an entity 400th from the top is
+ * 785th from the bottom, and the page number differs accordingly.
+ *
+ * A board no longer truncates — a long ordering pages instead (boardPages) —
+ * so every ranked entity is on some page of every end that was built, and
+ * `pages` above is how many pages that is. An entity with no board to link is
+ * therefore one whose only placement is on an end that does not exist: for a
+ * higher-is-better metric that end would have been the worst-performers list
+ * rankings-page.js's Rule 3 refuses to publish, so "no board covers this
+ * entity" stays the correct, intended answer there.
  * rankedBoard's own doc comment (sections.js) has the position arithmetic;
- * this index only has to carry each end's href and title, so a caller can
- * label a link with the board's actual heading ("Texas school districts with
- * the highest overall score") instead of composing a completeness claim
- * ("Every ... ranked by ...") that a 1,500-row slice cannot back.
+ * this index only has to carry each end's href, title and page count, so a
+ * caller can label a link with the board's actual heading ("Texas school
+ * districts with the highest overall score") instead of composing its own
+ * claim about what the destination contains.
  */
 export function rankingIndex(kept) {
   const idx = {}
   for (const b of kept) {
     const scope = b.scope.kind === 'state' ? 'state' : `${b.scope.kind}:${b.scope.countySlug ?? b.scope.id}`
     const slot = (((idx[b.level] ??= {})[scope] ??= {})[b.metric.key] ??= {})
-    slot[b.end] = { href: b.href, title: b.title }
+    // `pages` is how many files this board is, measured from the population it
+    // was actually built from. sections.js needs it to link the page holding a
+    // given entity's row, and taking it from here rather than recomputing it
+    // from the entity's own `of` is what stops a link pointing at a -page-N
+    // this build never wrote.
+    slot[b.end] = { href: b.href, title: b.title, pages: pageCountFor(b.result?.rows?.length ?? 0) }
   }
   return idx
 }
@@ -1209,6 +1232,12 @@ export async function prerender({ concurrency } = {}) {
   // failing every board over one missing function.
   const rankingCsv = rankingsPageModule.rankingCsv
   let rankingCsvFiles = 0
+  // Every page of every board, in the order boardPages returned them, so the
+  // sitemap below lists page 9 of a campus ordering exactly when that file was
+  // written. `kept` still holds one entry per BOARD — the catalogue, the
+  // cross-links, the hub link lists and MAX_RANKING_PAGES all count boards, and
+  // pagination deliberately does not change any of those. Only files multiply.
+  const rankingPageFiles = []
   for (const b of kept) {
     const rows = rankingRows(b.result, b.end)
     const meta = rankingMeta(b.result, tables.latestYear)
@@ -1219,18 +1248,24 @@ export async function prerender({ concurrency } = {}) {
     // apart, even if one of the two call sites is edited later and the other
     // is not.
     if (b === toolEntry) toolSource = { metric: b.metric, scope: b.scope, rows, meta }
-    await write(
-      b.file,
-      renderRankingPage({
-        metric: b.metric,
-        scope: b.scope,
-        rows,
-        meta,
-        related: relatedFor(kept, b),
-        end: b.end,
-        snapshotDate,
-      })
-    )
+    const pages = boardPages({
+      metric: b.metric,
+      scope: b.scope,
+      rows,
+      meta,
+      related: relatedFor(kept, b),
+      end: b.end,
+      snapshotDate,
+    })
+    // Page 1 is b.file — the board's own path, unchanged — so nothing that
+    // already links this board has to know pagination happened.
+    for (const p of pages) {
+      await write(p.file, p.html)
+      rankingPageFiles.push(p.file)
+    }
+    // One CSV per board, not per page: it is the WHOLE ordering in one file,
+    // which is exactly what a reader who does not want to walk 16 pages came
+    // for. Splitting it would be a download that needs assembling.
     if (typeof rankingCsv === 'function') {
       await write(
         rankingCsvFile(b.file),
@@ -1466,7 +1501,11 @@ export async function prerender({ concurrency } = {}) {
     'download.html',
     'search.html',
     'rankings.html',
-    ...kept.map((b) => b.file),
+    // Every page of every board, not just each board's first: pages 2+ hold
+    // rows that appear nowhere else on the site, and each one is its own
+    // canonical (rankings-page.js), so leaving them out would ask a crawler to
+    // find 6,783 of 7,283 campuses by following pager links alone.
+    ...rankingPageFiles,
     ...regions.map((r) => `region/${r.id}.html`),
     ...counties.map((c) => `county/${c.slug}.html`),
     ...ALPHABET.map((l) => `districts/${l}.html`),
@@ -1493,6 +1532,7 @@ export async function prerender({ concurrency } = {}) {
     entityStats, regions, counties, entities, elapsed, total, largest, stride, files, brand,
     rankings: {
       boards: kept.length,
+      pages: rankingPageFiles.length,
       index: 1,
       suppressed: suppressed.length,
       linked: entityStats.linked,
@@ -1519,7 +1559,10 @@ function report({ entityStats, regions, counties, entities, elapsed, total, larg
     ['region pages', regions.length],
     ['county pages', counties.length],
     ['letter pages', ALPHABET.length],
-    ['ranking pages', (rankings?.boards ?? 0) + (rankings?.index ?? 0)],
+    // A board is one ordering; a page is one file. They stopped being the same
+    // number when long orderings started paging instead of truncating, and the
+    // file budget is spent in pages, so pages is what this row counts.
+    ['ranking pages', (rankings?.pages ?? rankings?.boards ?? 0) + (rankings?.index ?? 0)],
     ['ranking CSVs', rankings?.csv ?? 0],
     ['home / about / download', 3],
     ['per-district CSV + JSON', entityStats.dataFiles],
@@ -1535,6 +1578,12 @@ function report({ entityStats, regions, counties, entities, elapsed, total, larg
   console.log(`  ${'per-district data'.padEnd(26)}${mb(entityStats.dataBytes).padStart(7)}`)
   console.log(`  ${'largest page'.padEnd(26)}${(largest.bytes / 1024).toFixed(1).padStart(7)} KB   /${largest.path.replace(/\.html$/, '')}`)
   if (rankings) {
+    if (rankings.pages && rankings.pages !== rankings.boards) {
+      console.log(
+        `  ${'from ranked orderings'.padEnd(26)}${rankings.boards.toLocaleString('en-US').padStart(7)}   ` +
+          `boards, paged at ${PAGE_ROWS} rows — every ranked row is printed, none truncated`
+      )
+    }
     console.log(
       `  ${'entity pages linking a'.padEnd(26)}${rankings.linked.toLocaleString('en-US').padStart(7)}   ` +
         `of ${entities.length.toLocaleString('en-US')} — a rank on a page now links the list it came from`

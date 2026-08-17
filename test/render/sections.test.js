@@ -12,9 +12,10 @@
 import { describe, it, expect } from 'vitest'
 import {
   SECTIONS, HERO_ID, HERO_LABEL, claimSentence, verdict, trajectory, changeRankings, domains, outcomes,
-  students, spending, teachers, campuses, standouts, source, rankingHref, rankingEnd, rankedBoard,
+  students, spending, teachers, campuses, standouts, source, rankingHref, rankingPositions, boardPageOf,
+  rankedBoard,
 } from '../../src/render/sections.js'
-import { LIST_LIMIT } from '../../src/render/rankings-page.js'
+import { PAGE_ROWS } from '../../src/render/rankings-page.js'
 
 /** A view model with every optional source absent. */
 const empty = (over = {}) => ({
@@ -718,69 +719,76 @@ describe('ranking links', () => {
   })
 })
 
-/* -------------------------------------------------- truncated boards (#1) -- */
+/* --------------------------------------------------- paged boards (#1) -- */
 //
-// rankings-page.js prints only the first LIST_LIMIT rows of a long ordering:
-// overall-score-highest for campuses lists the top 1,500 of roughly 8,500, not
-// all of them. Before this fix, every entity page linked ONLY the 'highest'/
-// 'top' end regardless of where the entity actually placed, so ~82% of campus
-// pages sent the reader to a table that did not contain their own school.
+// rankings-page.js splits a long ordering across pages of PAGE_ROWS rows
+// (boardPages) rather than truncating it: overall-score-highest for campuses
+// runs to sixteen pages covering all ~7,600, not a 1,500-row slice of them.
+//
+// Two defects are pinned here, one historical and one its direct successor.
+// Before ANY of this existed, every entity page linked the 'highest'/'top' end
+// regardless of where the entity placed, so ~82% of campus pages sent the
+// reader to a table that did not contain their own school. Paging fixes the
+// half of that caused by rows going unprinted — but linking a board's FIRST
+// page for a campus ranked 6,000th reproduces the identical symptom, so what
+// these assert is the page, not merely the board.
 
-describe('rankingEnd: which board a rank actually appears on', () => {
+describe('rankingPositions: where a rank sits in each end of an ordering', () => {
   const OF = 8_475 // roughly the statewide rated-campus population for score
 
-  it('picks the top (highest-value-first) board when the rank is inside its printed slice', () => {
-    expect(rankingEnd(1, OF)).toBe('top')
-    expect(rankingEnd(LIST_LIMIT, OF)).toBe('top') // the very last row the top page prints
+  it('reads goodness rank as position from the top for a higher-is-better metric', () => {
+    expect(rankingPositions(1, OF)).toEqual({ top: 1, bottom: OF })
+    expect(rankingPositions(OF, OF)).toEqual({ top: OF, bottom: 1 })
+    expect(rankingPositions(1_200, OF)).toEqual({ top: 1_200, bottom: OF - 1_200 + 1 })
   })
 
-  it('picks the bottom (lowest-value-first) board when the rank falls in its slice instead', () => {
-    expect(rankingEnd(OF, OF)).toBe('bottom') // the worst entity: first row of 'bottom'
-    expect(rankingEnd(OF - LIST_LIMIT + 1, OF)).toBe('bottom') // the last row 'bottom' prints
-  })
-
-  it('picks neither for the unpublished middle band — no board lists this rank', () => {
-    const middle = Math.round(OF / 2)
-    expect(rankingEnd(middle, OF)).toBeNull()
-    expect(rankingEnd(LIST_LIMIT + 1, OF)).toBeNull() // one past the top slice
-    expect(rankingEnd(OF - LIST_LIMIT, OF)).toBeNull() // one short of the bottom slice
-  })
-
-  it('always resolves to top for a population that fits on one page', () => {
-    // Every Texas district population (state, region or county) is under
-    // LIST_LIMIT, so a district's own rank is always inside the 'top' page —
-    // this is why the defect was invisible on district pages and only
-    // surfaced on the ~8,500-entity statewide campus boards.
-    expect(rankingEnd(1_184, 1_184)).toBe('top')
-  })
-
-  it('reverses which end is "best" for a lower-is-better metric', () => {
+  it('reverses the two for a lower-is-better metric', () => {
     // Chronic absence: rank 1 (the best result) is the SMALLEST value, so it
     // sits at the very end of the 'top' (highest-value-first) ordering and at
     // the front of 'bottom' — the opposite of a higher-is-better metric like
-    // score. Getting this backwards would link "highest chronic absenteeism"
-    // for a district whose actual standout is the LOWEST rate.
-    expect(rankingEnd(1, OF, true)).toBe('bottom')
-    expect(rankingEnd(OF, OF, true)).toBe('top')
-    const middle = Math.round(OF / 2)
-    expect(rankingEnd(middle, OF, true)).toBeNull()
+    // score. Getting this backwards would link the wrong page, and on a
+    // sixteen-page board a wrong page is a wrong answer.
+    expect(rankingPositions(1, OF, true)).toEqual({ top: OF, bottom: 1 })
+    expect(rankingPositions(OF, OF, true)).toEqual({ top: 1, bottom: OF })
   })
 
   it('treats a missing or nonsensical rank as unresolvable, not as a guess', () => {
-    expect(rankingEnd(null, OF)).toBeNull()
-    expect(rankingEnd(5, null)).toBeNull()
-    expect(rankingEnd(0, OF)).toBeNull()
-    expect(rankingEnd(OF + 1, OF)).toBeNull()
+    expect(rankingPositions(null, OF)).toBeNull()
+    expect(rankingPositions(5, null)).toBeNull()
+    expect(rankingPositions(0, OF)).toBeNull()
+    expect(rankingPositions(OF + 1, OF)).toBeNull()
   })
 })
 
-describe('rankedBoard / the verdict rank line on a truncated board', () => {
+describe('boardPageOf: which page of a board holds a given position', () => {
+  it('counts pages of PAGE_ROWS rows, 1-based', () => {
+    expect(boardPageOf(1, 17)).toBe(1)
+    expect(boardPageOf(PAGE_ROWS, 17)).toBe(1) // the last row of page 1
+    expect(boardPageOf(PAGE_ROWS + 1, 17)).toBe(2) // the first row of page 2
+    expect(boardPageOf(6_000, 17)).toBe(Math.ceil(6_000 / PAGE_ROWS))
+  })
+
+  it('never names a page past the end of what the build actually wrote', () => {
+    // `pos` comes from the entity's own cohort population and `pages` from the
+    // board's. If those ever disagree the link has to land on a page that
+    // exists — a 404 in the middle of an entity page is worse than an
+    // off-by-one landing.
+    expect(boardPageOf(9_999, 2)).toBe(2)
+    expect(boardPageOf(1, 1)).toBe(1)
+  })
+})
+
+describe('rankedBoard / the verdict rank line on a paged board', () => {
   const OF = 8_475
+  const PAGES = Math.ceil(OF / PAGE_ROWS)
   const CAMPUS_LINKS = {
     state: {
       score: {
-        top: { href: '/rankings/texas-campuses/overall-score-highest', title: 'Texas campuses with the highest overall score' },
-        bottom: { href: '/rankings/texas-campuses/overall-score-lowest', title: 'Texas campuses with the lowest overall score' },
+        top: {
+          href: '/rankings/texas-campuses/overall-score-highest',
+          title: 'Texas campuses with the highest overall score',
+          pages: PAGES,
+        },
       },
     },
   }
@@ -794,44 +802,74 @@ describe('rankedBoard / the verdict rank line on a truncated board', () => {
       ...over,
     })
 
-  it('links the highest-scored board for a campus ranked inside its slice', () => {
-    const html = verdict(campus())
+  it('links the page of the published board that holds this campus, not its first', () => {
+    const html = verdict(campus({ rank: 6_000, rankOf: OF }))
+    expect(html).toContain(`href="/rankings/texas-campuses/overall-score-highest-page-${Math.ceil(6_000 / PAGE_ROWS)}"`)
+  })
+
+  it('links the bare board href, with no suffix, for a campus on page 1', () => {
+    const html = verdict(campus({ rank: 12, rankOf: OF }))
     expect(html).toContain('href="/rankings/texas-campuses/overall-score-highest"')
-    expect(html).not.toContain('/overall-score-lowest')
+    expect(html).not.toContain('overall-score-highest-page-')
   })
 
-  it('links the lowest-scored board instead for a campus ranked in the bottom slice', () => {
-    const html = verdict(campus({ rank: OF - 10, rankOf: OF }))
-    expect(html).toContain('href="/rankings/texas-campuses/overall-score-lowest"')
-    expect(html).not.toContain('/overall-score-highest')
-  })
-
-  it('links NEITHER board for a campus in the unpublished middle — the old defect', () => {
-    // Before this fix, this exact case still printed a link to '-highest', a
-    // page that does not contain this campus's row: the ~82% failure a
-    // verified audit found.
+  it('links a board for the middle band too — every ranked row is now printed', () => {
+    // This exact case used to print no link at all, because the row fell in
+    // the unpublished middle of a truncated ordering. It is now on a real
+    // page, and the link says which.
     const middle = Math.round(OF / 2)
     const html = verdict(campus({ rank: middle, rankOf: OF }))
-    expect(html).not.toContain('/rankings')
-    // The rank claim itself is still stated, just as plain, unlinked text.
+    expect(html).toContain(`/rankings/texas-campuses/overall-score-highest-page-${Math.ceil(middle / PAGE_ROWS)}`)
     expect(html).toContain(`${middle.toLocaleString('en-US')}th of ${OF.toLocaleString('en-US')} Texas schools`)
-    expect(html).not.toMatch(/<a[^>]*>[^<]*4,238/)
   })
 
-  it("rankedBoard returns the board's own title so a caller never invents a completeness claim", () => {
-    const inSlice = rankedBoard(campus(), 'score', 'state', 1_200, OF)
-    expect(inSlice.title).toBe('Texas campuses with the highest overall score')
-    expect(rankedBoard(campus(), 'score', 'state', Math.round(OF / 2), OF)).toBeNull()
+  it('links nothing when the only end that would list this entity was never built', () => {
+    // Rule 3: the worse-performing end of an ordering is not published. A
+    // cohort whose index carries neither end has no board to point at, and
+    // that stays the correct answer under paging.
+    expect(rankedBoard(campus({ rankingLinks: { state: { score: {} } } }), 'score', 'state', 5, OF)).toBeNull()
+    expect(rankedBoard(campus({ rankingLinks: null }), 'score', 'state', 5, OF)).toBeNull()
+  })
+
+  it("rankedBoard returns the board's own title, its end and its page", () => {
+    const found = rankedBoard(campus(), 'score', 'state', 6_000, OF)
+    expect(found.title).toBe('Texas campuses with the highest overall score')
+    expect(found.end).toBe('top')
+    expect(found.page).toBe(Math.ceil(6_000 / PAGE_ROWS))
+    expect(found.href).toBe(`/rankings/texas-campuses/overall-score-highest-page-${found.page}`)
+  })
+
+  it('picks the bottom end when that is the one the catalogue published', () => {
+    const links = {
+      state: {
+        score: {
+          bottom: {
+            href: '/rankings/texas-campuses/overall-score-lowest',
+            title: 'Texas campuses with the lowest overall score',
+            pages: PAGES,
+          },
+        },
+      },
+    }
+    // Goodness rank 8,000 of 8,475 is 476th from the bottom — page 1 of the
+    // 'bottom' ordering, NOT page 16 as it would be counted from the top.
+    const found = rankedBoard(campus({ rankingLinks: links }), 'score', 'state', 8_000, OF)
+    expect(found.end).toBe('bottom')
+    expect(found.page).toBe(Math.ceil((OF - 8_000 + 1) / PAGE_ROWS))
   })
 })
 
-describe('standouts on a truncated board', () => {
+describe('standouts on a paged board', () => {
   const OF = 8_475
+  const PAGES = Math.ceil(OF / PAGE_ROWS)
   const CAMPUS_LINKS = {
     state: {
       'domain:achievement': {
-        top: { href: '/rankings/texas-campuses/achievement-highest', title: 'Texas campuses with the highest achievement domain score' },
-        bottom: { href: '/rankings/texas-campuses/achievement-lowest', title: 'Texas campuses with the lowest achievement domain score' },
+        top: {
+          href: '/rankings/texas-campuses/achievement-highest',
+          title: 'Texas campuses with the highest achievement domain score',
+          pages: PAGES,
+        },
       },
     },
   }
@@ -839,21 +877,28 @@ describe('standouts on a truncated board', () => {
     metric: 'domain:achievement', label: 'Student Achievement', cohort: 'state', cohortLabel: 'Texas average',
     rank: 5, of: OF, tied: 0, lowerIsBetter: false, ...over,
   })
+  const render = (p) =>
+    standouts(empty({ level: 'campus', rankingLinks: CAMPUS_LINKS, ranks: [p], standouts: [p] }))
 
-  it('never calls a 1,500-row slice of ~8,500 entities "full"', () => {
-    const html = standouts(empty({
-      level: 'campus', rankingLinks: CAMPUS_LINKS, ranks: [placement()], standouts: [placement()],
-    }))
-    expect(html).not.toContain('full ranking')
-    expect(html).toContain('ranking (top 1,500 shown)')
-    expect(html).toContain('aria-label="Texas campuses with the highest achievement domain score"')
+  it('calls the ranking "full" now that a board prints every ranked row', () => {
+    const html = render(placement())
+    expect(html).toContain('full ranking')
+    expect(html).not.toContain('1,500 shown')
+    expect(html).toContain('aria-label="Full ranking: Student Achievement, Texas average"')
   })
 
-  it('links nothing when the standout itself is not on either printed slice', () => {
-    const middle = placement({ rank: Math.round(OF / 2) })
-    const html = standouts(empty({
-      level: 'campus', rankingLinks: CAMPUS_LINKS, ranks: [middle], standouts: [middle],
-    }))
-    expect(html).not.toContain('/rankings')
+  it('says which page, when the link does not land on the first one', () => {
+    // "full ranking" pointing silently at page 9 of 16 would read as a promise
+    // the destination breaks the moment the reader arrives mid-ordering.
+    const html = render(placement({ rank: 4_238 }))
+    const page = Math.ceil(4_238 / PAGE_ROWS)
+    expect(html).toContain(`full ranking (page ${page.toLocaleString('en-US')})`)
+    expect(html).toContain(`/rankings/texas-campuses/achievement-highest-page-${page}`)
+    expect(html).toContain(`aria-label="Texas campuses with the highest achievement domain score, page ${page}"`)
+  })
+
+  it('links a standout in the middle band, which used to carry no link at all', () => {
+    const html = render(placement({ rank: Math.round(OF / 2) }))
+    expect(html).toContain('/rankings/texas-campuses/achievement-highest-page-')
   })
 })

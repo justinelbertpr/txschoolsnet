@@ -24,6 +24,13 @@ import {
   DEFAULT_PLAN,
   MAX_RANKING_PAGES,
   TOP_N,
+  PAGE_ROWS,
+  LEAD_MAX,
+  boardPages,
+  pageCountFor,
+  pagerItems,
+  rankingPagePath,
+  boardPageHref,
 } from '../../src/render/rankings-page.js'
 import { MIN_POPULATION, METHOD_BREAK_YEAR, METHOD_BREAK_NOTE } from '../../src/render/rankings.js'
 
@@ -322,12 +329,108 @@ describe('the top slice and the full list', () => {
     expect(topSlice(ranked).length).toBe(21)
   })
 
-  it('never calls a truncated list "all", and links the download for the rest', () => {
-    const html = page({ rows: rows(60), meta: { eligible: 60, listLimit: 30 } })
-    expect(html).toContain('<h2>The first 30 of 60 districts</h2>')
-    expect(html).toContain('This page prints the first 30 of 60 districts.')
-    expect(html).toContain('href="/download"')
+  it('splits a long ordering into pages instead of truncating it', () => {
+    const html = page({ rows: rows(60), meta: { eligible: 60, pageRows: 30 } })
+    expect(html).toContain('<h2>The full list: rows 1\u201330 of 60</h2>')
+    expect(html).toContain('Page 1 of 2, rows 1\u201330 of 60.')
+    // The old behaviour printed 30 of 60 and sent the reader to /download for
+    // the other 30. Nothing is withheld now, so nothing claims to be.
+    expect(html).not.toContain('This page prints the first')
     expect(html).not.toContain('all 60')
+  })
+
+  it('carries the rest of the ordering on real pages, each linked from the last', () => {
+    const args = { rows: rows(60), meta: { eligible: 60, pageRows: 30 } }
+    const pages = boardPages({ metric: SCORE, scope: TEXAS, ...args })
+    expect(pages.map((p) => p.file)).toEqual([
+      'rankings/texas-districts/score-highest.html',
+      'rankings/texas-districts/score-highest-page-2.html',
+    ])
+    expect(pages[1].html).toContain('<h2>The full list: rows 31\u201360 of 60</h2>')
+    expect(pages[1].html).toContain('This is the end of the ordering')
+    // Page 1 links forward, page 2 links back, and each is its own canonical.
+    expect(pages[0].html).toContain('<link rel="next" href="https://txschools.net/rankings/texas-districts/score-highest-page-2">')
+    expect(pages[1].html).toContain('<link rel="prev" href="https://txschools.net/rankings/texas-districts/score-highest">')
+    expect(pages[1].html).toContain('<link rel="canonical" href="https://txschools.net/rankings/texas-districts/score-highest-page-2">')
+    // The lead table belongs to page 1 alone; repeating it would print the
+    // same rows twice there and out of context everywhere else.
+    expect(pages[0].html).toContain('<h2>The top 20</h2>')
+    expect(pages[1].html).not.toContain('<h2>The top 20</h2>')
+  })
+
+  it('renders the nearest real page rather than an empty table for a page past the end', () => {
+    const html = page({ rows: rows(60), meta: { eligible: 60, pageRows: 30 }, page: 99 })
+    expect(html).toContain('<h2>The full list: rows 31\u201360 of 60</h2>')
+  })
+
+  it('drops the lead table, rather than a tie, when the tie makes it the whole page', () => {
+    // 40 districts share 1st. topSlice keeps a placement whole, so a lead
+    // table here would be 40 rows against a LEAD_MAX of 4 in this call \u2014 the
+    // same rows the full list opens with, printed twice.
+    const tied = withRanks(rows(40).map((r, i) => ({ ...r, id: `t${i}`, slug: `t-${i}`, value: 10 })))
+    const html = page({ rows: tied, meta: { eligible: 40, leadMax: 4 } })
+    expect(html).not.toContain('<h2>The top')
+    expect(html).toContain('40 districts share 1st place')
+    expect(html).toContain('the same rows this list opens with')
+    // The tie itself is intact in the list below.
+    expect(html).toContain('<h2>The full list: all 40 districts</h2>')
+  })
+
+  it('pageCountFor never returns zero, so a board with nothing to rank still has a page', () => {
+    expect(pageCountFor(0)).toBe(1)
+    expect(pageCountFor(null)).toBe(1)
+    expect(pageCountFor(PAGE_ROWS)).toBe(1)
+    expect(pageCountFor(PAGE_ROWS + 1)).toBe(2)
+    expect(pageCountFor(7_283)).toBe(Math.ceil(7_283 / PAGE_ROWS))
+  })
+
+  it('boardPages yields exactly one page for an ordering with nothing in it', () => {
+    const pages = boardPages({ metric: SCORE, scope: TEXAS, rows: [], meta: { eligible: 0 } })
+    expect(pages).toHaveLength(1)
+    expect(pages[0].file).toBe('rankings/texas-districts/score-highest.html')
+    expect(pages[0].html).toContain('there is no ranking to publish')
+  })
+
+  it('keeps page 1 on the board\u2019s own path, so no existing URL moves', () => {
+    expect(rankingPagePath({ scope: TEXAS, metric: SCORE })).toBe('rankings/texas-districts/score-highest')
+    expect(rankingPagePath({ scope: TEXAS, metric: SCORE, page: 1 })).toBe('rankings/texas-districts/score-highest')
+    expect(rankingPagePath({ scope: TEXAS, metric: SCORE, page: 4 })).toBe('rankings/texas-districts/score-highest-page-4')
+    expect(boardPageHref('/rankings/texas-districts/score-highest', 1)).toBe('/rankings/texas-districts/score-highest')
+    expect(boardPageHref('/rankings/texas-districts/score-highest', 4)).toBe('/rankings/texas-districts/score-highest-page-4')
+  })
+
+  it('no board path can be mistaken for a page suffix', () => {
+    // Every board path ends in one of endSlug\u2019s four words, so the sibling
+    // -page-<n> scheme cannot collide with a board of its own name.
+    const paths = rankingCatalogue({
+      metrics: [SCORE, CHANGE],
+      scopes: [TEXAS, CAMPUSES, REGION10],
+      plan: DEFAULT_PLAN,
+    }).map((e) => e.path)
+    expect(paths.length).toBeGreaterThan(0)
+    for (const path of paths) expect(path).not.toMatch(/-page-\d+$/)
+  })
+
+  it('pagerItems keeps the ends, the neighbours, and marks the gap', () => {
+    expect(pagerItems(1, 1)).toEqual([1])
+    expect(pagerItems(1, 3)).toEqual([1, 2, 3])
+    expect(pagerItems(1, 15)).toEqual([1, 2, 3, '\u2026', 15])
+    expect(pagerItems(8, 15)).toEqual([1, '\u2026', 6, 7, 8, 9, 10, '\u2026', 15])
+    expect(pagerItems(15, 15)).toEqual([1, '\u2026', 13, 14, 15])
+    // A marker standing in for exactly one page is longer than the number it
+    // would hide, so that page is printed instead.
+    expect(pagerItems(4, 15)).toEqual([1, 2, 3, 4, 5, 6, '\u2026', 15])
+  })
+
+  it('the pager is plain links, reachable with no JavaScript', () => {
+    const html = page({ rows: rows(60), meta: { eligible: 60, pageRows: 30 } })
+    expect(html).toMatch(/<nav class="pager"[^>]*aria-label="[^"]+"/)
+    expect(html).toContain('rel="next"')
+    expect(html).toContain('<span aria-current="page">1</span>')
+    // Previous on page 1 is inert text, not a link back to nowhere.
+    expect(html).toContain('<span class="pager-off">Previous</span>')
+    const pagerHtml = html.slice(html.indexOf('<nav class="pager"'))
+    expect(pagerHtml.slice(0, pagerHtml.indexOf('</nav>'))).not.toContain('<script')
   })
 
   it('states the emptiness instead of rendering an empty table', () => {

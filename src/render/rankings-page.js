@@ -120,13 +120,43 @@ export const TOP_N = 20
 export const SHORT_LIST = 25
 
 /**
- * The most rows any one page prints. 1,199 districts fit — that population is
- * the reason this module exists — but 9,031 campuses in one table is a
- * megabyte of markup nobody scrolls. Above the limit the page prints the top
- * slice and says plainly that it is a slice, with the download linked for the
- * rest. It never calls a truncated list "all".
+ * The most rows any one page prints, before the ordering continues on the next
+ * one. Nothing is dropped at this boundary — see `boardPages` — so this is a
+ * page size, not a limit on what the site publishes.
+ *
+ * 500 is a memory budget, measured rather than guessed. A ranked row costs a
+ * phone about 0.13 MB of renderer memory once layout and paint are counted, so
+ * the 1,500-row page this constant replaces cost ~300 MB on the widest board
+ * (statewide campuses by overall-score gain: six columns, 9,200 cells). iOS
+ * Safari starts discarding tabs in the 200-400 MB band, which is why that page
+ * reloaded or died outright on a phone instead of scrolling. At 500 rows the
+ * same board costs ~130 MB, clear of the band with room for the browser's own
+ * floor and whatever else the reader has open.
+ *
+ * The cost tracks CELLS, not rows, and the widest board sets the ceiling: 500
+ * six-column rows is the worst case any scope produces, so a flat row count is
+ * enough and a per-board budget would only buy longer pages on the narrow
+ * boards that were never the problem.
  */
-export const LIST_LIMIT = 1500
+export const PAGE_ROWS = 500
+
+/**
+ * The most rows the lead table may grow to before the page drops it entirely.
+ *
+ * `topSlice` runs the lead past TOP_N to the end of whatever placement it lands
+ * in, because cutting a tie in half is how a ranked list stops being true. On
+ * most boards that costs a handful of extra rows. On a few it does not: 500 of
+ * the 981 districts with a dropout rate share 1st place at 0.0%, so a lead
+ * table honouring that tie is 500 rows — which is not a summary of the list, it
+ * is a second copy of the list's first page sitting directly above it, and it
+ * doubled that page's weight for a reader on a phone.
+ *
+ * Past this bound the lead section is dropped rather than cut, and the full
+ * list — which opens at 1st place immediately below, with the whole tie intact
+ * — is the only table on the page. Nothing is hidden and no tie is split; the
+ * page just stops printing the same rows twice. Three of 114 boards hit this.
+ */
+export const LEAD_MAX = 100
 
 /** metrics.js will not publish a rank out of fewer than 10, and neither will this. */
 export const MIN_RANKED = 10
@@ -218,6 +248,48 @@ export const rankingPath = ({ scope, metric, end = 'top' }) =>
 
 export const rankingHref = (spec) => `/${rankingPath(spec)}`
 export const rankingFile = (spec) => `${rankingPath(spec)}.html`
+
+/**
+ * How many pages a ranked population of `n` occupies. Always at least 1: a
+ * board with nothing to rank still writes its page, which says so in words.
+ */
+export const pageCountFor = (n, pageRows = PAGE_ROWS) =>
+  Math.max(1, Math.ceil((finite(n) && n > 0 ? n : 0) / (finite(pageRows) && pageRows > 0 ? pageRows : PAGE_ROWS)))
+
+/**
+ * Page 1 keeps the board's own path, and only pages 2+ take a suffix. That is
+ * what lets pagination be added without moving a single existing URL: every
+ * link, sitemap entry and canonical this site has ever published for a board
+ * still points at the same file, which is now the first page of the ordering
+ * rather than a truncation of it.
+ *
+ * `-page-2` as a SIBLING path, not `/page/2` under a directory of the board's
+ * own name, because Cloudflare's asset layer resolves /rankings/<scope>/<board>
+ * with html_handling: "auto-trailing-slash" (see wrangler.jsonc and
+ * scripts/serve.mjs) — a `<board>.html` file and a `<board>/` directory would
+ * both claim that one request, and which of them wins is not a thing this repo
+ * should be relying on. Siblings in the directory the board already lives in
+ * have exactly one resolution. They also cannot collide with a board of their
+ * own: every board path ends in one of `endSlug`'s four words — highest,
+ * lowest, gains, declines — so no real board ever ends in `-page-<n>`.
+ */
+export const rankingPagePath = ({ scope, metric, end = 'top', page = 1 }) => {
+  const base = rankingPath({ scope, metric, end })
+  return finite(page) && page > 1 ? `${base}-page-${page}` : base
+}
+
+export const rankingPageHref = (spec) => `/${rankingPagePath(spec)}`
+export const rankingPageFile = (spec) => `${rankingPagePath(spec)}.html`
+
+/**
+ * The same `-page-<n>` rule applied to a board href a caller already holds,
+ * for the callers that have the LINK but not the (scope, metric, end) it was
+ * built from — src/render/sections.js, linking the page that carries one
+ * entity's row. One statement of the convention, reused, rather than a second
+ * one spelled out at the call site and free to drift from this one.
+ */
+export const boardPageHref = (href, page) =>
+  finite(page) && page > 1 ? `${String(href).replace(/\/$/, '')}-page-${page}` : String(href)
 
 /**
  * The board's own CSV, referenced the way the page itself has to reach it: a
@@ -475,6 +547,65 @@ const rankingTable = (rows, { metric, scope, meta, caption, wide = false }) => {
   return table({ caption, head, rows: body, className: 'data scroll' })
 }
 
+/* ------------------------------------------------------------------ pager -- */
+
+/**
+ * Which page numbers get a link, given where the reader is. Always the first
+ * and last, always the two either side of the current one, and a gap marker
+ * for whatever that skips: 15 pages is a long enough ordering that printing
+ * every number would be its own wall of links on a phone.
+ *
+ * Returns numbers and the string '…' — never an empty gap, since a marker
+ * standing in for exactly one page is longer than the page number it hides.
+ */
+export const pagerItems = (page, count, radius = 2) => {
+  const wanted = new Set([1, count])
+  for (let p = page - radius; p <= page + radius; p += 1) if (p >= 1 && p <= count) wanted.add(p)
+  const sorted = [...wanted].sort((a, b) => a - b)
+  const out = []
+  for (const p of sorted) {
+    const last = out.at(-1)
+    if (typeof last === 'number' && p - last > 1) out.push(p - last === 2 ? p - 1 : '…')
+    out.push(p)
+  }
+  return out
+}
+
+/**
+ * The whole navigation for a paginated board, as one <nav>.
+ *
+ * Plain anchors, no script: this site's tables are readable with JavaScript off
+ * (see the .tbl-scroll note in site/style.css), and a pager that needs JS to
+ * reach row 501 would be the one part of a ranked list a reader could not get
+ * to. Previous/Next carry rel=prev/next for the same reason the <head> does.
+ *
+ * The current page is a <span aria-current="page">, not a link to itself.
+ */
+const pager = ({ scope, metric, end, page, count, label }) => {
+  if (count <= 1) return ''
+  const href = (p) => esc(rankingPageHref({ scope, metric, end, page: p }))
+  const link = (p, text, rel = null) =>
+    `<li><a href="${href(p)}"${rel ? ` rel="${rel}"` : ''}>${esc(text)}</a></li>`
+
+  const numbers = pagerItems(page, count)
+    .map((p) =>
+      p === '…'
+        ? `<li aria-hidden="true" class="pager-gap">&hellip;</li>`
+        : p === page
+        ? `<li><span aria-current="page">${num(p)}</span></li>`
+        : link(p, String(num(p)), null)
+    )
+    .join('')
+
+  return `<nav class="pager" aria-label="${esc(label)}">
+  <ul>
+    ${page > 1 ? link(page - 1, 'Previous', 'prev') : '<li><span class="pager-off">Previous</span></li>'}
+    ${numbers}
+    ${page < count ? link(page + 1, 'Next', 'next') : '<li><span class="pager-off">Next</span></li>'}
+  </ul>
+</nav>`
+}
+
 /* ------------------------------------------------------- what was excluded -- */
 
 /**
@@ -595,12 +726,21 @@ const linkRow = (items, label) =>
  *   rows    [{ id, name, slug, level?, value, rank?, tied?, rating?, county?,
  *              countySlug?, districtName?, districtSlug?, enrollment?, from?, to? }]
  *   meta    { eligible?, excluded?: [{ n, reason }], measured?, window?,
- *             fromLabel?, toLabel?, headline?, listLimit? }
+ *             fromLabel?, toLabel?, headline?, pageRows?, leadMax? }
  *   related { inverse?, metrics?: [], scopes?: [], index? }
  *   end     'top' (default) or 'bottom'
+ *   page    1-based page of the full list to render (default 1)
  *
  * Rows arrive in the order they should be read; nothing here re-sorts them, so a
  * caller's tie-break survives. Ranks are recomputed from the values regardless.
+ *
+ * One call renders ONE page of the ordering. `boardPages` below is what a
+ * caller loops to write a whole board; this signature takes `page` so that a
+ * page can be rendered on its own, and so the recomputation it costs (ranking
+ * the same population once per page) stays visible rather than hidden behind a
+ * generator. At ~7,600 rows and 16 pages that is build-time arithmetic nobody
+ * waits on, and it buys every page being derived from the identical `ranked`
+ * array rather than from a slice handed down through an argument.
  */
 export function renderRankingPage({
   metric,
@@ -610,6 +750,7 @@ export function renderRankingPage({
   snapshotDate = null,
   related = {},
   end = 'top',
+  page = 1,
 }) {
   if (isContextMetric(metric?.key)) {
     // Rule 4. Ranking a demographic share asserts that one end of it is the good
@@ -621,21 +762,45 @@ export function renderRankingPage({
   }
 
   const level = scope?.level ?? 'district'
-  const listLimit = finite(meta.listLimit) ? meta.listLimit : LIST_LIMIT
+  const pageRows = finite(meta.pageRows) && meta.pageRows > 0 ? meta.pageRows : PAGE_ROWS
 
   const { ranked, excluded } = rankedPopulation(rows, meta, end)
 
   const headline = rankingHeadline({ metric, scope, end, meta })
   const who = populationLabel(scope)
-  const shown = ranked.slice(0, listLimit)
-  const truncated = ranked.length > shown.length
-  const lead = topSlice(shown)
-  const short = shown.length <= SHORT_LIST
+
+  // The ordering is split across pages, never cut short: `shown` is this page's
+  // slice of it and `pageCount` says how many such slices the whole list takes.
+  // A `page` outside the range renders the nearest real one rather than an
+  // empty table — a hand-typed -page-99 is a reader's typo, not a page.
+  const pageCount = pageCountFor(ranked.length, pageRows)
+  const at = Math.min(Math.max(finite(page) ? Math.trunc(page) : 1, 1), pageCount)
+  const from = (at - 1) * pageRows
+  const shown = ranked.slice(from, from + pageRows)
+  const paginated = pageCount > 1
+  const first = at === 1
+
+  // The lead table is page 1's, and only page 1's. It is the same rows the full
+  // list opens with, so repeating it on every page would print them twice on
+  // page 1 and out of context everywhere else.
+  const lead = first ? topSlice(shown) : []
+  const short = !paginated && shown.length <= SHORT_LIST
   // When the lead slice ran past 20 to keep a tie whole, the sentence saying so
   // counts the entities actually sharing that placement — which can include rows
   // above the 20th as well as below it.
   const edgeRank = lead.at(-1)?.rank ?? lead.length
   const edgeShare = lead.filter((r) => r.rank === edgeRank).length
+  // ...and when it ran past LEAD_MAX, there is no lead table at all. See the
+  // constant: the tie is never cut, the summary is simply dropped.
+  const leadMax = finite(meta.leadMax) && meta.leadMax > 0 ? meta.leadMax : LEAD_MAX
+  const leadShown = lead.length > 0 && lead.length <= leadMax
+
+  // "rows 501–1,000 of 7,283", the phrase the heading, the caption and the
+  // page note all need, written once. A literal en dash, not `&ndash;`: this
+  // string is handed to section()/table(), both of which escape their heading
+  // and caption, so an entity here reaches the reader as "&ndash;" spelled out.
+  const rowSpan = `rows ${num(from + 1)}–${num(from + shown.length)} of ${num(ranked.length)}`
+  const pagerNav = pager({ scope, metric, end, page: at, count: pageCount, label: `${asTitle(headline)}: page ${at} of ${pageCount}` })
 
   const denominator = excludedLines({ level, ranked: ranked.length, eligible: meta.eligible, excluded })
     .map((l) => `<p>${esc(l)}</p>`)
@@ -715,11 +880,16 @@ export function renderRankingPage({
   if (scope?.href && scope?.label) crumbs.push({ href: scope.href, label: scope.label })
   crumbs.at(-1).current = asTitle(headline)
 
-  const truncNote = truncated
-    ? `<p class="note">This page prints the first ${num(shown.length)} of ${countOf(
-        ranked.length,
-        level
-      )}. The complete ordering, and every figure behind it, is in <a href="/download">the downloadable dataset</a>.</p>`
+  // The list is whole; it is just longer than one page. This says where the
+  // reader is in it and where the rest is, and — unlike the note it replaces —
+  // never sends anyone to the dataset to see rows this site declined to print.
+  const rest =
+    at < pageCount
+      ? `The ordering continues on ${pageCount - at === 1 ? 'the next page' : `the next ${num(pageCount - at)} pages`}`
+      : `This is the end of the ordering`
+  const pageNote = paginated
+    ? `<p class="note">Page ${num(at)} of ${num(pageCount)}, ${rowSpan}. ${rest}; every row of it is also in
+       <a href="${esc(rankingCsvHref({ scope, metric, end }))}">this table's CSV</a>.</p>`
     : ''
 
   const tooSmall =
@@ -730,21 +900,37 @@ export function renderRankingPage({
         )} carry this measure. A placement out of fewer than ${MIN_RANKED} is not worth much, and this page states the figure rather than dressing it as a contest.</p>`
       : ''
 
+  // Every page of a board is its own canonical URL, and pages 2+ say so in the
+  // title and description too. They are different rows, not variants of page 1:
+  // pointing them all at page 1 would ask a search engine to drop 6,783 of the
+  // 7,283 campuses this board ranks, and would send a reader who searched for a
+  // campus on page 9 to a page its row is not on. rel=prev/next is what ties
+  // them back into one ordering.
+  const pageSuffix = first ? '' : ` (page ${num(at)} of ${num(pageCount)})`
+
   return shell({
-    title: `${asTitle(headline)} — txschools.net`,
-    description: `${asTitle(headline)}: a ranked table of ${countOf(
-      ranked.length,
-      level
-    )}, with the figure behind each placement, what was excluded, and every tie shown. Unofficial republication of Texas Education Agency data.`,
-    canonical: `${SITE_ORIGIN}${rankingHref({ scope, metric, end })}`,
+    title: `${asTitle(headline)}${pageSuffix} — txschools.net`,
+    description: first
+      ? `${asTitle(headline)}: a ranked table of ${countOf(
+          ranked.length,
+          level
+        )}, with the figure behind each placement, what was excluded, and every tie shown. Unofficial republication of Texas Education Agency data.`
+      : `${asTitle(headline)}: page ${num(at)} of ${num(
+          pageCount
+        )}, ${rowSpan}, with the figure behind each placement and every tie shown. Unofficial republication of Texas Education Agency data.`,
+    canonical: `${SITE_ORIGIN}${rankingPageHref({ scope, metric, end, page: at })}`,
+    prev: at > 1 ? `${SITE_ORIGIN}${rankingPageHref({ scope, metric, end, page: at - 1 })}` : null,
+    next: at < pageCount ? `${SITE_ORIGIN}${rankingPageHref({ scope, metric, end, page: at + 1 })}` : null,
     crumbs,
     sections: [
       `<section class="hero">
   <p class="eyebrow">Ranked list &middot; ${esc(who)}</p>
   <h1>${esc(asTitle(headline))}</h1>
   <p class="place">${esc(countOf(ranked.length, level))}${
-        metric?.window || meta?.window ? ` &middot; ${esc(metric?.window ?? meta.window)}` : ''
-      }${snapshotDate ? ` &middot; TEA data fetched ${esc(snapshotDate)}` : ''}</p>
+        paginated ? ` &middot; page ${num(at)} of ${num(pageCount)}` : ''
+      }${metric?.window || meta?.window ? ` &middot; ${esc(metric?.window ?? meta.window)}` : ''}${
+        snapshotDate ? ` &middot; TEA data fetched ${esc(snapshotDate)}` : ''
+      }</p>
   <p class="lede">${lede}</p>
   <p class="downloads"><a href="${esc(rankingCsvHref({ scope, metric, end }))}">Download this table (CSV)</a></p>
 </section>`,
@@ -759,7 +945,7 @@ export function renderRankingPage({
   ${tooSmall}
   ${povertyCaveat()}`
       ),
-      short
+      short || !leadShown
         ? null
         : section(
             'top',
@@ -780,8 +966,8 @@ export function renderRankingPage({
       shown.length
         ? section(
             'full',
-            truncated
-              ? `The first ${num(shown.length)} of ${countOf(ranked.length, level)}`
+            paginated
+              ? `The full list: ${rowSpan}`
               : short
               ? `All ${countOf(shown.length, level)}`
               : `The full list: all ${countOf(shown.length, level)}`,
@@ -790,8 +976,20 @@ export function renderRankingPage({
               scope,
               meta,
               wide: short,
-              caption: `${asTitle(headline)}: ${truncated ? 'the first' : 'all'} ${num(shown.length)} rows`,
-            })}${truncNote}`
+              caption: `${asTitle(headline)}: ${
+                paginated ? `${rowSpan}` : `all ${num(shown.length)} rows`
+              }`,
+            })}${pageNote}${pagerNav}`,
+            // Only when a lead table would have appeared and did not: the
+            // reader can see the list starts at 1st, so this explains the
+            // missing summary rather than the list.
+            first && !short && !leadShown && lead.length > leadMax
+              ? `No separate top-${TOP_N} table here: ${num(edgeShare)} ${levelPlural(level)} share ${esc(
+                  ordinal(edgeRank)
+                )} place, so one that kept that tie whole would be ${num(
+                  lead.length
+                )} rows — the same rows this list opens with. It starts at ${esc(ordinal(1))}.`
+              : ''
           )
         : section(
             'full',
@@ -821,6 +1019,37 @@ export function renderRankingPage({
       ),
       sourceSection(snapshotDate),
     ],
+  })
+}
+
+/**
+ * boardPages({ metric, scope, rows, meta, ... }) -> [{ page, pageCount, path,
+ * href, file, html }]
+ *
+ * Every file one board is now made of, in reading order, ready for the caller
+ * to write and to put in the sitemap. This is the ONLY thing that decides how
+ * many pages a board has, so the write loop, the sitemap and the pager can
+ * never disagree about whether -page-9 exists.
+ *
+ * A board with nothing to rank still yields exactly one entry: renderRanking-
+ * Page renders that case as a "Nothing to rank" page, and dropping it here
+ * would silently delete a URL the catalogue already promised.
+ */
+export function boardPages({ metric, scope, rows = [], meta = {}, snapshotDate = null, related = {}, end = 'top' }) {
+  const pageRows = finite(meta.pageRows) && meta.pageRows > 0 ? meta.pageRows : PAGE_ROWS
+  const { ranked } = rankedPopulation(rows, meta, end)
+  const count = pageCountFor(ranked.length, pageRows)
+
+  return Array.from({ length: count }, (_, i) => {
+    const page = i + 1
+    return {
+      page,
+      pageCount: count,
+      path: rankingPagePath({ scope, metric, end, page }),
+      href: rankingPageHref({ scope, metric, end, page }),
+      file: rankingPageFile({ scope, metric, end, page }),
+      html: renderRankingPage({ metric, scope, rows, meta, snapshotDate, related, end, page }),
+    }
   })
 }
 
