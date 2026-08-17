@@ -113,7 +113,7 @@ import { availableParallelism } from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { deflateSync, gunzipSync } from 'node:zlib'
 import { existsSync, readFileSync } from 'node:fs'
-import { readdir, writeFile, stat, rm, mkdir } from 'node:fs/promises'
+import { readdir, writeFile, stat, rm, mkdir, readFile } from 'node:fs/promises'
 
 import { resetDir } from './lib/reset-dir.js'
 import { latestSnapshot } from './build.js'
@@ -153,6 +153,40 @@ import {
 // lets the write loop below degrade to "skip the CSV for this build" rather than
 // "fail every page render". See the loop for how the presence check is made.
 import * as rankingsPageModule from './render/rankings-page.js'
+import { MAP_FILE, MAP_HREF, buildLayer, buildRatingLayer, hiFiPaths, mappableDistricts, renderMapPage } from './render/map.js'
+import { BOUNDARY_FILE, BOUNDARY_FILE_LO } from './boundaries.js'
+
+/**
+ * The archived district geometry, or null when it has never been fetched.
+ *
+ * Null is a legitimate state, not an error: a fresh clone that has not run
+ * `npm run fetch:boundaries` should still build the other 11,868 files. The map
+ * is the only page that depends on this, and it simply is not written.
+ */
+async function readBoundaries(file = BOUNDARY_FILE) {
+  try {
+    const gz = await readFile(file)
+    return JSON.parse(gunzipSync(gz).toString('utf8'))
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Which end of a measure is the good end, in the words the legend prints.
+ *
+ * The map ramp runs dark-to-light on every layer, so without this sentence a
+ * reader has no way to know whether the dark shading on "chronically absent"
+ * is the districts doing well or badly. Stated per layer rather than inferred
+ * from the ramp, for the same reason the ranking pages state their direction.
+ */
+function mapDirection(metric) {
+  const lowerBetter = /absentee|dropout|grad:3/.test(String(metric.key))
+  if (metric.fmt === 'usd') return 'Darkest districts spend or pay the most; the ramp says nothing about whether that is good.'
+  return lowerBetter
+    ? 'Darkest districts have the highest figure, which is the worse result for this measure.'
+    : 'Darkest districts have the highest figure.'
+}
 
 export const SITE_ORIGIN = 'https://txschools.net'
 
@@ -1455,6 +1489,74 @@ export async function prerender({ concurrency } = {}) {
     })
   )
 
+  /* --- the state map ---------------------------------------------------- */
+  //
+  // Geometry comes from the committed archive (data/boundaries), not the
+  // network: CI has no network, and src/boundaries.js is the manual step that
+  // refreshes it. A build with no archive writes no map and says so, rather
+  // than failing the whole site over one page.
+  //
+  // Values come from the SAME rankBy() cache the ranking boards were built
+  // from, so a district's shade and its row on a board can never disagree.
+  let mapWritten = 0
+  const topo = await readBoundaries()
+  const topoLo = await readBoundaries(BOUNDARY_FILE_LO)
+  if (!topo) {
+    console.log('  (no data/boundaries archive — /map skipped; run `npm run fetch:boundaries`)')
+  } else {
+    const teaToGeoid = new Map(Object.entries(topo.txschools?.teaToGeoid ?? {}))
+    // mappableDistricts drops the ones with an NCES id but no polygon, so this
+    // list — and therefore `order` — is exactly what renderMapPage will draw.
+    // Every layer below is indexed by position in it.
+    const drawable = mappableDistricts(
+      topo,
+      districts
+        .filter((d) => teaToGeoid.has(String(d.id)))
+        .map((d) => ({
+          teaId: String(d.id),
+          geoid: teaToGeoid.get(String(d.id)),
+          name: d.name,
+          href: `/district/${entitySlug(d)}`,
+        }))
+    )
+    const order = drawable.map((d) => d.teaId)
+
+    const ratings = new Map(districts.map((d) => [String(d.id), d.rating]))
+    const rating = buildRatingLayer({ ratings, order })
+
+    const mapLayers = []
+    for (const m of rankingMetrics().filter((x) => x.kind !== 'change')) {
+      const result = rankBy({
+        entities, bundles, metric: m, scope: 'state', level: 'district', latestYear: tables.latestYear,
+      })
+      const values = new Map(result.rows.map((r) => [String(r.id), r.value]))
+      if (values.size < MIN_POPULATION) continue
+      mapLayers.push(
+        buildLayer({
+          key: m.key, label: m.label, fmt: m.fmt,
+          direction: mapDirection(m),
+          values, order,
+        })
+      )
+    }
+
+    // The sharper geometry is a separate asset so a phone never downloads it
+    // and a desktop caches it independently of the page.
+    const hiFiHref = topoLo ? '/map-hi.json' : null
+    if (hiFiHref) {
+      await write('map-hi.json', JSON.stringify(hiFiPaths({ topo, districts: drawable })))
+    }
+    await write(
+      MAP_FILE,
+      renderMapPage({ topo, topoLo, districts: drawable, layers: mapLayers, rating, snapshotDate, hiFiHref })
+    )
+    mapWritten = mapLayers.length + 1
+    console.log(
+      `  map: ${drawable.length} districts drawn, ${mapWritten} layers` +
+        (topoLo ? ' (1% inline, 3% fetched on wide screens)' : ' (single fidelity)')
+    )
+  }
+
   // The 404 page was hand-written in the first commit and never regenerated, so it
   // was the only page on the site carrying the txschools.net name without the
   // non-affiliation statement, the header, or a route back. Generate it like
@@ -1501,6 +1603,9 @@ export async function prerender({ concurrency } = {}) {
     'download.html',
     'search.html',
     'rankings.html',
+    // Written only when the boundary archive is present; a sitemap entry for a
+    // file this build did not write would be a 404 advertised to every crawler.
+    ...(mapWritten ? [MAP_FILE] : []),
     // Every page of every board, not just each board's first: pages 2+ hold
     // rows that appear nowhere else on the site, and each one is its own
     // canonical (rankings-page.js), so leaving them out would ask a crawler to

@@ -1,0 +1,40 @@
+{
+  "fetchedAt": "2026-08-17T15:17:37.775Z",
+  "describes": "Texas school district boundaries, simplified and projected for the /map page",
+  "derivedLo": {
+    "file": "tx-districts-lo.topo.json.gz",
+    "bytes": 100476,
+    "uncompressedBytes": 294875,
+    "polygons": 1017,
+    "sha256": "fffa23d71e5c8328dfd833027099b6f30a28c505e7b95cc877e338fb236da922",
+    "simplify": "1%",
+    "note": "Ships inline in /map. Indistinguishable from the full fidelity at phone width."
+  },
+  "derived": {
+    "file": "tx-districts.topo.json.gz",
+    "bytes": 180099,
+    "uncompressedBytes": 507179,
+    "polygons": 1017,
+    "sha256": "f3d87e8b3d3848a047d6c5e7666e413b05e64c8ed105d90e29bc9c654a5358a5",
+    "simplify": "3%",
+    "projection": "+proj=aea +lat_1=27.5 +lat_2=35 +lat_0=31.25 +lon_0=-99 +datum=NAD83",
+    "command": "mapshaper tl_2024_48_unsd.shp -filter-fields GEOID -proj \"+proj=aea +lat_1=27.5 +lat_2=35 +lat_0=31.25 +lon_0=-99 +datum=NAD83\" -simplify 3% keep-shapes -o format=topojson precision=1"
+  },
+  "sources": {
+    "boundaries": {
+      "url": "https://www2.census.gov/geo/tiger/TIGER2024/UNSD/tl_2024_48_unsd.zip",
+      "bytes": 16901424,
+      "sha256": "dba039a65b4300d4ef1d62e83f1e8c4337b3e2d59562a710921d5d16c28b2124",
+      "publisher": "US Census Bureau, TIGER/Line 2024",
+      "note": "Public domain. NCES EDGE republishes this same geometry with the same GEOID keys."
+    },
+    "crosswalk": {
+      "url": "https://educationdata.urban.org/api/v1/school-districts/ccd/directory/2022/?fips=48&limit=2000",
+      "bytes": 2209871,
+      "sha256": "8e16aeb92417c8c19042ca786bf57ef88125c85df4fc5c3f3e88e940a28fbeac",
+      "districts": 1239,
+      "publisher": "NCES Common Core of Data, via the Urban Institute Education Data API",
+      "note": "Read for two fields only: leaid and state_leaid."
+    }
+  }
+}

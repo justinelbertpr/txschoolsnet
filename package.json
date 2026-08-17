@@ -15,14 +15,16 @@
     "prerender": "node src/prerender.js",
     "check:files": "node scripts/check-file-count.mjs",
     "site": "npm run verify && npm run build && npm run export && npm run prerender && npm run check:files",
-    "minify": "esbuild site/style.css --minify --outfile=site/style.css --allow-overwrite && esbuild site/app.js --minify --outfile=site/app.js --allow-overwrite",
+    "minify": "esbuild site/style.css --minify --outfile=site/style.css --allow-overwrite && esbuild site/app.js --minify --outfile=site/app.js --allow-overwrite && esbuild site/map.js --minify --outfile=site/map.js --allow-overwrite",
     "test": "vitest run",
     "test:watch": "vitest",
     "deploy": "wrangler deploy",
-    "preview": "node scripts/serve.mjs"
+    "preview": "node scripts/serve.mjs",
+    "fetch:boundaries": "node src/boundaries.js"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
+    "mapshaper": "^0.7.53",
     "vitest": "^4.1.10",
     "wrangler": "^4.34.0"
   }

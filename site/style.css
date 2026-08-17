@@ -1662,6 +1662,68 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 .pin-remove:hover { color: var(--ink); background: var(--ground); }
 .pin-remove:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
+/* ---------- the state map ----------
+   src/render/map.js draws 1,015 district polygons as one inline SVG. The ramp
+   is single-hue and sequential on purpose, and the reasoning plus the measured
+   CVD numbers are in that module's header — the short version is that rule 3
+   at the top of this file forbids the obvious green-to-red choropleth, and
+   re-measuring confirmed why: green-amber-red scores deutan dE 12.1 and puts A
+   and F on the identical L* 47.
+
+   Lightness is the second channel here. On a polygon there is no dash pattern
+   or stroke weight to carry one, so the ramp is monotonic in L* (17 -> 92) and
+   an achromatic reader still sees an ordering. */
+
+.map-figure { margin: 1rem 0 0; }
+.map-svg {
+  display: block; width: 100%; height: auto;
+  background: var(--ground); border-radius: var(--radius);
+}
+/* The hairline is what keeps 1,015 shapes from reading as one blob. It scales
+   with the viewBox, so it stays a hairline at every width. */
+.map-svg path {
+  fill: var(--line-2);
+  stroke: var(--surface); stroke-width: .6; stroke-linejoin: round;
+}
+.map-svg [data-b="0"] { fill: #082f39; }
+.map-svg [data-b="1"] { fill: #155f70; }
+.map-svg [data-b="2"] { fill: #3d95a2; }
+.map-svg [data-b="3"] { fill: #8ac4c9; }
+.map-svg [data-b="4"] { fill: #dbebea; }
+/* Focus has to be visible over any shade in the ramp, including the darkest,
+   so it is a light halo rather than a colour. */
+.map-svg a:focus-visible { outline: none; }
+.map-svg a:focus-visible path { stroke: var(--accent); stroke-width: 2.5; }
+@media (hover: hover) {
+  .map-svg a:hover path { stroke: var(--ink); stroke-width: 1.6; }
+}
+
+.map-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .7rem; margin: 0 0 .3rem; }
+.map-pick { font-weight: 650; font-size: var(--t-small); }
+.map-controls select {
+  font: inherit; font-size: var(--t-small);
+  min-height: 2.75rem; padding: .4rem .6rem; max-width: 100%;
+  color: var(--ink); background: var(--surface);
+  border: 1px solid var(--ink-3); border-radius: var(--radius);
+}
+
+.map-legend { margin: .9rem 0 0; }
+.map-legend-title { margin: 0 0 .4rem; font-weight: 650; font-size: var(--t-small); }
+.map-legend ul {
+  list-style: none; display: flex; flex-wrap: wrap; gap: .3rem .9rem;
+  margin: 0; padding: 0; font-size: var(--t-small); color: var(--ink-2);
+}
+.map-legend li { display: flex; align-items: center; gap: .4rem; }
+.map-swatch {
+  width: 1.1rem; height: 1.1rem; flex: none;
+  border-radius: .2rem; border: 1px solid var(--line);
+}
+.map-swatch[data-b="0"] { background: #082f39; }
+.map-swatch[data-b="1"] { background: #155f70; }
+.map-swatch[data-b="2"] { background: #3d95a2; }
+.map-swatch[data-b="3"] { background: #8ac4c9; }
+.map-swatch[data-b="4"] { background: #dbebea; }
+
 /* ---------- pager ----------
    The page-to-page navigation under a long ranked list
    (src/render/rankings-page.js:pager). Plain links, so the ordering is

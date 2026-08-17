@@ -181,6 +181,7 @@ const PRIMARY_NAV = [
   // links, never from the persistent nav itself — added here so it is one
   // click from every page, the way Download and About already are.
   { href: '/rankings', label: 'Rankings', match: (p) => p === '/rankings' || p.startsWith('/rankings/') },
+  { href: '/map', label: 'Map', match: (p) => p === '/map' },
   { href: '/download', label: 'Data', match: (p) => p === '/download' },
   { href: '/about', label: 'How it works', match: (p) => p === '/about' },
 ]
@@ -253,6 +254,13 @@ export const siteNav = (canonical) => {
  * meets this site with no page around it, so it is the one place the
  * non-affiliation line cannot be a footer.
  *
+ * `scripts` are EXTRA same-origin modules, for the one or two pages that need
+ * behaviour no other page does — /map's layer picker is the only caller today.
+ * They load after app.js. A page-specific script belongs here rather than
+ * inside app.js because app.js ships on all 11,868 pages, and the map's
+ * recolouring logic would be dead weight on 11,867 of them. CSP is
+ * `script-src 'self'` (site/_headers), so a same-origin src needs no hash.
+ *
  * `prev`/`next` are absolute URLs, and only a page that is one of a numbered
  * series passes them — the ranking boards, which run to 16 pages on the widest
  * statewide campus ordering (rankings-page.js:boardPages). Each such page is
@@ -265,6 +273,7 @@ export function shell({
   canonical,
   prev = null,
   next = null,
+  scripts = [],
   crumbs = [],
   sections,
   rail = null,
@@ -404,7 +413,9 @@ ${frame}
   <p class="print-only">${esc(canonical)}</p>
 </footer>
 ${searchAssets({ scriptSrc: '/search.js' })}
-<script type="module" src="/app.js"></script>
+<script type="module" src="/app.js"></script>${scripts
+    .map((src) => `\n<script type="module" src="${esc(src)}"></script>`)
+    .join('')}
 </body>
 </html>
 `
