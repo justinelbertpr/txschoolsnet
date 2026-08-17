@@ -45,6 +45,30 @@ const esc = (s) =>
 
 const path = (pts) => pts.map((p, i) => `${i ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' ')
 
+/**
+ * Draw values in contiguous runs. Filtering missing years before building one
+ * path would connect the years on either side and turn "not reported" into a
+ * visual claim of continuous change.
+ */
+const valuePath = (values, x, y) => {
+  let open = false
+  let hasLine = false
+  const d = values
+    .map((v, i) => {
+      if (v === null || v === undefined) {
+        open = false
+        return ''
+      }
+      const command = open ? 'L' : 'M'
+      if (open) hasLine = true
+      open = true
+      return `${command}${x(i).toFixed(1)} ${y(v).toFixed(1)}`
+    })
+    .filter(Boolean)
+    .join(' ')
+  return { d, hasLine }
+}
+
 /* ------------------------------------------------------- HTML bar helpers -- */
 
 /**
@@ -80,17 +104,20 @@ const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
 const pos = (v) => Math.max(0, Math.min(100, v)).toFixed(1).replace(/\.0$/, '')
 
 /** "+4.5" / "−10.0" — a minus sign, not a hyphen, and never a bare number. */
-const delta = (a, b, dp) => `${a >= b ? '+' : '−'}${Math.abs(a - b).toFixed(dp)}`
+const delta = (a, b, dp) => `${a > b ? '+' : a < b ? '−' : '±'}${Math.abs(a - b).toFixed(dp)}`
 
 /**
  * What one cohort tick says in words. With a figure of our own it is a signed
  * difference; without one it is the cohort's own level, because "no score" and
  * "no comparison" are different facts and only the first is true.
  */
-const cohortSub = (key, mine, theirs, name, dp, unit) =>
-  `<span class="hbar-delta" data-delta="${esc(key)}">${
+const cohortSub = (key, mine, theirs, name, dp, unit, reportingN = null) => {
+  const n = num(reportingN)
+  const coverage = n === null ? '' : ` &middot; ${n.toLocaleString('en-US')} reporting`
+  return `<span class="hbar-delta" data-delta="${esc(key)}">${
     mine === null ? `${esc(name)} ${theirs}${unit}` : `${delta(mine, theirs, dp)} vs ${esc(name)}`
-  }</span>`
+  }${coverage}</span>`
+}
 
 /**
  * One tick on a bar track. A vertical hairline is a repeating gradient rather
@@ -184,9 +211,9 @@ export function trajectoryChart({ years, series, w = 640, h = 320 }) {
 
   const lines = ordered
     .map((s) => {
-      const pts = s.values.map((v, i) => (v === null ? null : [x(i), y(v)])).filter(Boolean)
-      if (pts.length < 2) return ''
-      return `<path d="${path(pts)}" class="line line-${esc(s.key)}"><title>${esc(s.label ?? s.key)}</title></path>`
+      const run = valuePath(s.values, x, y)
+      if (!run.hasLine) return ''
+      return `<path d="${run.d}" class="line line-${esc(s.key)}"><title>${esc(s.label ?? s.key)}</title></path>`
     })
     .join('')
 
@@ -239,6 +266,7 @@ export function groupedBars({
   series,
   compareKey = 'peer',
   compareLabel = 'Similar schools',
+  collapseAfterFirst = false,
   // Every row states which cohort its gap is measured against, because a bare
   // "+7" beside a bar is a number with no denominator and the footnote holding
   // the referent is two screens down on a phone. `compareShort` is the same
@@ -254,6 +282,7 @@ export function groupedBars({
         .map((s, si) => {
           const v = num(s.values[gi])
           const cmp = num(s.compare?.[gi])
+          const reportingN = num(s.compareN?.[gi])
           const level = /^l(\d)$/.exec(String(s.key))?.[1]
           return hbarRow({
             // Exactly the key metrics.js publishes for this cell, so nothing
@@ -264,16 +293,14 @@ export function groupedBars({
             unit: '%',
             fill: LEVEL_FILL[Number(level ?? si)] ?? null,
             marks: cmp === null ? [] : [{ key: compareKey, value: cmp, label: compareLabel }],
-            subs: cmp === null ? [] : [cohortSub(compareKey, v, cmp, cohortName, 0, '%')],
+            subs: cmp === null ? [] : [cohortSub(compareKey, v, cmp, cohortName, 0, '%', reportingN)],
           })
         })
         .join('')
-      return (
-        `<div class="hbar-group">` +
-        `<h4 class="hbar-group-label">${esc(g)}</h4>` +
-        `<ul class="hbars">${rows}</ul>` +
-        `</div>`
-      )
+      const list = `<ul class="hbars">${rows}</ul>`
+      return collapseAfterFirst && gi > 0
+        ? `<details class="hbar-group hbar-group-disclosure"><summary><span class="hbar-group-label" role="heading" aria-level="4">${esc(g)}</span><span class="hbar-group-meta">${series.length} performance levels</span></summary>${list}</details>`
+        : `<div class="hbar-group"><h4 class="hbar-group-label">${esc(g)}</h4>${list}</div>`
     })
     .join('')
 
@@ -307,7 +334,7 @@ export function scoreBars(rows, { label = 'Domain scores' } = {}) {
         // Every cohort on the track gets its difference stated in words. The SVG
         // could only fit one line of 5.3px type under each bar and so printed
         // the first; the second cohort's tick sat there unexplained.
-        subs: marks.map((m) => cohortSub(m.key, v, m.value, m.short ?? m.label, 1, '')),
+        subs: marks.map((m) => cohortSub(m.key, v, m.value, m.short ?? m.label, 1, '', m.n)),
       })
     })
     .join('')
@@ -359,11 +386,12 @@ export function comparisonChart({ years, series, w = 640, h = 320, fmt = (v) => 
 
   const lines = series
     .map((s) => {
-      const pts = s.values.map((v, i) => (v === null ? null : [x(i), y(v)])).filter(Boolean)
-      if (pts.length < 2) return ''
-      const last = pts[pts.length - 1]
+      const run = valuePath(s.values, x, y)
+      const lastIndex = s.values.findLastIndex((v) => v !== null && v !== undefined)
+      if (lastIndex < 0) return ''
+      const last = [x(lastIndex), y(s.values[lastIndex])]
       return (
-        `<path d="${path(pts)}" class="line line-${s.key}"/>` +
+        (run.hasLine ? `<path d="${run.d}" class="line line-${s.key}"/>` : '') +
         `<circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="4" class="dot dot-${s.key}"/>`
       )
     })

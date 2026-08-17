@@ -197,7 +197,7 @@ export const HERO_LABEL = 'Overview'
  * the score AND what it is out of, then put that score beside a group whose
  * size is stated. Then the trend, in a sentence that finishes.
  */
-function verdictSummary(vm) {
+function verdictSummary(vm, { reconcileRescore = true } = {}) {
   const latest = vm.history?.[0]
   // Reader-facing nouns. TEA calls them campuses; a parent calls them schools,
   // and this is the sentence a parent reads.
@@ -253,7 +253,7 @@ function verdictSummary(vm) {
     // say "up 9 points since 2021-22" while a note 200px below said the same
     // district scored 86 that year. Both were true; nothing joined them.
     const rescored =
-      earliest.year === '2021-22' && vm.originalScore != null
+      reconcileRescore && earliest.year === '2021-22' && vm.originalScore != null
         ? ` — both years scored under TEA's current rules, since TEA rewrote them in 2023; under the rules in force back then it scored <strong>${vm.originalScore}</strong>`
         : ''
     trend = `It ${move}${rescored}.`
@@ -295,6 +295,31 @@ function verdictSummary(vm) {
 export function verdict(vm) {
   const latest = vm.history[0]
   const kind = vm.level === 'district' ? 'District' : 'Campus'
+  const one = unit(vm)
+  const scored = (vm.history ?? []).filter((h) => finite(h.score))
+  const earliest = scored.at(-1)
+  const change = latest && earliest && latest !== earliest ? latest.score - earliest.score : null
+  const peerGap = finite(latest?.score) && finite(vm.peerAvg) && vm.peerN > 1 ? latest.score - vm.peerAvg : null
+  const facts = [
+    finite(latest?.score)
+      ? ['Current score', `${latest.score}<small>/100</small>`, latest.year]
+      : null,
+    finite(change)
+      ? ['Change', `${change > 0 ? '+' : change < 0 ? '−' : '±'}${Math.abs(change)}<small> pts</small>`, `since ${earliest.year}`]
+      : null,
+    finite(peerGap)
+      ? [`Comparable ${one}s`, `${peerGap > 0 ? '+' : peerGap < 0 ? '−' : '±'}${Math.abs(peerGap).toFixed(1)}<small> pts</small>`, `vs ${num(vm.peerN)} with a similar economic-disadvantage rate`]
+      : null,
+    vm.regionRank && vm.regionRankOf
+      ? ['Regional placement', `${num(vm.regionRank)}<small> of ${num(vm.regionRankOf)}</small>`, vm.regionName]
+      : vm.rank && vm.rankOf
+        ? ['Texas placement', `${num(vm.rank)}<small> of ${num(vm.rankOf)}</small>`, `among rated ${one}s`]
+        : null,
+  ].filter(Boolean)
+
+  const factGrid = facts.length
+    ? `<dl class="hero-facts">${facts.map(([label, value, note]) => `<div><dt>${esc(label)}</dt><dd><strong>${value}</strong><span>${esc(note)}</span></dd></div>`).join('')}</dl>`
+    : ''
 
   const alert =
     vm.multYear > 0
@@ -303,18 +328,36 @@ export function verdict(vm) {
         }</p>`
       : ''
 
-  const { summary, rank } = verdictSummary(vm)
+  // The compact summary below owns the historical-rescoring clarification.
+  // Repeating the same old score inside the adjacent disclosure would publish
+  // it three times once the trajectory footnote is counted.
+  const { summary, rank } = verdictSummary(vm, { reconcileRescore: false })
+  const directionRead = !finite(change) ? null : change > 0 ? 'moving up' : change < 0 ? 'moving down' : 'flat'
+  const direction = !directionRead
+    ? null
+    : earliest?.year === '2021-22' && finite(vm.originalScore)
+      ? `Under TEA&rsquo;s current rules, the available rating history is ${directionRead}; under the rules in force back then it scored <strong>${vm.originalScore}</strong> in ${esc(earliest.year)}.`
+      : `The available rating history is ${directionRead}.`
+  const context = !finite(peerGap)
+    ? null
+    : Math.abs(peerGap) < 0.5
+      ? `The current score is level with comparable ${one}s in a similar economic context.`
+      : `The current score is ${peerGap > 0 ? 'above' : 'below'} comparable ${one}s in a similar economic context.`
+  const plainSummary = latest?.score == null
+    ? summary
+    : [direction, context].filter(Boolean).join(' ') || 'Use the sections below to read the trend, score components and student outcomes.'
 
   return `<section class="hero" id="${HERO_ID}" data-rail-label="${esc(HERO_LABEL)}">
   <p class="eyebrow">${kind} &middot; Traditional${vm.isAlt ? ' &middot; Alternative Education Accountability' : ''}</p>
   <h1>${esc(vm.name)}</h1>
   <p class="place">${esc(vm.county)} County &middot; ${esc(vm.regionName)}${vm.enrollment ? ` &middot; ${plural(vm.enrollment, 'student')}` : ''}</p>
-  ${vm.website ? `<p class="enroll"><a href="https://${esc(vm.website)}" rel="nofollow">Learn more &amp; enroll</a></p>` : ''}
+  ${vm.website ? `<p class="enroll"><a href="https://${esc(vm.website)}" rel="nofollow">Visit the official ${one} website <span aria-hidden="true">&nearr;</span></a></p>` : ''}
+  ${factGrid}
   <div class="verdict">
     ${grade(latest?.rating, latest?.score, 'lg')}
-    <p class="summary">${summary}</p>
+    <div class="verdict-copy"><p class="verdict-label">At a glance</p><p class="summary">${plainSummary}</p></div>
   </div>
-  ${rank ? `<p class="note summary-rank">${rank}</p>` : ''}
+  <details class="verdict-detail"><summary>Read the full rating context${rank ? ' and placement' : ''}</summary><p>${summary}</p>${rank ? `<p class="summary-rank">${rank}</p>` : ''}</details>
   ${alert}
   ${vm.notRated ? `<p class="note">TEA did not issue an overall rating for this ${unit(vm)}. Scores below are the figures TEA published; the letter grades are the state's where it issued them.</p>` : ''}
 </section>`
@@ -362,7 +405,7 @@ export function trajectory(vm) {
         (c) =>
           `<button type="button" class="chip" data-cmp="${esc(c.key)}" aria-pressed="${defaults.includes(c.key)}"${
             c.note ? ` title="${esc(c.note)}"` : ''
-          }><span class="chip-dot chip-dot-${esc(c.key)}"></span>${esc(c.label)}<span class="chip-n">${num(c.n)}</span></button>`
+          }><span class="chip-dot chip-dot-${esc(c.key)}"></span>${esc(c.label)}<span class="chip-n"><span class="sr-only"> cohort members: </span>${num(c.n)}</span></button>`
       )
       .join('\n    ')}
   </div>`
@@ -385,7 +428,8 @@ export function trajectory(vm) {
   return section(
     'trajectory',
     `${plural(vm.history.length, 'year')} of ratings`,
-    `${picker}
+    `<p class="chart-takeaway">Follow the solid line to see how this ${unit(vm)} has changed. Turn comparison lines on or off to add context.</p>
+  ${picker}
   ${trajectoryChart({ years, series: [
       { key: 'entity', values: mine, label: vm.name },
       // This is the line's accessible name. It was fixed at 'Districts like this
@@ -396,11 +440,12 @@ export function trajectory(vm) {
     ].filter(Boolean) })}
   ${payload}
   ${note ? `<p class="note">${note}</p>` : ''}
+  <details class="data-details"><summary>View the yearly scores and comparisons</summary>
   ${table({
       caption: 'Rating history with comparisons',
       head: ['Year', 'Rating', { label: 'Score', num: true }, { label: 'Similar', num: true }, { label: 'State', num: true }],
       rows,
-    })}`
+    })}</details>`
   )
 }
 
@@ -509,6 +554,7 @@ export function domains(vm) {
     'Where the score comes from',
     `${scoreBars(
       vm.domains.map((d) => ({
+        key: `domain:${d.domain}`,
         label: d.label,
         score: d.score,
         grade: derivedGrades ? d.grade : null,
@@ -522,10 +568,11 @@ export function domains(vm) {
           label: c.label,
           short: c.short,
           value: c.metrics[`domain:${d.domain}`] ?? null,
+          n: c.metricN?.[`domain:${d.domain}`] ?? null,
         })),
       }))
     )}
-  ${vm.cohorts?.length ? legend([{ key: 'entity', label: vm.name }, ...vm.cohorts.slice(0, 2).map((c) => ({ key: c.key, label: `${c.label} (${num(c.n)})` }))]) : ''}
+  ${vm.cohorts?.length ? legend([{ key: 'entity', label: vm.name }, ...vm.cohorts.slice(0, 2).map((c) => ({ key: c.key, label: `${c.label} (${num(c.n)} in cohort)` }))]) : ''}
   ${table({
       caption: 'Domain scores',
       head: ['Domain', { label: 'Score', num: true }, 'Grade', { label: 'Points to next grade', num: true }],
@@ -571,18 +618,20 @@ export function outcomes(vm) {
           label,
           values: vm.staar.levels[i],
           compare: tickCohort ? vm.staar.subjects.map((subj) => tickCohort.metrics[`staar:${subj}:${i}`] ?? null) : null,
+          compareN: tickCohort ? vm.staar.subjects.map((subj) => tickCohort.metricN?.[`staar:${subj}:${i}`] ?? null) : null,
         })),
         compareKey: tickCohort?.key ?? 'peer',
         compareLabel: tickCohort?.label ?? 'Similar schools',
+        collapseAfterFirst: true,
       })}
-  ${legend([...STAAR_LEVELS.map((label, i) => ({ key: `l${i}`, label })), tickCohort ? { key: tickCohort.key, label: `Tick: ${tickCohort.label} (${num(tickCohort.n)})` } : null].filter(Boolean))}
+  ${legend([...STAAR_LEVELS.map((label, i) => ({ key: `l${i}`, label })), tickCohort ? { key: tickCohort.key, label: `Tick: ${tickCohort.label} (${num(tickCohort.n)} in cohort)` } : null].filter(Boolean))}
   <p class="note">Percentage of tests at or above each level. Masters is a subset of Meets, which is a subset of Approaches. ${
     // "Texas average" is itself the cohort's label, so "the average for Texas
     // average" is avoided as a special case rather than as the general rule.
     tickCohort
       ? tickCohort.key === 'state'
-        ? `The tick on each bar marks the statewide average (${num(tickCohort.n)} ${vm.level === 'district' ? 'districts' : 'schools'})`
-        : `The tick on each bar marks the average for <strong>${esc(tickCohort.label)}</strong> (${num(tickCohort.n)} ${vm.level === 'district' ? 'districts' : 'schools'})`
+        ? `The tick on each bar marks the statewide average`
+        : `The tick on each bar marks the average for <strong>${esc(tickCohort.label)}</strong>`
       : `The tick on each bar marks the average for ${vm.level === 'district' ? 'districts' : 'schools'} serving a similar share of economically disadvantaged students`
   } &mdash; a comparison TEA does not publish.</p>`
     : ''
@@ -594,7 +643,8 @@ export function outcomes(vm) {
 
   const ccmr = vm.ccmr?.length
     ? `<h3>College, career and military readiness</h3>
-  ${table({
+  ${statGrid([[vm.ccmr[0].label, `${vm.ccmr[0].value ?? '—'}${cmp(vm, 'ccmr:0', { fmt: 'pct' })}`]])}
+  <details class="data-details"><summary>View all ${num(vm.ccmr.length)} readiness criteria</summary>${table({
         caption: 'CCMR criteria',
         head: ['Criterion', { label: 'This ' + (vm.level === 'district' ? 'district' : 'school'), num: true }, { label: vm.cohorts?.[0]?.short ?? 'Cohort', num: true }, { label: 'Gap', num: true }],
         rows: vm.ccmr.map((c, i) => {
@@ -603,10 +653,14 @@ export function outcomes(vm) {
           const gap = mine != null && other != null ? mine - other : null
           return `<tr><th scope="row" class="wrap">${esc(c.label)}</th><td class="num">${c.value ?? '—'}</td><td class="num">${other == null ? '—' : other.toFixed(1) + '%'}</td><td class="num">${gap == null ? '—' : `<span class="${gap >= 0 ? 'cmp-up' : 'cmp-down'}">${gap >= 0 ? '+' : '−'}${Math.abs(gap).toFixed(1)}</span>`}</td></tr>`
         }),
-      })}`
+      })}</details>`
     : ''
 
-  return section('outcomes', 'Student outcomes', `${staar}\n  ${grad}\n  ${ccmr}`)
+  const coverage = vm.cohorts?.length
+    ? `<p class="note">Counts in the comparison controls describe cohort membership. Each average uses only ${vm.level === 'district' ? 'districts' : 'schools'} for which TEA reported that measure; reporting counts are shown on the STAAR rows and may vary.</p>`
+    : ''
+
+  return section('outcomes', 'Student outcomes', `${staar}\n  ${grad}\n  ${ccmr}\n  ${coverage}`)
 }
 
 /* ------------------------------------------------------------- who it serves */
@@ -636,35 +690,64 @@ export function students(vm) {
 export function spending(vm) {
   if (!vm.finance?.years?.length) return null
   const f = vm.finance
-  const missing = ['spendPeer', 'spendState', 'spendEntity'].filter((k) => f[k].every((v) => v === null))
+  const definitions = [
+    { key: 'entity', field: 'spendEntity', label: vm.name },
+    // 'tea', not 'peer': this is the one figure whose "peer" is TEA's own
+    // 40-district group, not this site's cohort — a different population
+    // behind an identical-looking word, so it gets its own key rather than
+    // reusing 'peer' and relying on a #spending CSS scope to repaint it.
+    { key: 'tea', field: 'spendPeer', label: 'TEA peer group' },
+    { key: 'state', field: 'spendState', label: 'Texas average' },
+  ]
+  const available = definitions
+    .map((d) => ({ ...d, values: Array.isArray(f[d.field]) ? f[d.field] : [] }))
+    .filter((d) => d.values.some(finite))
+  const missing = definitions.filter((d) => !available.some((a) => a.key === d.key))
+
+  const gap = (value, label) => {
+    if (!finite(value)) return null
+    if (Math.abs(value) < 0.5) return `<strong>about the same</strong> per student as ${label}`
+    return `<strong>${usd(Math.abs(value))} ${value > 0 ? 'more' : 'less'}</strong> per student than ${label}`
+  }
+  const comparisons = [gap(f.vsPeer, "TEA's peer group"), gap(f.vsState, 'the state average')].filter(Boolean)
+  const comparisonNote = comparisons.length
+    ? `<p class="callout">This ${unit(vm)} spends ${comparisons.join(comparisons.length === 2 ? ', and ' : '')}.</p>`
+    : `<p class="note na">TEA did not publish a current peer-group or statewide comparison for this ${unit(vm)}.</p>`
+
+  const figures = available.length
+    ? table({
+        caption: 'Spending per student by year',
+        head: ['Year', ...available.map((s) => ({ label: s.label, num: true }))],
+        rows: f.years.map(
+          (year, i) =>
+            `<tr><th scope="row">${esc(year)}</th>${available
+              .map((s) => `<td class="num">${finite(s.values[i]) ? usd(s.values[i]) : '&mdash;'}</td>`)
+              .join('')}</tr>`
+        ),
+      })
+    : ''
   return section(
     'spending',
     'Spending per student',
-    `${comparisonChart({
-      years: f.years,
-      series: [
-        { key: 'entity', values: f.spendEntity },
-        // 'tea', not 'peer': this is the one figure whose "peer" is TEA's own
-        // 40-district group, not this site's cohort — a different population
-        // behind an identical-looking word, so it gets its own key rather than
-        // reusing 'peer' and relying on a #spending CSS scope to repaint it.
-        { key: 'tea', values: f.spendPeer },
-        { key: 'state', values: f.spendState },
-      ].filter((s) => !s.values.every((v) => v === null)),
-      fmt: (v) => `$${(v / 1000).toFixed(0)}k`,
-    })}
-  ${legend([
-      { key: 'entity', label: vm.name },
-      { key: 'tea', label: 'TEA peer group' },
-      { key: 'state', label: 'Texas average' },
-    ])}
+    `${
+      available.length
+        ? comparisonChart({
+            years: f.years,
+            series: available.map(({ key, values }) => ({ key, values })),
+            fmt: (v) => `$${(v / 1000).toFixed(0)}k`,
+          })
+        : ''
+    }
+  ${available.length ? legend(available.map(({ key, label }) => ({ key, label }))) : ''}
+  ${comparisonNote}
   ${
-    f.vsPeer != null
-      ? `<p class="callout">Spends <strong>${usd(Math.abs(f.vsPeer))} ${f.vsPeer > 0 ? 'more' : 'less'}</strong> per student than its peer group, and <strong>${usd(Math.abs(f.vsState))} ${f.vsState > 0 ? 'more' : 'less'}</strong> than the state average.</p>`
-      : `<p class="note na">TEA's published file does not include peer-group spending for this entity, so no comparison is shown.</p>`
+    missing.length
+      ? `<p class="note na">Not reported by TEA for this entity: ${missing.map((d) => d.label).join(', ')}.</p>`
+      : ''
   }
-  ${missing.length ? `<p class="note na">Not reported by TEA for this entity: ${missing.map((m) => m.replace('spend', '').toLowerCase()).join(', ')}.</p>` : ''}`,
-    "Compared against TEA's own peer group, which controls for size and student population, and against the state."
+  ${figures ? `<details class="data-details"><summary>View yearly spending figures</summary>${figures}</details>` : ''}
+  <p class="note">Dollar amounts are shown as TEA published them and are not adjusted for inflation.</p>`,
+    "Compared with TEA's own peer group and the statewide average. TEA's peer group is separate from this site's economic-context comparison."
   )
 }
 
@@ -689,6 +772,12 @@ export function teachers(vm) {
 
 export function campuses(vm) {
   if (!vm.campuses?.length) return null
+  const typeCounts = [...vm.campuses.reduce((counts, c) => {
+    const label = c.campusType ?? 'Other / not reported'
+    counts.set(label, (counts.get(label) ?? 0) + 1)
+    return counts
+  }, new Map())]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
   const rows = vm.campuses.map(
     (c) =>
       `<tr><th scope="row"><a href="/campus/${esc(c.slug)}">${esc(c.name)}</a></th><td>${esc(c.campusType ?? '—')}</td><td>${grade(c.rating)}</td><td class="num">${c.score ?? '—'}</td><td class="num">${num(c.enrollment)}</td></tr>`
@@ -696,12 +785,18 @@ export function campuses(vm) {
   return section(
     'campuses',
     `${num(vm.campuses.length)} schools in this district`,
-    table({
-      caption: 'Schools in this district',
-      head: ['School', 'Type', 'Rating', { label: 'Score', num: true }, { label: 'Students', num: true }],
-      rows,
-      className: 'data scroll',
-    })
+    `<dl class="campus-mix" aria-label="Schools by type">${typeCounts
+      .map(([label, count]) => `<div><dt>${esc(label)}</dt><dd>${num(count)}</dd></div>`)
+      .join('')}</dl>
+    <details class="campus-roster">
+      <summary><span>Browse all ${num(vm.campuses.length)} schools</span><small>Name, type, rating, score and enrollment</small></summary>
+      ${table({
+        caption: 'Schools in this district',
+        head: ['School', 'Type', 'Rating', { label: 'Score', num: true }, { label: 'Students', num: true }],
+        rows,
+        className: 'data scroll',
+      })}
+    </details>`
   )
 }
 
@@ -828,4 +923,4 @@ const downloadLinks = (vm) =>
      in the bulk files on the download page, keyed by its TEA id <code>${esc(vm.id)}</code>.</p>`
 
 /** Page order. */
-export const SECTIONS = [verdict, trajectory, changeRankings, domains, outcomes, students, spending, teachers, standouts, campuses, source]
+export const SECTIONS = [verdict, trajectory, domains, outcomes, students, campuses, spending, teachers, standouts, source]

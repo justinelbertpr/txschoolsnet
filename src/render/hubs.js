@@ -118,26 +118,56 @@ const linkList = (items, label = null, { className = null } = {}) =>
  * ("1,199 districts"), carried through navList's count slot, because a link to a
  * ranking with no n is the same unlabelled boast a rank with no n is.
  */
-const rankingList = (items, ariaLabel) =>
+const rankingList = (items, ariaLabel, className = null) =>
   navList(
     (items ?? [])
       .filter((r) => r && r.href && r.label)
       .map((r) => ({ href: r.href, label: r.label, meta: r.meta ?? null })),
-    { label: ariaLabel }
+    { label: ariaLabel, className }
   )
 
-const rankingsSection = ({ rankings, rankingsIndex, heading, lede, ariaLabel, more = null }) => {
+/**
+ * Homepage sections need stable layout hooks, while every other hub must keep
+ * the shared section() markup it already has. This local variant adds a class
+ * only when the caller asks for one; the null path delegates to section() so
+ * region and county output remains byte-for-byte unchanged.
+ */
+const hubSection = (id, heading, inner, lede = '', className = null) =>
+  !className
+    ? section(id, heading, inner, lede)
+    : `<section id="${esc(id)}" class="${esc(className)}">
+  <h2>${esc(heading)}</h2>${lede ? `\n  <p class="lede">${lede}</p>` : ''}
+  ${inner}
+</section>`
+
+const rankingsSection = ({
+  rankings,
+  rankingsIndex,
+  heading,
+  lede,
+  ariaLabel,
+  more = null,
+  className = null,
+  listClassName = null,
+}) => {
   const items = (rankings ?? []).filter((r) => r && r.href && r.label)
   if (!items.length && !rankingsIndex) return null
   const tail = rankingsIndex
     ? `<p class="note"><a href="${esc(rankingsIndex)}">${esc(more ?? 'Every ranking this site publishes')}</a> —
        each one states the population it ranks, how many entities are in it, and what was left out.</p>`
     : ''
-  return section(
+  const inner = className
+    ? `<div class="home-rankings-content">
+    ${items.length ? rankingList(items, ariaLabel, listClassName) : ''}
+    ${tail}
+  </div>`
+    : `${items.length ? rankingList(items, ariaLabel, listClassName) : ''}\n  ${tail}`
+  return hubSection(
     'rankings',
     heading,
-    `${items.length ? rankingList(items, ariaLabel) : ''}\n  ${tail}`,
-    lede
+    inner,
+    lede,
+    className
   )
 }
 
@@ -553,6 +583,87 @@ const homeCounts = (stats, counts) => {
 }
 
 /**
+ * The production caller predates the traditional-only filter and still hands
+ * the district stat the note "Every Texas public school district". The count is
+ * correct; that scope sentence is not. Rewrite only those two known legacy
+ * notes, leaving every caller-supplied label, value and unrelated note intact.
+ */
+const scopedHomeStats = (items) =>
+  items.map(([label, value, note]) => {
+    const key = String(label).toLowerCase()
+    if (key === 'districts' && /every texas public school district/i.test(String(note ?? ''))) {
+      return [label, value, 'Traditional public school districts included in this snapshot']
+    }
+    if (key === 'campuses' && /individual schools, each with a page of its own/i.test(String(note ?? ''))) {
+      return [label, value, 'Schools in those traditional public school districts, each with a page of its own']
+    }
+    return [label, value, note]
+  })
+
+/** The homepage alone gets a two-column composition; other hub heroes stay unchanged. */
+const homeHero = ({ place, search }) => `<section class="hero hero-home">
+  <div class="home-hero-grid">
+    <div class="home-hero-copy">
+      <p class="eyebrow">Traditional public schools in Texas</p>
+      <h1>Texas school ratings</h1>
+      <p class="place">${place}</p>
+    </div>
+    <div class="home-hero-action">
+      <div class="home-hero-search">${search}</div>
+      <p class="lede">Explore TEA&rsquo;s A&ndash;F ratings for traditional public districts and schools.
+        Follow five years of history and compare each one with a similar economic context.
+        <strong>Open-enrollment charter districts and campuses are not included.</strong></p>
+    </div>
+  </div>
+</section>`
+
+/** A compact statement of independence, coverage and provenance beside the primary task. */
+const homeTrustStrip = (snapshotDate) => `<aside class="home-trust-strip" aria-label="About this site and its data">
+  <dl class="home-trust-list">
+    <div class="home-trust-item home-trust-independent">
+      <dt>Publisher</dt>
+      <dd>Independent and <strong>unofficial</strong> &middot; <a href="/about">not affiliated with TEA</a></dd>
+    </div>
+    <div class="home-trust-item home-trust-coverage">
+      <dt>Coverage</dt>
+      <dd>Traditional public school districts and their campuses &middot; open-enrollment charters excluded</dd>
+    </div>
+    <div class="home-trust-item home-trust-source">
+      <dt>Source</dt>
+      <dd><a href="https://txschools.gov" rel="nofollow">Texas Education Agency data</a>${
+        snapshotDate ? ` &middot; fetched ${esc(snapshotDate)}` : ' &middot; archived with each build'
+      }</dd>
+    </div>
+  </dl>
+</aside>`
+
+/** Three routes into the same dataset, written for tasks rather than site departments. */
+const homeTaskCards = (rankingsIndex) => `<section id="start" class="home-section home-tasks">
+  <h2>Choose a way to explore</h2>
+  <p class="lede">Start with a name, browse the ranked lists, or take the underlying data with you.</p>
+  <div class="home-task-grid">
+    <article class="home-task-card home-task-card-families home-task-card-find">
+      <p class="eyebrow">For families</p>
+      <h3>Find a school or district</h3>
+      <p>Look up a name, then see its current rating, five-year direction and comparison with similar schools.</p>
+      <p class="home-task-action"><a href="${SEARCH_PATH}">Search and browse schools</a></p>
+    </article>
+    <article class="home-task-card home-task-card-rankings">
+      <p class="eyebrow">Explore performance</p>
+      <h3>Open the ranked lists</h3>
+      <p>Compare scores and gains statewide, by education service region and by county, with ties and denominators shown.</p>
+      <p class="home-task-action"><a href="${esc(rankingsIndex ?? '/rankings')}">Explore rankings</a></p>
+    </article>
+    <article class="home-task-card home-task-card-journalists home-task-card-data">
+      <p class="eyebrow">For journalists and researchers</p>
+      <h3>Download and verify the data</h3>
+      <p>Use the normalized files, snapshot date, source notes and methodology behind every figure on the site.</p>
+      <p class="home-task-action"><a href="/download">Get data and documentation</a></p>
+    </article>
+  </div>
+</section>`
+
+/**
  * renderHomePage({ regions, letters, stats, counts, snapshotDate })
  *
  * regions: [{ id, name, districtCount? }]. letters: ['a', ...] or [{ letter, count }];
@@ -565,23 +676,12 @@ const homeCounts = (stats, counts) => {
  *
  * ------------------------------------------------------------------- ORDER
  *
- * Search is the first thing in the document after the site header, inside the
- * hero, above the fold on a phone: eyebrow, h1, one line of place, the box.
- * A parent arriving with a school name in her head can type it without scrolling.
- *
- * Everything the front page used to lead with — the statewide stat grid, the
- * twenty regions, the A–Z — still exists, in that order, underneath. Those are
- * browsing tools for a reader with no particular school in mind, and they were
- * standing between everyone else and the only control that answers the question
- * they came with.
- *
- * The rankings come SECOND: after the hero, above the stat grid. Search keeps
- * the fold — it is still the first and only thing between the site header and
- * the first scroll on a phone, and nothing was inserted above it. But a reader
- * who does not have one school in mind has two questions, "which school is
- * this" and "which are the best ones", and until the ranked lists existed the
- * second had no answer anywhere on the site at any scope. A list of six links
- * is what stands between that reader and a stat grid they did not ask for.
+ * The hero owns the primary action and is split into two deliberate layout
+ * columns: the promise and scope on one side, the existing search component and
+ * plain-language explanation on the other. A compact trust strip follows, then
+ * three task cards for families, ranking readers and data users. Only after
+ * those routes does the page expand into rankings, statewide facts, regions and
+ * A-Z browsing. Every link and count from the old page remains available.
  */
 export function renderHomePage({
   regions = [],
@@ -607,99 +707,102 @@ export function renderHomePage({
       : { letter: String(x.letter ?? '').toLowerCase(), n: finite(x.count) ? x.count : null }
   )
 
-  const items = statItems(stats)
+  const items = scopedHomeStats(statItems(stats))
   const c = homeCounts(stats, counts)
 
   const place = c
     ? `${num(c.districts)} districts &middot; ${num(c.campuses)} campuses`
-    : 'Districts and campuses, by region, county and name'
+    : 'Traditional public schools: Districts and campuses, by region, county and name'
+
+  const search = renderSearch({
+    variant: 'hero',
+    counts: c,
+    // No autofocus: the box is already the first thing on the page, and
+    // stealing focus on arrival throws a phone keyboard over the content of a
+    // reader who came to browse.
+    autofocus: false,
+    id: 'home-search',
+    label: 'Find a school or district',
+    placeholder: 'School or district name',
+    hint: c
+      ? `Search ${num(c.districts + c.campuses)} districts and schools. Each result names its district and county.`
+      : 'Each result names its district and county, so repeated school names stay clear.',
+    // The shell emits the header instance's assets once per page.
+    assets: false,
+  })
 
   return shell({
-    title: 'Texas school ratings — find any district or campus',
-    // The h1 stays the site's name rather than becoming a verb phrase: the page
-    // now leads with the control, and a heading that reads "Find any Texas
-    // school" above a box that also says so is the same sentence twice.
+    title: 'Traditional Texas public school ratings — find a district or school',
     description:
-      'Search every Texas public school district and campus by name, and read the A–F accountability rating the Texas Education Agency published for it — with ranks, five years of history and a comparison against schools serving a similar share of economically disadvantaged students. Unofficial.',
+      'Search traditional Texas public school districts and their campuses by name, then read the A–F accountability ratings the Texas Education Agency published, with ranks, five years of history and comparisons against schools serving a similar share of economically disadvantaged students. Open-enrollment charters are not included. Unofficial.',
     canonical: `${SITE_ORIGIN}/`,
     crumbs: [],
     sections: [
-      hero({
-        variant: 'home',
-        eyebrow: 'Texas public schools',
-        title: 'Texas school ratings',
-        place,
-        search: renderSearch({
-          variant: 'hero',
-          counts: c,
-          // No autofocus: the box is already the first thing on the page, and
-          // stealing focus on arrival throws a phone keyboard over the content
-          // of a reader who came to browse. /search autofocuses, because going
-          // there is itself the decision to type.
-          autofocus: false,
-          id: 'home-search',
-          label: 'Find a school or district',
-          placeholder: 'School or district name',
-          // The shell now emits the header instance's assets (style + script)
-          // once per page, so a second copy here would just be extra bytes.
-          assets: false,
-        }),
-        lede: `Ratings the Texas Education Agency publishes for every district and campus, plus the
-          comparison TEA does not: each school set against others serving a similar share of
-          economically disadvantaged students. This site is <strong>unofficial</strong> and is not
-          operated by, endorsed by, or affiliated with TEA &mdash;
-          <a href="/about">what this is and how it works</a>.`,
-      }),
+      homeHero({ place, search }),
+      homeTrustStrip(snapshotDate),
+      homeTaskCards(rankingsIndex),
       rankingsSection({
         rankings,
         rankingsIndex,
         heading: 'Texas schools, ranked',
         ariaLabel: 'Ranked lists',
-        lede: `Ranked lists TEA does not publish: every district placed against every other, and against
-               the ones in its own region and county. Each list states the population it ranks, how many
-               entities it holds and what was excluded.`,
+        lede: `Featured rankings of traditional public school districts and campuses. These lists order
+               specific TEA measures rather than declaring one school “best”; each states its population,
+               denominator, ties and exclusions.`,
         more: 'Every ranking — statewide, by region, by county',
+        className: 'home-section home-rankings',
+        listClassName: 'home-ranking-list',
       }),
       items.length
-        ? section(
+        ? hubSection(
             'statewide',
-            'Texas at a glance',
-            statGrid(items),
+            'Traditional public schools at a glance',
+            `<div class="home-stats-grid">${statGrid(items)}</div>`,
             snapshotDate
               ? `Every figure is from the TEA snapshot fetched ${esc(snapshotDate)}.`
-              : 'Every figure is from the TEA snapshot this site was built from.'
+              : 'Every figure is from the archived TEA snapshot this site was built from.',
+            'home-section home-stats'
           )
         : null,
-      section(
+      hubSection(
         'regions',
-        rs.length ? `${num(rs.length)} education service regions` : 'Browse by region',
+        rs.length ? `Browse ${num(rs.length)} education service regions` : 'Browse by region',
         rs.length
-          ? linkList(rs.map((r) => ({ href: `/region/${r.id}`, label: r.name, n: r.n })), 'Education service regions')
+          ? `<div class="home-region-grid">${linkList(
+              rs.map((r) => ({ href: `/region/${r.id}`, label: r.name, n: r.n })),
+              'Education service regions',
+              { className: 'home-region-list' }
+            )}</div>`
           : '<p class="note na">No regions are listed in this snapshot.</p>',
-        'TEA groups Texas public education into regional service centres. Each region lists its counties and districts.'
+        'TEA groups Texas public education into regional service centres. Open a region to browse its traditional public school districts and counties.',
+        'home-section home-regions'
       ),
-      section(
+      hubSection(
         'index',
-        'Districts A to Z',
+        'Find a district A–Z',
         ls.length
-          ? `${linkList(
+          ? `<div class="home-az-grid">${linkList(
               ls.map((x) => ({ href: `/districts/${x.letter}`, label: x.letter.toUpperCase(), n: x.n })),
-              'District index by first letter'
-            )}
+              'District index by first letter',
+              { className: 'home-az-list' }
+            )}</div>
       <p class="note"><a href="${SEARCH_PATH}">The full index of districts <em>and</em> campuses</a> —
-         every name, with the district and county of each.</p>`
+         every included name, with the district and county of each.</p>`
           : '<p class="note na">No district index is available in this snapshot.</p>',
-        'The alphabetical index of every district, for when you know the name but not the region.'
+        'The alphabetical index of every traditional public school district included here, for when you know the name but not the region.',
+        'home-section home-index'
       ),
-      section(
+      hubSection(
         'data',
-        'The data behind this',
-        `<p>Every page is built from files the Texas Education Agency publishes at
+        'Data and methodology',
+        `<div class="home-data-copy"><p>Every page is built from files the Texas Education Agency publishes at
          <a href="https://txschools.gov" rel="nofollow">txschools.gov</a>${
            snapshotDate ? `, fetched ${esc(snapshotDate)}` : ''
          } and archived with a checksum, so any number here can be traced back to the bytes TEA served.</p>
       <p class="downloads"><a href="/download">Download the whole dataset</a> &middot;
-         <a href="/about">how this site works and what it adds</a></p>`
+         <a href="/about">how this site works and what it adds</a></p></div>`,
+        'For reporting, research and anyone who wants to verify a figure.',
+        'home-section home-data'
       ),
     ],
   })

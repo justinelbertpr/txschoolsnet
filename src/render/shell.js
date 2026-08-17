@@ -67,16 +67,16 @@ export const esc = (s) =>
  * it says nothing about any particular school.
  */
 export const BRAND = {
-  tile: '#78350f', // --accent, light scheme
+  tile: '#0f4c5c', // --brand, light scheme
   glyph: '#ffffff',
-  tileDark: '#f2cd82', // --accent, dark scheme
-  glyphDark: '#0d0e14',
-  themeLight: '#f7f5f1', // --ground, light
-  themeDark: '#14120f', // --ground, dark
+  tileDark: '#65d2c9', // --brand, dark scheme
+  glyphDark: '#081c24',
+  themeLight: '#f4f7f6', // --ground, light
+  themeDark: '#0b151a', // --ground, dark
   name: 'txschools.net',
   siteName: 'txschools.net (unofficial)',
   markAlt:
-    'txschools.net: three ascending bars on a blue tile. An unofficial site, not affiliated with the Texas Education Agency.',
+    'txschools.net: three ascending bars in a rounded tile. An unofficial site, not affiliated with the Texas Education Agency.',
 }
 
 /** Bars on a 32-unit grid; every edge is a multiple of 0.5 so a 16x scale to 512 lands on integers. */
@@ -175,17 +175,14 @@ export const navList = (items, { label = null, className = null } = {}) =>
  * to remember to say which one it is.
  */
 const PRIMARY_NAV = [
-  { href: '/', label: 'Home', match: (p) => p === '/' || p === '' },
-  { href: '/districts/a', label: 'Districts A–Z', match: (p) => p.startsWith('/districts/') },
+  { href: '/search', label: 'Find schools', match: (p) => p === '/search' || p.startsWith('/search/') },
+  { href: '/districts/a', label: 'Districts', match: (p) => p.startsWith('/districts/') },
   // /rankings was reachable only from region/county hubs and a few entity-page
   // links, never from the persistent nav itself — added here so it is one
   // click from every page, the way Download and About already are.
   { href: '/rankings', label: 'Rankings', match: (p) => p === '/rankings' || p.startsWith('/rankings/') },
-  // "Download", not "Download data": the shorter label is what lets all five
-  // destinations hold a single row at 375px, which is what makes a collapsed
-  // mobile menu unnecessary. Nothing asserts the longer string.
-  { href: '/download', label: 'Download', match: (p) => p === '/download' },
-  { href: '/about', label: 'About', match: (p) => p === '/about' },
+  { href: '/download', label: 'Data', match: (p) => p === '/download' },
+  { href: '/about', label: 'How it works', match: (p) => p === '/about' },
 ]
 
 /** Path of a canonical URL; a malformed one simply matches nothing. */
@@ -300,6 +297,18 @@ ${main}`
   const image = `${SITE_ORIGIN}${OG_IMAGE.path}`
   const ogTitle = clampText(cardTitle ?? title, 70)
   const ogDescription = clampText(cardDescription ?? description, 200)
+  const currentPath = pathOf(canonical)
+  // The homepage and search hub already lead with a full search experience.
+  // Repeating it in the masthead gives a phone two identical forms before the
+  // first result, and caused both autocomplete panels to consume ?q=. Everywhere
+  // else the compact global finder remains one tap away inside the menu.
+  const headerSearch = currentPath === '/' || currentPath === '/search'
+    ? ''
+    : renderSearch({ id: 'header-search', variant: 'header', assets: false })
+  const mark = `<svg class="brand-mark" aria-hidden="true" viewBox="0 0 32 32">
+    <rect class="brand-mark-tile" width="32" height="32" rx="8"/>
+    ${MARK_BARS.map((b) => `<rect class="brand-mark-bar" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx=".75"/>`).join('')}
+  </svg>`
 
   return `<!doctype html>
 <html lang="en">
@@ -337,27 +346,51 @@ ${main}`
 
 <header class="site">
   <div class="masthead-id">
-    <a class="wordmark" href="/">txschools<span>.net</span></a>
-    <p class="unofficial">Unofficial &middot; not affiliated with the Texas Education Agency &middot; <a href="/about">what this is</a></p>
+    <p class="unofficial"><strong>Independent Texas school research.</strong> TEA data, clearly explained. <a href="/about">Not affiliated with the state agency</a>.</p>
+  </div>
+  <div class="masthead-tools">
+    <a class="wordmark" href="/">${mark}<span class="wordmark-copy"><strong>txschools<span>.net</span></strong><small>School data with context</small></span></a>
+    <div class="desktop-nav">
+      ${siteNav(canonical)}
+    </div>
+    <details class="nav-menu">
+      <summary><span>Menu</span><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M3 5.5h14M3 10h14M3 14.5h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></summary>
+      <div class="nav-menu-panel">
+        ${siteNav(canonical)}${headerSearch ? `
+        ${headerSearch}` : ''}
+        <p class="nav-menu-note">Traditional public schools only &middot; Source: Texas Education Agency</p>
+      </div>
+    </details>
     <button type="button" class="theme-toggle" data-theme-toggle>
       <svg class="ti ti-moon" aria-hidden="true" viewBox="0 0 20 20"><path d="M17.3 12.5A7.3 7.3 0 0 1 7.5 2.7a7.6 7.6 0 1 0 9.8 9.8Z" fill="currentColor"/></svg>
       <svg class="ti ti-sun" aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M15.7 4.3l-1.4 1.4M5.7 14.3l-1.4 1.4M15.7 15.7l-1.4-1.4M5.7 5.7 4.3 4.3"/></g></svg>
       <span class="sr-only" data-theme-label>Switch theme</span>
     </button>
   </div>
-  <div class="masthead-tools">
-    ${siteNav(canonical)}
-    ${renderSearch({ id: 'header-search', variant: 'header', assets: false })}
-  </div>
 </header>
 
 ${frame}
 
 <footer class="site">
-  <p><strong>txschools.net</strong> is an independent, unofficial presentation of data the Texas
-  Education Agency publishes publicly. It is not operated by, endorsed by, or connected to TEA.
-  The official source is <a href="https://txschools.gov">txschools.gov</a>.
-  <a href="/about">How this site works and what it adds</a>.</p>
+  <div class="footer-grid">
+    <div class="footer-about">
+      <a class="footer-brand" href="/">txschools<span>.net</span></a>
+      <p>Independent, unofficial research built from public Texas Education Agency data. This site is not operated by, endorsed by, or connected to TEA.</p>
+    </div>
+    <nav aria-label="Explore">
+      <h2>Explore</h2>
+      <a href="/search">Find a school</a>
+      <a href="/districts/a">Browse districts</a>
+      <a href="/rankings">Rankings</a>
+    </nav>
+    <nav aria-label="Research and data">
+      <h2>Research &amp; data</h2>
+      <a href="/download">Download data</a>
+      <a href="/about">Methods &amp; caveats</a>
+      <a href="https://txschools.gov">Official TEA source</a>
+    </nav>
+  </div>
+  <p class="footer-fineprint">Every number can be traced to the archived source snapshot. <a href="/about">See how this site works and what it adds</a>.</p>
   <p class="print-only">${esc(canonical)}</p>
 </footer>
 ${searchAssets({ scriptSrc: '/search.js' })}
@@ -433,11 +466,11 @@ export const cohortSwitch = (vm) =>
   ${vm.cohorts
     .map(
       (c, i) =>
-        `<button type="button" class="chip chip-cohort" data-cohort="${esc(c.key)}" aria-pressed="${i === 0}"${c.note ? ` title="${esc(c.note)}"` : ''}>${esc(c.label)}<span class="chip-n">${num(c.n)}</span></button>`
+        `<button type="button" class="chip chip-cohort" data-cohort="${esc(c.key)}" aria-pressed="${i === 0}"${c.note ? ` title="${esc(c.note)}"` : ''}>${esc(c.label)}<span class="chip-n"><span class="sr-only"> cohort members: </span>${num(c.n)}</span></button>`
     )
     .join('\n  ')}
   <script type="application/json" data-cohorts>${JSON.stringify(
-    vm.cohorts.map((c) => ({ key: c.key, short: c.short, label: c.label, n: c.n, metrics: c.metrics }))
+    vm.cohorts.map((c) => ({ key: c.key, short: c.short, label: c.label, n: c.n, metrics: c.metrics, metricN: c.metricN }))
   ).replace(/</g, '\\u003c')}</script>
   <script type="application/json" data-own>${JSON.stringify(vm.own).replace(/</g, '\\u003c')}</script>
 </div>`

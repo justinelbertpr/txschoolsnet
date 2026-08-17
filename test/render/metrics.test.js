@@ -9,7 +9,7 @@
 
 import { describe, it, expect } from 'vitest'
 import {
-  metricSpecs, sourceBundles, cohortMetrics, buildCohorts, rankAll, standouts,
+  metricSpecs, sourceBundles, cohortMetricSummary, cohortMetrics, buildCohorts, rankAll, standouts,
   directionOf, isContextMetric, countedDomains, closestCounted, HIGHER, LOWER, CONTEXT,
 } from '../../src/render/metrics.js'
 import { DOMAIN_LABELS } from '../../src/normalize/domains.js'
@@ -342,6 +342,7 @@ describe('cohortMetrics', () => {
     ])
     // Only 80 and 100 count. A string that looks numeric is NOT quietly coerced.
     expect(cohortMetrics(scoreSpec, b, ['a', 'b', 'c', 'd', 'e', 'f', 'g']).score).toBe(90)
+    expect(cohortMetricSummary(scoreSpec, b, ['a', 'b', 'c', 'd', 'e', 'f', 'g']).metricN.score).toBe(2)
   })
 
   it('emits no key at all when every value in the cohort is null', () => {
@@ -389,6 +390,7 @@ describe('buildCohorts', () => {
     expect(cohorts.find((c) => c.key === 'region').n).toBe(4)
     expect(cohorts.find((c) => c.key === 'county').n).toBe(2)
     expect(cohorts.find((c) => c.key === 'state').n).toBe(6)
+    expect(cohorts.find((c) => c.key === 'state').metricN.score).toBe(6)
   })
 
   it('always offers the state cohort, even with no peer band', () => {

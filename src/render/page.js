@@ -72,6 +72,26 @@ ${index.map((s) => `    <li><a class="rail-link" href="#${esc(s.id)}">${s.label}
   </ol>
 </details>`
 
+/**
+ * The rail follows the article below 1024px, which once put the page-wide
+ * comparison control tens of screens after the figures it changes. This second
+ * set of buttons sits immediately after the hero on narrow layouts. It carries
+ * no duplicate JSON; the rail remains the one data source, and site/app.js
+ * already synchronises every .chip-cohort with the same data-cohort key.
+ */
+const mobileCompare = (vm) =>
+  !vm.cohorts?.length
+    ? ''
+    : `<section class="mobile-compare" aria-labelledby="mobile-compare-title">
+  <div>
+    <p class="eyebrow">Put the numbers in context</p>
+    <h2 id="mobile-compare-title">Compare with</h2>
+  </div>
+  <div class="mobile-cohort-scroll" role="group" aria-label="Compare every figure against">
+    ${vm.cohorts.map((c, i) => `<button type="button" class="chip chip-cohort" data-cohort="${esc(c.key)}" aria-pressed="${i === 0}"${c.note ? ` title="${esc(c.note)}"` : ''}>${esc(c.label)}<span class="chip-n"><span class="sr-only"> cohort members: </span>${num(c.n)}</span></button>`).join('\n    ')}
+  </div>
+</section>`
+
 /** The cohort switch, moved out of the hero. Same markup, new home. */
 const railCompare = (vm) =>
   !vm.cohorts?.length
@@ -247,7 +267,7 @@ export function renderEntity(vm, { payload = payloadPath() } = {}) {
   // The mobile jump sheet is spliced in AFTER the index is built from the
   // real sections, and is not itself a <section id="…">, so it can never
   // end up indexing itself.
-  const sectionsWithJump = [sections[0], jumpSheet(index), ...sections.slice(1)]
+  const sectionsWithJump = [sections[0], mobileCompare(vm), jumpSheet(index), ...sections.slice(1)]
 
   return shell({
     title: `${vm.name} — ratings, student outcomes and spending`,

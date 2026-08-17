@@ -147,7 +147,7 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
     band.n > 1
       ? {
           key: 'peer',
-          label: 'Similar student population',
+          label: 'Similar economic-disadvantage rate',
           n: band.n,
           byYear: peerByYear,
           note: `Within 10 points of this ${entity.level}'s economically disadvantaged share`,

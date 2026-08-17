@@ -59,8 +59,8 @@ const empty = (over = {}) => ({
 })
 
 const COHORTS = [
-  { key: 'peer', label: 'Similar student population', short: 'similar', n: 294, metrics: { 'domain:achievement': 70, 'staar:Reading:0': 68, 'ccmr:0': 55, ecoDis: 60, absenteeism: 15, avgSalary: 57_000 } },
-  { key: 'state', label: 'Texas average', short: 'state', n: 1_207, metrics: { 'domain:achievement': 72 } },
+  { key: 'peer', label: 'Similar student population', short: 'similar', n: 294, metrics: { 'domain:achievement': 70, 'staar:Reading:0': 68, 'ccmr:0': 55, ecoDis: 60, absenteeism: 15, avgSalary: 57_000 }, metricN: { 'domain:achievement': 286, 'staar:Reading:0': 280 } },
+  { key: 'state', label: 'Texas average', short: 'state', n: 1_207, metrics: { 'domain:achievement': 72 }, metricN: { 'domain:achievement': 1_199 } },
 ]
 
 /* --------------------------------------------------- absence needs no case -- */
@@ -131,6 +131,7 @@ describe('verdict', () => {
     // the point count, so the whole clause is emphasised as one claim rather
     // than the number alone.
     expect(html).toMatch(/is <strong>up 9 points<\/strong> since 2023-24/)
+    expect(html).toContain('The available rating history is moving up.')
   })
 
   it('says unchanged rather than up zero points', () => {
@@ -148,6 +149,7 @@ describe('verdict', () => {
     const html = verdict(empty({ history: [{ year: '2025-26', score: 88 }], peerAvg: 70, peerN: 294 }))
     expect(html).toContain('294')
     expect(html).toMatch(/economically disadvantaged/)
+    expect(html).toContain('above comparable districts in a similar economic context')
   })
 
   it('warns about consecutive unacceptable years, and names the intervention threshold', () => {
@@ -303,8 +305,9 @@ describe('domains', () => {
   })
 
   it('states the n of every cohort in the legend', () => {
-    expect(domains(vm)).toContain('Similar student population (294)')
-    expect(domains(vm)).toContain('Texas average (1,207)')
+    expect(domains(vm)).toContain('Similar student population (294 in cohort)')
+    expect(domains(vm)).toContain('Texas average (1,207 in cohort)')
+    expect(domains(vm)).toContain('286 reporting')
   })
 
   it('renders without any cohort at all', () => {
@@ -342,6 +345,7 @@ describe('outcomes', () => {
     expect(html).toContain('similar') // the cohort's short name heads the column
     expect(html).toContain('55.0%')
     expect(html).toMatch(/cmp-up">\+6\.0/)
+    expect(html).toContain('<summary>View all 1 readiness criteria</summary>')
   })
 
   it('shows an em dash for a gap it cannot compute, rather than zero', () => {
@@ -406,9 +410,24 @@ describe('spending', () => {
   })
 
   it('says plainly that TEA published no peer figure, rather than showing nothing', () => {
-    const html = spending(empty({ finance: { ...fin, spendPeer: [null, null], vsPeer: null, vsState: null } }))
-    expect(html).toContain('does not include peer-group spending')
-    expect(html).toContain('Not reported by TEA for this entity: peer')
+    const html = spending(empty({ finance: { ...fin, spendPeer: [null, null], vsPeer: null } }))
+    expect(html).not.toContain('<span class="swatch swatch-tea"')
+    expect(html).toContain('Not reported by TEA for this entity: TEA peer group')
+    expect(html).toContain('<strong>$1,000 less</strong>') // the valid state comparison remains
+  })
+
+  it('never invents a $0 state gap when TEA published only a peer comparison', () => {
+    const html = spending(empty({ finance: { ...fin, spendState: [null, null], vsState: null } }))
+    expect(html).toContain('<strong>$500 less</strong>')
+    expect(html).not.toContain('$0 less')
+    expect(html).not.toContain('<span class="swatch swatch-state"')
+  })
+
+  it('provides the exact yearly figures in a disclosure and labels nominal dollars', () => {
+    const html = spending(empty({ finance: fin }))
+    expect(html).toContain('<summary>View yearly spending figures</summary>')
+    expect(html).toContain('$12,500')
+    expect(html).toContain('not adjusted for inflation')
   })
 
   it('names TEA as the source of the peer group, not this site', () => {
@@ -445,6 +464,9 @@ describe('campuses', () => {
     expect(html).toContain('href="/campus/a-h-s-001902001"')
     expect(html).toContain('2 schools in this district')
     expect(html).toContain('<td>—</td>') // an unreported campus type
+    expect(html).toContain('<dt>High School</dt><dd>1</dd>')
+    expect(html).toContain('<summary><span>Browse all 2 schools</span>')
+    expect(html).toContain('class="tbl-scroll" tabindex="0" role="region" aria-label="Schools in this district"')
   })
 })
 
