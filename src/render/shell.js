@@ -322,6 +322,7 @@ export function shell({
   prev = null,
   next = null,
   scripts = [],
+  snapshot = null,
   crumbs = [],
   sections,
   rail = null,
@@ -380,7 +381,14 @@ ${main}`
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title>
-<meta name="description" content="${esc(description)}">
+<meta name="description" content="${esc(description)}">${
+    // Which TEA snapshot the figures on this page came from, in a place a
+    // machine can read. site/md.js puts it at the top of the Markdown export
+    // so a model handed those numbers is also handed their vintage; without
+    // it the export is a table of figures with no date, and a model asked to
+    // write from it will supply a plausible year of its own.
+    snapshot ? `\n<meta name="txs:snapshot" content="${esc(snapshot)}">` : ''
+  }
 <link rel="canonical" href="${esc(canonical)}">${
     prev ? `\n<link rel="prev" href="${esc(prev)}">` : ''
   }${next ? `\n<link rel="next" href="${esc(next)}">` : ''}
@@ -590,7 +598,22 @@ export const legend = (items) =>
 export const table = ({ caption, head, rows, className = 'data' }) => {
   const inner = `<table class="${className}">
     <caption class="sr-only">${esc(caption)}</caption>
-    <thead><tr>${head.map((h) => `<th${h.num ? ' class="num"' : ''}>${esc(h.label ?? h)}</th>`).join('')}</tr></thead>
+    <thead><tr>${head
+      .map((h) => {
+        // `sub` is the second line of a header: the unit a column is counted
+        // in, or which cohort an average belongs to. It exists because the
+        // alternative was a header that answered neither question ("Gap") and
+        // a body of bare signed numbers whose units the reader had to guess.
+        //
+        // A head entry may be a bare string, and `'Criterion'.sub` is NOT
+        // undefined — it is String.prototype.sub, a legacy HTML-wrapper method
+        // still on every string. Reading it off `h` unguarded rendered
+        // "function sub() { [native code] }" into the header of every table
+        // built from plain strings. Only object entries may carry a sub.
+        const sub = h !== null && typeof h === 'object' ? h.sub : null
+        return `<th${h.num ? ' class="num"' : ''}>${esc(h.label ?? h)}${sub ? `<small>${esc(sub)}</small>` : ''}</th>`
+      })
+      .join('')}</tr></thead>
     <tbody>${rows.join('')}</tbody>
   </table>`
   return className.split(/\s+/).includes('scroll')

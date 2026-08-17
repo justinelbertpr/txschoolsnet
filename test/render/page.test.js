@@ -17,7 +17,7 @@ import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import { railFor, renderEntity, sectionIndex, stickyFor } from '../../src/render/page.js'
 import { HERO_ID, HERO_LABEL } from '../../src/render/sections.js'
-import { GTAG_INLINE, THEME_INIT_SCRIPT, TRUSTED_TYPES_INIT_SCRIPT, shell } from '../../src/render/shell.js'
+import { GTAG_INLINE, THEME_INIT_SCRIPT, TRUSTED_TYPES_INIT_SCRIPT, shell, table } from '../../src/render/shell.js'
 
 const COHORTS = [
   { key: 'peer', label: 'Similar student population', short: 'similar', n: 294, metrics: { ecoDis: 60 } },
@@ -452,5 +452,29 @@ describe('inline scripts match the CSP hashes in site/_headers', () => {
     expect(TRUSTED_TYPES_INIT_SCRIPT).toContain('googletagmanager.com')
     expect(TRUSTED_TYPES_INIT_SCRIPT).toContain('throw new TypeError')
     expect(TRUSTED_TYPES_INIT_SCRIPT).not.toContain('createScript:')
+  })
+})
+
+describe('table headers', () => {
+  const head = (h) => table({ caption: 'c', head: h, rows: ['<tr><td>1</td></tr>'] })
+
+  it('gives an object head cell its second line', () => {
+    expect(head([{ label: 'Difference', sub: 'percentage points' }]))
+      .toContain('<th>Difference<small>percentage points</small></th>')
+  })
+
+  // 'Criterion'.sub is String.prototype.sub — a legacy HTML-wrapper method
+  // still present on every string, so reading `h.sub` off a bare-string head
+  // entry is truthy and stringifies to "function sub() { [native code] }".
+  // It rendered that into the header of every table built from plain strings.
+  it('does not mistake String.prototype.sub for a declared sub-label', () => {
+    expect('Criterion'.sub).toBeTypeOf('function') // the trap still exists
+    expect(head(['Criterion'])).toContain('<th>Criterion</th>')
+    expect(head(['Criterion'])).not.toContain('native code')
+    expect(head(['Criterion'])).not.toContain('<small>')
+  })
+
+  it('escapes a sub-label', () => {
+    expect(head([{ label: 'X', sub: '<b>&' }])).toContain('<small>&lt;b&gt;&amp;</small>')
   })
 })

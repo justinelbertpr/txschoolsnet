@@ -346,7 +346,37 @@ describe('outcomes', () => {
     expect(html).toContain('similar') // the cohort's short name heads the column
     expect(html).toContain('55.0%')
     expect(html).toMatch(/cmp-up">\+6\.0/)
-    expect(html).toContain('<summary>View all 1 readiness criteria</summary>')
+  })
+
+  // The criteria used to sit behind <details>, which published one CCMR figure
+  // and hid the eleven that explain it. Asserted on the rendered table rather
+  // than on the absence of the old <summary> text, so the test still fails if
+  // the breakdown is re-hidden behind a disclosure worded any other way.
+  it('shows the criteria breakdown outright rather than behind a disclosure', () => {
+    const html = outcomes(empty({
+      ccmr: [{ label: 'College, career or military ready', value: '61%' }],
+      cohorts: COHORTS,
+      own: { 'ccmr:0': 61 },
+    }))
+    const table = html.slice(html.indexOf('CCMR criteria'))
+    expect(table).toContain('<table')
+    expect(html.slice(0, html.indexOf('CCMR criteria'))).not.toContain('<details')
+  })
+
+  // "Gap" over a column of bare signed numbers never said gap against what, in
+  // what unit, or which direction was good. Each of those three is asserted
+  // separately so a rewrite that drops one of them fails on that one.
+  it('says what the difference is measured against, in what unit, and which way is better', () => {
+    const html = outcomes(empty({
+      ccmr: [{ label: 'College, career or military ready', value: '61%' }],
+      cohorts: COHORTS,
+      own: { 'ccmr:0': 61 },
+    }))
+    expect(html).not.toMatch(/<th[^>]*>Gap</) // the header that answered none of the three
+    expect(html).toContain('percentage points') // the unit
+    expect(html).toMatch(/Average<small>/) // the column is an average, and of whom
+    expect(html).toContain('a bigger share is better') // the direction
+    expect(html).toMatch(/data-ccmr-cohort>[^<]+</) // the cohort, named in full
   })
 
   it('shows an em dash for a gap it cannot compute, rather than zero', () => {
