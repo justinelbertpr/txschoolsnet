@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 // test/render/page.test.js
 //
 // The rail is an index of the page it sits beside. The load-bearing property is
@@ -15,7 +17,7 @@
 import { describe, it, expect } from 'vitest'
 import { railFor, renderEntity, sectionIndex, stickyFor } from '../../src/render/page.js'
 import { HERO_ID, HERO_LABEL } from '../../src/render/sections.js'
-import { shell } from '../../src/render/shell.js'
+import { GTAG_INLINE, THEME_INIT_SCRIPT, TRUSTED_TYPES_INIT_SCRIPT, shell } from '../../src/render/shell.js'
 
 const COHORTS = [
   { key: 'peer', label: 'Similar student population', short: 'similar', n: 294, metrics: { ecoDis: 60 } },
@@ -412,5 +414,43 @@ describe('the primary nav cannot become unreachable', () => {
       expect(call).toMatch(/prefers-/)
       expect(call).not.toMatch(/width/)
     }
+  })
+})
+
+/* ------------------------------------------------- the CSP and the tag ---- */
+
+// An inline script whose CSP hash has drifted does not warn — it silently
+// stops running, and analytics that quietly stopped reporting is worse than
+// analytics that was never added. These tie site/_headers to the exact strings
+// src/render/shell.js ships.
+describe('inline scripts match the CSP hashes in site/_headers', () => {
+  const headers = readFileSync('site/_headers', 'utf8')
+  const sha = (s) => `sha256-${createHash('sha256').update(s).digest('base64')}`
+
+  it('carries a hash for every inline script the shell emits', () => {
+    for (const [name, src] of Object.entries({
+      THEME_INIT_SCRIPT,
+      TRUSTED_TYPES_INIT_SCRIPT,
+      GTAG_INLINE,
+    })) {
+      expect(headers, `${name} hash missing from _headers`).toContain(sha(src))
+    }
+  })
+
+  it('allows the origins the tag actually fetches from and talks to', () => {
+    const csp = headers.match(/Content-Security-Policy: (.*)/)[1]
+    expect(csp).toMatch(/script-src[^;]*https:\/\/www\.googletagmanager\.com/)
+    expect(csp).toMatch(/connect-src[^;]*https:\/\/www\.google-analytics\.com/)
+    // GA falls back to an image beacon where fetch/sendBeacon is unavailable.
+    expect(csp).toMatch(/img-src[^;]*google-analytics\.com/)
+  })
+
+  it('keeps createScript unimplemented while allowing gtag its script URL', () => {
+    // The narrow allowlist is the whole point: a pass-through createScriptURL
+    // would cancel the protection require-trusted-types-for exists to give.
+    expect(TRUSTED_TYPES_INIT_SCRIPT).toContain('createScriptURL')
+    expect(TRUSTED_TYPES_INIT_SCRIPT).toContain('googletagmanager.com')
+    expect(TRUSTED_TYPES_INIT_SCRIPT).toContain('throw new TypeError')
+    expect(TRUSTED_TYPES_INIT_SCRIPT).not.toContain('createScript:')
   })
 })

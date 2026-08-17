@@ -39,15 +39,63 @@ export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem('theme');if(t==
  * here — before app.js/rankings.js run, same before-paint placement as
  * THEME_INIT_SCRIPT — turns enforcement on without editing either file: every
  * existing innerHTML write keeps working exactly as it does today. It only
- * implements createHTML, deliberately: createScript/createScriptURL are left
- * unimplemented, so if any script ever DOES try to hand a string to eval, a
- * <script>.text, or a dynamic script src, that throws rather than silently
- * running — the one class of injection this can still catch for free. The
+ * implements createHTML and a NARROW createScriptURL. createScript is still
+ * left unimplemented, so handing a string to eval or to <script>.text throws —
+ * the one class of injection this can still catch for free.
+ *
+ * createScriptURL exists only because gtag.js loads a second script by
+ * assigning to .src, which is that sink; without it, analytics threw on every
+ * page. It is an ALLOWLIST, not a pass-through: same-origin plus the two
+ * Google hosts the tag actually fetches from, and anything else throws. A
+ * pass-through implementation here would have quietly cancelled the
+ * protection this whole policy exists to provide. The
  * trusted-types directive in site/_headers restricts policy creation to
  * exactly this name, so nothing else — vendored, injected, or otherwise —
  * can register a competing "default" and intercept these sinks first.
  */
-export const TRUSTED_TYPES_INIT_SCRIPT = `if(window.trustedTypes&&trustedTypes.createPolicy){try{trustedTypes.createPolicy('default',{createHTML:function(s){return s}})}catch(e){}}`
+export const TRUSTED_TYPES_INIT_SCRIPT = `if(window.trustedTypes&&trustedTypes.createPolicy){try{trustedTypes.createPolicy('default',{createHTML:function(s){return s},createScriptURL:function(u){var a=['https://www.googletagmanager.com/','https://www.google-analytics.com/'];for(var i=0;i<a.length;i++){if(u.indexOf(a[i])===0)return u}if(u.indexOf('/')===0||u.indexOf(location.origin+'/')===0)return u;throw new TypeError('blocked script url: '+u)}})}catch(e){}}`
+
+/**
+ * Google Analytics 4, at the site owner's request.
+ *
+ * This is the first third party this site has ever loaded, and the CSP in
+ * site/_headers was written on the assumption there would not be one. Four
+ * things had to move for it to work, and all four are recorded here because a
+ * future reader will otherwise wonder why analytics is entangled with the
+ * security headers:
+ *
+ *   script-src   + https://www.googletagmanager.com, and the sha256 of
+ *                GTAG_INLINE below. CSP_GTAG_HASH is that hash, computed from
+ *                the same constant the page renders, and test/shell.test.js
+ *                asserts the value in _headers still matches — an inline
+ *                script whose hash has drifted does not warn, it silently
+ *                stops running.
+ *   connect-src  + google-analytics.com and its subdomains, which is where
+ *                the measurement requests actually go.
+ *   img-src      + the same, because GA falls back to an image beacon when
+ *                fetch/sendBeacon is unavailable.
+ *   trusted-types  gtag.js loads a second script by assigning to .src, which
+ *                is a TrustedScriptURL sink under this site's
+ *                `require-trusted-types-for 'script'`. The default policy
+ *                deliberately did not implement createScriptURL, so gtag would
+ *                have thrown on load. It now implements it against an explicit
+ *                allowlist rather than passing everything through — see
+ *                TRUSTED_TYPES_INIT_SCRIPT.
+ *
+ * `async` so it never blocks the page, and it is the LAST thing in <head>'s
+ * script order: nothing this site does depends on it, and if it fails to load
+ * the site is unaffected.
+ */
+export const GTAG_ID = 'G-W5GMR15VZD'
+
+export const GTAG_SRC = `https://www.googletagmanager.com/gtag/js?id=${GTAG_ID}`
+
+/**
+ * Byte-for-byte what ships inline, because its sha256 is in the CSP. Editing
+ * this string — even the whitespace — changes the hash and breaks the tag
+ * unless site/_headers is updated to match. The test enforces it.
+ */
+export const GTAG_INLINE = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${GTAG_ID}');`
 
 export const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) =>
@@ -360,6 +408,8 @@ ${main}`
 <link rel="preload" href="/fonts/geist-var.woff2" as="font" type="font/woff2" crossorigin>
 <script>${THEME_INIT_SCRIPT}</script>
 <script>${TRUSTED_TYPES_INIT_SCRIPT}</script>
+<script async src="${esc(GTAG_SRC)}"></script>
+<script>${GTAG_INLINE}</script>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 

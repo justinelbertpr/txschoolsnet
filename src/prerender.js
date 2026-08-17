@@ -1505,6 +1505,7 @@ export async function prerender({ concurrency } = {}) {
     console.log('  (no data/boundaries archive — /map skipped; run `npm run fetch:boundaries`)')
   } else {
     const teaToGeoid = new Map(Object.entries(topo.txschools?.teaToGeoid ?? {}))
+    const regionLabel = new Map(regions.map((r) => [r.id, r.name]))
     // mappableDistricts drops the ones with an NCES id but no polygon, so this
     // list — and therefore `order` — is exactly what renderMapPage will draw.
     // Every layer below is indexed by position in it.
@@ -1517,6 +1518,10 @@ export async function prerender({ concurrency } = {}) {
           geoid: teaToGeoid.get(String(d.id)),
           name: d.name,
           href: `/district/${entitySlug(d)}`,
+          // For the zoom-to-region control: the id groups the districts, the
+          // name is what the <option> says.
+          region: d.regionId ?? null,
+          regionName: regionLabel.get(d.regionId) ?? null,
         }))
     )
     const order = drawable.map((d) => d.teaId)

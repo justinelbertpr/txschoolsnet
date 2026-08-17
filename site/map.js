@@ -54,15 +54,13 @@
       if (t) t.textContent = `${names[i]} — ${band}`
     }
     if (title) title.textContent = label
+    // The key entries are the filter's checkboxes now, so only their TEXT is
+    // rewritten per layer — rebuilding the list would throw away which classes
+    // the reader has turned off, and reset the map under them.
     if (items) {
-      items.textContent = ''
       ranges.forEach((r, i) => {
-        const li = document.createElement('li')
-        const sw = document.createElement('span')
-        sw.className = 'map-swatch'
-        sw.dataset.b = String(i)
-        li.append(sw, document.createTextNode(r))
-        items.append(li)
+        const t = items.querySelector(`[data-map-class="${i}"]`)
+        if (t) t.textContent = r
       })
     }
     if (note) note.textContent = `${direction} ${nf.format(counted)} districts shown.`
@@ -104,4 +102,114 @@
       }
     })
     .catch(() => {})
+})()
+
+/* ---- zoom to region, and the hover readout -----------------------------
+   Split from the block above because neither depends on the layer payload
+   being usable: if the picker never appears, zoom and hover still should. */
+;(() => {
+  const root = document.querySelector('[data-map]')
+  const tag = document.querySelector('[data-map-payload]')
+  if (!root || !tag) return
+  let payload
+  try {
+    payload = JSON.parse(tag.textContent)
+  } catch {
+    return
+  }
+
+  /* ---- zoom ----
+     The viewBox moves; the 1,016 paths do not. Transforming the <g> instead
+     would ask the compositor to re-rasterise every polygon, and scale the
+     hairline strokes with it. */
+  const zoom = document.querySelector('[data-map-zoom]')
+  const base = (root.getAttribute('data-base-view') || '').split(/\s+/).map(Number)
+  const boxes = new Map((payload.regions || []).map((r) => [r.id, r.box]))
+  if (zoom && base.length === 4 && boxes.size) {
+    const [, , W, H] = base
+    const aspect = W / H
+    const frame = (b) => {
+      // Letterbox: grow the short side so the region keeps the page's aspect
+      // and nothing is squashed. 6% margin so a district on the region's edge
+      // is not flush against the frame.
+      let [x, y, w, h] = b
+      const pad = Math.max(w, h) * 0.06
+      x -= pad; y -= pad; w += pad * 2; h += pad * 2
+      if (w / h < aspect) { const nw = h * aspect; x -= (nw - w) / 2; w = nw }
+      else { const nh = w / aspect; y -= (nh - h) / 2; h = nh }
+      return [x, y, w, h]
+    }
+    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches
+    let raf = null
+    const setView = (to) => {
+      const from = (root.getAttribute('viewBox') || '').split(/\s+/).map(Number)
+      if (still || from.length !== 4) { root.setAttribute('viewBox', to.join(' ')); return }
+      if (raf) cancelAnimationFrame(raf)
+      const t0 = performance.now()
+      const step = (t) => {
+        const k = Math.min(1, (t - t0) / 320)
+        const e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2 // ease-in-out
+        root.setAttribute('viewBox', from.map((v, i) => v + (to[i] - v) * e).join(' '))
+        if (k < 1) raf = requestAnimationFrame(step)
+      }
+      raf = requestAnimationFrame(step)
+    }
+    zoom.addEventListener('change', () => {
+      const b = boxes.get(zoom.value)
+      setView(b ? frame(b) : base)
+      const opt = zoom.selectedOptions[0]
+      root.setAttribute(
+        'aria-label',
+        b ? `Texas school districts, zoomed to ${opt ? opt.textContent : 'a region'}` : 'Texas school districts'
+      )
+    })
+  }
+
+  /* ---- hover readout ----
+     One listener on the <g>, not 1,016 on the paths. The <a>'s aria-label is
+     already "<name>, <layer>: <band>" and site/map.js rewrites it whenever the
+     layer changes, so it is the single source for what the tooltip says — no
+     second copy to fall out of step. */
+  const tip = document.querySelector('[data-map-tip]')
+  const shapes = root.querySelector('[data-map-shapes]')
+  if (!tip || !shapes) return
+  // Touch has no hover: there a tap navigates, and a tooltip would either
+  // flash and vanish or sit under the reader's finger.
+  if (!window.matchMedia?.('(hover: hover)')?.matches) return
+
+  const show = (target, x, y) => {
+    const a = target.closest('a')
+    if (!a) return hide()
+    const label = a.getAttribute('aria-label') || ''
+    const cut = label.indexOf(',')
+    tip.textContent = ''
+    const name = document.createElement('b')
+    name.textContent = cut < 0 ? label : label.slice(0, cut)
+    tip.append(name)
+    if (cut >= 0) {
+      const rest = document.createElement('span')
+      rest.textContent = label.slice(cut + 2)
+      tip.append(rest)
+    }
+    tip.hidden = false
+    // Flip before the edge rather than after, so the tooltip never leaves the
+    // viewport and never covers the district it describes.
+    const r = tip.getBoundingClientRect()
+    const left = x + 14 + r.width > window.innerWidth ? x - 14 - r.width : x + 14
+    const top = y + 14 + r.height > window.innerHeight ? y - 14 - r.height : y + 14
+    tip.style.left = `${Math.max(4, left)}px`
+    tip.style.top = `${Math.max(4, top)}px`
+  }
+  const hide = () => { tip.hidden = true }
+
+  shapes.addEventListener('pointerover', (e) => { if (e.pointerType !== 'touch') show(e.target, e.clientX, e.clientY) })
+  shapes.addEventListener('pointermove', (e) => { if (!tip.hidden && e.pointerType !== 'touch') show(e.target, e.clientX, e.clientY) })
+  shapes.addEventListener('pointerleave', hide)
+  // Keyboard parity: tabbing through districts reads the same thing.
+  shapes.addEventListener('focusin', (e) => {
+    const r = e.target.getBoundingClientRect?.()
+    if (r) show(e.target, r.left + r.width / 2, r.top + r.height / 2)
+  })
+  shapes.addEventListener('focusout', hide)
+  window.addEventListener('scroll', hide, { passive: true })
 })()
