@@ -154,7 +154,10 @@ function initTrajectory(svg) {
   const activeValues = () => [
     data.entity.values,
     ...[...active].map((k) => seriesFor(k)?.values ?? []),
-    ...[...pins.values()].map((p) => p.values),
+    // A pin switched off at its chip must not stretch the axis for a line that
+    // is no longer drawn — the scale would jump on a toggle that visibly
+    // removed nothing.
+    ...[...pins.values()].filter((p) => !p.off).map((p) => p.values),
   ].flat().filter((v) => v !== null && v !== undefined)
 
   /** Same band-snapping rule the server uses, so JS and HTML never disagree. */
@@ -237,6 +240,7 @@ function initTrajectory(svg) {
       if (el && active.has(c.key)) el.setAttribute('d', toPath(c.values, d))
     }
     for (const [id, p] of pins) {
+      if (p.off) continue
       const el = pinPath(id)
       if (el) el.setAttribute('d', toPath(p.values, d))
     }
@@ -325,7 +329,7 @@ function initTrajectory(svg) {
     const shown = [
       data.entity.label,
       ...data.comparisons.filter((c) => active.has(c.key)).map((c) => c.label),
-      ...[...pins.values()].map((p) => p.label),
+      ...[...pins.values()].filter((p) => !p.off).map((p) => p.label),
     ]
     svg.setAttribute('aria-label', `${baseLabel}. Lines shown: ${shown.join(', ')}`)
   }
@@ -348,6 +352,8 @@ function initTrajectory(svg) {
 
     let dashIndex = 0
     for (const [id, p] of pins) {
+      ensurePinChip(id, p)
+      if (p.off) { dashIndex++; continue }
       const had = pinPath(id)
       const el = ensurePinPath(id, p, dashIndex++)
       if (!had) {
@@ -355,7 +361,11 @@ function initTrajectory(svg) {
         drawOn(el)
       }
     }
-    for (const el of pinPaths()) if (!pins.has(el.dataset.pin)) fadeOut(el)
+    // Unpinned entirely, or switched off at its chip: either way the line goes.
+    for (const el of pinPaths()) {
+      const p = pins.get(el.dataset.pin)
+      if (!p || p.off) fadeOut(el)
+    }
 
     animate(450, (t) => {
       redraw({ lo: from.lo + (to.lo - from.lo) * t, hi: from.hi + (to.hi - from.hi) * t })
@@ -364,11 +374,59 @@ function initTrajectory(svg) {
 
   const chipFor = (key) => picker?.querySelector(`.chip[data-cmp="${CSS.escape(key)}"]`) ?? null
 
+  /**
+   * A pinned line needs a name where the reader is looking at it.
+   *
+   * Pins have always drawn onto this chart, but only the rail's pin list said
+   * which colour was which — and on a phone the rail prints after the whole
+   * article, so a reader saw two unlabelled dashed lines and had no way to
+   * find out whose they were. The picker sits directly above the chart and
+   * already names every other line on it, so a pin belongs in it.
+   *
+   * The chip is a real toggle rather than a legend swatch: turning a pin's
+   * line off here leaves it pinned, which is the difference between "stop
+   * drawing this" and "forget this district".
+   */
+  const pinChipKey = (id) => `pin:${id}`
+
+  const ensurePinChip = (id, p) => {
+    if (!picker) return
+    let chip = chipFor(pinChipKey(id))
+    if (!chip) {
+      chip = document.createElement('button')
+      chip.type = 'button'
+      chip.className = 'chip chip-pinline'
+      chip.dataset.cmp = pinChipKey(id)
+      const dot = document.createElement('span')
+      dot.className = 'chip-dot pin-dot'
+      chip.append(dot, document.createTextNode(p.label))
+      picker.append(chip)
+    }
+    chip.style.setProperty('--pin-hue', String(p.hue))
+    chip.setAttribute('aria-pressed', String(!p.off))
+  }
+
+  const dropPinChip = (id) => chipFor(pinChipKey(id))?.remove()
+
   picker?.addEventListener('click', (e) => {
     const btn = e.target.closest('.chip')
     if (!btn) return
     const key = btn.dataset.cmp
     const on = btn.getAttribute('aria-pressed') === 'true'
+    // A pin toggles its own line and nothing else. It is exempt from the
+    // keep-one-line rule below, which exists so the chart never ends up with
+    // only the entity's own line and no context — turning a pin off always
+    // leaves the cohort lines that rule is protecting.
+    if (key.startsWith('pin:')) {
+      const id = key.slice(4)
+      const p = pins.get(id)
+      if (!p) return
+      p.off = on
+      btn.setAttribute('aria-pressed', String(!on))
+      relabel()
+      apply()
+      return
+    }
     if (on && active.size <= 1 && active.has(key)) return // keep at least one line meaningful
     on ? active.delete(key) : active.add(key)
     if (on) { manual.delete(key); if (autoKey === key) autoKey = null }
@@ -423,6 +481,7 @@ function initTrajectory(svg) {
     },
     removePin(id) {
       if (!pins.delete(id)) return
+      dropPinChip(id)
       relabel()
       apply()
     },
@@ -1228,6 +1287,130 @@ function initStickybar() {
   })
 }
 
+/* ------------------------------------------------------- spending chart ---- */
+
+/**
+ * Adds pinned districts to "Spending per student".
+ *
+ * This chart was the one section that answered to no comparison at all — not
+ * even the cohort switch — because its three series are fixed (this entity,
+ * TEA's own peer group, the statewide average) and the server SVG was the only
+ * copy of their numbers. Pin a neighbouring district and every other figure on
+ * the page moved while this chart sat still, which is what "I don't see the
+ * comparison here" was pointing at.
+ *
+ * So the section now publishes its values as [data-spending] and this redraws
+ * the whole plot from them whenever the pins change. Redrawing rather than
+ * appending is not optional: a pinned district that spends more than any
+ * existing series changes the y-domain, and appending one path to a chart drawn
+ * on the old scale would plot it against an axis the other lines do not share.
+ *
+ * The geometry and the domain rule below MUST match
+ * src/render/charts.js:CMP_GEOM and cmpDomain. They are duplicated here rather
+ * than imported because this file is loaded by the browser and that one is a
+ * build module; the constants are exported there specifically so the pairing is
+ * findable from both ends.
+ */
+function initSpendChart() {
+  const tag = document.querySelector('script[data-spending]')
+  const svg = document.querySelector('#spending svg.chart-cmp')
+  if (!tag || !svg) return null
+  let data = null
+  try { data = JSON.parse(tag.textContent) } catch { return null }
+  if (!Array.isArray(data?.years) || !Array.isArray(data?.series) || !data.years.length) return null
+
+  const gridG = svg.querySelector('.cmp-grid')
+  const linesG = svg.querySelector('.cmp-lines')
+  const legendEl = document.querySelector('#spending .legend')
+  if (!gridG || !linesG) return null
+
+  const W = 640, H = 320, PAD = { t: 16, r: 16, b: 28, l: 52 }
+  const iw = W - PAD.l - PAD.r
+  const ih = H - PAD.t - PAD.b
+  const ok = (v) => typeof v === 'number' && Number.isFinite(v)
+  const money = (v) => `$${(v / 1000).toFixed(0)}k`
+
+  const pins = new Map() // id -> { label, hue, values }
+
+  const draw = () => {
+    const series = [...data.series, ...[...pins.entries()].map(([id, p]) => ({ key: `pin-${id}`, pin: p, values: p.values }))]
+    const all = series.flatMap((s) => s.values).filter(ok)
+    if (!all.length) return
+    const lo = Math.min(...all) * 0.9
+    const hi = Math.max(...all) * 1.05
+    const X = (i) => PAD.l + (i * iw) / Math.max(1, data.years.length - 1)
+    const Y = (v) => PAD.t + ih - ((v - lo) / (hi - lo || 1)) * ih
+
+    gridG.innerHTML = [0, 0.5, 1]
+      .map((f) => {
+        const gy = PAD.t + ih - f * ih
+        return `<line x1="${PAD.l}" x2="${W - PAD.r}" y1="${gy.toFixed(1)}" y2="${gy.toFixed(1)}" class="band"/>` +
+          `<text x="${PAD.l - 6}" y="${(gy + 3.5).toFixed(1)}" class="band-label">${money(Math.round(lo + f * (hi - lo)))}</text>`
+      })
+      .join('')
+
+    linesG.innerHTML = series
+      .map((s) => {
+        // Same open/closed run handling as charts.js:valuePath — a gap in the
+        // data must break the line rather than be bridged across a year TEA
+        // published nothing for.
+        let open = false
+        let hasLine = false
+        const d = s.values
+          .map((v, i) => {
+            if (!ok(v)) { open = false; return '' }
+            const cmd = open ? 'L' : 'M'
+            if (open) hasLine = true
+            open = true
+            return `${cmd}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`
+          })
+          .filter(Boolean)
+          .join(' ')
+        const last = s.values.reduce((acc, v, i) => (ok(v) ? i : acc), -1)
+        if (last < 0) return ''
+        // A pinned line is coloured from its own hue, like the trajectory
+        // chart's, and dashed so it reads as an addition rather than one of the
+        // three series the section's prose is written about.
+        const style = s.pin ? ` style="--pin-hue:${s.pin.hue}"` : ''
+        const cls = s.pin ? 'line line-spend-pin' : `line line-${s.key}`
+        const dots = s.values
+          .map((v, i) =>
+            ok(v)
+              ? `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="${i === last ? 4 : 2.6}" class="dot ${s.pin ? 'dot-spend-pin' : `dot-${s.key}`}"${style}/>`
+              : ''
+          )
+          .join('')
+        return (hasLine ? `<path d="${d}" class="${cls}"${style}/>` : '') + dots
+      })
+      .join('')
+
+    if (legendEl) {
+      for (const li of [...legendEl.querySelectorAll('li[data-spend-pin]')]) li.remove()
+      for (const [id, p] of pins) {
+        const li = document.createElement('li')
+        li.dataset.spendPin = id
+        const sw = document.createElement('span')
+        sw.className = 'swatch swatch-spend-pin'
+        sw.style.setProperty('--pin-hue', String(p.hue))
+        li.append(sw, document.createTextNode(p.label))
+        legendEl.append(li)
+      }
+    }
+  }
+
+  return {
+    add(id, rec) {
+      if (!Array.isArray(rec?.values) || !rec.values.some(ok)) return false
+      pins.set(id, rec)
+      draw()
+      return true
+    },
+    remove(id) { if (pins.delete(id)) draw() },
+    /** The years this chart plots, so a caller can align another entity to them. */
+    years: data.years,
+  }
+}
+
 /* ---------------------------------------------------------- district pins -- */
 
 const PIN_KEY = 'txschools:pins'
@@ -1260,7 +1443,7 @@ const PIN_HUES = [8, 265, 152, 315, 42]
  * against, via the controller initCohorts hands back. See metricsFor below for
  * why campuses get the line but not the comparison.
  */
-function initPins(chart, compare = null) {
+function initPins(chart, compare = null, spend = null) {
   const box = document.querySelector('.rail-pins')
   if (!box || !chart) return
   const input = box.querySelector('.pin-search')
@@ -1397,19 +1580,40 @@ function initPins(chart, compare = null) {
      campus with those six plus three — which also classifies a pin restored
      from an older page, where no level was stored. */
   const levelOf = (id) => (String(id).length >= 9 ? 'campus' : 'district')
-  const metricsCache = new Map()
-  const metricsFor = (id) => {
+  const docCache = new Map()
+  /** The whole published file, cached: two consumers read different parts of it. */
+  const docFor = (id) => {
     if (levelOf(id) !== 'district') return Promise.resolve(null)
-    if (!metricsCache.has(id)) {
-      metricsCache.set(
+    if (!docCache.has(id)) {
+      docCache.set(
         id,
         fetch(`/data/entity/${encodeURIComponent(id)}.json`, { credentials: 'omit' })
           .then((r) => (r.ok ? r.json() : null))
-          .then((j) => (j && typeof j.metrics === 'object' ? j.metrics : null))
           .catch(() => null) // offline, or a file that is not there: the line still draws
       )
     }
-    return metricsCache.get(id)
+    return docCache.get(id)
+  }
+  const metricsFor = (id) => docFor(id).then((j) => (j && typeof j.metrics === 'object' ? j.metrics : null))
+
+  /**
+   * A pinned district's spending, re-indexed onto the years the spending chart
+   * actually plots. Aligning by year label rather than by position is what stops
+   * a district whose finance file starts a year later from being drawn shifted
+   * one column along the axis.
+   */
+  const spendSeriesFor = (id) => {
+    if (!spend) return Promise.resolve(null)
+    return docFor(id).then((j) => {
+      const sp = j?.spending
+      if (!Array.isArray(sp?.years) || !Array.isArray(sp?.perStudent)) return null
+      const byYear = new Map(sp.years.map((y, i) => [String(y), sp.perStudent[i]]))
+      const values = spend.years.map((y) => {
+        const v = byYear.get(String(y))
+        return typeof v === 'number' && Number.isFinite(v) ? v : null
+      })
+      return values.some((v) => v !== null) ? values : null
+    })
   }
 
   const compareKey = (id) => `pin:${id}`
@@ -1489,6 +1693,9 @@ function initPins(chart, compare = null) {
       // Fire and forget: the line is already drawn, and the page-wide
       // comparison arrives when its numbers do.
       taking.forEach((rec) => {
+        spendSeriesFor(rec.id).then((values) => {
+          if (values && pinned.has(rec.id)) spend.add(rec.id, { label: nameOf(rec), hue: rec.hue, values })
+        })
         offerComparison(rec).then((ok) => {
           if (ok) {
             if (announce) say(`${nameOf(rec)} is now a comparison — pick it under “Compare against” to read every figure on this page against it.`)
@@ -1528,6 +1735,7 @@ function initPins(chart, compare = null) {
     li.remove()
     chart.removePin(rec.id)
     compare?.remove(compareKey(rec.id))
+    spend?.remove(rec.id)
     save()
     say(`Unpinned ${nameOf(rec)}.`)
     next.focus()
@@ -1816,4 +2024,4 @@ const compare = initCohorts(charts[0])
 initCopy()
 initSpy()
 initStickybar()
-initPins(charts[0], compare)
+initPins(charts[0], compare, initSpendChart())

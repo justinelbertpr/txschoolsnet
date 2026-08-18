@@ -365,13 +365,23 @@ export function stackedShare(parts, { w = 640, h = 26 } = {}) {
  * 106px tall on a phone, of which 62px was plot. Eight years of spending in
  * 62px is a rumour, not a series.
  */
-export function comparisonChart({ years, series, w = 640, h = 320, fmt = (v) => v }) {
-  const pad = { t: 16, r: 16, b: 28, l: 52 }
+/**
+ * The comparison chart's geometry and scale rule, exported because site/app.js
+ * redraws this chart to add pinned districts to it and must land on exactly the
+ * same pixels the server drew. Two copies of `min * 0.9` is how a pinned line
+ * ends up plotted against a different axis from the lines beside it.
+ */
+export const CMP_GEOM = { w: 640, h: 320, pad: { t: 16, r: 16, b: 28, l: 52 } }
+export const cmpDomain = (values) => {
+  const all = values.filter((v) => v !== null && v !== undefined)
+  return all.length ? { lo: Math.min(...all) * 0.9, hi: Math.max(...all) * 1.05 } : { lo: 0, hi: 1 }
+}
+
+export function comparisonChart({ years, series, w = CMP_GEOM.w, h = CMP_GEOM.h, fmt = (v) => v }) {
+  const pad = CMP_GEOM.pad
   const iw = w - pad.l - pad.r
   const ih = h - pad.t - pad.b
-  const all = series.flatMap((s) => s.values.filter((v) => v !== null))
-  const lo = Math.min(...all) * 0.9
-  const hi = Math.max(...all) * 1.05
+  const { lo, hi } = cmpDomain(series.flatMap((s) => s.values))
   const x = (i) => pad.l + (i * iw) / Math.max(1, years.length - 1)
   const y = (v) => pad.t + ih - ((v - lo) / (hi - lo || 1)) * ih
 
@@ -416,8 +426,10 @@ export function comparisonChart({ years, series, w = 640, h = 320, fmt = (v) => 
     )
     .join('')
 
+  // Grouped so site/app.js can replace each layer wholesale when a pinned
+  // district changes the scale, instead of surgically editing sibling nodes.
   return `<svg viewBox="0 0 ${w} ${h}" class="chart chart-cmp" role="img" aria-label="Comparison over time">
-  ${grid}${lines}${xlabels}
+  <g class="cmp-grid">${grid}</g><g class="cmp-lines">${lines}</g><g class="cmp-x">${xlabels}</g>
 </svg>`
 }
 
