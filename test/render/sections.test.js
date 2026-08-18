@@ -607,14 +607,18 @@ describe('standouts', () => {
   it('says outright that this is a selection, not a summary', () => {
     const html = standouts(vm)
     expect(html).toContain('These are selected high placements, not a summary')
-    expect(html).toContain('states its cohort and its denominator, and ties are shown as ties')
+    expect(html).toContain('Each measure appears')
+    expect(html).toContain('Very large ties are left out')
+    expect(html).toContain('tie that does appear is labeled')
     // The warning tells the reader how to read the section; it does not
     // lecture them about what a rank without an n would be.
     expect(html).not.toContain('is a boast')
   })
 
   it('states how many rankings the selection was drawn from', () => {
-    expect(standouts(vm)).toContain('Out of 87 rankings')
+    const html = standouts(vm)
+    expect(html).toContain('Out of 87 rankings')
+    expect(html).toContain('with each measure shown once')
   })
 
   it('offers a copyable claim that carries its own cohort and denominator', () => {

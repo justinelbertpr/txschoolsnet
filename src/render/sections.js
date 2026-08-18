@@ -929,9 +929,10 @@ export function standouts(vm) {
     ${rows}
   </ul>
   <p class="note"><strong>These are selected high placements, not a summary.</strong> Every figure above
-  this section is the full picture, including where this ${vm.level} ranks poorly. Each statement below
-  states its cohort and its denominator, and ties are shown as ties.${allRankings}</p>`,
-    `Out of ${num(vm.ranks.length)} rankings computed across every published metric and every comparison group, these are the placements that stand out. Press Copy for a citable sentence.`
+  this section is the full picture, including where this ${vm.level} ranks poorly. Each measure appears
+  at most once here. Very large ties are left out because they do not distinguish this ${vm.level}; any
+  tie that does appear is labeled.${allRankings}</p>`,
+    `Out of ${num(vm.ranks.length)} rankings computed across every published metric and every comparison group, these are the strongest distinctive placements, with each measure shown once. Press Copy for a citable sentence.`
   )
 }
 

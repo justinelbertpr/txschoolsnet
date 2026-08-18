@@ -419,11 +419,24 @@ export function rankAll({ entity, cohorts, bundles, specs, cohortIds }) {
 export function standouts(ranks, { limit = 12 } = {}) {
   const performance = ranks.filter((r) => !isContextMetric(r.metric))
   const distinct = (r) => r.tied <= Math.max(2, r.of * 0.02)
-  const strong = performance.filter((r) => (r.rank <= 10 || r.pctile >= 95) && distinct(r))
-  const shared = performance.filter((r) => (r.rank <= 10 || r.pctile >= 95) && !distinct(r))
+  const candidates = performance.filter((r) => (r.rank <= 10 || r.pctile >= 95) && distinct(r))
 
-  // Sole placements first; heavily-tied ones still shown, but ranked behind and
-  // labelled, so a reader never mistakes a shared ceiling for a sole first place.
+  // This is a highlights list, not the full rankings table. A placement shared
+  // by a large part of its cohort does not distinguish the entity, even when
+  // competition ranking calls every member of that tie "1st". Those rows remain
+  // in `ranks` (and on any published ranking board); they simply do not become a
+  // promotional claim here.
+  //
+  // The same metric is ranked against several cohorts. Showing all of them made
+  // Santa Fe ISD's single 0.0% dropout figure appear as three consecutive #1
+  // claims. Sort first so the strongest scope wins, then keep one row per metric.
   const by = (a, b) => a.rank - b.rank || b.of - a.of || b.pctile - a.pctile
-  return [...strong.sort(by), ...shared.sort(by)].slice(0, limit)
+  const seen = new Set()
+  const unique = []
+  for (const r of candidates.sort(by)) {
+    if (seen.has(r.metric)) continue
+    seen.add(r.metric)
+    unique.push(r)
+  }
+  return unique.slice(0, limit)
 }
