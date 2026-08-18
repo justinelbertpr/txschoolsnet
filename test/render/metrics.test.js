@@ -609,36 +609,70 @@ const rank = (over = {}) => ({
 })
 
 describe('standouts', () => {
-  it('sorts a sole placement ahead of a heavily-tied one, even a tied FIRST place', () => {
+  it('omits a heavily-tied placement, even when competition ranking calls it first', () => {
     const sole = rank({ metric: 'sole', rank: 3, of: 50, tied: 0 })
     const shared = rank({ metric: 'shared', rank: 1, of: 1084, tied: 213 })
     const out = standouts([shared, sole])
-    expect(out.map((r) => r.metric)).toEqual(['sole', 'shared'])
+    expect(out.map((r) => r.metric)).toEqual(['sole'])
   })
 
   it('never lets a shared ceiling lead the list', () => {
     // 213 districts share a 100% graduation rate. That is not a sole first place.
     const shared = rank({ metric: 'grad:0', label: 'Four-Year Graduation Rate', rank: 1, of: 1084, tied: 213 })
     const modest = rank({ metric: 'score', rank: 9, of: 1084, tied: 0, pctile: 99 })
-    expect(standouts([shared, modest])[0].metric).toBe('score')
+    expect(standouts([shared, modest]).map((r) => r.metric)).toEqual(['score'])
   })
 
   it('treats a tie within two percent of the cohort as still distinct', () => {
     const ok = rank({ metric: 'ok', rank: 2, of: 100, tied: 2 })
     const demoted = rank({ metric: 'demoted', rank: 1, of: 100, tied: 3 })
-    expect(standouts([demoted, ok]).map((r) => r.metric)).toEqual(['ok', 'demoted'])
+    expect(standouts([demoted, ok]).map((r) => r.metric)).toEqual(['ok'])
   })
 
   it('allows up to two ties in a small cohort, where two percent rounds to nothing', () => {
     const ok = rank({ metric: 'ok', rank: 4, of: 20, tied: 2 })
     const demoted = rank({ metric: 'demoted', rank: 1, of: 20, tied: 3 })
-    expect(standouts([demoted, ok]).map((r) => r.metric)).toEqual(['ok', 'demoted'])
+    expect(standouts([demoted, ok]).map((r) => r.metric)).toEqual(['ok'])
   })
 
-  it('keeps the demoted placement rather than deleting it, so nothing is hidden', () => {
+  it('does not turn a result shared by most of the cohort into a highlight', () => {
     const shared = rank({ metric: 'shared', rank: 1, of: 500, tied: 200 })
-    expect(standouts([shared])).toHaveLength(1)
-    expect(standouts([shared])[0].tied).toBe(200)
+    expect(standouts([shared])).toEqual([])
+  })
+
+  it('shows each metric once even when it places highly in several cohorts', () => {
+    const state = rank({ metric: 'score', cohort: 'state', rank: 2, of: 1000 })
+    const peer = rank({ metric: 'score', cohort: 'peer', rank: 2, of: 300 })
+    const region = rank({ metric: 'score', cohort: 'region', rank: 1, of: 50 })
+    const out = standouts([state, peer, region])
+    expect(out).toHaveLength(1)
+    expect(out[0].cohort).toBe('region')
+  })
+
+  it('removes Santa Fe-style giant ties across every cohort', () => {
+    const dropout = { metric: 'grad:3', label: 'Dropout Rate', rank: 1, pctile: 100, lowerIsBetter: true }
+    const rows = [
+      rank({ ...dropout, cohort: 'state', of: 981, tied: 506 }),
+      rank({ ...dropout, cohort: 'peer', of: 306, tied: 173 }),
+      rank({ ...dropout, cohort: 'region', of: 45, tied: 4 }),
+    ]
+    expect(standouts(rows)).toEqual([])
+  })
+
+  it('applies the limit after deduplicating metrics', () => {
+    const repeated = [
+      rank({ metric: 'score', cohort: 'state', rank: 1, of: 1000 }),
+      rank({ metric: 'score', cohort: 'peer', rank: 1, of: 300 }),
+      rank({ metric: 'score', cohort: 'region', rank: 1, of: 50 }),
+    ]
+    const second = rank({ metric: 'attendance', rank: 2, of: 1000 })
+    expect(standouts([...repeated, second], { limit: 2 }).map((r) => r.metric)).toEqual(['score', 'attendance'])
+  })
+
+  it('prefers the larger cohort when the same metric has the same rank', () => {
+    const state = rank({ metric: 'score', cohort: 'state', rank: 2, of: 1000 })
+    const region = rank({ metric: 'score', cohort: 'region', rank: 2, of: 50 })
+    expect(standouts([region, state])[0].cohort).toBe('state')
   })
 
   it('includes a top-ten rank and a 95th-percentile rank, and nothing else', () => {
