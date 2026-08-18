@@ -1680,6 +1680,26 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
   .pin-dot { background: oklch(var(--pin-lo) .155 var(--pin-hue, 220)); }
 }
 
+/* A pinned district is also offered as a page-wide comparison, as a chip in
+   "Compare against" beside the cohorts. It carries the pin's own dot so the
+   chip, the rail entry and the chart line read as one entity rather than three
+   controls that happen to share a name. .pin-dot already takes its colour from
+   an inline --pin-hue, so nothing here needs to know the palette. */
+.chip-pin { display: inline-flex; align-items: center; gap: .45rem; }
+.chip-pin .pin-dot { width: .5rem; height: .5rem; }
+
+/* Marks the EXCEPTION, not the norm. Most pins become a comparison; a campus
+   cannot, because campus metric files are not published. Saying "chart only"
+   on the few that fall short is honest and self-explanatory, where a marker on
+   the many that succeed would be a symbol the reader has to decode. Written by
+   site/app.js as real text, not CSS content, so it is available to a screen
+   reader and translatable. */
+.pin-note {
+  flex: none;
+  font-size: var(--t-micro); font-weight: 400; color: var(--ink-3);
+  white-space: nowrap;
+}
+
 .pin-remove {
   flex: none; margin-left: auto;
   display: inline-flex; align-items: center; justify-content: center;
@@ -2757,11 +2777,22 @@ main > section:not(.hero) > h2 + .lede { margin-top: .55rem; }
 
 .rail {
   top: calc(var(--header-h, 0px) + 1.25rem);
-  max-height: calc(100vh - var(--header-h, 0px) - 2.5rem);
   padding: 1rem;
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   border: 1px solid var(--line); border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
+}
+/* The viewport clamp belongs ONLY to the sticky rail.
+   -------------------------------------------------------------------------
+   It used to sit in the rule above, which is unconditional and comes AFTER
+   the "below 1024px" block that resets the rail to static with max-height:
+   none. Later source order won, so on a phone the rail was still clamped to
+   one viewport — but with overflow: visible, because that reset DID win — and
+   the bottom ~300px of it, which is the whole pinner, painted underneath the
+   footer. The search box and its results were on screen and unclickable.
+   `top` can stay unguarded: it does nothing to a static box. */
+@media (min-width: 1024px) {
+  .rail { max-height: calc(100vh - var(--header-h, 0px) - 2.5rem); }
 }
 .rail-block { border-bottom-color: var(--line-2); }
 .rail-title { color: var(--ink-3); letter-spacing: .1em; }
