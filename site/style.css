@@ -957,6 +957,18 @@ td .grade-letter { font-size: 1.05rem; }
    solid, and the second channel disappeared. !important was the narrow
    workaround; app.js:drawOn is the actual fix.) */
 .line-pin { stroke: hsl(var(--pin-hue, 220) 72% var(--pin-l)); stroke-dasharray: 5 4; }
+/* The same treatment on the spending chart, which site/app.js redraws to add
+   pinned districts to it. Its own three series are solid and named in the
+   legend below the plot; a pin is dashed so it reads as something the reader
+   added rather than one of the figures the section's prose is written about.
+   .dot-spend-pin has no dasharray of its own — a dashed circle is just a
+   broken circle. */
+.line-spend-pin { fill: none; stroke: hsl(var(--pin-hue, 220) 72% var(--pin-l)); stroke-width: 2; stroke-dasharray: 5 4; }
+.dot-spend-pin { fill: hsl(var(--pin-hue, 220) 72% var(--pin-l)); }
+@supports (color: oklch(50% .1 200)) {
+  .line-spend-pin { stroke: oklch(var(--pin-lo) .155 var(--pin-hue, 220)); }
+  .dot-spend-pin { fill: oklch(var(--pin-lo) .155 var(--pin-hue, 220)); }
+}
 @supports (color: oklch(50% .1 200)) {
   .line-pin { stroke: oklch(var(--pin-lo) .155 var(--pin-hue, 220)); }
 }
@@ -1048,7 +1060,7 @@ td .grade-letter { font-size: 1.05rem; }
 }
 /* Series swatches: a rule, not a square. */
 .swatch-entity, .swatch-peer, .swatch-state, .swatch-tea,
-.swatch-region, .swatch-county, .swatch-size {
+.swatch-region, .swatch-county, .swatch-size, .swatch-spend-pin {
   width: 1.35rem; height: .1875rem; border-radius: 0;
   background-repeat: repeat-x;
 }
@@ -1058,6 +1070,24 @@ td .grade-letter { font-size: 1.05rem; }
   background: transparent;
   background-image: repeating-linear-gradient(90deg, var(--c-state) 0 .3rem, transparent .3rem .5rem);
 }
+/* A pinned district on the spending chart, written by site/app.js. Its colour
+   is an inline --pin-hue rather than a token, because there is a pin per hue
+   and no fixed list — but the 5-4 dash matches .line-spend-pin exactly, so the
+   rule above ("the swatch IS the rule it labels") still holds. A round dot
+   here, which is what this was first, would have been the one legend entry on
+   the site that did not look like the thing it names. */
+.swatch-spend-pin {
+  background: transparent;
+  background-image: repeating-linear-gradient(90deg,
+    hsl(var(--pin-hue, 220) 72% var(--pin-l)) 0 .3125rem, transparent .3125rem .5625rem);
+}
+@supports (color: oklch(50% .1 200)) {
+  .swatch-spend-pin {
+    background-image: repeating-linear-gradient(90deg,
+      oklch(var(--pin-lo) .155 var(--pin-hue, 220)) 0 .3125rem, transparent .3125rem .5625rem);
+  }
+}
+
 /* Same dash rhythm as .line-tea/.line-region/.line-county/.line-size, so the
    swatch is the rule it labels rather than an approximation of it. */
 .swatch-tea {
@@ -1321,6 +1351,11 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
   background: var(--ink-3); opacity: .35;
 }
 .chip[aria-pressed='true'] .chip-dot { opacity: 1; }
+/* A pinned line's chip in the trajectory picker. It borrows .pin-dot for its
+   colour — an inline --pin-hue, so the dot, the chart line and the rail entry
+   are the same hue without this file knowing the palette — but keeps the
+   picker's own dot size so it sits level with the cohort chips beside it. */
+.chip-pinline .chip-dot { width: .55rem; height: .55rem; }
 .chip-dot-peer { background: var(--c-peer); }
 .chip-dot-state { background: var(--c-state); }
 .chip-dot-region { background: var(--s3); }
