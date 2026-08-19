@@ -403,6 +403,7 @@ export function verdict(vm) {
     : vm.level === 'district'
       ? `<p class="enroll"><a href="${esc(officialHref)}" rel="external nofollow"><span class="enroll-copy"><strong>Official district website</strong><span>Enrollment, registration and eligibility</span></span><span class="enroll-arrow" aria-hidden="true">&nearr;</span></a></p>`
       : `<p class="enroll enroll-school"><a href="${esc(officialHref)}" rel="external nofollow"><span class="enroll-copy"><strong>Official school website</strong><span>School information and family resources</span></span><span class="enroll-arrow" aria-hidden="true">&nearr;</span></a></p>`
+  const positiveSignals = highlights(vm)
 
   return `<section class="hero" id="${HERO_ID}" data-rail-label="${esc(HERO_LABEL)}">
   <p class="eyebrow">${kind} &middot; Traditional${vm.isAlt ? ' &middot; Alternative Education Accountability' : ''}</p>
@@ -414,10 +415,142 @@ export function verdict(vm) {
     ${grade(latest?.rating, latest?.score, 'lg')}
     <div class="verdict-copy"><p class="verdict-label">At a glance</p><p class="summary">${plainSummary}</p></div>
   </div>
+  ${positiveSignals ?? ''}
   <details class="verdict-detail"><summary>Read the full rating context${rank ? ' and placement' : ''}</summary><p>${summary}</p>${rank ? `<p class="summary-rank">${rank}</p>` : ''}</details>
   ${alert}
   ${vm.notRated ? `<p class="note">TEA did not issue an overall rating for this ${unit(vm)}. Scores below are the figures TEA published; the letter grades are the state's where it issued them.</p>` : ''}
 </section>`
+}
+
+/* ------------------------------------------------ positive signals at top -- */
+
+const highlightValue = (value, fmt) => {
+  if (!finite(value)) return '—'
+  if (fmt === 'pct') return `${num(value, 1)}%`
+  if (fmt === 'usd') return usd(value)
+  return num(value, 1)
+}
+
+const highlightAnchor = (metric) => {
+  if (metric === 'score') return 'trajectory'
+  if (metric?.startsWith('domain:')) return 'domains'
+  if (metric?.startsWith('staar:') || metric?.startsWith('grad:') || metric?.startsWith('ccmr:')) return 'outcomes'
+  if (metric === 'attendance' || metric === 'absenteeism') return 'students'
+  return null
+}
+
+const benchmarkScope = (vm, evidence) => {
+  const units = vm.level === 'district' ? 'districts' : 'schools'
+  const n = num(evidence.metricN)
+  const population = evidence.populationLabel ? ` (${esc(evidence.populationLabel)})` : ''
+  const scope = evidence.cohort === 'state'
+    ? `${n} Texas ${units} reporting this measure`
+    : evidence.cohort === 'peer'
+      ? `${n} ${units} with a similar economic-disadvantage rate reporting this measure`
+      : `${n} ${units} in ${esc(evidence.cohortLabel)} reporting this measure`
+  return scope + population
+}
+
+const benchmarkSentence = (vm, evidence) => {
+  const unitLabel = evidence.fmt === 'pct' ? 'percentage points' : 'points'
+  const direction = evidence.lowerIsBetter ? 'lower than' : 'above'
+  return `<strong>${highlightValue(evidence.value, evidence.fmt)}</strong> is ${num(evidence.advantage, 1)} ${unitLabel} ${direction}
+    the ${highlightValue(evidence.benchmark, evidence.fmt)} average among ${benchmarkScope(vm, evidence)}.`
+}
+
+const rankScope = (vm, evidence, reporting) => {
+  const units = vm.level === 'district' ? 'districts' : 'schools'
+  const suffix = reporting ? ` ${reporting}` : ''
+  const population = evidence.populationLabel ? ` (${esc(evidence.populationLabel)})` : ''
+  if (evidence.cohort === 'state') return `${num(evidence.of)} Texas ${units}${suffix}${population}`
+  if (evidence.cohort === 'peer') {
+    return `${num(evidence.of)} ${units} with a similar economic-disadvantage rate${suffix}${population}`
+  }
+  return `${num(evidence.of)} ${units} in ${esc(evidence.cohortLabel)}${suffix}${population}`
+}
+
+const rankSentence = (vm, evidence) => {
+  const units = vm.level === 'district' ? 'districts' : 'schools'
+  const tied = evidence.tied > 0
+    ? `; ${num(evidence.tied + 1)} ${units} share that ${evidence.period === 'change' ? 'change' : 'value'}`
+    : ''
+  if (evidence.period === 'change') {
+    return `${evidence.tied > 0 ? 'Tied for ' : ''}${ordinal(evidence.rank)} of ${rankScope(vm, evidence, 'reporting both years')} for one-year gain${tied}.`
+  }
+  const direction = evidence.lowerIsBetter ? '-lowest' : ''
+  return `${evidence.tied > 0 ? 'Tied for ' : ''}${ordinal(evidence.rank)}${direction} of ${rankScope(vm, evidence, 'reporting this measure')}${tied}.`
+}
+
+const subjectLevel = (metric) => (String(metric).endsWith(':1') ? 'Meets' : 'Masters')
+
+const highlightCard = (vm, card) => {
+  const change = card.evidence.find((e) => e.kind === 'change')
+  const benchmarks = card.evidence.filter((e) => e.kind === 'benchmark')
+  const ranks = card.evidence.filter((e) => e.kind === 'rank')
+  const primaryBenchmark = benchmarks[0]
+  const anchor = highlightAnchor(card.metric ?? card.metrics?.[0])
+  let kicker = 'Current strength'
+  let title = card.label
+  let primary = ''
+
+  if (change) {
+    kicker = card.metric === 'score' ? 'Recent movement' : 'Recent domain gain'
+    title = `${card.label} rose ${points(change.delta)}`
+    primary = `<p class="strength-change"><strong>${highlightValue(change.fromValue, change.fmt)} to ${highlightValue(change.toValue, change.fmt)}</strong> <span>${esc(change.previousYear)} to ${esc(change.latestYear)}</span></p>`
+  } else if (card.kind === 'subject-benchmark' && primaryBenchmark) {
+    const subject = card.label.replace(/\s*[—-]\s*Meets and Masters$/, '')
+    const scope = primaryBenchmark.cohort === 'state' ? 'Texas averages' : 'similar-context averages'
+    kicker = 'STAAR result'
+    title = `${subject} above ${scope} at Meets and Masters`
+    const reporting = [...new Set(benchmarks.map((e) => e.metricN))]
+    const reportingScope = reporting.length === 1
+      ? `Among ${benchmarkScope(vm, primaryBenchmark)}.`
+      : `The comparison includes ${num(benchmarks[0].metricN)} ${vm.level === 'district' ? 'districts' : 'schools'} reporting Meets and ${num(benchmarks[1].metricN)} reporting Masters.`
+    primary = `<dl class="strength-pair">${benchmarks.map((e) => `<div><dt>${subjectLevel(e.metric)}</dt><dd><strong>${highlightValue(e.value, e.fmt)}</strong><span>vs ${highlightValue(e.benchmark, e.fmt)} avg &middot; +${num(e.advantage, 1)} pts</span></dd></div>`).join('')}</dl>
+      <p class="strength-scope">${reportingScope}</p>`
+  } else if (primaryBenchmark) {
+    const scope = primaryBenchmark.cohort === 'state' ? 'Texas average' : 'similar-context average'
+    title = `${card.label} ${primaryBenchmark.lowerIsBetter ? 'lower than' : 'above'} the ${scope}`
+    primary = `<p class="strength-current"><strong>${highlightValue(primaryBenchmark.value, primaryBenchmark.fmt)}</strong> <span>${primaryBenchmark.lowerIsBetter ? '−' : '+'}${num(primaryBenchmark.advantage, 1)} pts vs ${highlightValue(primaryBenchmark.benchmark, primaryBenchmark.fmt)}</span></p>`
+  } else if (ranks[0]) {
+    kicker = 'Top placement'
+    title = card.label
+    const placement = `${ranks[0].tied > 0 ? 'Tied for ' : ''}${ordinal(ranks[0].rank)}${ranks[0].lowerIsBetter ? '-lowest' : ''}`
+    primary = `<p class="strength-current"><strong>${highlightValue(ranks[0].value, ranks[0].fmt)}</strong> <span>${placement} of ${rankScope(vm, ranks[0], 'reporting this measure')} &middot; ${esc(card.latestYear)}${ranks[0].tied > 0 ? ` &middot; ${num(ranks[0].tied + 1)} share this value` : ''}</span></p>`
+  }
+
+  // A benchmark already unpacked in the paired STAAR block is not repeated as
+  // prose. Other cards keep every extra fact as a sentence, so a recent gain's
+  // comparison and rank travel with it instead of becoming separate boasts.
+  const evidence = [
+    ...(card.kind === 'subject-benchmark' ? [] : benchmarks.map((e) => benchmarkSentence(vm, e))),
+    ...(!change && !primaryBenchmark ? ranks.slice(1) : ranks).map((e) => rankSentence(vm, e)),
+  ]
+  const detail = evidence.length ? `<ul class="strength-evidence">${evidence.map((line) => `<li>${line}</li>`).join('')}</ul>` : ''
+  const link = anchor ? `<a class="strength-link" href="#${anchor}" aria-label="See the full ${esc(card.label)} measure">See the full measure <span aria-hidden="true">&darr;</span></a>` : ''
+
+  return `<article class="strength-card">
+    <p class="strength-kicker">${esc(kicker)}</p>
+    <h3>${esc(title)}</h3>
+    ${primary}
+    ${detail}
+    ${link}
+  </article>`
+}
+
+/** Compact, fixed-comparator evidence immediately after the overall rating. */
+export function highlights(vm) {
+  const cards = (vm.highlights ?? []).slice(0, 3)
+  if (!cards.length) return null
+  const one = unit(vm)
+  return `<div class="strengths" aria-labelledby="strengths-title">
+    <div class="strengths-heading">
+      <p class="verdict-label">Evidence worth noticing</p>
+      <h2 id="strengths-title">Strengths and momentum</h2>
+    </div>
+    <div class="strengths-grid">${cards.map((card) => highlightCard(vm, card)).join('')}</div>
+    <p class="strengths-note"><strong>Selected positive signals, not a summary of performance.</strong> The same rules choose them on every page: only the latest one-year gain, results meaningfully above Texas or a similar-context average with broad reporting, and distinctive top-three placements. Demographics, staffing and spending cannot become academic &ldquo;wins.&rdquo; The overall rating and the full results below remain the complete picture for this ${one}.</p>
+  </div>`
 }
 
 /* ------------------------------------------------------------- trajectory -- */

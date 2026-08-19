@@ -12,7 +12,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   SECTIONS, HERO_ID, HERO_LABEL, claimSentence, verdict, trajectory, changeRankings, domains, outcomes,
-  students, spending, teachers, campuses, standouts, source, rankingHref, rankingPositions, boardPageOf,
+  students, spending, teachers, campuses, highlights, standouts, source, rankingHref, rankingPositions, boardPageOf,
   rankedBoard, officialWebsiteHref,
 } from '../../src/render/sections.js'
 import { PAGE_ROWS } from '../../src/render/rankings-page.js'
@@ -56,6 +56,7 @@ const empty = (over = {}) => ({
   own: {},
   ranks: [],
   standouts: [],
+  highlights: [],
   ...over,
 })
 
@@ -233,6 +234,114 @@ describe('verdict', () => {
     for (const html of SECTIONS.map((fn) => fn(full)).filter(Boolean)) {
       expect(html.match(/<section\b[^>]*\sid="[^"]+"/), html.slice(0, 80)).not.toBeNull()
     }
+  })
+})
+
+/* ----------------------------------------------------------- highlights -- */
+
+describe('strengths and momentum', () => {
+  const spring = [
+    {
+      id: 'gain:score', kind: 'gain', metric: 'score', metrics: ['score'], label: 'Overall score',
+      latestYear: '2025-26', previousYear: '2024-25',
+      evidence: [
+        { kind: 'change', metric: 'score', label: 'Overall score', fmt: 'points', fromValue: 65, toValue: 76, delta: 11, previousYear: '2024-25', latestYear: '2025-26' },
+        { kind: 'rank', period: 'change', metric: 'score', label: 'Overall score', fmt: 'points', cohort: 'region', cohortLabel: 'Region 04: Houston', rank: 1, of: 46, tied: 0, value: 11, lowerIsBetter: false },
+      ],
+    },
+    {
+      id: 'gain:domain:gaps', kind: 'gain', metric: 'domain:gaps', metrics: ['domain:gaps'], label: 'Closing the Gaps',
+      latestYear: '2025-26', previousYear: '2024-25',
+      evidence: [
+        { kind: 'change', metric: 'domain:gaps', label: 'Closing the Gaps', fmt: 'points', fromValue: 63, toValue: 77, delta: 14, previousYear: '2024-25', latestYear: '2025-26' },
+        { kind: 'benchmark', metric: 'domain:gaps', label: 'Closing the Gaps', fmt: 'points', cohort: 'peer', cohortLabel: 'Similar economic-disadvantage rate', cohortN: 217, metricN: 217, coverage: 1, value: 77, benchmark: 74.7, advantage: 2.3, lowerIsBetter: false },
+        { kind: 'rank', period: 'change', metric: 'domain:gaps', label: 'Closing the Gaps', fmt: 'points', cohort: 'region', cohortLabel: 'Region 04: Houston', rank: 1, of: 46, tied: 0, value: 14, lowerIsBetter: false },
+      ],
+    },
+    {
+      id: 'subject:math:peer', kind: 'subject-benchmark', metric: null,
+      metrics: ['staar:Math:1', 'staar:Math:2'], label: 'Math — Meets and Masters', latestYear: '2025-26',
+      evidence: [
+        { kind: 'benchmark', metric: 'staar:Math:1', label: 'Math — Meets', fmt: 'pct', cohort: 'peer', cohortLabel: 'Similar economic-disadvantage rate', cohortN: 217, metricN: 217, coverage: 1, value: 35, benchmark: 33.8, advantage: 1.2, lowerIsBetter: false },
+        { kind: 'benchmark', metric: 'staar:Math:2', label: 'Math — Masters', fmt: 'pct', cohort: 'peer', cohortLabel: 'Similar economic-disadvantage rate', cohortN: 217, metricN: 217, coverage: 1, value: 13, benchmark: 11.5, advantage: 1.5, lowerIsBetter: false },
+      ],
+    },
+  ]
+
+  it('renders no compliment when no rule finds supporting evidence', () => {
+    expect(highlights(empty())).toBeNull()
+    expect(verdict(empty())).not.toContain('Strengths and momentum')
+  })
+
+  it('puts Spring-style gains and peer results immediately inside the rating hero', () => {
+    const html = verdict(empty({ name: 'Spring ISD', highlights: spring }))
+    expect(html.indexOf('At a glance')).toBeLessThan(html.indexOf('Strengths and momentum'))
+    expect(html.indexOf('Strengths and momentum')).toBeLessThan(html.indexOf('Read the full rating context'))
+    expect(html).toContain('Overall score rose 11 points')
+    expect(html).toContain('65 to 76')
+    expect(html).toContain('Closing the Gaps rose 14 points')
+    expect(html).toContain('2.3 points above')
+    expect(html).toContain('217 districts with a similar economic-disadvantage rate')
+    expect(html).toContain('Math above similar-context averages at Meets and Masters')
+    expect(html).toContain('35%')
+    expect(html).toContain('33.8% avg')
+    expect(html).toContain('13%')
+    expect(html).toContain('11.5% avg')
+    // The selector must not silently rewrite these peer facts as statewide wins.
+    expect(html).not.toContain('Math above Texas')
+    expect(html).not.toContain('Closing the Gaps above the Texas')
+    expect(html).toContain('aria-label="See the full Overall score measure"')
+    expect(html).toContain('aria-label="See the full Closing the Gaps measure"')
+    expect(html).toContain('aria-label="See the full Math — Meets and Masters measure"')
+  })
+
+  it('states a change placement with its period, scope, denominator and tie', () => {
+    const tied = structuredClone(spring[0])
+    tied.evidence[1] = { ...tied.evidence[1], cohort: 'state', rank: 2, of: 100, tied: 1, cohortLabel: 'Texas' }
+    const html = highlights(empty({ highlights: [tied] }))
+    expect(html).toContain('Tied for 2nd of 100 Texas districts reporting both years for one-year gain')
+    expect(html).toContain('2 districts share that change')
+  })
+
+  it('writes a statewide current placement as a population, not “in Texas average”', () => {
+    const card = {
+      id: 'rank:attendance', kind: 'rank', metric: 'attendance', metrics: ['attendance'],
+      label: 'Attendance', latestYear: '2025-26',
+      evidence: [{ kind: 'rank', period: 'current', metric: 'attendance', label: 'Attendance', fmt: 'pct', cohort: 'state', cohortLabel: 'Texas average', rank: 2, of: 1_019, tied: 0, value: 98, lowerIsBetter: false }],
+    }
+    const html = highlights(empty({ highlights: [card] }))
+    expect(html).toContain('<strong>98%</strong>')
+    expect(html).toContain('2nd of 1,019 Texas districts reporting this measure')
+    expect(html).toContain('2025-26')
+    expect(html).toContain('of 1,019 Texas districts reporting this measure')
+    expect(html).not.toContain('in Texas average')
+  })
+
+  it('keeps the value, tie and direction visible for a lower-is-better rank', () => {
+    const card = {
+      id: 'rank:grad:3', kind: 'rank', metric: 'grad:3', metrics: ['grad:3'],
+      label: 'Dropout Rate', latestYear: '2025-26',
+      evidence: [{ kind: 'rank', period: 'current', metric: 'grad:3', label: 'Dropout Rate', fmt: 'pct', cohort: 'state', cohortLabel: 'Texas average', rank: 2, of: 981, tied: 1, value: 0.2, lowerIsBetter: true }],
+    }
+    const html = highlights(empty({ highlights: [card] }))
+    expect(html).toContain('<strong>0.2%</strong>')
+    expect(html).toContain('Tied for 2nd-lowest of 981 Texas districts reporting this measure')
+    expect(html).toContain('2 share this value')
+    expect(html).toContain('2025-26')
+  })
+
+  it('states separate reporting counts when Meets and Masters coverage differs', () => {
+    const card = structuredClone(spring[2])
+    card.evidence[1].metricN = 205
+    const html = highlights(empty({ highlights: [card] }))
+    expect(html).toContain('217 districts reporting Meets and 205 reporting Masters')
+  })
+
+  it('labels the block as selected evidence rather than an overall verdict', () => {
+    const html = highlights(empty({ highlights: spring }))
+    expect(html).toContain('Selected positive signals, not a summary of performance')
+    expect(html).toContain('same rules choose them on every page')
+    expect(html).toContain('Demographics, staffing and spending cannot become academic')
   })
 })
 

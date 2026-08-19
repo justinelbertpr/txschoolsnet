@@ -127,7 +127,7 @@ import { APPLE_TOUCH_ICON, BRAND, MARK_BARS, OG_IMAGE, faviconSvg, shell } from 
 import { renderAboutPage } from './render/about.js'
 import { renderDownloadPage, datasetCsv, entityCsv, entityJson } from './render/downloads.js'
 import { pinMetricPayloads } from './pin-metrics.js'
-import { RANKABLE, CHANGE_METRICS, MIN_POPULATION, rankingBundles, rankBy, changeMetrics, scopeKey } from './render/rankings.js'
+import { RANKABLE, CHANGE_METRICS, MIN_POPULATION, rankingBundles, rankBy, changeMetrics, rankEverywhere, scopeKey } from './render/rankings.js'
 import {
   DEFAULT_PLAN,
   PAGE_ROWS,
@@ -262,7 +262,7 @@ export function loadTables(dir) {
   }
 }
 
-const viewModelFor = (t, entity, snapshotDate) =>
+const viewModelFor = (t, entity, snapshotDate, { previousYear = null, recentChangeRanks = [] } = {}) =>
   buildViewModel({
     entity,
     entities: t.entities,
@@ -275,6 +275,8 @@ const viewModelFor = (t, entity, snapshotDate) =>
     achievement: t.achievement,
     snapshotDate,
     latestYear: t.latestYear,
+    previousYear,
+    recentChangeRanks,
   })
 
 /* ----------------------------------------------------------- brand assets -- */
@@ -401,17 +403,31 @@ const SHARD_TAG = 'txschools:prerender-shard'
  * One stripe of the entity list: pages, plus data files for the districts in it.
  *
  * `rankIndex` arrives through workerData (structured-cloned once per worker, a
- * few hundred strings) and is attached to each view model rather than computed
- * inside buildViewModel — view-model.js is not this step's to edit, and the
- * index is a fact about which FILES this run wrote, which only this step knows.
+ * few hundred strings) and is attached after the view model is built: it is a
+ * fact about which FILES this run wrote, which only this step knows. The compact
+ * recent-change index also arrives once per worker, but that one is data rather
+ * than navigation, so it is passed into buildViewModel and can become typed
+ * highlight evidence before the renderer or reporter JSON sees it.
  */
-async function renderShard({ dir, index, stride, snapshotDate, rankIndex = null, rankingsIndex = null }) {
+async function renderShard({
+  dir,
+  index,
+  stride,
+  snapshotDate,
+  rankIndex = null,
+  rankingsIndex = null,
+  recentChangeRanks = null,
+  previousYear = null,
+}) {
   const t = loadTables(dir)
   const stats = { pages: 0, district: 0, campus: 0, dataFiles: 0, htmlBytes: 0, dataBytes: 0, largest: null, linked: 0 }
 
   for (let i = index; i < t.entities.length; i += stride) {
     const e = t.entities[i]
-    const vm = viewModelFor(t, e, snapshotDate)
+    const vm = viewModelFor(t, e, snapshotDate, {
+      previousYear,
+      recentChangeRanks: recentChangeRanks?.[e.id] ?? [],
+    })
     const links = rankingLinksFor(rankIndex, e)
     if (rankingsIndex) vm.rankingsIndex = rankingsIndex
     if (links) {
@@ -682,6 +698,97 @@ export function rankingMetrics() {
     noun: String(m.label ?? ''),
   }))
   return [...RANKABLE, ...change]
+}
+
+/* --------------------------------------------------- recent change ranks -- */
+
+// Spending has history too, but a larger increase in nominal spending is not a
+// performance win. These are the six accountability measures for which a
+// positive point change has one clear meaning.
+const RECENT_CHANGE_KEYS = new Set([
+  'score',
+  'domain:achievement',
+  'domain:progress',
+  'domain:gaps',
+  'domain:progress_growth',
+  'domain:progress_relative',
+])
+
+/**
+ * The defensible one-year change placements available to each entity page.
+ *
+ * This is deliberately an index of facts, not a card selector. It retains both
+ * a statewide and a regional placement when both are exceptional; the page
+ * layer can then choose one without asking the ranking engine to run again.
+ * Conversely, ordinary gains never enter the index: a row must be published,
+ * positive by at least two points, top three, inside the exact top decile, and
+ * not owe its placement to a broad tie.
+ */
+export function recentChangeRankIndex({ entities = [], bundles = null, latestYear = null, previousYear = null } = {}) {
+  if (!Array.isArray(entities) || !bundles?.get || !latestYear || !previousYear || latestYear === previousYear) return {}
+
+  const out = {}
+  const metrics = CHANGE_METRICS.filter((metric) => RECENT_CHANGE_KEYS.has(metric.key))
+
+  for (const level of ['district', 'campus']) {
+    for (const metric of metrics) {
+      for (const kind of ['state', 'region']) {
+        const groups = rankEverywhere({
+          entities,
+          bundles,
+          metric,
+          kind,
+          level,
+          change: true,
+          from: previousYear,
+          to: latestYear,
+          latestYear,
+        })
+
+        for (const result of groups.values()) {
+          if (!result.published || !result.window) continue
+
+          for (const row of result.rows) {
+            if (row.delta < 2 || row.rank > 3 || row.rank / row.of > 0.1) continue
+            if (row.tied > Math.max(2, row.of * 0.02)) continue
+
+            ;(out[row.id] ??= []).push({
+              metric: metric.key,
+              label: metric.label,
+              fmt: metric.fmt,
+              cohort: kind,
+              cohortLabel: result.scope.label,
+              rank: row.rank,
+              of: row.of,
+              tied: row.tied,
+              value: row.value,
+              delta: row.delta,
+              from: row.from,
+              to: row.to,
+              fromYear: result.window.from,
+              toYear: result.window.to,
+            })
+          }
+        }
+      }
+    }
+  }
+
+  // Stable strongest-first order makes the structured-cloned index repeatable
+  // and gives its eventual selector a useful default without choosing cards
+  // here. A statewide placement wins an otherwise exact tie by its larger n.
+  for (const rows of Object.values(out)) {
+    rows.sort(
+      (a, b) =>
+        a.rank - b.rank ||
+        b.of - a.of ||
+        b.delta - a.delta ||
+        a.metric.localeCompare(b.metric) ||
+        a.cohort.localeCompare(b.cohort)
+    )
+  }
+
+  return out
 }
 
 /** State (both levels), every region, and the counties big enough to rank. */
@@ -1046,6 +1153,12 @@ export async function prerender({ concurrency } = {}) {
   // from one place and cannot drift.
   const tables = loadTables(dir)
   const bundles = rankingBundles({ ...tables, regionNames })
+  const recentChangeRanks = recentChangeRankIndex({
+    entities,
+    bundles,
+    latestYear: tables.latestYear,
+    previousYear: years[1] ?? null,
+  })
 
   // Pin comparisons need each selected entity's current measures, but putting
   // those measures in the statewide search payload would make every name search
@@ -1115,7 +1228,17 @@ export async function prerender({ concurrency } = {}) {
     Array.from({ length: stride }, (_, index) =>
       new Promise((resolve, reject) => {
         const w = new Worker(fileURLToPath(import.meta.url), {
-          workerData: { tag: SHARD_TAG, dir, index, stride, snapshotDate, rankIndex, rankingsIndex: rankingsIndexHref },
+          workerData: {
+            tag: SHARD_TAG,
+            dir,
+            index,
+            stride,
+            snapshotDate,
+            rankIndex,
+            rankingsIndex: rankingsIndexHref,
+            recentChangeRanks,
+            previousYear: years[1] ?? null,
+          },
         })
         w.once('message', resolve)
         w.once('error', reject)

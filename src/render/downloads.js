@@ -336,6 +336,7 @@ export function entityJson(vm, { space = 2 } = {}) {
       page: entityPath(vm),
       nullNote: 'null means TEA did not publish that figure. It does not mean zero.',
       numberNote: 'Numbers are unformatted: percentages are plain numbers, money is plain dollars.',
+      highlightsNote: 'highlights is a deterministic selection of positive evidence, not a summary or a separate source. Each item carries the values, years, benchmark coverage and ties that caused it to be selected.',
       license: 'The underlying figures are TEA public data and this site claims no rights in them. The structure, derived comparisons and ranks are free to reuse; a link back is appreciated.',
     },
 
@@ -377,6 +378,11 @@ export function entityJson(vm, { space = 2 } = {}) {
       peerAverage: vm.peerByYear?.[h.year] ?? null,
       stateAverage: vm.stateByYear?.[h.year] ?? null,
     })),
+
+    // The UI never gets a prose-only claim that the reporter file cannot audit.
+    // Keep the selector's typed evidence intact: endpoints, benchmark averages,
+    // reporting n, placement denominator and ties stay numeric and reusable.
+    highlights: vm.highlights ?? [],
 
     domains: (vm.domains ?? []).map((d) => ({
       key: d.domain,

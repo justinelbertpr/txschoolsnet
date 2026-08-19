@@ -435,6 +435,23 @@ describe('entityJson', () => {
     for (const c of doc.cohorts) expect(c.n).toBeGreaterThan(0)
   })
 
+  it('exports positive signals as typed evidence rather than unsupported prose', () => {
+    const withHighlight = JSON.parse(entityJson({
+      ...vm,
+      highlights: [{
+        id: 'gain:score', kind: 'gain', metric: 'score', metrics: ['score'], label: 'Overall score',
+        latestYear: '2025-26', previousYear: '2024-25',
+        evidence: [{ kind: 'change', metric: 'score', fmt: 'points', fromValue: 65, toValue: 76, delta: 11 }],
+      }],
+    }))
+    expect(withHighlight.highlights[0]).toMatchObject({ id: 'gain:score', kind: 'gain' })
+    expect(withHighlight.highlights[0].evidence[0]).toEqual(
+      expect.objectContaining({ fromValue: 65, toValue: 76, delta: 11 })
+    )
+    expect(typeof withHighlight.highlights[0].evidence[0].delta).toBe('number')
+    expect(withHighlight._meta.highlightsNote).toMatch(/not a summary/i)
+  })
+
   it('is deterministic — no wall-clock timestamp to churn the build', () => {
     expect(entityJson(vm)).toBe(entityJson(vm))
     expect(JSON.stringify(doc)).not.toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:/)

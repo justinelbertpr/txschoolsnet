@@ -132,6 +132,27 @@ describe('the Markdown export', () => {
     expect(md).not.toContain('Achievement87')
   })
 
+  it('keeps the evidence, years, comparator and denominator in the positive-signal summary', () => {
+    mount(verdict(vm({
+      highlights: [{
+        id: 'gain:domain:gaps', kind: 'gain', metric: 'domain:gaps', metrics: ['domain:gaps'],
+        label: 'Closing the Gaps', latestYear: '2025-26', previousYear: '2024-25',
+        evidence: [
+          { kind: 'change', metric: 'domain:gaps', label: 'Closing the Gaps', fmt: 'points', fromValue: 63, toValue: 77, delta: 14, previousYear: '2024-25', latestYear: '2025-26' },
+          { kind: 'benchmark', metric: 'domain:gaps', label: 'Closing the Gaps', fmt: 'points', cohort: 'peer', cohortLabel: 'Similar economic-disadvantage rate', cohortN: 217, metricN: 217, coverage: 1, value: 77, benchmark: 74.7, advantage: 2.3, lowerIsBetter: false },
+          { kind: 'rank', period: 'change', metric: 'domain:gaps', label: 'Closing the Gaps', fmt: 'points', cohort: 'region', cohortLabel: 'Region 04: Houston', rank: 1, of: 46, tied: 0, value: 14, lowerIsBetter: false },
+        ],
+      }],
+    })))
+    const md = pageMarkdown()
+    expect(md).toContain('## Strengths and momentum')
+    expect(md).toContain('### Closing the Gaps rose 14 points')
+    expect(md).toContain('63 to 77 2024-25 to 2025-26')
+    expect(md).toContain('2.3 points above the 74.7 average among 217 districts')
+    expect(md).toContain('1st of 46 districts in Region 04: Houston reporting both years for one-year gain')
+    expect(md).toContain('Selected positive signals, not a summary of performance')
+  })
+
   it('separates a disclosure label from the gloss beside it', () => {
     mount(campuses(vm({
       campuses: [{ name: 'Sample HS', slug: 'sample-hs-1', type: 'High School', rating: 'A', score: 94, enrollment: 100 }],

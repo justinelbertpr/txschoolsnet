@@ -31,6 +31,7 @@ import {
   rankingMetrics,
   rankingScopes,
   RANKING_PLAN,
+  recentChangeRankIndex,
 } from '../src/prerender.js'
 import { rankingCatalogue } from '../src/render/rankings-page.js'
 import { renderEntity } from '../src/render/page.js'
@@ -61,6 +62,89 @@ const vm = (over = {}) => ({
   ],
   ...over,
 })
+
+const RECENT_FROM = '2024-25'
+const RECENT_TO = '2025-26'
+const RECENT_METRICS = [
+  'score',
+  'domain:achievement',
+  'domain:progress',
+  'domain:gaps',
+  'domain:progress_growth',
+  'domain:progress_relative',
+]
+
+const recentChangeFixture = () => {
+  const entities = []
+  const bundles = new Map()
+  const add = ({ id, level, regionId, regionName, changes = {} }) => {
+    const series = {}
+    for (const metric of RECENT_METRICS) {
+      const delta = changes[metric] ?? 0
+      series[metric] = { [RECENT_FROM]: 50, [RECENT_TO]: 50 + delta }
+    }
+    // A large spending gain proves that the index only considers the six
+    // accountability measures, even though spending is change-capable too.
+    series.spend = { [RECENT_FROM]: 10_000, [RECENT_TO]: 20_000 }
+
+    entities.push({ id, level })
+    bundles.set(id, {
+      id,
+      name: id,
+      level,
+      regionId,
+      regionName,
+      isAlt: false,
+      score: series.score[RECENT_TO],
+      series,
+    })
+  }
+
+  // Thirty districts make third place exactly the edge of the top decile.
+  // Each non-score metric isolates one rule: a sub-two-point gain, a broad
+  // tie, an allowed two-way tie, and a fourth-place result.
+  for (let i = 0; i < 30; i += 1) {
+    add({
+      id: `d${String(i).padStart(2, '0')}`,
+      level: 'district',
+      regionId: '01',
+      regionName: 'Region 01: Edinburg',
+      changes: {
+        score: 30 - i,
+        'domain:achievement': i === 0 ? 1 : 0,
+        'domain:progress': i < 4 ? 8 : 0,
+        'domain:gaps': i === 0 ? 14 : 0,
+        'domain:progress_growth': i < 3 ? 7 : 0,
+        'domain:progress_relative': i < 4 ? 10 - i : 0,
+      },
+    })
+  }
+
+  // This region is too small to publish, but its best districts can still earn
+  // a statewide placement in the 35-district population.
+  for (let i = 0; i < 5; i += 1) {
+    add({
+      id: `thin${i}`,
+      level: 'district',
+      regionId: '02',
+      regionName: 'Region 02: Corpus Christi',
+      changes: { score: 40 - i },
+    })
+  }
+
+  // With twenty campuses, second place is top-decile and third is not.
+  for (let i = 0; i < 20; i += 1) {
+    add({
+      id: `c${String(i).padStart(2, '0')}`,
+      level: 'campus',
+      regionId: '03',
+      regionName: 'Region 03: Victoria',
+      changes: { score: 20 - i },
+    })
+  }
+
+  return { entities, bundles }
+}
 
 describe('entityPath', () => {
   it('names the file slug-then-id, because names are not unique', () => {
@@ -186,6 +270,70 @@ describe('hubPlan', () => {
     )
     expect(state.n).toBe(3)
     expect(state.avg).toBe(79.7)
+  })
+})
+
+describe('recentChangeRankIndex', () => {
+  const { entities, bundles } = recentChangeFixture()
+  const index = recentChangeRankIndex({
+    entities,
+    bundles,
+    latestYear: RECENT_TO,
+    previousYear: RECENT_FROM,
+  })
+
+  it('keeps a compact, fully-labelled placement from the explicit one-year window', () => {
+    const placement = index.d00.find((row) => row.metric === 'score' && row.cohort === 'region')
+    expect(placement).toEqual({
+      metric: 'score',
+      label: 'Overall score',
+      fmt: 'points',
+      cohort: 'region',
+      cohortLabel: 'Region 01: Edinburg',
+      rank: 1,
+      of: 30,
+      tied: 0,
+      value: 30,
+      delta: 30,
+      from: 50,
+      to: 80,
+      fromYear: RECENT_FROM,
+      toYear: RECENT_TO,
+    })
+  })
+
+  it('requires a two-point gain, a top-three top-decile rank, and a distinct tie', () => {
+    expect(index.d00.some((row) => row.metric === 'domain:achievement')).toBe(false) // only +1
+    expect(index.d00.some((row) => row.metric === 'domain:progress')).toBe(false) // tied with three
+
+    const allowedTie = index.d00.find((row) => row.metric === 'domain:progress_growth' && row.cohort === 'region')
+    expect(allowedTie).toMatchObject({ rank: 1, of: 30, tied: 2, delta: 7 })
+
+    // d03 is fourth for both score and Relative Performance and has no other
+    // qualifying result, so it never gets an index entry.
+    expect(index.d03).toBeUndefined()
+    expect(Object.values(index).flat().some((row) => row.metric === 'spend')).toBe(false)
+  })
+
+  it('covers campuses and both published scopes, while suppressing a thin region', () => {
+    const statewide = index.thin0.filter((row) => row.metric === 'score')
+    expect(statewide).toHaveLength(1)
+    expect(statewide[0]).toMatchObject({ cohort: 'state', cohortLabel: 'Texas', rank: 1, of: 35 })
+
+    const campusScopes = index.c01
+      .filter((row) => row.metric === 'score')
+      .map((row) => row.cohort)
+      .sort()
+    expect(campusScopes).toEqual(['region', 'state'])
+
+    // Third of 20 clears the top-three rule but is 15% down the ordering, not
+    // top-decile; rounded percentile arithmetic must not let it through.
+    expect(index.c02).toBeUndefined()
+  })
+
+  it('returns an empty plain object when there is no explicit two-year window', () => {
+    expect(recentChangeRankIndex({ entities, bundles, latestYear: RECENT_TO })).toEqual({})
+    expect(recentChangeRankIndex({ entities, bundles, latestYear: RECENT_TO, previousYear: RECENT_TO })).toEqual({})
   })
 })
 

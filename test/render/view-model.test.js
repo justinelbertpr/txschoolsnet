@@ -201,6 +201,7 @@ const build = (over = {}) => {
     raw: { region: 'Region 10', Enrollment: [10, 40, 45, 1, 3, 0, 1], Staff_Years: [5, 30, 25, 20, 15, 5] },
     snapshotDate: '15 August 2026',
     latestYear: LATEST,
+    previousYear: '2024-25',
     ...over,
   })
 }
@@ -220,6 +221,39 @@ describe('buildViewModel', () => {
   it('orders history newest first', () => {
     const vm = build()
     expect(vm.history.map((h) => h.year)).toEqual([LATEST, '2024-25', '2023-24'])
+  })
+
+  it('selects only fixed latest-year gains for the early evidence summary', () => {
+    const vm = build()
+    expect(vm.highlights.map((card) => card.id).slice(0, 2)).toEqual([
+      'gain:score',
+      'gain:domain:achievement',
+    ])
+    expect(vm.highlights[0].evidence[0]).toMatchObject({
+      kind: 'change',
+      fromValue: 62,
+      toValue: 64,
+      previousYear: '2024-25',
+      latestYear: LATEST,
+    })
+    expect(vm.highlights[1].evidence[0]).toMatchObject({
+      kind: 'change',
+      fromValue: 40,
+      toValue: 70,
+    })
+  })
+
+  it('merges a precomputed recent-change placement into the matching gain', () => {
+    const vm = build({
+      recentChangeRanks: [{
+        metric: 'score', label: 'Overall score', fmt: 'points', cohort: 'region',
+        cohortLabel: 'Region 10', rank: 1, of: 12, tied: 0, value: 2,
+        fromYear: '2024-25', toYear: LATEST,
+      }],
+    })
+    expect(vm.highlights.find((card) => card.metric === 'score').evidence).toContainEqual(
+      expect.objectContaining({ kind: 'rank', period: 'change', rank: 1, of: 12, cohortLabel: 'Region 10' })
+    )
   })
 
   it('publishes a denominator with every rank it states', () => {

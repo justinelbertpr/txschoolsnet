@@ -5,6 +5,7 @@ import { num, percentage, str } from '../normalize/entities.js'
 import { CCMR, GRADUATION, COMPLETION, DOMAIN_ORDER } from './labels.js'
 import { DOMAIN_LABELS } from '../normalize/domains.js'
 import { metricSpecs, sourceBundles, cohortMetrics, buildCohorts, rankAll, standouts } from './metrics.js'
+import { buildHighlights } from './highlights.js'
 
 export const slugify = (s) =>
   String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
@@ -112,7 +113,21 @@ const placement = ({ entity, pool, score }) => {
   return { rank: better + 1, of, tied }
 }
 
-export function buildViewModel({ entity, entities, ratings, allRatings, domains, finance, profile, raw, achievement, snapshotDate, latestYear }) {
+export function buildViewModel({
+  entity,
+  entities,
+  ratings,
+  allRatings,
+  domains,
+  finance,
+  profile,
+  raw,
+  achievement,
+  snapshotDate,
+  latestYear,
+  previousYear = null,
+  recentChangeRanks = [],
+}) {
   const ecoDis = new Map(profile.map((p) => [p.id, p.ecoDisPct]))
 
   // The cohort pool: same level, rated this year. Every n below comes from it.
@@ -163,8 +178,13 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
   const original = allRatings.find((r) => r.id === entity.id && r.method === 'original')
   const prof = profile.find((p) => p.id === entity.id) ?? null
 
-  const dom = domains
-    .filter((d) => d.id === entity.id && d.year === latestYear)
+  // Keep the entity's full domain series for the fixed latest-vs-previous-year
+  // highlight window. The page still renders only the current rows below; this
+  // second view exists solely so a positive-signal card can name both endpoints
+  // instead of searching history for whichever starting year looks best.
+  const entityDomains = domains.filter((d) => d.id === entity.id)
+  const dom = entityDomains
+    .filter((d) => d.year === latestYear)
     .map((d) => ({ ...d, label: DOMAIN_LABELS[d.domain] }))
     .sort((a, b) => DOMAIN_ORDER.indexOf(a.domain) - DOMAIN_ORDER.indexOf(b.domain))
 
@@ -191,6 +211,21 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
   })
   const own = cohortMetrics(specs, bundles, [entity.id])
   const ranks = rankAll({ entity, cohorts, bundles, specs, cohortIds })
+  const highlights = buildHighlights({
+    history,
+    domainHistory: entityDomains,
+    own,
+    cohorts,
+    ranks,
+    specs,
+    recentChangeRanks,
+    latestYear,
+    previousYear,
+    // Three is enough to establish a real strength without turning the top of
+    // the page into a press release. A fourth qualifying fact remains in the
+    // full comparisons/rankings below rather than being hidden from the site.
+    limit: 3,
+  })
 
   return {
     ...entity,
@@ -230,6 +265,7 @@ export function buildViewModel({ entity, entities, ratings, allRatings, domains,
     own,
     ranks,
     standouts: standouts(ranks),
+    highlights,
 
     staar:
       ach?.subject?.length && ach?.approach?.length
