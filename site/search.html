@@ -93,21 +93,29 @@
   <p class="sitesearch-hint" id="search-page-box-hint">Type at least two letters. Searches all 9,086 — 1,020 districts and 8,066 campuses — and names the district and county of each, because Texas school names repeat. <a href="/search">Browse the whole A&ndash;Z index</a>.</p>
   <p class="sr-only" data-search-status role="status" aria-live="polite"></p>
 </form><div class="addressfind" id="search-address-lookup" data-address-lookup data-address-index="/data/district-locator.json"
-  data-address-geocoder="https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress">
+  data-address-geocoder="https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress" data-address-streets="/data/address-streets">
   <details class="addressfind-details">
-    <summary><span>Find my district by address</span><small>Use a Texas home address</small></summary>
+    <summary><span>Find my district by address</span><small>Start with your house number and street</small></summary>
     <div class="addressfind-body">
       <form class="addressfind-form" method="get" action="/search" data-address-form>
-        <label class="addressfind-label" for="search-address">Texas home address</label>
+        <label class="addressfind-label" for="search-address">Home street address</label>
         <div class="addressfind-row">
-          <input class="addressfind-input" id="search-address" type="text" maxlength="100"
-            placeholder="Street address, city, TX ZIP" autocomplete="street-address"
-            enterkeyhint="search" aria-describedby="search-address-privacy search-address-status">
+          <div class="addressfind-combobox">
+            <input class="addressfind-input" id="search-address" type="text" maxlength="100"
+              placeholder="Start typing your address" autocomplete="off"
+              enterkeyhint="search" role="combobox" aria-autocomplete="list" aria-haspopup="listbox"
+              aria-expanded="false" aria-controls="search-address-suggestions"
+              aria-describedby="search-address-help search-address-privacy search-address-status">
+            <div class="addressfind-suggestions" data-address-suggestions hidden>
+              <ul class="addressfind-options" id="search-address-suggestions" role="listbox" aria-label="Texas address suggestions"></ul>
+            </div>
+          </div>
           <button class="addressfind-go" type="submit">Find my district</button>
         </div>
-        <p class="addressfind-privacy" id="search-address-privacy">Sent directly to the
+        <p class="addressfind-help" id="search-address-help">Apartment or unit number isn’t needed. Choose a suggestion, or enter the full street, city and ZIP yourself.</p>
+        <p class="addressfind-privacy" id="search-address-privacy">Suggestions use Census street data stored on txschools.net. Your address is not sent anywhere while you type. Your selected or manually entered address is sent directly to the
           <a href="https://geocoding.geo.census.gov/geocoder/Geocoding_Services_API.html" rel="external nofollow noreferrer">U.S. Census Bureau</a>
-          only when you press Find; txschools.net does not save it.</p>
+          only when you press Find. txschools.net does not save your address.</p>
         <p class="addressfind-status" id="search-address-status" role="status" aria-live="polite"></p>
         <div class="addressfind-result" id="search-address-result" tabindex="-1" hidden role="region" aria-label="Address lookup result"></div>
         <noscript><p class="addressfind-noscript">Address matching needs JavaScript. You can instead use the
@@ -132,15 +140,23 @@
  border:1px solid var(--line);border-radius:var(--radius)}
 .addressfind-label{display:block;margin:0 0 .35rem;font-weight:650}
 .addressfind-row{display:flex;align-items:stretch;gap:.5rem}
-.addressfind-input{flex:1 1 auto;min-width:0;font:inherit;font-size:1rem;line-height:1.3;padding:.7rem .75rem;
+.addressfind-combobox{position:relative;flex:1 1 auto;min-width:0}
+.addressfind-input{width:100%;min-width:0;font:inherit;font-size:1rem;line-height:1.3;padding:.7rem .75rem;
  color:var(--ink);background:var(--raised);border:1px solid var(--ink-3);border-radius:var(--radius)}
 .addressfind-input::placeholder{color:var(--ink-3)}
+.addressfind-suggestions{position:absolute;z-index:40;inset:calc(100% + .2rem) 0 auto;max-height:min(40dvh,18rem);overflow-y:auto;
+ overscroll-behavior:contain;padding:.25rem 0;background:var(--raised);border:1px solid var(--line);border-radius:var(--radius);
+ box-shadow:0 .55rem 1.4rem color-mix(in srgb,var(--ink) 18%,transparent)}
+.addressfind-options{margin:0;padding:0;list-style:none}
+.addressfind-option{display:flex;align-items:center;min-height:2.75rem;margin:0;padding:.62rem .75rem;cursor:pointer;line-height:1.35;color:var(--ink)}
+.addressfind-option:hover,.addressfind-option[aria-selected="true"]{background:color-mix(in srgb,var(--accent) 13%,var(--raised));color:var(--ink)}
+.addressfind-option[aria-selected="true"]{box-shadow:inset 3px 0 var(--accent)}
 .addressfind-go{flex:none;font:inherit;font-weight:650;padding:.7rem .9rem;cursor:pointer;color:var(--surface);
  background:var(--accent);border:1px solid var(--accent);border-radius:var(--radius)}
 .addressfind-go:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
 .addressfind-go:disabled{cursor:wait;opacity:.68}
 .addressfind :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.addressfind-privacy,.addressfind-status,.addressfind-noscript{margin:.5rem 0 0;font-size:.78rem;line-height:1.45;color:var(--ink-3)}
+.addressfind-help,.addressfind-privacy,.addressfind-status,.addressfind-noscript{margin:.5rem 0 0;font-size:.78rem;line-height:1.45;color:var(--ink-3)}
 .addressfind-status:empty{display:none}
 .addressfind-result{margin:.8rem 0 0;padding:.8rem;border-left:3px solid var(--accent);background:var(--ground);color:var(--ink)}
 .addressfind-result:focus{outline:0}
@@ -155,6 +171,9 @@
 .addressfind-disclaimer{margin:.7rem 0 0;font-size:.78rem;line-height:1.45;color:var(--ink-3)}
 .hero-home .addressfind{border-color:color-mix(in srgb,var(--hero-ink) 22%,transparent)}
 .hero-home .addressfind-details>summary small{color:color-mix(in srgb,var(--hero-ink) 68%,transparent)}
+.hero-home .addressfind-row{display:grid;grid-template-columns:minmax(0,1fr)}
+.hero-home .addressfind-suggestions{position:static;max-height:min(40dvh,16rem);margin-top:.2rem}
+.hero-home .addressfind-go{min-height:2.75rem;width:100%}
 .hero-home .addressfind-form a{color:var(--accent)}
 .hero-home .addressfind-form .addressfind-action-primary{color:var(--surface)}
 @media(max-width:44rem){
@@ -163,6 +182,7 @@
  .addressfind-details>summary:after{position:absolute;right:0}
  .addressfind-details{position:relative}
  .addressfind-row{display:grid;grid-template-columns:minmax(0,1fr)}
+ .addressfind-suggestions{position:static;max-height:min(40dvh,16rem);margin-top:.2rem}
  .addressfind-go{min-height:2.75rem;width:100%}
 }</style>
   <p class="lede">Type a name above, or browse the lists below. Every entry names its district and county,
