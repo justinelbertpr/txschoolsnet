@@ -12,6 +12,7 @@
 import { esc, grade, navList, num, section, shell, statGrid, table, SITE_ORIGIN } from './shell.js'
 import { entitySlug, slugify } from './view-model.js'
 import { renderSearch, SEARCH_PATH } from './search.js'
+import { ADDRESS_SCRIPT_PATH, renderAddressLookup } from './address.js'
 
 /* ------------------------------------------------------------- primitives -- */
 
@@ -713,7 +714,7 @@ export function renderHomePage({
     ? `${num(c.districts)} districts &middot; ${num(c.campuses)} campuses`
     : 'Traditional public schools: Districts and campuses, by region, county and name'
 
-  const search = renderSearch({
+  const searchByName = renderSearch({
     variant: 'hero',
     counts: c,
     // No autofocus: the box is already the first thing on the page, and
@@ -729,12 +730,14 @@ export function renderHomePage({
     // The shell emits the header instance's assets once per page.
     assets: false,
   })
+  const search = `${searchByName}${renderAddressLookup({ id: 'home-address' })}`
 
   return shell({
     title: 'Traditional Texas public school ratings — find a district or school',
     description:
       'Search traditional Texas public school districts and their campuses by name, then read the A–F accountability ratings the Texas Education Agency published, with ranks, five years of history and comparisons against schools serving a similar share of economically disadvantaged students. Open-enrollment charters are not included. Unofficial.',
     canonical: `${SITE_ORIGIN}/`,
+    scripts: [ADDRESS_SCRIPT_PATH],
     crumbs: [],
     sections: [
       homeHero({ place, search }),

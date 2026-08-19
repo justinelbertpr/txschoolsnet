@@ -45,15 +45,19 @@ export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem('theme');if(t==
  *
  * createScriptURL exists only because gtag.js loads a second script by
  * assigning to .src, which is that sink; without it, analytics threw on every
- * page. It is an ALLOWLIST, not a pass-through: same-origin plus the two
- * Google hosts the tag actually fetches from, and anything else throws. A
+ * page. The address finder likewise creates one JSONP script because the Census
+ * geocoder explicitly does not support CORS. It is an ALLOWLIST, not a
+ * pass-through: same-origin plus the exact Google hosts and exact Census
+ * geographies endpoint those two features fetch from. The Census URL must also
+ * carry this site's JSONP callback shape and fixed benchmark/vintage/layer;
+ * anything else throws. A
  * pass-through implementation here would have quietly cancelled the
  * protection this whole policy exists to provide. The
  * trusted-types directive in site/_headers restricts policy creation to
  * exactly this name, so nothing else — vendored, injected, or otherwise —
  * can register a competing "default" and intercept these sinks first.
  */
-export const TRUSTED_TYPES_INIT_SCRIPT = `if(window.trustedTypes&&trustedTypes.createPolicy){try{trustedTypes.createPolicy('default',{createHTML:function(s){return s},createScriptURL:function(u){var a=['https://www.googletagmanager.com/','https://www.google-analytics.com/'];for(var i=0;i<a.length;i++){if(u.indexOf(a[i])===0)return u}if(u.indexOf('/')===0||u.indexOf(location.origin+'/')===0)return u;throw new TypeError('blocked script url: '+u)}})}catch(e){}}`
+export const TRUSTED_TYPES_INIT_SCRIPT = `if(window.trustedTypes&&trustedTypes.createPolicy){try{trustedTypes.createPolicy('default',{createHTML:function(s){return s},createScriptURL:function(u){var a=['https://www.googletagmanager.com/','https://www.google-analytics.com/'];for(var i=0;i<a.length;i++){if(u.indexOf(a[i])===0)return u}try{var x=new URL(u,location.origin);if(x.origin===location.origin)return u;var k=['address','benchmark','vintage','layers','format','callback'],n=0,one=1;x.searchParams.forEach(function(){n++});for(var j=0;j<k.length;j++){if(x.searchParams.getAll(k[j]).length!==1)one=0}var q=x.searchParams.get('address')||'';if(x.origin==='https://geocoding.geo.census.gov'&&x.pathname==='/geocoder/geographies/onelineaddress'&&n===k.length&&one&&q.length>0&&q.length<=100&&x.searchParams.get('format')==='jsonp'&&/^__txschoolsAddress\\d+_\\d+$/.test(x.searchParams.get('callback')||'')&&x.searchParams.get('benchmark')==='Public_AR_Current'&&x.searchParams.get('vintage')==='Current_Current'&&x.searchParams.get('layers')==='Unified School Districts')return u}catch(e){}throw new TypeError('blocked script url: '+u)}})}catch(e){}}`
 
 /**
  * Google Analytics 4, at the site owner's request.

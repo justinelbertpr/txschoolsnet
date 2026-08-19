@@ -5,46 +5,23 @@
 //
 // What the site actually generates (see the FILE BUDGET note in src/prerender.js):
 //
-//     entity pages                          10,230   one per district and campus
-//     county pages                             253
-//     letter pages                              26   /districts/a .. /z
-//     search letter pages                       26   /search/a .. /z
-//     region pages                              20
-//     per-district CSV + JSON                2,398   1,199 districts x 2 formats
+//     entity pages                           9,086   1,020 districts + 8,066 campuses
+//     region/county/letter/search hubs         325
+//     per-district reporter CSV + JSON       2,040   1,020 districts x 2 formats
+//     pin metric bundles                     1,020   one per district, campuses inside
+//     ranking board pages + CSVs               391
 //     bulk CSVs                                  3
-//     home, about, download, search               4
-//     sitemap.xml, _headers                      2   _redirects is deliberately
-//                                                     never written — see the note
-//                                                     at the top of src/prerender.js
-//     404.html, style.css, app.js, search.js     4
-//     dashboard payload, search index            2
-//     favicon.svg, og.png,
-//       apple-touch-icon.png                     3
-//     ranking board pages + CSVs               395   114 boards (metric x scope,
-//                                                     ONE flattering end per
-//                                                     ordering — the site owner's
-//                                                     call not to compile a
-//                                                     "worst of" list; see Rule 3,
-//                                                     src/render/rankings-page.js)
-//                                                     spread over 280 pages of 500
-//                                                     rows, + the /rankings index
-//                                                     + 114 CSVs, one whole
-//                                                     ordering each — see THE FILE
-//                                                     BUDGET in src/prerender.js
+//     shell/map/search/address/data assets       26
 //     ------------------------------------------
-//                                           13,366   4,634 under the guard
+//                                           12,891   5,109 under the guard
 //
-// The rows above the ranking-boards one are not re-measured here; they were
-// already approximate before this edit and are not what changed. The ranking
-// row is: it used to publish both ends of every ordering (513 files) and now
-// publishes one (229) — see THE FILE BUDGET in src/prerender.js for the
-// measured breakdown this halving comes from.
-//
-// The line that matters is the per-entity one. Campus CSV and JSON are NOT
-// generated: 10,230 entities x 2 formats is 20,460 files on its own, past the
+// Measured from the 2026-08 traditional-public-school build. The line that
+// matters is the per-entity one. Campus CSV and JSON are NOT
+// generated: 9,086 entities x 2 formats is 18,172 files on its own, past the
 // hard cap before a single page is counted. If a future change starts writing
 // per-campus data files, this guard is what stops it — read the note in
-// src/prerender.js before raising the limit rather than after.
+// src/prerender.js before raising the limit rather than after. Pin measures fit
+// because they are grouped into 1,020 district bundles, not 8,066 campus files.
 
 import { readdir } from 'node:fs/promises'
 

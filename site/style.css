@@ -699,12 +699,31 @@ code {
   text-transform: uppercase; color: var(--ink-3);
 }
 .place { margin: 0; color: var(--ink-2); font-size: var(--t-meta); }
-/* Only where TEA published a website for this entity — never a placeholder,
-   never a guess. An action, not a description, so it gets its own line
-   rather than joining .place's middle-dot list. */
-.enroll { margin: .5rem 0 0; font-size: var(--t-meta); font-weight: 600; }
-.enroll a { color: var(--accent-2); }
-.enroll a:hover { color: var(--accent-2); filter: brightness(.85); }
+/* Only where TEA published a safe website for this entity — never a
+   placeholder and never a guessed destination. On a district page this is the
+   parent's next action after reading the data, so it says what the official
+   site is useful for instead of hiding behind a generic external link. */
+.enroll { margin: .7rem 0 0; font-size: var(--t-meta); }
+.enroll a {
+  display: inline-flex; align-items: center; gap: .9rem;
+  max-width: 100%; padding: .7rem .85rem;
+  color: var(--ink); background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  border-radius: .7rem; text-decoration: none;
+}
+.enroll a:hover {
+  color: var(--ink); background: color-mix(in srgb, var(--accent) 11%, var(--surface));
+  border-color: var(--accent);
+}
+.enroll-copy { display: flex; min-width: 0; flex-direction: column; gap: .08rem; }
+.enroll-copy strong { color: var(--accent); font-size: var(--t-meta); font-weight: 750; }
+.enroll-copy > span { color: var(--ink-2); font-size: var(--t-small); font-weight: 500; }
+.enroll-arrow {
+  display: grid; place-items: center; flex: 0 0 1.75rem;
+  width: 1.75rem; height: 1.75rem; margin-left: auto;
+  color: var(--surface); background: var(--accent); border-radius: 50%;
+  font-size: .9rem; font-weight: 750;
+}
 .lede { color: var(--ink-2); max-width: var(--measure); margin: .35rem 0 0; }
 .note { color: var(--ink-2); max-width: var(--measure); font-size: var(--t-meta); margin: .85rem 0 0; }
 .na { color: var(--ink-3); font-style: italic; }
@@ -1179,7 +1198,7 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 .hbar {
   display: grid; align-items: center;
   grid-template-columns: minmax(6rem, 12rem) minmax(0, 1fr) auto;
-  grid-template-areas: 'label track value' 'sub sub sub';
+  grid-template-areas: 'label track value' 'sub sub sub' 'pins pins pins';
   gap: .2rem .75rem;
   padding: .55rem 0;
   border-bottom: 1px solid var(--line-2);
@@ -1191,6 +1210,20 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
   font-weight: 650; font-size: var(--t-body); min-width: 2.5ch; text-align: right;
 }
 .hbar-sub { grid-area: sub; font-size: var(--t-micro); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.hbar-pin-sub {
+  grid-area: pins; display: block;
+  font-size: var(--t-micro); line-height: 1.45;
+  color: var(--ink-2); font-variant-numeric: tabular-nums;
+}
+.hbar-pin-lead { color: var(--ink-3); }
+.hbar-pin-value { white-space: normal; }
+.hbar-pin-key {
+  display: inline-grid; place-items: center;
+  width: 1.15rem; height: 1.15rem; margin-right: .25rem;
+  border: 1px solid hsl(var(--pin-hue, 220) 72% var(--pin-l));
+  border-radius: 999px; color: var(--ink); background: var(--surface);
+  font-size: .62rem; font-weight: 750; line-height: 1;
+}
 .hbar-track {
   grid-area: track; position: relative; display: block;
   height: .9rem; border-radius: 0;
@@ -1235,7 +1268,7 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 .hbar-group-meta { color: var(--ink-3); font-size: var(--t-micro); }
 .hbar-group-disclosure > .hbars { margin: .15rem 0 .75rem; }
 @media (max-width: 34rem) {
-  .hbar { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'label value' 'track track' 'sub sub'; }
+  .hbar { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'label value' 'track track' 'sub sub' 'pins pins'; }
   .hbar-group-meta { display: none; }
 }
 

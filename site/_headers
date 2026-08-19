@@ -1,8 +1,9 @@
 # site/data/ holds two kinds of file: content-hashed ones whose name changes
 # when the content does (payload-<hash>.json), and stable-named ones a build
-# simply overwrites in place (the bulk CSVs, the per-district CSV/JSON, and
-# search-index.json). A year-long immutable cache is only honest for the
-# first kind, so the rules below are scoped per file rather than one blanket
+# simply overwrites in place (the bulk CSVs, the per-district CSV/JSON, the
+# per-district pin bundles, search-index.json and district-locator.json). A
+# year-long immutable cache is only honest for the first kind, so the rules
+# below are scoped per file rather than one blanket
 # /data/* rule.
 #
 # This also has to be done as several non-overlapping patterns rather than a
@@ -36,6 +37,18 @@
 /data/search-index.json
   Cache-Control: public, max-age=3600
 
+# The Census GEOID-to-local-profile bridge is rebuilt under this stable name
+# with every boundary/data refresh. Keep it aligned with the current site rather
+# than letting a previous snapshot remain immutable in a returning browser.
+/data/district-locator.json
+  Cache-Control: public, max-age=3600
+
+# One stable filename per district, rebuilt with every snapshot. These are
+# lazy-loaded only after a reader pins an entity, and an hour keeps repeat pins
+# cheap without allowing a previous snapshot to persist for a year.
+/data/pins/*
+  Cache-Control: public, max-age=3600
+
 # ---------------------------------------------------------------------------
 # SECURITY HEADERS — every response, via /*, which Cloudflare's format treats
 # as matching everything. No header name below collides with a Cache-Control
@@ -49,8 +62,8 @@
 # rendered HTML, so "list exactly what's really there" costs nothing and
 # "allow broad categories just in case" would buy nothing.
 #
-#   script-src   'self' covers the three same-origin module/external scripts
-#                (/app.js, /search.js, /rankings.js — all <script src=...>,
+#   script-src   'self' covers the same-origin module/external scripts
+#                (/app.js, /search.js, /address.js, /rankings.js — all <script src=...>,
 #                loaded from this origin only). Every *inline* <script> the
 #                build ever emits is one of three byte-identical constants —
 #                THEME_INIT_SCRIPT and TRUSTED_TYPES_INIT_SCRIPT in
@@ -91,6 +104,13 @@
 #                instrumentation; remove both if that zone setting is ever
 #                turned off.
 #
+#                geocoding.geo.census.gov is restricted to the one documented
+#                geographies/onelineaddress endpoint the address finder uses.
+#                Census does not support CORS and explicitly documents JSONP
+#                for browser clients; shell.js's Trusted Types policy further
+#                requires the fixed benchmark, vintage, district layer and this
+#                site's callback pattern before accepting the dynamic URL.
+#
 #   style-src    'unsafe-inline' is deliberate, not an oversight: the one
 #                static <style> block (src/render/search.js's searchAssets,
 #                byte-identical on every page) could be hashed, but every
@@ -124,7 +144,7 @@
 # unconditionally — wrangler.jsonc's custom_domain is already HTTPS-only, so
 # there is no plain-HTTP origin this could ever lock a reader out of.
 /*
-  Content-Security-Policy: default-src 'none'; script-src 'self' https://www.googletagmanager.com 'sha256-wBdtWdXsHnAU2DdByySW4LlXFAScrBvmBgkXtydwJdg=' 'sha256-g7PRiyOM8WbluqGDQOyQeJlkbGDOQRSC8n08jquA8mc=' 'sha256-b3FhZxwL6eGhRO/NVQ9RUwptDN+GB1ks5O5u1LU8FSw=' 'sha256-PiJjrtl4vqQqu+0o5I9S5RQz6NEFIbhAU7prdNQpiVE=' https://static.cloudflareinsights.com https://*.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com; font-src 'self'; connect-src 'self' https://static.cloudflareinsights.com https://*.cloudflareinsights.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; require-trusted-types-for 'script'; trusted-types default; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'none'; script-src 'self' https://www.googletagmanager.com https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress 'sha256-wBdtWdXsHnAU2DdByySW4LlXFAScrBvmBgkXtydwJdg=' 'sha256-1T7wxy1lJpxN+V5V2NyExtYgm/RlXONHoqaOmI6zQC4=' 'sha256-b3FhZxwL6eGhRO/NVQ9RUwptDN+GB1ks5O5u1LU8FSw=' 'sha256-PiJjrtl4vqQqu+0o5I9S5RQz6NEFIbhAU7prdNQpiVE=' https://static.cloudflareinsights.com https://*.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com; font-src 'self'; connect-src 'self' https://static.cloudflareinsights.com https://*.cloudflareinsights.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; require-trusted-types-for 'script'; trusted-types default; upgrade-insecure-requests
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin
   X-Frame-Options: DENY

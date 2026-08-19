@@ -57,6 +57,7 @@
 
 import { esc, navList, num, section, shell, SITE_ORIGIN } from './shell.js'
 import { entitySlug, slugify } from './view-model.js'
+import { ADDRESS_SCRIPT_PATH, renderAddressLookup } from './address.js'
 
 /** Where the lazy-loaded index lives, and where the no-JS form lands. */
 export const SEARCH_INDEX_PATH = '/data/search-index.json'
@@ -338,6 +339,7 @@ export function renderSearchPage({ districts = [], campuses = [], letter = null,
       // the footer), so a second copy here would just be extra bytes.
       assets: false,
     })
+  const addressBox = renderAddressLookup({ id: 'search-address' })
 
   if (!l) {
     const stray = [...ds, ...cs].filter((e) => searchLetter(e.name) == null).sort(byName)
@@ -347,13 +349,14 @@ export function renderSearchPage({ districts = [], campuses = [], letter = null,
         counts.districts
       )} districts and ${num(counts.campuses)} campuses — each listed with its district and county.`,
       canonical: `${SITE_ORIGIN}${SEARCH_PATH}`,
+      scripts: [ADDRESS_SCRIPT_PATH],
       crumbs: [{ href: '/', label: 'Texas schools', current: 'Find a school' }],
       sections: [
         heroBlock({
           eyebrow: 'Search',
           title: 'Find a school or district',
           place: `${num(counts.districts)} districts &middot; ${num(counts.campuses)} campuses`,
-          extra: box(true),
+          extra: `${box(true)}${addressBox}`,
           lede: `Type a name above, or browse the lists below. Every entry names its district and county,
             because Texas has 11 district names and 464 campus names that more than one school shares.`,
         }),
@@ -392,6 +395,7 @@ export function renderSearchPage({ districts = [], campuses = [], letter = null,
     title: `Texas schools and districts starting with ${L}`,
     description: `The ${num(dl.length + cl.length)} Texas public school districts and campuses whose name begins with ${L}, each listed with its district and county.`,
     canonical: `${SITE_ORIGIN}${SEARCH_PATH}/${l}`,
+    scripts: [ADDRESS_SCRIPT_PATH],
     crumbs: [
       { href: '/', label: 'Texas schools' },
       { href: SEARCH_PATH, label: 'Find a school', current: `Names starting with ${L}` },
@@ -401,7 +405,7 @@ export function renderSearchPage({ districts = [], campuses = [], letter = null,
         eyebrow: 'Search index',
         title: `Names starting with ${L}`,
         place: `${num(dl.length)} districts &middot; ${num(cl.length)} campuses`,
-        extra: box(false),
+        extra: `${box(false)}${addressBox}`,
       }),
       section('letters', 'Jump to another letter', letterNav(perLetter, l)),
       section(

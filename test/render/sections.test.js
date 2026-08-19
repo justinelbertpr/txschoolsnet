@@ -13,7 +13,7 @@ import { describe, it, expect } from 'vitest'
 import {
   SECTIONS, HERO_ID, HERO_LABEL, claimSentence, verdict, trajectory, changeRankings, domains, outcomes,
   students, spending, teachers, campuses, standouts, source, rankingHref, rankingPositions, boardPageOf,
-  rankedBoard,
+  rankedBoard, officialWebsiteHref,
 } from '../../src/render/sections.js'
 import { PAGE_ROWS } from '../../src/render/rankings-page.js'
 
@@ -174,6 +174,26 @@ describe('verdict', () => {
     expect(verdict(empty({ name: 'A <b>B</b> ISD' }))).toContain('A &lt;b&gt;B&lt;/b&gt; ISD')
   })
 
+  it('makes the official district site a clear enrollment action', () => {
+    const html = verdict(empty({ website: 'www.dallasisd.org' }))
+    expect(html).toContain('href="https://www.dallasisd.org/"')
+    expect(html).toContain('<strong>Official district website</strong>')
+    expect(html).toContain('Enrollment, registration and eligibility')
+    expect(html).toContain('rel="external nofollow"')
+  })
+
+  it('uses school-specific official-site wording on a campus page', () => {
+    const html = verdict(empty({ level: 'campus', website: 'schools.example.org/campus' }))
+    expect(html).toContain('<strong>Official school website</strong>')
+    expect(html).toContain('School information and family resources')
+    expect(html).not.toContain('Enrollment, registration and eligibility')
+  })
+
+  it('omits the action when TEA did not publish a safe website', () => {
+    expect(verdict(empty({ website: null }))).not.toContain('class="enroll')
+    expect(verdict(empty({ website: 'javascript:alert(1)' }))).not.toContain('class="enroll')
+  })
+
   /* The cohort switch moved to the rail. What is asserted here is that it left
      the hero and that nothing it was sitting next to left with it — the verdict
      and the intervention alert are the reasons the hero exists. */
@@ -213,6 +233,24 @@ describe('verdict', () => {
     for (const html of SECTIONS.map((fn) => fn(full)).filter(Boolean)) {
       expect(html.match(/<section\b[^>]*\sid="[^"]+"/), html.slice(0, 80)).not.toBeNull()
     }
+  })
+})
+
+describe('officialWebsiteHref', () => {
+  it('adds https to the bare hosts TEA usually publishes', () => {
+    expect(officialWebsiteHref(' www.cayugaisd.com/path ')).toBe('https://www.cayugaisd.com/path')
+  })
+
+  it('does not double-prefix the fully qualified URLs TEA sometimes publishes', () => {
+    expect(officialWebsiteHref('https://www.fortbendisd.gov/')).toBe('https://www.fortbendisd.gov/')
+    expect(officialWebsiteHref('http://district.example.org')).toBe('http://district.example.org/')
+  })
+
+  it('rejects non-web schemes, credentials and malformed values', () => {
+    expect(officialWebsiteHref('javascript:alert(1)')).toBeNull()
+    expect(officialWebsiteHref('https://district.example.org@malicious.example')).toBeNull()
+    expect(officialWebsiteHref('not a website')).toBeNull()
+    expect(officialWebsiteHref('')).toBeNull()
   })
 })
 

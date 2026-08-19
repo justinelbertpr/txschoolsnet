@@ -28,6 +28,32 @@ const plural = (n, one, many = `${one}s`) => `${num(n)} ${n === 1 ? one : many}`
 // TEA's own word stays correct where it names TEA's own methodology, on /about.
 const unit = (vm) => (vm.level === 'district' ? 'district' : 'school')
 
+/**
+ * Turn TEA's website field into a link without guessing at anything beyond a
+ * missing scheme. Most rows are bare hosts, while a handful already carry an
+ * https:// prefix; blindly prepending one breaks those links. The field is
+ * external data, so only ordinary web URLs survive. A malformed value or a
+ * non-web scheme produces no link rather than putting an unsafe href on every
+ * generated entity page.
+ */
+export const officialWebsiteHref = (value) => {
+  if (typeof value !== 'string' || !value.trim()) return null
+  const raw = value.trim()
+  const candidate = raw.startsWith('//')
+    ? `https:${raw}`
+    : /^[a-z][a-z\d+.-]*:/i.test(raw)
+      ? raw
+      : `https://${raw}`
+
+  try {
+    const url = new URL(candidate)
+    if (!['http:', 'https:'].includes(url.protocol) || !url.hostname || url.username || url.password) return null
+    return url.href
+  } catch {
+    return null
+  }
+}
+
 // One number, one noun. "up 1 points" is the same defect as "1 years".
 const points = (n) => `${num(n)} ${n === 1 ? 'point' : 'points'}`
 
@@ -371,12 +397,18 @@ export function verdict(vm) {
   const plainSummary = latest?.score == null
     ? summary
     : [direction, context].filter(Boolean).join(' ') || 'Use the sections below to read the trend, score components and student outcomes.'
+  const officialHref = officialWebsiteHref(vm.website)
+  const officialLink = !officialHref
+    ? ''
+    : vm.level === 'district'
+      ? `<p class="enroll"><a href="${esc(officialHref)}" rel="external nofollow"><span class="enroll-copy"><strong>Official district website</strong><span>Enrollment, registration and eligibility</span></span><span class="enroll-arrow" aria-hidden="true">&nearr;</span></a></p>`
+      : `<p class="enroll enroll-school"><a href="${esc(officialHref)}" rel="external nofollow"><span class="enroll-copy"><strong>Official school website</strong><span>School information and family resources</span></span><span class="enroll-arrow" aria-hidden="true">&nearr;</span></a></p>`
 
   return `<section class="hero" id="${HERO_ID}" data-rail-label="${esc(HERO_LABEL)}">
   <p class="eyebrow">${kind} &middot; Traditional${vm.isAlt ? ' &middot; Alternative Education Accountability' : ''}</p>
   <h1>${esc(vm.name)}</h1>
   <p class="place">${esc(vm.county)} County &middot; ${esc(vm.regionName)}${vm.enrollment ? ` &middot; ${plural(vm.enrollment, 'student')}` : ''}</p>
-  ${vm.website ? `<p class="enroll"><a href="https://${esc(vm.website)}" rel="nofollow">Visit the official ${one} website <span aria-hidden="true">&nearr;</span></a></p>` : ''}
+  ${officialLink}
   ${factGrid}
   <div class="verdict">
     ${grade(latest?.rating, latest?.score, 'lg')}

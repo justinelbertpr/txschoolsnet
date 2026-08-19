@@ -622,3 +622,26 @@ describe('the cohort switch targets the current HTML bar contract', () => {
     expect(js).toContain("if (v == null) { open = false; return '' }")
   })
 })
+
+describe('pin comparisons extend the keyed bar contract', () => {
+  const js = readFileSync(new URL('../../site/app.js', import.meta.url), 'utf8')
+
+  it('lazy-loads one validated district bundle and caches it', () => {
+    expect(js).toContain("if (!/^\\d{6}(?:\\d{3})?$/.test(rec.id))")
+    expect(js).toContain('pinMetricAssets.has(districtId)')
+    expect(js).toContain('fetch(`/data/pins/${districtId}.json`')
+    expect(js).toContain("payload?.version !== 1")
+  })
+
+  it('publishes a visible value or an explicit not-reported label beside every matching bar', () => {
+    expect(js).toContain("mark.className = 'hbar-mark hbar-mark-pin'")
+    expect(js).toContain("sub.className = 'hbar-pin-sub'")
+    expect(js).toContain("value === null ? 'not reported'")
+    expect(js).toContain("mark.setAttribute('aria-hidden', 'true')")
+  })
+
+  it('keeps full current metrics out of sessionStorage', () => {
+    expect(js).toContain('const storedPin = ({ id, name, label, level, hue, byYear })')
+    expect(js).toContain('[...pinned.values()].map(storedPin)')
+  })
+})

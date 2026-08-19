@@ -126,11 +126,11 @@ const railPins = (payload) =>
   !payload
     ? ''
     : `  <div class="rail-block rail-pins">
-    <h2 class="rail-title">Pin to the chart</h2>
-    <p class="rail-hint">Add up to five schools or districts to the trajectory chart.</p>
-    <input class="pin-search" type="search" placeholder="Search schools and districts" aria-label="Search schools and districts to add to the chart" autocomplete="off">
+    <h2 class="rail-title">Pin comparisons</h2>
+    <p class="rail-hint">Add up to five schools or districts to compare their trajectory and matching current measures.</p>
+    <input class="pin-search" type="search" placeholder="Search schools and districts" aria-label="Search schools and districts to compare" autocomplete="off">
     <ul class="pin-results" hidden></ul>
-    <ul class="pin-list" aria-label="Pinned on the chart"></ul>
+    <ul class="pin-list" aria-label="Pinned comparisons"></ul>
     <script type="application/json" data-pin-source>${JSON.stringify({ payload }).replace(/</g, '\\u003c')}</script>
   </div>`
 
