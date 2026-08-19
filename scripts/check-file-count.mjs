@@ -11,9 +11,9 @@
 //     pin metric bundles                     1,020   one per district, campuses inside
 //     ranking board pages + CSVs               391
 //     bulk CSVs                                  3
-//     shell/map/search/address/data assets       26
+//     shell/map/search/address/data assets       62   includes street shards
 //     ------------------------------------------
-//                                           12,891   5,109 under the guard
+//                                           12,927   5,073 under the guard
 //
 // Measured from the 2026-08 traditional-public-school build. The line that
 // matters is the per-entity one. Campus CSV and JSON are NOT

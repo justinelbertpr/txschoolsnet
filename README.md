@@ -43,18 +43,33 @@ rather than quietly going stale.
 
 ```
 npm run fetch      download the 14 TEA source files into data/raw/<YYYY-MM>/
+npm run fetch:addresses  refresh the self-hosted Census street suggestion index
 npm run verify     re-hash the committed snapshot against its manifest
 npm run drift      ask TEA whether any source file has changed since the snapshot
 npm run build      normalize the newest snapshot into build/*.ndjson
 npm run export     build the dashboard payload into site/data/
 npm run prerender  render 9,086 entity pages into site/
 npm run site       verify + build + export + prerender
-npm test           949 tests, including the published-figure regression suite
+npm test           1,085 tests, including the published-figure regression suite
 ```
 
-`npm run fetch` and `npm run drift` are the only commands that touch the network. `fetch` is
-rarely needed — the dated snapshot is committed, so `npm run site` reproduces the entire site
-offline.
+`npm run fetch`, `npm run fetch:addresses`, and `npm run drift` are the only commands that touch
+the network. The fetch commands are rarely needed — the dated snapshots are committed, so
+`npm run site` reproduces the entire site offline.
+
+### Address suggestions
+
+The address finder uses a small, self-hosted street index derived from the U.S. Census Bureau's
+Texas TIGER/Line address ranges. Suggestions never need an account, API key, paid service, or
+third-party request. The selected address goes directly to the Census geocoder only after the
+reader presses **Find my district**; txschools.net does not save it.
+
+`npm run fetch:addresses` is the manual annual refresh. It downloads the 254 Texas county
+ADDRFEAT archives, keeps only street names, ZIP codes, and broad house-number range hints, and
+writes compact gzip shards plus a provenance manifest under `data/addresses/`. Normal site builds
+are offline and publish those committed shards under `site/data/address-streets/`. When Census
+publishes a new stable TIGER vintage, update `ADDRESS_SOURCE_YEAR` in `src/addresses.js` as part
+of that refresh; the manifest records the exact source URL, archive hashes, and fetch time.
 
 ## Architecture
 

@@ -1,7 +1,8 @@
 # site/data/ holds two kinds of file: content-hashed ones whose name changes
 # when the content does (payload-<hash>.json), and stable-named ones a build
 # simply overwrites in place (the bulk CSVs, the per-district CSV/JSON, the
-# per-district pin bundles, search-index.json and district-locator.json). A
+# per-district pin bundles, address-street shards, search-index.json and
+# district-locator.json). A
 # year-long immutable cache is only honest for the first kind, so the rules
 # below are scoped per file rather than one blanket
 # /data/* rule.
@@ -41,6 +42,12 @@
 # with every boundary/data refresh. Keep it aligned with the current site rather
 # than letting a previous snapshot remain immutable in a returning browser.
 /data/district-locator.json
+  Cache-Control: public, max-age=3600
+
+# Self-hosted Census street suggestions are refreshed under stable shard names.
+# Keep the cache short so an annual street snapshot cannot remain stuck in a
+# returning browser after the site publishes its replacement.
+/data/address-streets/*
   Cache-Control: public, max-age=3600
 
 # One stable filename per district, rebuilt with every snapshot. These are

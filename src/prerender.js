@@ -35,9 +35,9 @@
 //     pin metric bundles                   1,020   one district bundle, campuses inside
 //     ranking board pages + CSVs             391
 //     bulk CSVs                                3
-//     shell/map/search/address/data assets     26
+//     shell/map/search/address/data assets     62   includes street shards
 //     ------------------------------------------
-//     expected 2026-08 build              12,891
+//     expected 2026-08 build              12,927
 //
 // That leaves 5,109 slots under the CI guard and 7,109 under the hard cap. One
 // extra file per entity would add 9,086 and exceed both; CSV + JSON for all
@@ -122,6 +122,7 @@ import { renderEntity } from './render/page.js'
 import { renderRegionPage, renderCountyPage, renderLetterPage, renderHomePage, regionPath } from './render/hubs.js'
 import { searchIndexJson, searchClientJs, renderSearchPage, SEARCH_LETTERS } from './render/search.js'
 import { addressClientJs, districtLocatorJson } from './render/address.js'
+import { publishAddressStreetShards } from './addresses.js'
 import { APPLE_TOUCH_ICON, BRAND, MARK_BARS, OG_IMAGE, faviconSvg, shell } from './render/shell.js'
 import { renderAboutPage } from './render/about.js'
 import { renderDownloadPage, datasetCsv, entityCsv, entityJson } from './render/downloads.js'
@@ -1024,6 +1025,12 @@ export async function prerender({ concurrency } = {}) {
     resetDir('site/rankings'),
   ])
 
+  // The annual network refresh commits compact gzip shards under data/. A
+  // normal build remains fully offline and only expands those verified files
+  // into same-origin JSON for the browser. The publisher owns/reset its narrow
+  // target directory so stale shard letters cannot survive a refresh.
+  const addressStreetStats = await publishAddressStreetShards()
+
   /* --- the ranking plan, before anything is rendered ------------------------ */
   //
   // Planned first because every other page depends on knowing which boards will
@@ -1662,7 +1669,7 @@ export async function prerender({ concurrency } = {}) {
 
   report({
     entityStats, regions, counties, entities, elapsed, total, largest, stride, files, brand,
-    pinPayloadStats,
+    pinPayloadStats, addressStreetStats,
     rankings: {
       boards: kept.length,
       pages: rankingPageFiles.length,
@@ -1685,7 +1692,7 @@ async function countFiles(dir) {
 
 const mb = (b) => `${(b / 1e6).toFixed(1)} MB`
 
-function report({ entityStats, regions, counties, entities, elapsed, total, largest, stride, brand = [], rankings = null, pinPayloadStats = null }) {
+function report({ entityStats, regions, counties, entities, elapsed, total, largest, stride, brand = [], rankings = null, pinPayloadStats = null, addressStreetStats = null }) {
   const rows = [
     ['district pages', entityStats.district],
     ['campus pages', entityStats.campus],
@@ -1700,6 +1707,7 @@ function report({ entityStats, regions, counties, entities, elapsed, total, larg
     ['home / about / download', 3],
     ['per-district CSV + JSON', entityStats.dataFiles],
     ['pin metric bundles', pinPayloadStats?.files ?? 0],
+    ['address street shards', addressStreetStats?.files ?? 0],
     ['bulk CSVs', 3],
     ['favicon + share images', brand.length],
   ]
@@ -1714,6 +1722,12 @@ function report({ entityStats, regions, counties, entities, elapsed, total, larg
     console.log(
       `  ${'pin metric data'.padEnd(26)}${mb(pinPayloadStats.bytes).padStart(7)}   ` +
         `${pinPayloadStats.entities.toLocaleString('en-US')} published campuses in ${pinPayloadStats.files.toLocaleString('en-US')} district bundles`
+    )
+  }
+  if (addressStreetStats) {
+    console.log(
+      `  ${'address street data'.padEnd(26)}${mb(addressStreetStats.bytes).padStart(7)}   ` +
+        `${addressStreetStats.rows.toLocaleString('en-US')} street/ZIP rows in ${addressStreetStats.files} same-origin shards`
     )
   }
   console.log(`  ${'largest page'.padEnd(26)}${(largest.bytes / 1024).toFixed(1).padStart(7)} KB   /${largest.path.replace(/\.html$/, '')}`)
