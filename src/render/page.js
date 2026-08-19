@@ -121,16 +121,24 @@ const railCompare = (vm) =>
  * Rendered only where there is a chart to pin a line onto, and only where the
  * payload's name is known — an input that can search nothing is worse than no
  * input.
+ *
+ * A pin is no longer only a line. site/app.js registers each pinned school or
+ * district as a comparison in the same list the cohort chips come from, so
+ * picking it repaints matching current figures — domains, STAAR, CCMR and
+ * demographics — against that entity. District pins additionally join the
+ * spending chart because TEA publishes that history at district level. Campus
+ * metric maps fit the asset budget by sharing one lazy file per district; see
+ * src/prerender.js for the measured file-count decision.
  */
 const railPins = (payload) =>
   !payload
     ? ''
     : `  <div class="rail-block rail-pins">
-    <h2 class="rail-title">Pin comparisons</h2>
-    <p class="rail-hint">Add up to five schools or districts to compare their trajectory and matching current measures.</p>
-    <input class="pin-search" type="search" placeholder="Search schools and districts" aria-label="Search schools and districts to compare" autocomplete="off">
+    <h2 class="rail-title">Pin to compare</h2>
+    <p class="rail-hint">Add up to five schools or districts. Each joins the ratings chart and becomes a comparison for current measures. District pins also join spending.</p>
+    <input class="pin-search" type="search" placeholder="Search schools and districts" aria-label="Search schools and districts to pin" autocomplete="off">
     <ul class="pin-results" hidden></ul>
-    <ul class="pin-list" aria-label="Pinned comparisons"></ul>
+    <ul class="pin-list" aria-label="Pinned schools and districts"></ul>
     <script type="application/json" data-pin-source>${JSON.stringify({ payload }).replace(/</g, '\\u003c')}</script>
   </div>`
 

@@ -725,7 +725,7 @@ export function outcomes(vm) {
       })}
   <p class="note">Every row is a share of this ${unit(vm)}'s graduates, and every row is a way of
   meeting CCMR &mdash; so on every row, a bigger share is better. <strong>Difference</strong> is this
-  ${unit(vm)} minus the average for <strong data-ccmr-cohort>${esc(vm.cohorts?.[0]?.label ?? 'the comparison group')}</strong>,
+  ${unit(vm)} minus <span data-ccmr-comparison>the average for</span> <strong data-ccmr-cohort>${esc(vm.cohorts?.[0]?.label ?? 'the comparison group')}</strong>,
   counted in percentage points: <strong>+5.0</strong> would mean five more graduates in every hundred met that
   criterion here. Graduates may meet several criteria, so the rows do not add up to the total.</p>`
     : ''
@@ -813,6 +813,23 @@ export function spending(vm) {
         : ''
     }
   ${available.length ? legend(available.map(({ key, label }) => ({ key, label }))) : ''}
+  ${
+    // The values this chart was drawn from, for site/app.js to redraw it with a
+    // pinned district's line added. Spending was the one section that answered
+    // to no comparison at all — not the cohort switch either — because its
+    // three series are fixed and its SVG is the only copy of them. A reader who
+    // pinned a neighbouring district saw every other figure on the page move
+    // and this chart sit still.
+    //
+    // ~300 bytes, on district pages only: campuses have no finance file, so
+    // spending() has already returned null for them by here.
+    available.length
+      ? `<script type="application/json" data-spending>${JSON.stringify({
+          years: f.years,
+          series: available.map(({ key, label, values }) => ({ key, label, values })),
+        }).replace(/</g, '\\u003c')}</script>`
+      : ''
+  }
   ${comparisonNote}
   ${
     missing.length

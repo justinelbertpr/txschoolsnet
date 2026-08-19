@@ -1043,8 +1043,9 @@ export async function prerender({ concurrency } = {}) {
   // Pin comparisons need each selected entity's current measures, but putting
   // those measures in the statewide search payload would make every name search
   // pay for data it never displays. Publish one lazy file per district instead:
-  // it holds that district and its campuses, so 8,066 campuses cost 1,020 files
-  // and a second pin from the same district reuses the same request.
+  // it holds that district's campuses, so 8,066 campus records cost 1,020 files
+  // and a second pin from the same district reuses the same request. District
+  // metrics remain in their existing reporter JSON and are not duplicated.
   const pinPayloads = pinMetricPayloads({ entities, bundles, subjects })
   if (pinPayloads.size !== districts.length) {
     throw new Error(`pin metric payload count ${pinPayloads.size} does not match ${districts.length} published districts`)
@@ -1060,14 +1061,14 @@ export async function prerender({ concurrency } = {}) {
     pinPayloadBytes += Buffer.byteLength(body)
     await writeFile(`site/data/pins/${districtId}.json`, body)
   }
-  const publishedEntityIds = new Set(entities.map((entity) => entity.id))
+  const publishedCampusIds = new Set(campuses.map((campus) => campus.id))
   if (
-    pinEntityIds.size !== publishedEntityIds.size ||
-    [...pinEntityIds].some((entityId) => !publishedEntityIds.has(entityId))
+    pinEntityIds.size !== publishedCampusIds.size ||
+    [...pinEntityIds].some((entityId) => !publishedCampusIds.has(entityId))
   ) {
     throw new Error(
-      `pin metrics contain ${pinEntityIds.size} entities, but this build publishes ${publishedEntityIds.size}; ` +
-      'refusing to leak excluded or omit published entities'
+      `pin metrics contain ${pinEntityIds.size} campuses, but this build publishes ${publishedCampusIds.size}; ` +
+      'refusing to leak excluded or omit published campuses'
     )
   }
   const pinPayloadStats = { files: pinPayloads.size, entities: pinEntityIds.size, bytes: pinPayloadBytes }
@@ -1712,7 +1713,7 @@ function report({ entityStats, regions, counties, entities, elapsed, total, larg
   if (pinPayloadStats) {
     console.log(
       `  ${'pin metric data'.padEnd(26)}${mb(pinPayloadStats.bytes).padStart(7)}   ` +
-        `${pinPayloadStats.entities.toLocaleString('en-US')} published entities in ${pinPayloadStats.files.toLocaleString('en-US')} district bundles`
+        `${pinPayloadStats.entities.toLocaleString('en-US')} published campuses in ${pinPayloadStats.files.toLocaleString('en-US')} district bundles`
     )
   }
   console.log(`  ${'largest page'.padEnd(26)}${(largest.bytes / 1024).toFixed(1).padStart(7)} KB   /${largest.path.replace(/\.html$/, '')}`)

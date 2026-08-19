@@ -623,7 +623,7 @@ describe('the cohort switch targets the current HTML bar contract', () => {
   })
 })
 
-describe('pin comparisons extend the keyed bar contract', () => {
+describe('campus pins extend the page-wide comparison contract', () => {
   const js = readFileSync(new URL('../../site/app.js', import.meta.url), 'utf8')
 
   it('lazy-loads one validated district bundle and caches it', () => {
@@ -633,11 +633,14 @@ describe('pin comparisons extend the keyed bar contract', () => {
     expect(js).toContain("payload?.version !== 1")
   })
 
-  it('publishes a visible value or an explicit not-reported label beside every matching bar', () => {
-    expect(js).toContain("mark.className = 'hbar-mark hbar-mark-pin'")
-    expect(js).toContain("sub.className = 'hbar-pin-sub'")
-    expect(js).toContain("value === null ? 'not reported'")
-    expect(js).toContain("mark.setAttribute('aria-hidden', 'true')")
+  it('feeds campus metrics through the same page-wide controller as other comparisons', () => {
+    expect(js).toContain('const offerComparison = (rec) =>')
+    expect(js).toContain(': metricAsset(rec)')
+    expect(js).toContain('return compare.add({')
+    expect(js).toContain("key: compareKey(rec.id)")
+    expect(js).toContain("b.className = 'chip chip-cohort chip-pin'")
+    expect(js).toContain('if (pinned.get(rec.id) !== rec) return false')
+    expect(js).toContain('if (pinned.get(rec.id) !== rec) return')
   })
 
   it('keeps full current metrics out of sessionStorage', () => {

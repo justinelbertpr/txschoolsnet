@@ -414,6 +414,7 @@ describe('outcomes', () => {
     expect(html).toContain('percentage points') // the unit
     expect(html).toMatch(/Average<small>/) // the column is an average, and of whom
     expect(html).toContain('a bigger share is better') // the direction
+    expect(html).toContain('data-ccmr-comparison>the average for</span>')
     expect(html).toMatch(/data-ccmr-cohort>[^<]+</) // the cohort, named in full
   })
 

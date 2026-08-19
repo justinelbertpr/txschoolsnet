@@ -23,22 +23,22 @@ const bundles = new Map([
 ])
 
 describe('pinMetricPayloads', () => {
-  it('publishes one payload per district with its district and campus measures', () => {
+  it('publishes one payload per district with campus measures only', () => {
     const result = pinMetricPayloads({ entities, bundles, subjects: ['Reading'] })
 
     expect([...result.keys()]).toEqual(['001902', '003801'])
     expect(result.size).toBe(entities.filter((entity) => entity.level === 'district').length)
     expect(new Set([...result.values()].flatMap((payload) => Object.keys(payload.entities))))
-      .toEqual(new Set(entities.map((entity) => entity.id)))
+      .toEqual(new Set(entities.filter((entity) => entity.level === 'campus').map((entity) => entity.id)))
     expect(JSON.stringify([...result.values()])).not.toContain('999999')
     expect(result.get('001902')).toMatchObject({
       version: 1,
       districtId: '001902',
       entities: {
-        '001902': { score: 89, 'domain:achievement': 86 },
         '001902001': { score: 92, 'staar:Reading:0': 91, 'staar:Reading:1': 72, 'staar:Reading:2': 35 },
       },
     })
+    expect(result.get('001902').entities).not.toHaveProperty('001902')
   })
 
   it('keeps standard and alternative graduation populations separate', () => {
