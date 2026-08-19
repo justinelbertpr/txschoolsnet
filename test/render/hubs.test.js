@@ -278,6 +278,12 @@ describe('home page', () => {
     expect(css).toMatch(/@media \(max-width: 70rem\)[\s\S]*?\.home-hero-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/)
   })
 
+  it('keeps open name-search results above the address drawer and outside the hero clip', () => {
+    const css = readFileSync(new URL('../../site/style.css', import.meta.url), 'utf8')
+    expect(css).toMatch(/\.home-hero-action:has\(\.sitesearch-panel:not\(\[hidden\]\)\)\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*2/)
+    expect(css).toMatch(/main\s*>\s*section\.hero-home:has\(\.sitesearch-panel:not\(\[hidden\]\)\)\s*\{[^}]*overflow:\s*visible/)
+  })
+
   it('offers explicit paths for families, ranking readers and journalists', () => {
     const html = renderHomePage({ rankingsIndex: '/rankings' })
     expect(html).toContain('home-task-card-families')

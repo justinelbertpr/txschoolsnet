@@ -3033,6 +3033,11 @@ main > section.hero-home {
   backdrop-filter: blur(10px);
 }
 .home-hero-action .sitesearch { max-width: none; margin: 0; padding: 0; background: none; border: 0; }
+/* Both frosted hero panels establish stacking contexts. Lift the search card
+   while its results are open so the later address row cannot paint across the
+   options, and let the dropdown continue past the hero instead of clipping. */
+.home-hero-action:has(.sitesearch-panel:not([hidden])) { position: relative; z-index: 2; }
+main > section.hero-home:has(.sitesearch-panel:not([hidden])) { overflow: visible; }
 
 /* The address control is a full-width drawer below the stable title/search
    row. Opening it can therefore grow only downward; it can never make one
