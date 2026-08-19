@@ -158,6 +158,8 @@ describe('railFor', () => {
     // campus and a district publish the same 0-100 score) — see the comment
     // on src/render/page.js:railPins — so the served wording says so rather
     // than making the narrower claim site/app.js used to have to correct.
+    expect(html).toContain('<h2 class="rail-title">Pin to compare</h2>')
+    expect(html).toContain('Each joins the ratings chart and becomes a comparison for current measures.')
     expect(html).toContain('<ul class="pin-list" aria-label="Pinned schools and districts"></ul>')
     expect(html.length).toBeLessThan(4_000)
   })

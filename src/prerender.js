@@ -29,44 +29,39 @@
 // 18,000 (scripts/check-file-count.mjs). The arithmetic decides the download
 // design, it is not a preference:
 //
-//     entity pages                        10,230
-//     hubs (20 region + 253 county
-//           + 26 letter + home)              300
-//     about, download                         2
-//     search (search.html + 26 letter
-//       pages + search.js + the index)       29
-//     sitemap.xml                             1
-//     404 / style.css / app.js / _headers     4
-//     favicon.svg, og.png,
-//       apple-touch-icon.png                  3
-//     dashboard payload                       1
-//     bulk CSVs                               3
+//     entity pages                         9,086   1,020 districts + 8,066 campuses
+//     region/county/letter/search hubs       325
+//     per-district reporter CSV + JSON     2,040   two files x 1,020 districts
+//     pin metric bundles                   1,020   one district bundle, campuses inside
+//     ranking board pages + CSVs             391
+//     bulk CSVs                                3
+//     shell/map/search/address/data assets     26
 //     ------------------------------------------
-//     floor before any per-entity file    10,573
+//     expected 2026-08 build              12,891
 //
-// That leaves 7,427 slots under the CI guard and 9,427 under the hard cap — and
-// there are 10,230 entities. So *one* file per entity does not fit in either
-// budget, let alone the two (CSV and JSON) an entity page could link.
-// 10,230 x 2 = 20,460 extra files is 31,033 total: past the hard cap by 55%.
+// That leaves 5,109 slots under the CI guard and 7,109 under the hard cap. One
+// extra file per entity would add 9,086 and exceed both; CSV + JSON for all
+// entities would add 18,172 before anything else grew. The pin comparison data
+// fits because it is grouped by district: 1,020 assets instead of one for each
+// of 8,066 campuses.
 //
 // The same arithmetic is why there is ONE share image rather than one per entity:
-// 10,230 og:images is half the cap on its own. See writeBrandAssets below. It is
-// also why the search index is one lazy-loaded JSON file rather than 10,230
+// 9,086 og:images is nearly half the cap on its own. See writeBrandAssets below.
+// It is also why the search index is one lazy-loaded JSON file rather than 9,086
 // names inlined into every page — see src/render/search.js.
 //
-// The decision: per-entity CSV + JSON for the 1,199 districts only.
+// The decision: per-entity CSV + JSON for the 1,020 districts only; compact
+// current-measure comparison JSON grouped into one more file per district.
 //
-//     10,573 + (1,199 x 2 = 2,398) = 12,971 files, 5,029 under the CI guard.
-//
-// The ranked lists spend from those 5,029, and they are capped at a quarter of
-// them (RANKING_FILE_BUDGET, 1,200) so that a plan which starts emitting one
+// The ranked lists spend from the remaining budget, and RANKING_FILE_BUDGET
+// caps their catalogue at 1,200 so that a plan which starts emitting one
 // board per district fails here with the arithmetic printed rather than at
 // deploy time. Ranking pages are cohort-shaped, not entity-shaped — one page per
 // (metric, scope), where scope is the state, one of 20 regions or one of 253
 // counties — which is why they fit at all and entity-shaped files do not.
 //
-// Districts win the slots because they are the low-cardinality half (1,199 vs
-// 9,031) and the half people download — a district's record is the unit a comms
+// Districts win the slots because they are the low-cardinality half (1,020 vs
+// 8,066) and the half people download — a district's record is the unit a comms
 // officer, a board member or a reporter works in.
 //
 // ------------------------------------------- WHY THERE IS NO _redirects FILE
@@ -126,9 +121,11 @@ import { metricSpecs } from './render/metrics.js'
 import { renderEntity } from './render/page.js'
 import { renderRegionPage, renderCountyPage, renderLetterPage, renderHomePage, regionPath } from './render/hubs.js'
 import { searchIndexJson, searchClientJs, renderSearchPage, SEARCH_LETTERS } from './render/search.js'
+import { addressClientJs, districtLocatorJson } from './render/address.js'
 import { APPLE_TOUCH_ICON, BRAND, MARK_BARS, OG_IMAGE, faviconSvg, shell } from './render/shell.js'
 import { renderAboutPage } from './render/about.js'
 import { renderDownloadPage, datasetCsv, entityCsv, entityJson } from './render/downloads.js'
+import { pinMetricPayloads } from './pin-metrics.js'
 import { RANKABLE, CHANGE_METRICS, MIN_POPULATION, rankingBundles, rankBy, changeMetrics, scopeKey } from './render/rankings.js'
 import {
   DEFAULT_PLAN,
@@ -1022,6 +1019,7 @@ export async function prerender({ concurrency } = {}) {
     resetDir('site/county'),
     resetDir('site/districts'),
     resetDir('site/data/entity'),
+    resetDir('site/data/pins'),
     resetDir('site/search'),
     resetDir('site/rankings'),
   ])
@@ -1041,6 +1039,40 @@ export async function prerender({ concurrency } = {}) {
   // from one place and cannot drift.
   const tables = loadTables(dir)
   const bundles = rankingBundles({ ...tables, regionNames })
+
+  // Pin comparisons need each selected entity's current measures, but putting
+  // those measures in the statewide search payload would make every name search
+  // pay for data it never displays. Publish one lazy file per district instead:
+  // it holds that district's campuses, so 8,066 campus records cost 1,020 files
+  // and a second pin from the same district reuses the same request. District
+  // metrics remain in their existing reporter JSON and are not duplicated.
+  const pinPayloads = pinMetricPayloads({ entities, bundles, subjects })
+  if (pinPayloads.size !== districts.length) {
+    throw new Error(`pin metric payload count ${pinPayloads.size} does not match ${districts.length} published districts`)
+  }
+  const pinEntityIds = new Set()
+  let pinPayloadBytes = 0
+  for (const [districtId, payload] of pinPayloads) {
+    for (const entityId of Object.keys(payload.entities)) {
+      if (pinEntityIds.has(entityId)) throw new Error(`pin metrics publish ${entityId} more than once`)
+      pinEntityIds.add(entityId)
+    }
+    const body = JSON.stringify(payload)
+    pinPayloadBytes += Buffer.byteLength(body)
+    await writeFile(`site/data/pins/${districtId}.json`, body)
+  }
+  const publishedCampusIds = new Set(campuses.map((campus) => campus.id))
+  if (
+    pinEntityIds.size !== publishedCampusIds.size ||
+    [...pinEntityIds].some((entityId) => !publishedCampusIds.has(entityId))
+  ) {
+    throw new Error(
+      `pin metrics contain ${pinEntityIds.size} campuses, but this build publishes ${publishedCampusIds.size}; ` +
+      'refusing to leak excluded or omit published campuses'
+    )
+  }
+  const pinPayloadStats = { files: pinPayloads.size, entities: pinEntityIds.size, bytes: pinPayloadBytes }
+
   const { kept, suppressed } = planRankings({
     entities,
     bundles,
@@ -1216,6 +1248,7 @@ export async function prerender({ concurrency } = {}) {
   // keystroke from the URL the search control carries in data-search-index.
   await write('data/search-index.json', searchIndexJson(entities))
   await write('search.js', searchClientJs())
+  await write('address.js', addressClientJs())
   await write('search.html', renderSearchPage({ districts, campuses, snapshotDate }))
   for (const l of SEARCH_LETTERS) {
     await write(`search/${l}.html`, renderSearchPage({ districts, campuses, letter: l, snapshotDate }))
@@ -1485,6 +1518,11 @@ export async function prerender({ concurrency } = {}) {
   let mapWritten = 0
   const topo = await readBoundaries()
   const topoLo = await readBoundaries(BOUNDARY_FILE_LO)
+  // Census returns a Unified School District GEOID after an address lookup.
+  // Map that public id to the local TEA profile through the same archived bridge
+  // the map uses. An empty file is still written when the optional archive is
+  // absent, so the client can show Census's district name instead of a 404.
+  await write('data/district-locator.json', districtLocatorJson({ topo, districts }))
   if (!topo) {
     console.log('  (no data/boundaries archive — /map skipped; run `npm run fetch:boundaries`)')
   } else {
@@ -1624,6 +1662,7 @@ export async function prerender({ concurrency } = {}) {
 
   report({
     entityStats, regions, counties, entities, elapsed, total, largest, stride, files, brand,
+    pinPayloadStats,
     rankings: {
       boards: kept.length,
       pages: rankingPageFiles.length,
@@ -1646,7 +1685,7 @@ async function countFiles(dir) {
 
 const mb = (b) => `${(b / 1e6).toFixed(1)} MB`
 
-function report({ entityStats, regions, counties, entities, elapsed, total, largest, stride, brand = [], rankings = null }) {
+function report({ entityStats, regions, counties, entities, elapsed, total, largest, stride, brand = [], rankings = null, pinPayloadStats = null }) {
   const rows = [
     ['district pages', entityStats.district],
     ['campus pages', entityStats.campus],
@@ -1660,6 +1699,7 @@ function report({ entityStats, regions, counties, entities, elapsed, total, larg
     ['ranking CSVs', rankings?.csv ?? 0],
     ['home / about / download', 3],
     ['per-district CSV + JSON', entityStats.dataFiles],
+    ['pin metric bundles', pinPayloadStats?.files ?? 0],
     ['bulk CSVs', 3],
     ['favicon + share images', brand.length],
   ]
@@ -1670,6 +1710,12 @@ function report({ entityStats, regions, counties, entities, elapsed, total, larg
   console.log(`  ${'files in site/'.padEnd(26)}${total.toLocaleString('en-US').padStart(7)}   limit 18,000 (CI) / 20,000 (Workers)`)
   console.log(`  ${'html'.padEnd(26)}${mb(entityStats.htmlBytes).padStart(7)}`)
   console.log(`  ${'per-district data'.padEnd(26)}${mb(entityStats.dataBytes).padStart(7)}`)
+  if (pinPayloadStats) {
+    console.log(
+      `  ${'pin metric data'.padEnd(26)}${mb(pinPayloadStats.bytes).padStart(7)}   ` +
+        `${pinPayloadStats.entities.toLocaleString('en-US')} published campuses in ${pinPayloadStats.files.toLocaleString('en-US')} district bundles`
+    )
+  }
   console.log(`  ${'largest page'.padEnd(26)}${(largest.bytes / 1024).toFixed(1).padStart(7)} KB   /${largest.path.replace(/\.html$/, '')}`)
   if (rankings) {
     if (rankings.pages && rankings.pages !== rankings.boards) {

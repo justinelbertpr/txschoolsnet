@@ -28,7 +28,7 @@
 <link rel="stylesheet" href="/style.css">
 <link rel="preload" href="/fonts/geist-var.woff2" as="font" type="font/woff2" crossorigin>
 <script>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
-<script>if(window.trustedTypes&&trustedTypes.createPolicy){try{trustedTypes.createPolicy('default',{createHTML:function(s){return s},createScriptURL:function(u){var a=['https://www.googletagmanager.com/','https://www.google-analytics.com/'];for(var i=0;i<a.length;i++){if(u.indexOf(a[i])===0)return u}if(u.indexOf('/')===0||u.indexOf(location.origin+'/')===0)return u;throw new TypeError('blocked script url: '+u)}})}catch(e){}}</script>
+<script>if(window.trustedTypes&&trustedTypes.createPolicy){try{trustedTypes.createPolicy('default',{createHTML:function(s){return s},createScriptURL:function(u){var a=['https://www.googletagmanager.com/','https://www.google-analytics.com/'];for(var i=0;i<a.length;i++){if(u.indexOf(a[i])===0)return u}try{var x=new URL(u,location.origin);if(x.origin===location.origin)return u;var k=['address','benchmark','vintage','layers','format','callback'],n=0,one=1;x.searchParams.forEach(function(){n++});for(var j=0;j<k.length;j++){if(x.searchParams.getAll(k[j]).length!==1)one=0}var q=x.searchParams.get('address')||'';if(x.origin==='https://geocoding.geo.census.gov'&&x.pathname==='/geocoder/geographies/onelineaddress'&&n===k.length&&one&&q.length>0&&q.length<=100&&x.searchParams.get('format')==='jsonp'&&/^__txschoolsAddress\d+_\d+$/.test(x.searchParams.get('callback')||'')&&x.searchParams.get('benchmark')==='Public_AR_Current'&&x.searchParams.get('vintage')==='Current_Current'&&x.searchParams.get('layers')==='Unified School Districts')return u}catch(e){}throw new TypeError('blocked script url: '+u)}})}catch(e){}}</script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-W5GMR15VZD"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-W5GMR15VZD');</script>
 <body>
@@ -111,7 +111,79 @@
   </div>
   <p class="sitesearch-hint" id="search-page-box-hint">Type at least two letters. Searches all 9,086 — 1,020 districts and 8,066 campuses — and names the district and county of each, because Texas school names repeat. <a href="/search">Browse the whole A&ndash;Z index</a>.</p>
   <p class="sr-only" data-search-status role="status" aria-live="polite"></p>
-</form>
+</form><div class="addressfind" id="search-address-lookup" data-address-lookup data-address-index="/data/district-locator.json"
+  data-address-geocoder="https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress">
+  <details class="addressfind-details">
+    <summary><span>Find my district by address</span><small>Use a Texas home address</small></summary>
+    <div class="addressfind-body">
+      <form class="addressfind-form" method="get" action="/search" data-address-form>
+        <label class="addressfind-label" for="search-address">Texas home address</label>
+        <div class="addressfind-row">
+          <input class="addressfind-input" id="search-address" type="text" maxlength="100"
+            placeholder="Street address, city, TX ZIP" autocomplete="street-address"
+            enterkeyhint="search" aria-describedby="search-address-privacy search-address-status">
+          <button class="addressfind-go" type="submit">Find my district</button>
+        </div>
+        <p class="addressfind-privacy" id="search-address-privacy">Sent directly to the
+          <a href="https://geocoding.geo.census.gov/geocoder/Geocoding_Services_API.html" rel="external nofollow noreferrer">U.S. Census Bureau</a>
+          only when you press Find; txschools.net does not save it.</p>
+        <p class="addressfind-status" id="search-address-status" role="status" aria-live="polite"></p>
+        <div class="addressfind-result" id="search-address-result" tabindex="-1" hidden role="region" aria-label="Address lookup result"></div>
+        <noscript><p class="addressfind-noscript">Address matching needs JavaScript. You can instead use the
+          <a href="https://geocoding.geo.census.gov/geocoder/geographies/address" rel="external nofollow noreferrer">Census address finder</a>,
+          then search this site for the district name it returns.</p></noscript>
+      </form>
+    </div>
+  </details>
+</div>
+<style data-address-style>.addressfind{margin:.75rem 0 0;border-top:1px solid var(--line)}
+.addressfind-details>summary{display:flex;align-items:center;gap:.65rem;min-height:2.75rem;padding:.55rem 0;
+ list-style:none;cursor:pointer;font-weight:650;color:inherit}
+.addressfind-details>summary::-webkit-details-marker{display:none}
+.addressfind-details>summary span{flex:1 1 auto}
+.addressfind-details>summary small{font-size:.75rem;font-weight:450;color:var(--ink-3)}
+.addressfind-details>summary:after{content:'+';display:grid;place-items:center;width:1.45rem;height:1.45rem;
+ flex:none;border:1px solid currentColor;border-radius:999px;font-size:1.1rem;line-height:1}
+.addressfind-details[open]>summary:after{content:'\2212'}
+.addressfind-details>summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.addressfind-body{padding:.15rem 0 .25rem}
+.addressfind-form{margin:0;padding:.85rem;background:var(--surface);color:var(--ink);
+ border:1px solid var(--line);border-radius:var(--radius)}
+.addressfind-label{display:block;margin:0 0 .35rem;font-weight:650}
+.addressfind-row{display:flex;align-items:stretch;gap:.5rem}
+.addressfind-input{flex:1 1 auto;min-width:0;font:inherit;font-size:1rem;line-height:1.3;padding:.7rem .75rem;
+ color:var(--ink);background:var(--raised);border:1px solid var(--ink-3);border-radius:var(--radius)}
+.addressfind-input::placeholder{color:var(--ink-3)}
+.addressfind-go{flex:none;font:inherit;font-weight:650;padding:.7rem .9rem;cursor:pointer;color:var(--surface);
+ background:var(--accent);border:1px solid var(--accent);border-radius:var(--radius)}
+.addressfind-go:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+.addressfind-go:disabled{cursor:wait;opacity:.68}
+.addressfind :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.addressfind-privacy,.addressfind-status,.addressfind-noscript{margin:.5rem 0 0;font-size:.78rem;line-height:1.45;color:var(--ink-3)}
+.addressfind-status:empty{display:none}
+.addressfind-result{margin:.8rem 0 0;padding:.8rem;border-left:3px solid var(--accent);background:var(--ground);color:var(--ink)}
+.addressfind-result:focus{outline:0}
+.addressfind-result-kicker{margin:0 0 .2rem;font-size:.72rem;font-weight:750;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.addressfind-result h3{margin:0;font-size:1.25rem;color:var(--ink)}
+.addressfind-result-place{margin:.2rem 0 0;color:var(--ink-3)}
+.addressfind-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin:.7rem 0 0}
+.addressfind .addressfind-action{display:inline-flex;align-items:center;min-height:2.55rem;padding:.55rem .72rem;
+ border:1px solid var(--line);border-radius:var(--radius);font-weight:650;text-decoration:none;color:var(--ink)}
+.addressfind .addressfind-action-primary{color:var(--surface);background:var(--accent);border-color:var(--accent)}
+.addressfind .addressfind-action:hover{border-color:var(--accent);text-decoration:underline}
+.addressfind-disclaimer{margin:.7rem 0 0;font-size:.78rem;line-height:1.45;color:var(--ink-3)}
+.hero-home .addressfind{border-color:color-mix(in srgb,var(--hero-ink) 22%,transparent)}
+.hero-home .addressfind-details>summary small{color:color-mix(in srgb,var(--hero-ink) 68%,transparent)}
+.hero-home .addressfind-form a{color:var(--accent)}
+.hero-home .addressfind-form .addressfind-action-primary{color:var(--surface)}
+@media(max-width:44rem){
+ .addressfind-details>summary{align-items:flex-start;flex-wrap:wrap;gap:.2rem .55rem}
+ .addressfind-details>summary small{flex:1 0 100%}
+ .addressfind-details>summary:after{position:absolute;right:0}
+ .addressfind-details{position:relative}
+ .addressfind-row{display:grid;grid-template-columns:minmax(0,1fr)}
+ .addressfind-go{min-height:2.75rem;width:100%}
+}</style>
   
 </section>
 <section id="letters">
@@ -204,5 +276,6 @@ header:has(.sitesearch-panel:not([hidden])){z-index:70}
  .sitesearch-hero .sitesearch-go{font-size:1rem}}</style>
 <script src="/search.js" defer></script>
 <script type="module" src="/app.js"></script>
+<script type="module" src="/address.js"></script>
 </body>
 </html>

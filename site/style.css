@@ -699,12 +699,31 @@ code {
   text-transform: uppercase; color: var(--ink-3);
 }
 .place { margin: 0; color: var(--ink-2); font-size: var(--t-meta); }
-/* Only where TEA published a website for this entity — never a placeholder,
-   never a guess. An action, not a description, so it gets its own line
-   rather than joining .place's middle-dot list. */
-.enroll { margin: .5rem 0 0; font-size: var(--t-meta); font-weight: 600; }
-.enroll a { color: var(--accent-2); }
-.enroll a:hover { color: var(--accent-2); filter: brightness(.85); }
+/* Only where TEA published a safe website for this entity — never a
+   placeholder and never a guessed destination. On a district page this is the
+   parent's next action after reading the data, so it says what the official
+   site is useful for instead of hiding behind a generic external link. */
+.enroll { margin: .7rem 0 0; font-size: var(--t-meta); }
+.enroll a {
+  display: inline-flex; align-items: center; gap: .9rem;
+  max-width: 100%; padding: .7rem .85rem;
+  color: var(--ink); background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  border-radius: .7rem; text-decoration: none;
+}
+.enroll a:hover {
+  color: var(--ink); background: color-mix(in srgb, var(--accent) 11%, var(--surface));
+  border-color: var(--accent);
+}
+.enroll-copy { display: flex; min-width: 0; flex-direction: column; gap: .08rem; }
+.enroll-copy strong { color: var(--accent); font-size: var(--t-meta); font-weight: 750; }
+.enroll-copy > span { color: var(--ink-2); font-size: var(--t-small); font-weight: 500; }
+.enroll-arrow {
+  display: grid; place-items: center; flex: 0 0 1.75rem;
+  width: 1.75rem; height: 1.75rem; margin-left: auto;
+  color: var(--surface); background: var(--accent); border-radius: 50%;
+  font-size: .9rem; font-weight: 750;
+}
 .lede { color: var(--ink-2); max-width: var(--measure); margin: .35rem 0 0; }
 .note { color: var(--ink-2); max-width: var(--measure); font-size: var(--t-meta); margin: .85rem 0 0; }
 .na { color: var(--ink-3); font-style: italic; }
@@ -1060,7 +1079,7 @@ td .grade-letter { font-size: 1.05rem; }
 }
 /* Series swatches: a rule, not a square. */
 .swatch-entity, .swatch-peer, .swatch-state, .swatch-tea,
-.swatch-region, .swatch-county, .swatch-size, .swatch-spend-pin {
+.swatch-region, .swatch-county, .swatch-size, .swatch-pin, .swatch-spend-pin {
   width: 1.35rem; height: .1875rem; border-radius: 0;
   background-repeat: repeat-x;
 }
@@ -1076,12 +1095,14 @@ td .grade-letter { font-size: 1.05rem; }
    rule above ("the swatch IS the rule it labels") still holds. A round dot
    here, which is what this was first, would have been the one legend entry on
    the site that did not look like the thing it names. */
+.swatch-pin,
 .swatch-spend-pin {
   background: transparent;
   background-image: repeating-linear-gradient(90deg,
     hsl(var(--pin-hue, 220) 72% var(--pin-l)) 0 .3125rem, transparent .3125rem .5625rem);
 }
 @supports (color: oklch(50% .1 200)) {
+  .swatch-pin,
   .swatch-spend-pin {
     background-image: repeating-linear-gradient(90deg,
       oklch(var(--pin-lo) .155 var(--pin-hue, 220)) 0 .3125rem, transparent .3125rem .5625rem);
@@ -1240,6 +1261,16 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
   position: absolute; top: -3px; bottom: -3px; width: 3px;
   left: calc(var(--m, 0) * 1%);
   background: var(--c-peer); border-radius: 0;
+}
+.hbar-mark-pin {
+  background: repeating-linear-gradient(180deg,
+    hsl(var(--pin-hue, 220) 72% var(--pin-l)) 0 5px, transparent 5px 9px);
+}
+@supports (color: oklch(50% .1 200)) {
+  .hbar-mark-pin {
+    background: repeating-linear-gradient(180deg,
+      oklch(var(--pin-lo) .155 var(--pin-hue, 220)) 0 5px, transparent 5px 9px);
+  }
 }
 .hbar-group + .hbar-group { margin-top: 1.15rem; }
 .hbar-group-label { margin: 1.2rem 0 0; font-size: 1rem; }
@@ -1715,7 +1746,7 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
   .pin-dot { background: oklch(var(--pin-lo) .155 var(--pin-hue, 220)); }
 }
 
-/* A pinned district is also offered as a page-wide comparison, as a chip in
+/* A pinned school or district is also offered as a page-wide comparison, as a chip in
    "Compare against" beside the cohorts. It carries the pin's own dot so the
    chip, the rail entry and the chart line read as one entity rather than three
    controls that happen to share a name. .pin-dot already takes its colour from
@@ -1723,12 +1754,10 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 .chip-pin { display: inline-flex; align-items: center; gap: .45rem; }
 .chip-pin .pin-dot { width: .5rem; height: .5rem; }
 
-/* Marks the EXCEPTION, not the norm. Most pins become a comparison; a campus
-   cannot, because campus metric files are not published. Saying "chart only"
-   on the few that fall short is honest and self-explanatory, where a marker on
-   the many that succeed would be a symbol the reader has to decode. Written by
-   site/app.js as real text, not CSS content, so it is available to a screen
-   reader and translatable. */
+/* Marks the exceptional load failure. Pins normally become comparisons; when
+   their current data cannot be fetched, the trajectory line still works and
+   app.js writes the failure as real text rather than silently omitting a chip.
+   Real text keeps it available to a screen reader and translatable. */
 .pin-note {
   flex: none;
   font-size: var(--t-micro); font-weight: 400; color: var(--ink-3);
