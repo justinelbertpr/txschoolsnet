@@ -405,11 +405,13 @@ export function verdict(vm) {
       : `<p class="enroll enroll-school"><a href="${esc(officialHref)}" rel="external nofollow"><span class="enroll-copy"><strong>Official school website</strong><span>School information and family resources</span></span><span class="enroll-arrow" aria-hidden="true">&nearr;</span></a></p>`
   const positiveSignals = highlights(vm)
 
-  return `<section class="hero" id="${HERO_ID}" data-rail-label="${esc(HERO_LABEL)}">
-  <p class="eyebrow">${kind} &middot; Traditional${vm.isAlt ? ' &middot; Alternative Education Accountability' : ''}</p>
-  <h1>${esc(vm.name)}</h1>
-  <p class="place">${esc(vm.county)} County &middot; ${esc(vm.regionName)}${vm.enrollment ? ` &middot; ${plural(vm.enrollment, 'student')}` : ''}</p>
-  ${officialLink}
+  return `<section class="hero hero-entity" id="${HERO_ID}" data-rail-label="${esc(HERO_LABEL)}">
+  <div class="entity-intro">
+    <p class="eyebrow">${kind} &middot; Traditional${vm.isAlt ? ' &middot; Alternative Education Accountability' : ''}</p>
+    <h1>${esc(vm.name)}</h1>
+    <p class="place">${esc(vm.county)} County &middot; ${esc(vm.regionName)}${vm.enrollment ? ` &middot; ${plural(vm.enrollment, 'student')}` : ''}</p>
+    ${officialLink}
+  </div>
   ${factGrid}
   <div class="verdict">
     ${grade(latest?.rating, latest?.score, 'lg')}

@@ -7,16 +7,18 @@
 
    THREE RULES, applied everywhere below.
 
-   1. COLOUR ENCODES COMPARISON, NOTHING ELSE.
-      Four series colours exist. Each names exactly one set of schools:
+   1. COLOUR HAS TWO CLEARLY SEPARATE JOBS.
+      The navy, teal, gold and paper palette identifies txschools.net in
+      navigation, page covers, controls and decorative rules. It never means
+      good, bad, improving or declining. Inside a data figure, four series
+      colours exist and each names exactly one set of schools:
         --c-entity  the school or district whose page this is
         --c-peer    the cohort this page is being compared against
         --c-state   the Texas average
         --c-tea     TEA's own published peer group  (spending only)
-      Nothing else on the site is coloured: not grades, not "better", not
-      "worse", not links-as-decoration. Direction is carried by the sign on
-      the number (+/−) and by weight, never by hue — a red/green delta would
-      make "Economically disadvantaged +1.0 pts" read as an achievement.
+      Those four hues are reserved for data. Direction is carried by the sign
+      on the number (+/−) and by weight, never by hue — a red/green delta
+      would make "Economically disadvantaged +1.0 pts" read as an achievement.
       --c-tea exists because orange previously meant "the 288 districts
       serving students like these" in one figure and "TEA's 40-district peer
       group" in another, on the same page. One colour, one set.
@@ -69,6 +71,20 @@
    ========================================================================== */
 
 :root {
+  /* ---- identity -------------------------------------------------------
+     A Texas civic-newsroom palette. These hues create hierarchy and brand
+     recognition; none of them encode a rating or a result. Chart semantics
+     continue to live exclusively in --c-* and --s* below. */
+  --brand-navy: #0b2f47;
+  --brand-teal: #0f5966;
+  --brand-teal-text: #0b5f6b;
+  --brand-gold: #f2c45a;
+  --brand-cream: #fff6de;
+  --brand-mint: #e7f3f1;
+  --brand-coral: #d9684f;
+  --brand-on-dark: #f7fbfa;
+  --brand-on-dark-muted: #c8dedc;
+
   /* ---- planes ----------------------------------------------------------
      Three, not two. Ground sits ~1.09:1 under surface with a slight warm
      bias (paper, not blueprint) — a shift from this site's original cool
@@ -76,10 +92,10 @@
      product sites use as their whole canvas, so a page reads as considered
      rather than as a default. Only --raised takes a shadow, so a shadow on
      this site always means "floats above the page", never "important". */
-  --ground: #f4f7f6;
-  --surface: #ffffff;
+  --ground: #eef3f2;
+  --surface: #fffdf7;
   --raised: #ffffff;
-  --bg: #f4f7f6;           /* alias: older rules still reference --bg */
+  --bg: #eef3f2;           /* alias: older rules still reference --bg */
 
   --ink: #102a43;
   --ink-2: #3e5265;
@@ -91,42 +107,33 @@
      --surface — the plane this was originally checked against — so it needs
      its own number there too. */
   --navlink: #405667;
-  --line: #d8e3e5;
-  --line-2: #e8eef0;
-  --hover: #eaf2f2;        /* row hover: must differ from BOTH planes */
-  --stripe: #f8faf9;       /* zebra for long lists; lighter than --hover */
+  --line: #d2dfdd;
+  --line-2: #e4ecea;
+  --hover: #e1efed;        /* row hover: must differ from BOTH planes */
+  --stripe: #f8faf6;       /* zebra for long lists; lighter than --hover */
 
-  /* --accent used to be an indigo close enough to blue to collide with
-     --c-entity, AND close enough to TEA's own official-site purple to read as
-     "the same site". It is now a dark amber-brown — the site's one UI accent
-     spent on a hue no chart series uses and no official state site uses — so
-     hue alone still tells you whether you are looking at UI or at data, and
-     also tells you you are not on txschools.gov. Two lightnesses, two jobs:
+  /* UI teal belongs to links and controls, while chart series retain their
+     separate, explicitly labelled palette below. Two lightnesses, two jobs:
      marks need 3:1, text needs 4.5:1. */
-  --accent: #0f4c5c;
-  --accent-hover: #0a3541;
-  /* The one other hue this site doesn't already spend on data: every vivid
-     colour a reader could point to on this site otherwise means something
-     specific (--c-entity/peer/state/tea, the --s0-6 composition ramp) —
-     green is the one left over, so it is the only place a second UI accent
-     could go without colliding with an existing meaning. Decorative/
-     secondary only: the enroll link, a positive-state icon. Never a grade,
-     never "good" — same rule as everything else on this page. */
-  --accent-2: #a83d2f;
+  --accent: var(--brand-teal-text);
+  --accent-hover: #083f49;
+  /* Coral is decorative/secondary only. Never a grade and never "good" or
+     "bad" — the same rule that separates brand chrome from data figures. */
+  --accent-2: var(--brand-coral);
   /* Decorative only — a hero rule, an eyebrow underline, and the underline
      colour under hero links (never the link text itself, which stays at
      full --hero-ink contrast). Never load-bearing for meaning or legibility
      on its own: at 4.45:1 on --ground it clears 3:1 (large/UI) but not
      4.5:1 (body text), which is why it's confined to decoration rather than
      any text a reader must read. */
-  --accent-brass: #d6a84b;
+  --accent-brass: var(--brand-gold);
   /* Fixed, not theme-dependent — same reasoning as before: nothing about the
      one hero block on the site should shift with light/dark or with any
      entity's grade. Was a deep indigo close to TEA's own purple branding;
      now a warm near-black charcoal, the same family as --ink, so the hero
      reads as "this site's identity" rather than "a different site's colour". */
-  --hero-bg: #102a43;
-  --hero-ink: #f7fbfa;
+  --hero-bg: var(--brand-navy);
+  --hero-ink: var(--brand-on-dark);
 
   --shadow-raised: 0 2px 4px rgb(16 42 67 / .06), 0 18px 44px -18px rgb(16 42 67 / .18);
   --shadow-card: 0 1px 2px rgb(16 42 67 / .04), 0 8px 24px -18px rgb(16 42 67 / .20);
@@ -225,6 +232,11 @@
    :root first, so a page never inherits the host's theme by accident. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
+    --brand-gold: #f4cd73;
+    --brand-cream: #2b2a20;
+    --brand-mint: #15383d;
+    --brand-coral: #ff9a82;
+    --brand-teal-text: #77ddd4;
     --ground: #0b151a;
     --surface: #112229;
     --raised: #172b33;
@@ -267,6 +279,8 @@
   }
 }
 :root[data-theme='dark'] {
+  --brand-gold: #f4cd73; --brand-cream: #2b2a20; --brand-mint: #15383d; --brand-coral: #ff9a82;
+  --brand-teal-text: #77ddd4;
   --ground: #0b151a; --surface: #112229; --raised: #172b33; --bg: #0b151a;
   --hover: #193038; --stripe: #13262d;
   --shadow-raised: 0 1px 2px rgb(0 0 0 / .5), 0 10px 30px -10px rgb(0 0 0 / .6);
@@ -744,14 +758,11 @@ main > section {
 .stat, .grade { background: var(--surface); }
 
 /* ==========================================================================
-   HOMEPAGE HERO — the one place on the site that spends the colour budget.
+   HOMEPAGE HERO — the front door's broadest brand expression.
 
-   Every other .hero (rankings, districts A–Z, county/region hubs, about,
-   download) stays the plain card above: this site is a records office, not
-   a marketing page, and a bold block on all 10,230+ pages would say the
-   opposite. The front door gets one deliberate, unmoving block of colour;
-   nothing about it changes with any entity's grade, because nothing here is
-   an entity. --accent-brass is decorative only — a rule, never a control. */
+   Utility and index heroes stay quiet. The homepage and entity identity bands
+   use the same navy/teal/gold family so the experience is recognisably one
+   product; none of it changes with an entity's grade. */
 .hero-home {
   background: var(--hero-bg);
   border-color: var(--hero-bg);
@@ -2619,10 +2630,13 @@ body {
 header.site {
   width: 100%; max-width: none;
   padding: 0; margin: 0;
-  border: 0; border-bottom: 1px solid var(--line);
-  background: color-mix(in srgb, var(--ground) 94%, transparent);
-  box-shadow: 0 4px 18px -16px rgb(16 42 67 / .45);
-  backdrop-filter: blur(16px);
+  color: var(--brand-on-dark);
+  border: 0; border-bottom: 3px solid var(--brand-gold);
+  background:
+    radial-gradient(circle at 18% -80%, rgb(255 255 255 / .12), transparent 30rem),
+    linear-gradient(112deg, var(--brand-navy) 0%, #0c4255 54%, var(--brand-teal) 100%);
+  box-shadow: 0 8px 26px -18px rgb(5 28 42 / .8);
+  backdrop-filter: none;
 }
 
 .masthead-id,
@@ -2635,44 +2649,46 @@ header.site {
 .masthead-id {
   display: block;
   padding-block: .38rem;
-  border-bottom: 1px solid var(--line-2);
+  border-bottom: 1px solid rgb(255 255 255 / .14);
 }
 
 .unofficial {
   margin: 0;
   font-size: .72rem; line-height: 1.35;
   letter-spacing: .015em;
-  color: var(--ink-3); font-weight: 500;
+  color: var(--brand-on-dark-muted); font-weight: 550;
 }
-.unofficial strong { color: var(--ink-2); font-weight: 700; }
-.unofficial a { color: var(--ink-2); text-underline-offset: 2px; }
+.unofficial strong { color: var(--brand-on-dark); font-weight: 750; }
+.unofficial a { color: var(--brand-on-dark); text-decoration-color: var(--brand-gold); text-underline-offset: 2px; }
 
 .masthead-tools {
   position: relative;
   display: flex; flex-wrap: nowrap; align-items: center;
   gap: .8rem;
-  margin-top: 0; padding-block: .72rem;
+  margin-top: 0; padding-block: .82rem;
   border-top: 0;
 }
 
 .wordmark {
   order: 1; flex: none;
   display: inline-flex; align-items: center; gap: .68rem;
-  color: var(--ink); text-decoration: none;
+  color: var(--brand-on-dark); text-decoration: none;
 }
 .wordmark:hover { text-decoration: none; }
-.brand-mark { width: 2.15rem; height: 2.15rem; flex: none; filter: drop-shadow(0 4px 8px rgb(16 42 67 / .12)); }
-.brand-mark-tile { fill: var(--accent); }
-.brand-mark-bar { fill: var(--surface); }
+.brand-mark { width: 2.75rem; height: 2.75rem; flex: none; filter: drop-shadow(0 6px 10px rgb(2 20 31 / .3)); }
+.brand-mark-tile { fill: color-mix(in srgb, var(--brand-teal) 78%, #062a39); stroke: rgb(255 255 255 / .26); stroke-width: 1; }
+.brand-mark-texas { opacity: .92; }
+.brand-mark-bar { fill: var(--brand-on-dark); stroke: color-mix(in srgb, var(--brand-navy) 55%, transparent); stroke-width: .45; }
 .wordmark-copy { display: grid; gap: .05rem; }
 .wordmark-copy > strong {
-  font: 750 1.18rem/1 var(--font-sans);
+  color: var(--brand-on-dark);
+  font: 780 1.34rem/1 var(--font-sans);
   letter-spacing: -.035em;
 }
-.wordmark-copy > strong > span { color: var(--accent); font: inherit; }
+.wordmark-copy > strong > span { color: var(--brand-gold); font: inherit; }
 .wordmark-copy small {
-  color: var(--ink-3);
-  font: 550 .64rem/1.2 var(--font-sans);
+  color: var(--brand-on-dark-muted);
+  font: 600 .66rem/1.2 var(--font-sans);
   letter-spacing: .025em;
 }
 
@@ -2681,26 +2697,25 @@ header.site {
   flex: none;
   display: inline-flex; align-items: center; justify-content: center;
   width: 2.6rem; height: 2.6rem; margin-left: .35rem;
-  color: var(--ink-2); background: var(--surface);
-  border: 1px solid var(--line); border-radius: var(--radius);
-  box-shadow: var(--shadow-card); text-decoration: none;
+  color: var(--brand-navy); background: var(--brand-gold);
+  border: 1px solid var(--brand-gold); border-radius: var(--radius);
+  box-shadow: 0 5px 16px -10px rgb(0 0 0 / .75); text-decoration: none;
 }
 .desktop-search svg { width: 1.15rem; height: 1.15rem; }
 .desktop-search:hover {
-  color: var(--ink); background: var(--hover);
-  border-color: var(--ink-3); text-decoration: none;
+  color: var(--brand-navy); background: #fff0bd;
+  border-color: #fff0bd; text-decoration: none;
 }
 .desktop-search[aria-current='page'] {
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
-  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  color: var(--brand-navy); border-color: var(--brand-on-dark);
+  box-shadow: 0 0 0 2px var(--brand-on-dark);
 }
 .nav-menu { order: 2; min-width: 0; }
 .nav-menu > summary {
   list-style: none;
   cursor: pointer;
-  color: var(--ink); background: var(--surface);
-  border: 1px solid var(--line); border-radius: var(--radius);
+  color: var(--brand-on-dark); background: rgb(255 255 255 / .09);
+  border: 1px solid rgb(255 255 255 / .38); border-radius: var(--radius);
   min-height: 2.6rem; padding: .45rem .7rem;
   font-size: var(--t-meta); font-weight: 700;
 }
@@ -2712,11 +2727,18 @@ header.site {
 .theme-toggle {
   order: 3;
   width: 2.6rem; height: 2.6rem;
-  border-color: var(--line);
+  color: var(--brand-on-dark);
+  border-color: rgb(255 255 255 / .38);
   border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
+  background: rgb(255 255 255 / .09);
+  box-shadow: none;
 }
+.theme-toggle:hover { color: var(--brand-navy); background: var(--brand-gold); border-color: var(--brand-gold); }
+header.site :focus-visible { outline-color: var(--brand-gold); }
+header.site .navlist-site a:focus-visible,
+header.site .theme-toggle:focus-visible,
+header.site .desktop-search:focus-visible,
+header.site .nav-menu > summary:focus-visible { outline-color: var(--brand-gold); }
 
 @media (min-width: 48rem) {
   .desktop-nav { display: flex; align-items: center; justify-content: flex-end; }
@@ -2732,12 +2754,12 @@ header.site {
     min-height: 2.6rem;
     padding: .48rem .68rem;
     border: 0; border-radius: .5rem;
-    color: var(--ink-2); font-weight: 600;
+    color: var(--brand-on-dark-muted); font-weight: 650;
   }
-  header.site .navlist-site a:hover { color: var(--ink); background: var(--hover); }
+  header.site .navlist-site a:hover { color: var(--brand-on-dark); background: rgb(255 255 255 / .1); }
   header.site .navlist-site a[aria-current='page'] {
-    color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+    color: var(--brand-on-dark); background: rgb(255 255 255 / .1);
+    box-shadow: inset 0 -3px 0 var(--brand-gold);
   }
 }
 
@@ -2757,17 +2779,17 @@ header.site {
   .unofficial { white-space: normal; }
   .masthead-tools { min-height: 4rem; gap: .55rem; }
   .wordmark { margin-right: auto; }
-  .brand-mark { width: 2rem; height: 2rem; }
+  .brand-mark { width: 2.45rem; height: 2.45rem; }
   .wordmark-copy small { display: none; }
-  .wordmark-copy > strong { font-size: 1.12rem; }
-  .theme-toggle { order: 2; margin-left: auto; width: 2.5rem; height: 2.5rem; }
+  .wordmark-copy > strong { font-size: 1.18rem; }
+  .theme-toggle { order: 2; margin-left: auto; width: 2.75rem; height: 2.75rem; }
   .nav-menu { order: 3; flex: none; position: static; }
   .nav-menu > summary {
     display: inline-flex; align-items: center; gap: .42rem;
-    min-height: 2.5rem;
+    min-height: 2.75rem;
   }
   .nav-menu[open] > summary {
-    color: var(--surface); background: var(--accent); border-color: var(--accent);
+    color: var(--brand-navy); background: var(--brand-gold); border-color: var(--brand-gold);
   }
   .nav-menu-panel {
     position: absolute; z-index: 80;
@@ -2776,7 +2798,7 @@ header.site {
     overflow-y: auto; overscroll-behavior: contain;
     padding: .85rem;
     background: var(--raised);
-    border: 1px solid var(--line); border-radius: 0 0 var(--radius-card) var(--radius-card);
+    border: 1px solid var(--line); border-top: 4px solid var(--brand-gold); border-radius: 0 0 var(--radius-card) var(--radius-card);
     box-shadow: var(--shadow-raised);
   }
   header.site .nav-menu-panel .sitenav { margin: 0; }
@@ -2796,6 +2818,7 @@ header.site {
   header.site .navlist-site a[aria-current='page'] {
     color: var(--accent); border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
     background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+    box-shadow: inset 4px 0 0 var(--brand-gold);
   }
   header.site .nav-menu-panel .sitesearch { width: 100%; margin: .7rem 0 0; }
   header.site .nav-menu-panel .sitesearch-row { min-height: 2.8rem; }
@@ -2804,6 +2827,18 @@ header.site {
     margin: .7rem .1rem 0;
     color: var(--ink-3); font-size: var(--t-micro); line-height: 1.4;
   }
+}
+
+/* At the 320px floor the full wordmark still matters more than repeating the
+   word "Menu" beside a universally familiar hamburger. Keep that word as the
+   summary's accessible name while visually collapsing it to an icon target. */
+@media (max-width: 22rem) {
+  .nav-menu > summary { width: 2.75rem; justify-content: center; padding-inline: .45rem; }
+  .nav-menu > summary > span {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+  .wordmark-copy > strong { font-size: 1.08rem; }
 }
 
 /* ---- type, page rhythm and cards ------------------------------------- */
@@ -2839,11 +2874,29 @@ main > section:not(.hero) > h2 + .lede { margin-top: .55rem; }
 .col { max-width: none; }
 .layout main { padding-bottom: 5rem; }
 
+/* Entity articles share one branded rhythm without assigning a different hue
+   to every topic. The teal edge and gold heading rule mean "txschools.net",
+   never "good" or "bad"; the figures inside retain their own series palette. */
+.layout main > section:not(.hero):not(.mobile-compare) {
+  position: relative;
+  border-top: 4px solid var(--brand-teal);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--brand-mint) 24%, var(--surface)), var(--surface) 16rem);
+}
+.layout main > section:not(.hero):not(.mobile-compare) > h2::before,
+.layout main > section:not(.hero):not(.mobile-compare) > summary > h2::before {
+  content: '';
+  display: block; width: 3.25rem; height: .3rem;
+  margin-bottom: .7rem;
+  background: var(--brand-gold); border-radius: 999px;
+}
+
 .rail {
   top: calc(var(--header-h, 0px) + 1.25rem);
   padding: 1rem;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  border: 1px solid var(--line); border-radius: var(--radius-card);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--brand-mint) 58%, var(--surface)), var(--surface) 13rem);
+  border: 1px solid var(--line); border-top: 4px solid var(--brand-gold); border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
 }
 /* The viewport clamp belongs ONLY to the sticky rail.
@@ -2859,19 +2912,40 @@ main > section:not(.hero) > h2 + .lede { margin-top: .55rem; }
   .rail { max-height: calc(100vh - var(--header-h, 0px) - 2.5rem); }
 }
 .rail-block { border-bottom-color: var(--line-2); }
-.rail-title { color: var(--ink-3); letter-spacing: .1em; }
-.rail-index { border-left-color: var(--line); }
+.rail-title { color: var(--brand-teal-text); letter-spacing: .1em; }
+.rail-index { border-left-color: color-mix(in srgb, var(--brand-teal) 30%, var(--line)); }
 .rail-link { border-radius: 0 .45rem .45rem 0; }
 .rail-link:hover { background: var(--hover); }
+.rail-link[aria-current='true'] {
+  color: var(--brand-teal-text);
+  border-left-color: var(--brand-gold);
+  background: color-mix(in srgb, var(--brand-gold) 16%, transparent);
+}
 .rail-compare .chip {
   min-height: 2.55rem;
   border-radius: .5rem;
   border-color: var(--line);
 }
 .rail-compare .chip[aria-pressed='true'] {
-  color: var(--accent); border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
-  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  color: var(--brand-on-dark); border-color: var(--brand-teal);
+  background: var(--brand-teal);
 }
+.rail-compare .chip[aria-pressed='true'] .chip-n { color: var(--brand-on-dark-muted); }
+
+.stickybar {
+  color: var(--brand-on-dark);
+  background: linear-gradient(100deg, var(--brand-navy), var(--brand-teal));
+  border-color: color-mix(in srgb, var(--brand-gold) 65%, transparent);
+  border-bottom: 3px solid var(--brand-gold);
+  box-shadow: 0 12px 26px -18px rgb(4 26 39 / .9);
+}
+.stickybar .grade {
+  color: var(--brand-on-dark); background: rgb(255 255 255 / .1);
+  border-color: color-mix(in srgb, var(--brand-gold) 76%, transparent);
+}
+.stickybar .grade-score,
+.stickybar .sb-cohort { color: var(--brand-on-dark-muted); }
+.stickybar .sb-cohort [data-sb-cohort] { color: var(--brand-on-dark); }
 
 .mobile-compare { display: none; overflow: hidden; }
 
@@ -2880,8 +2954,9 @@ main > section:not(.hero) > h2 + .lede { margin-top: .55rem; }
     display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center;
     gap: .8rem 1rem;
     padding: .85rem 1rem;
-    background: color-mix(in srgb, var(--accent) 6%, var(--surface));
-    border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
+    background: color-mix(in srgb, var(--brand-mint) 62%, var(--surface));
+    border-color: color-mix(in srgb, var(--brand-teal) 28%, var(--line));
+    border-top: 4px solid var(--brand-gold);
   }
   .mobile-compare h2 { margin: .15rem 0 0; font: 750 1rem/1.2 var(--font-sans); letter-spacing: -.015em; }
   .mobile-compare .eyebrow { font-size: .62rem; }
@@ -2944,7 +3019,13 @@ main > section.hero-home {
 }
 .hero-home .sitesearch-hint { color: rgb(247 251 250 / .68); }
 
-.home-hero-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(18rem, .8fr); gap: clamp(1.5rem, 5vw, 4rem); align-items: end; }
+.home-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(18rem, .8fr);
+  column-gap: clamp(1.5rem, 5vw, 4rem);
+  row-gap: clamp(1rem, 2.5vw, 1.75rem);
+  align-items: center;
+}
 .home-hero-action {
   padding: 1.15rem;
   background: rgb(255 255 255 / .09);
@@ -2952,7 +3033,26 @@ main > section.hero-home {
   backdrop-filter: blur(10px);
 }
 .home-hero-action .sitesearch { max-width: none; margin: 0; padding: 0; background: none; border: 0; }
-.home-hero-action .lede { margin-top: .9rem; font-size: var(--t-meta); line-height: 1.55; }
+
+/* The address control is a full-width drawer below the stable title/search
+   row. Opening it can therefore grow only downward; it can never make one
+   grid column taller and shove the title toward the bottom of the hero. */
+.home-hero-address { grid-column: 1 / -1; min-width: 0; }
+.home-hero-address .addressfind {
+  margin: 0; padding: 0 1rem;
+  color: var(--hero-ink); background: rgb(255 255 255 / .08);
+  border: 1px solid rgb(255 255 255 / .18); border-radius: 1rem;
+  backdrop-filter: blur(10px);
+}
+.home-hero-address .addressfind-details > summary { padding-block: .75rem; }
+.home-hero-address .addressfind-details > summary:focus-visible { outline-color: var(--brand-gold); }
+.home-hero-address .addressfind-body { max-width: 64rem; padding: 0 0 1rem; }
+.home-hero-address .addressfind-help,
+.home-hero-address .addressfind-privacy { max-width: 76ch; }
+.home-hero-address .lede {
+  max-width: 65ch; margin: .8rem 0 0; padding-inline: 1rem;
+  font-size: var(--t-meta); line-height: 1.55;
+}
 .home-search-card {
   padding: 1.15rem;
   color: var(--ink); background: rgb(255 255 255 / .96);
@@ -3057,31 +3157,70 @@ main > section.hero-home {
   color: var(--ink); background: var(--ground); text-decoration: none; font-weight: 700;
 }
 
-/* ---- entity overview ------------------------------------------------- */
+/* ---- entity overview -------------------------------------------------
+   The opening behaves like a cover: identity and next action on a branded
+   plane, evidence on a quiet plane. Every district and campus gets the same
+   treatment regardless of grade. */
 
-main > .hero:has(.hero-facts) {
+main > .hero-entity {
   overflow: hidden;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--accent) 7%, var(--surface)), var(--surface) 54%);
-  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  padding: 0 0 clamp(1.4rem, 3vw, 2.65rem);
+  background: var(--surface);
+  border-color: color-mix(in srgb, var(--brand-teal) 25%, var(--line));
+  box-shadow: 0 18px 44px -30px rgb(8 40 55 / .6);
 }
-.hero:has(.hero-facts) h1 { max-width: 18ch; }
-.hero:has(.hero-facts) .place { margin-top: .7rem; font-size: var(--t-body); }
-.hero:has(.hero-facts) .enroll { margin-top: .75rem; }
+.entity-intro {
+  position: relative; isolation: isolate; overflow: hidden;
+  min-height: 13.5rem;
+  padding: clamp(1.65rem, 4vw, 3.25rem);
+  color: var(--brand-on-dark);
+  background:
+    radial-gradient(circle at 76% 12%, rgb(255 255 255 / .12), transparent 24rem),
+    linear-gradient(128deg, var(--brand-navy) 0%, #0c4354 57%, var(--brand-teal) 100%);
+}
+.entity-intro::after {
+  content: '';
+  position: absolute; z-index: -1;
+  width: clamp(16rem, 30vw, 23rem); aspect-ratio: 1;
+  right: clamp(-4rem, -2vw, -1rem); top: 50%;
+  background: url('/texas.svg') center / contain no-repeat;
+  opacity: .16; transform: translateY(-48%) rotate(2deg);
+  pointer-events: none;
+}
+.entity-intro > * { position: relative; z-index: 1; }
+.entity-intro .eyebrow { color: var(--brand-gold); }
+.entity-intro h1 { max-width: 14ch; color: var(--brand-on-dark); }
+.entity-intro .place {
+  max-width: 54ch; margin-top: .75rem;
+  color: var(--brand-on-dark-muted); font-size: var(--t-body);
+}
+.entity-intro .enroll { margin-top: 1rem; }
+.entity-intro .enroll a {
+  color: var(--brand-navy); background: var(--brand-gold);
+  border-color: var(--brand-gold);
+  box-shadow: 0 8px 22px -14px rgb(0 0 0 / .8);
+}
+.entity-intro .enroll a:hover {
+  color: var(--brand-navy); background: #fff0bd; border-color: #fff0bd;
+}
+.entity-intro .enroll-copy strong { color: var(--brand-navy); }
+.entity-intro .enroll-copy > span { color: color-mix(in srgb, var(--brand-navy) 82%, transparent); }
+.entity-intro .enroll-arrow { color: var(--brand-gold); background: var(--brand-navy); }
 
 .hero-facts {
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: .65rem;
-  margin: clamp(1.4rem, 3vw, 2rem) 0 0; padding: 0;
+  position: relative; z-index: 2;
+  margin: -1.05rem clamp(1.4rem, 3vw, 2.65rem) 0; padding: 0;
 }
 .hero-facts > div {
   min-width: 0; padding: .9rem 1rem;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  border: 1px solid var(--line); border-radius: .7rem;
-  box-shadow: var(--shadow-card);
+  background: var(--raised);
+  border: 1px solid var(--line); border-top: 4px solid var(--brand-gold); border-radius: .7rem;
+  box-shadow: 0 12px 28px -22px rgb(4 35 49 / .65);
 }
 .hero-facts dt {
-  color: var(--ink-3); font-size: var(--t-micro); font-weight: 750;
+  color: var(--brand-teal-text); font-size: var(--t-micro); font-weight: 800;
   letter-spacing: .075em; text-transform: uppercase;
 }
 .hero-facts dd { margin: .45rem 0 0; }
@@ -3096,9 +3235,10 @@ main > .hero:has(.hero-facts) {
 .verdict {
   display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center;
   gap: 1.2rem;
-  margin-top: 1rem; padding: 1.15rem;
-  background: var(--surface);
-  border: 1px solid var(--line); border-radius: .75rem;
+  margin: 1rem clamp(1.4rem, 3vw, 2.65rem) 0; padding: 1.15rem;
+  background: color-mix(in srgb, var(--brand-cream) 72%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--brand-gold) 48%, var(--line));
+  border-left: 5px solid var(--brand-gold); border-radius: .75rem;
   box-shadow: none;
 }
 .verdict .grade-lg {
@@ -3106,20 +3246,21 @@ main > .hero:has(.hero-facts) {
   display: grid; align-content: center; justify-items: center; gap: .1rem;
   padding: .8rem;
   color: var(--hero-ink); background: var(--hero-bg);
-  border: 0; border-radius: .65rem;
+  border: 2px solid var(--brand-gold); border-radius: .65rem;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-gold) 18%, transparent);
 }
 .verdict .grade-lg .grade-letter { color: inherit; line-height: .9; }
 .verdict .grade-lg .grade-score { color: rgb(247 251 250 / .72); }
 .verdict-copy { min-width: 0; }
 .verdict-label {
   margin: 0 0 .25rem;
-  color: var(--accent); font-size: var(--t-micro); font-weight: 750;
+  color: var(--brand-teal-text); font-size: var(--t-micro); font-weight: 800;
   letter-spacing: .09em; text-transform: uppercase;
 }
 .verdict .summary { margin: 0; font-size: clamp(1rem, .9rem + .35vw, 1.18rem); line-height: 1.55; }
 .summary-rank { max-width: none; }
 .verdict-detail {
-  margin-top: .75rem;
+  margin: .75rem clamp(1.4rem, 3vw, 2.65rem) 0;
   border: 1px solid var(--line); border-radius: .6rem;
   background: color-mix(in srgb, var(--accent) 3%, var(--surface));
 }
@@ -3139,9 +3280,10 @@ main > .hero:has(.hero-facts) {
    coexist with it. No grade colour is used, because a positive result is text
    and arithmetic here rather than a green marketing badge. */
 .strengths {
-  margin-top: 1rem; padding: 1rem;
-  background: color-mix(in srgb, var(--accent) 3%, var(--ground));
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
+  margin: 1rem clamp(1.4rem, 3vw, 2.65rem) 0; padding: 1rem;
+  background: color-mix(in srgb, var(--brand-mint) 72%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--brand-teal) 22%, var(--line));
+  border-top: 4px solid var(--brand-gold);
   border-radius: .75rem;
 }
 .strengths-heading {
@@ -3156,11 +3298,11 @@ main > .hero:has(.hero-facts) {
 .strength-card {
   display: flex; min-width: 0; flex-direction: column;
   padding: .9rem;
-  background: var(--surface); border: 1px solid var(--line); border-radius: .68rem;
+  background: var(--raised); border: 1px solid var(--line); border-top: 3px solid var(--brand-gold); border-radius: .68rem;
   box-shadow: var(--shadow-card);
 }
 .strength-kicker {
-  margin: 0 0 .35rem; color: var(--accent); font-size: var(--t-micro); font-weight: 800;
+  margin: 0 0 .35rem; color: var(--brand-teal-text); font-size: var(--t-micro); font-weight: 800;
   letter-spacing: .075em; text-transform: uppercase;
 }
 .strength-card h3 {
@@ -3199,6 +3341,8 @@ main > .hero:has(.hero-facts) {
 }
 .strengths-note { margin: .75rem 0 0; color: var(--ink-3); font-size: var(--t-small); line-height: 1.48; }
 .strengths-note strong { color: var(--ink-2); }
+.hero-entity > .alert,
+.hero-entity > .note { margin-inline: clamp(1.4rem, 3vw, 2.65rem); }
 
 /* ---- "How to read these" (rankings index) ----------------------------
    A whole section collapsed behind its own <h2>. The heading stays a real
@@ -3330,9 +3474,20 @@ footer.site {
   #regions .navlist { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+/* The homepage needs its single-column treatment sooner than entity pages.
+   At 64rem the two-column hero still left too little room for a useful search
+   field, even though the rest of the site can keep its desktop layout. */
+@media (max-width: 70rem) {
+  .home-hero-grid { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .hero-home::before { width: 19rem; right: -2.5rem; top: 1.5rem; bottom: auto; opacity: .2; }
+}
+
 @media (max-width: 47.99rem) {
   main { padding-top: 1rem; }
   main > section { margin-bottom: .9rem; }
+  .entity-intro { min-height: 0; padding: 1.55rem 1.4rem 2.2rem; }
+  .entity-intro::after { width: 15rem; right: -4.5rem; opacity: .12; }
+  .entity-intro h1 { max-width: 16ch; }
   .home-hero-grid { grid-template-columns: 1fr; }
   .hero-home::before { width: 16rem; right: -4.5rem; top: 1.25rem; bottom: auto; opacity: .22; }
   .home-trust-list { grid-template-columns: 1fr; }
@@ -3367,6 +3522,7 @@ footer.site {
   #statewide .stat { min-height: 0; }
   .hero-facts { grid-template-columns: 1fr 1fr; }
   .hero-facts > div { padding: .75rem; }
+  .entity-intro::after { opacity: .08; }
   .verdict { grid-template-columns: 1fr; gap: .8rem; }
   .verdict .grade-lg { min-width: 0; min-height: 5rem; grid-template-columns: auto auto; justify-content: start; gap: .6rem; }
   .verdict .grade-lg .grade-letter { font-size: 2.7rem; }
@@ -3493,8 +3649,39 @@ footer.site {
 .md-text:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 @media print {
+  /* Printing is a light medium even when the reader was browsing in dark
+     mode. Reset the theme tokens explicitly so browsers that omit background
+     graphics never put near-white dark-theme text onto white paper. */
+  :root,
+  :root[data-theme='dark'],
+  :root:not([data-theme='light']) {
+    --ground: #ffffff; --surface: #ffffff; --raised: #ffffff; --bg: #ffffff;
+    --ink: #102a43; --ink-2: #3e5265; --ink-3: #607486;
+    --line: #cbd7d8; --line-2: #e5eceb;
+    --accent: #0b5f6b; --brand-teal-text: #0b5f6b;
+  }
   .md-export { display: none; }
   .desktop-nav, .nav-menu, .masthead-id { display: none !important; }
+  .hero-entity { padding: 0; }
+  .entity-intro {
+    min-height: 0; padding: 0 0 1rem;
+    color: var(--ink); background: none !important;
+  }
+  .entity-intro::after { display: none; }
+  .entity-intro .eyebrow,
+  .entity-intro h1,
+  .entity-intro .place { color: var(--ink); }
+  .entity-intro .enroll a {
+    color: var(--ink); background: none; border-color: var(--line);
+    box-shadow: none;
+  }
+  .entity-intro .enroll-copy strong,
+  .entity-intro .enroll-copy > span { color: var(--ink); }
+  .entity-intro .enroll-arrow { color: var(--ink); background: none; }
+  .hero-facts,
+  .verdict,
+  .strengths,
+  .verdict-detail { margin-inline: 0; }
   footer.site { background: none; color: var(--ink); }
   .footer-grid { display: block; }
   .footer-grid nav { display: none; }

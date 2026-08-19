@@ -8,6 +8,7 @@ import {
   ADDRESS_INDEX_PATH,
   ADDRESS_MAX_LENGTH,
   ADDRESS_STREETS_PATH,
+  ADDRESS_CSS,
   CENSUS_GEOCODER_PATH,
   addressClientJs,
   buildDistrictLocator,
@@ -64,6 +65,13 @@ describe('district address index', () => {
 
 describe('address lookup control', () => {
   const html = renderAddressLookup({ id: 'home-address' })
+
+  it('keeps the address row inline until the phone breakpoint', () => {
+    expect(ADDRESS_CSS).not.toContain('.hero-home .addressfind-row')
+    expect(ADDRESS_CSS).not.toContain('.hero-home .addressfind-go')
+    expect(ADDRESS_CSS).toMatch(/\.addressfind-row\{display:flex/)
+    expect(ADDRESS_CSS).toMatch(/@media\(max-width:44rem\)\{[\s\S]*\.addressfind-row\{display:grid[\s\S]*\.addressfind-go\{[^}]*width:100%/)
+  })
 
   it('is immediately discoverable beside search and explicitly discloses the address recipient', () => {
     expect(html).toContain('Find my district by address')

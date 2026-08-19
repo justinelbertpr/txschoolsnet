@@ -52,10 +52,14 @@ export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem('theme');if(t==
  * carry this site's JSONP callback shape and fixed benchmark/vintage/layer;
  * anything else throws. A
  * pass-through implementation here would have quietly cancelled the
- * protection this whole policy exists to provide. The
- * trusted-types directive in site/_headers restricts policy creation to
- * exactly this name, so nothing else — vendored, injected, or otherwise —
- * can register a competing "default" and intercept these sinks first.
+ * protection this whole policy exists to provide. site/_headers still enforces
+ * Trusted Types at guarded sinks, but deliberately omits the policy-name
+ * restriction from the RESPONSE header: Apple's LinkPresentation parser rejects
+ * the whole document when it sees that directive there and produces a blank
+ * Messages card. shell() restores the same restriction in a CSP meta immediately
+ * before every script, where browsers enforce it without breaking Apple's
+ * metadata fetch. script-src still limits executable code to this site's own
+ * files, exact hosts and inline hashes.
  */
 export const TRUSTED_TYPES_INIT_SCRIPT = `if(window.trustedTypes&&trustedTypes.createPolicy){try{trustedTypes.createPolicy('default',{createHTML:function(s){return s},createScriptURL:function(u){var a=['https://www.googletagmanager.com/','https://www.google-analytics.com/'];for(var i=0;i<a.length;i++){if(u.indexOf(a[i])===0)return u}try{var x=new URL(u,location.origin);if(x.origin===location.origin)return u;var k=['address','benchmark','vintage','layers','format','callback'],n=0,one=1;x.searchParams.forEach(function(){n++});for(var j=0;j<k.length;j++){if(x.searchParams.getAll(k[j]).length!==1)one=0}var q=x.searchParams.get('address')||'';if(x.origin==='https://geocoding.geo.census.gov'&&x.pathname==='/geocoder/geographies/onelineaddress'&&n===k.length&&one&&q.length>0&&q.length<=100&&x.searchParams.get('format')==='jsonp'&&/^__txschoolsAddress\\d+_\\d+$/.test(x.searchParams.get('callback')||'')&&x.searchParams.get('benchmark')==='Public_AR_Current'&&x.searchParams.get('vintage')==='Current_Current'&&x.searchParams.get('layers')==='Unified School Districts')return u}catch(e){}throw new TypeError('blocked script url: '+u)}})}catch(e){}}`
 
@@ -108,10 +112,11 @@ export const esc = (s) =>
 /* ---------------------------------------------------------------- identity -- */
 
 /**
- * The mark, in one place, because three files draw it: this module writes the
- * theme-colour metas, and src/prerender.js writes site/favicon.svg and the two
- * PNGs from the same numbers. A second copy of these coordinates is how the
- * favicon and the share card quietly stop being the same logo.
+ * The data bars live in one place because three files draw them: this module
+ * writes the header mark and theme-colour metas, and src/prerender.js writes
+ * site/favicon.svg and the two PNGs from the same numbers. The full masthead
+ * mark layers those bars over the site's verified /texas.svg; tiny icons keep
+ * the simpler bars, where the state outline would turn to noise.
  *
  * Colours are the palette's own: --accent and --ground/--ink in both schemes
  * (site/style.css:7 and :49). Nothing here encodes a grade — the mark is three
@@ -119,16 +124,18 @@ export const esc = (s) =>
  * it says nothing about any particular school.
  */
 export const BRAND = {
-  tile: '#0f4c5c', // --brand, light scheme
+  tile: '#0f5966', // --brand-teal, light scheme
   glyph: '#ffffff',
   tileDark: '#65d2c9', // --brand, dark scheme
   glyphDark: '#081c24',
-  themeLight: '#f4f7f6', // --ground, light
+  themeLight: '#eef3f2', // --ground, light
   themeDark: '#0b151a', // --ground, dark
   name: 'txschools.net',
   siteName: 'txschools.net (unofficial)',
   markAlt:
-    'txschools.net: three ascending bars in a rounded tile. An unofficial site, not affiliated with the Texas Education Agency.',
+    'txschools.net: a Texas outline with ascending data bars. An unofficial site, not affiliated with the Texas Education Agency.',
+  shareAlt:
+    'An outline of Texas beside ascending data bars in teal, cream and gold. txschools.net is unofficial and not affiliated with the Texas Education Agency.',
 }
 
 /** Bars on a 32-unit grid; every edge is a multiple of 0.5 so a 16x scale to 512 lands on integers. */
@@ -163,22 +170,25 @@ ${MARK_BARS.map((b) => `<rect class="bar" x="${b.x}" y="${b.y}" width="${b.w}" h
 `
 
 /**
- * ONE share image for the whole site, 512x512, square, PNG.
+ * ONE share image for the whole site, 1200x630, wide, opaque PNG.
  *
- * Not one per entity: 10,230 of them is half the 20,000-asset cap this site is
+ * Not one per entity: 9,086 of them is nearly half the 20,000-asset cap this site is
  * already rationing (src/prerender.js, FILE BUDGET). Not a handful by page type
  * either — a district card and a campus card would differ only in decoration,
  * since the words that actually differ are already in og:title and og:description.
- * So: one file, one meaning, no per-page lie.
+ * So: one file, one meaning, no per-page lie. It combines the real Texas
+ * outline already used on the homepage with the site's data-bar mark; it does
+ * not depict or imply anything about a particular school.
  *
  * PNG rather than SVG, even though every other drawing on this site is an SVG the
  * build writes: no major unfurler rasterises SVG for og:image (X, Facebook, Slack
  * and iMessage all take PNG/JPEG/WEBP/GIF), so an SVG card would be a file nobody
- * ever renders. It is drawn by ~40 lines of zlib in src/prerender.js rather than
- * by a dependency, and it is axis-aligned rectangles precisely so that no
- * rasteriser, font or anti-aliasing is needed to draw it.
+ * ever renders. Apple recommends a preview image at least 900px wide. The old
+ * 512px square was below that threshold and could be ignored even after the
+ * metadata loaded. The query revision makes clients that cached that old asset
+ * ask for the replacement.
  */
-export const OG_IMAGE = { path: '/og.png', width: 512, height: 512 }
+export const OG_IMAGE = { path: '/og.png', revision: '20260819', width: 1200, height: 630 }
 export const APPLE_TOUCH_ICON = { path: '/apple-touch-icon.png', size: 180 }
 
 /**
@@ -293,16 +303,11 @@ export const siteNav = (canonical, { includeSearch = true } = {}) => {
  * description when a page wants different words on the card; nothing passes them
  * today and the defaults are correct.
  *
- * twitter:card is `summary`, not `summary_large_image`, and that is a decision
- * about honesty rather than taste. The image is one shared site mark — see
- * OG_IMAGE — because 10,230 per-entity cards would breach the 20,000-asset cap
- * this site already plans around (the FILE BUDGET note in src/prerender.js).
- * `summary_large_image` renders that shared mark as a 2:1 banner above the text,
- * where a reader reasonably reads the picture as being *of this school*; the same
- * banner on 10,230 different schools is a picture that means nothing. `summary`
- * puts it in a small square thumbnail beside the copy — which is what a site mark
- * is for — and leaves the school's name, grade and cohort, all of which are true
- * and per-page, as the dominant text of the card.
+ * twitter:card is `summary_large_image` because OG_IMAGE is now a purpose-built
+ * 1200x630 share graphic rather than the old square logo tile. The picture is
+ * still honest on every page: an outline of Texas and abstract data bars, with
+ * no school, rating or place-specific claim baked into it. The page-specific
+ * truth remains in the adjacent title and description.
  *
  * og:site_name carries "(unofficial)". The card is the one surface where a reader
  * meets this site with no page around it, so it is the one place the
@@ -366,7 +371,7 @@ ${main}
 
 ${main}`
 
-  const image = `${SITE_ORIGIN}${OG_IMAGE.path}`
+  const image = `${SITE_ORIGIN}${OG_IMAGE.path}?v=${OG_IMAGE.revision}`
   const ogTitle = clampText(cardTitle ?? title, 70)
   const ogDescription = clampText(cardDescription ?? description, 200)
   const currentPath = pathOf(canonical)
@@ -386,9 +391,12 @@ ${main}`
   }>
     <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.25" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m12.4 12.4 4.1 4.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
   </a>`
-  const mark = `<svg class="brand-mark" aria-hidden="true" viewBox="0 0 32 32">
-    <rect class="brand-mark-tile" width="32" height="32" rx="8"/>
-    ${MARK_BARS.map((b) => `<rect class="brand-mark-bar" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx=".75"/>`).join('')}
+  const mark = `<svg class="brand-mark" aria-hidden="true" viewBox="0 0 48 48">
+    <rect class="brand-mark-tile" width="48" height="48" rx="12"/>
+    <image class="brand-mark-texas" href="/texas.svg" x="9" y="5" width="31" height="31"/>
+    <g class="brand-mark-bars" transform="translate(3.5 13) scale(1.05)">
+      ${MARK_BARS.map((b) => `<rect class="brand-mark-bar" x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx=".75"/>`).join('')}
+    </g>
   </svg>`
 
   return `<!doctype html>
@@ -418,15 +426,17 @@ ${main}`
 <meta property="og:description" content="${esc(ogDescription)}">
 <meta property="og:url" content="${esc(canonical)}">
 <meta property="og:image" content="${esc(image)}">
+<meta property="og:image:secure_url" content="${esc(image)}">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="${OG_IMAGE.width}">
 <meta property="og:image:height" content="${OG_IMAGE.height}">
-<meta property="og:image:alt" content="${esc(BRAND.markAlt)}">
-<meta name="twitter:card" content="summary">
+<meta property="og:image:alt" content="${esc(BRAND.shareAlt)}">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(ogTitle)}">
 <meta name="twitter:description" content="${esc(ogDescription)}">
 <meta name="twitter:image" content="${esc(image)}">
-<meta name="twitter:image:alt" content="${esc(BRAND.markAlt)}">
+<meta name="twitter:image:alt" content="${esc(BRAND.shareAlt)}">
+<meta http-equiv="Content-Security-Policy" content="trusted-types default">
 <link rel="stylesheet" href="/style.css">
 <link rel="preload" href="/fonts/geist-var.woff2" as="font" type="font/woff2" crossorigin>
 <script>${THEME_INIT_SCRIPT}</script>

@@ -123,6 +123,8 @@ describe('a section with no data', () => {
 describe('verdict', () => {
   it('always renders, because the name and place never depend on TEA data', () => {
     const html = verdict(empty())
+    expect(html).toContain('<section class="hero hero-entity"')
+    expect(html).toContain('<div class="entity-intro">')
     expect(html).toContain('<h1>Dallas ISD</h1>')
     expect(html).toContain('Dallas County')
   })

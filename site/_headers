@@ -131,19 +131,19 @@
 #                not weather the "avoid unsafe-inline" bar that script-src
 #                has to clear. 'self' still covers the external stylesheet.
 #
-#   trusted-types / require-trusted-types-for — enforced, not just declared,
-#                because TRUSTED_TYPES_INIT_SCRIPT (src/render/shell.js)
-#                installs a policy literally named "default" before any other
-#                script runs. That name is what lets the platform keep
-#                honouring the plain-string .innerHTML writes already in
-#                site/app.js and site/rankings.js (chart redraws, the
-#                rankings tool's results table) without either file being
-#                rewritten — see the comment on TRUSTED_TYPES_INIT_SCRIPT
-#                itself for why that is the correct trade-off here, not a
-#                loophole. Restricting the directive to exactly that one name
-#                is what stops any other script — vendored, injected, or
-#                otherwise — from registering a competing "default" policy
-#                and intercepting those sinks first.
+#   require-trusted-types-for — enforced, not just declared, because
+#                TRUSTED_TYPES_INIT_SCRIPT (src/render/shell.js) installs a
+#                narrow default policy before any other script runs. That keeps
+#                the site's existing chart/table writes working while guarded
+#                script sinks still reject untrusted strings. Do not add the
+#                separate policy-name allowlist in this RESPONSE header: macOS
+#                LinkPresentation (the framework Messages uses for rich links)
+#                rejects the whole document when that directive is present here
+#                and returns no title, image or icon. shell.js emits the same
+#                `trusted-types default` restriction as an early CSP meta before
+#                every script; browsers enforce that page-level policy alongside
+#                the compatible response-header enforcement below. script-src
+#                still limits which code can run and create a policy at all.
 #
 # frame-ancestors 'none' is the modern, CSP-based clickjacking control;
 # X-Frame-Options: DENY sits alongside it only for browsers old enough to
@@ -151,7 +151,7 @@
 # unconditionally — wrangler.jsonc's custom_domain is already HTTPS-only, so
 # there is no plain-HTTP origin this could ever lock a reader out of.
 /*
-  Content-Security-Policy: default-src 'none'; script-src 'self' https://www.googletagmanager.com https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress 'sha256-wBdtWdXsHnAU2DdByySW4LlXFAScrBvmBgkXtydwJdg=' 'sha256-1T7wxy1lJpxN+V5V2NyExtYgm/RlXONHoqaOmI6zQC4=' 'sha256-b3FhZxwL6eGhRO/NVQ9RUwptDN+GB1ks5O5u1LU8FSw=' 'sha256-PiJjrtl4vqQqu+0o5I9S5RQz6NEFIbhAU7prdNQpiVE=' https://static.cloudflareinsights.com https://*.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com; font-src 'self'; connect-src 'self' https://static.cloudflareinsights.com https://*.cloudflareinsights.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; require-trusted-types-for 'script'; trusted-types default; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'none'; script-src 'self' https://www.googletagmanager.com https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress 'sha256-wBdtWdXsHnAU2DdByySW4LlXFAScrBvmBgkXtydwJdg=' 'sha256-1T7wxy1lJpxN+V5V2NyExtYgm/RlXONHoqaOmI6zQC4=' 'sha256-b3FhZxwL6eGhRO/NVQ9RUwptDN+GB1ks5O5u1LU8FSw=' 'sha256-PiJjrtl4vqQqu+0o5I9S5RQz6NEFIbhAU7prdNQpiVE=' https://static.cloudflareinsights.com https://*.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com; font-src 'self'; connect-src 'self' https://static.cloudflareinsights.com https://*.cloudflareinsights.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; require-trusted-types-for 'script'; upgrade-insecure-requests
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
   Cross-Origin-Opener-Policy: same-origin
   X-Frame-Options: DENY

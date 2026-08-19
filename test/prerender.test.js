@@ -32,7 +32,9 @@ import {
   rankingScopes,
   RANKING_PLAN,
   recentChangeRankIndex,
+  sharePng,
 } from '../src/prerender.js'
+import { OG_IMAGE } from '../src/render/shell.js'
 import { rankingCatalogue } from '../src/render/rankings-page.js'
 import { renderEntity } from '../src/render/page.js'
 import { entitySlug } from '../src/render/view-model.js'
@@ -193,6 +195,18 @@ describe('humanDate', () => {
     // 23:30Z is the previous day in every US timezone; a local-time render
     // would date the snapshot a day early for half the year.
     expect(humanDate('2026-08-15T23:30:00.000Z')).toBe('15 August 2026')
+  })
+})
+
+describe('sharePng', () => {
+  it('renders the social artwork at Apple preview size as an opaque truecolour PNG', async () => {
+    const image = await sharePng()
+    expect(image.subarray(0, 8)).toEqual(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))
+    expect(image.readUInt32BE(16)).toBe(OG_IMAGE.width)
+    expect(image.readUInt32BE(20)).toBe(OG_IMAGE.height)
+    expect(image[24]).toBe(8) // bit depth
+    expect(image[25]).toBe(2) // truecolour with no alpha channel
+    expect(image.length).toBeLessThan(300_000)
   })
 })
 

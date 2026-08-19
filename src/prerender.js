@@ -282,18 +282,20 @@ const viewModelFor = (t, entity, snapshotDate, { previousYear = null, recentChan
 /* ----------------------------------------------------------- brand assets -- */
 //
 // Three files, written once per build, that make a link to this site legible when
-// it leaves this site: a favicon, a share card, and a home-screen icon. All three
-// draw the same mark, whose colours and coordinates live in src/render/shell.js
-// so the tab and the card cannot drift apart.
+// it leaves this site: a favicon, a share card, and a home-screen icon. The icon
+// assets draw the mark whose colours and coordinates live in render/shell.js;
+// the wider share card pairs that mark with the same real Texas outline the
+// homepage uses, so it is recognizable without pretending to depict one school.
 //
 // WHY A PNG WRITER AND NOT AN SVG. Every other drawing this project makes is an
 // SVG string, and the favicon still is — but no major unfurler rasterises SVG for
 // og:image. X, Facebook, LinkedIn, Slack and iMessage all want PNG/JPEG/WEBP/GIF,
 // so shipping an SVG card would be shipping a file that nothing ever renders. The
-// writer below is the whole of PNG that a flat, axis-aligned mark needs: a CRC, a
-// chunk framer, and zlib — which is already imported here to read the snapshot.
-// No dependency, no font, no rasteriser, ~40 lines. The mark is rectangles for
-// exactly that reason: it needs no anti-aliasing to look drawn on purpose.
+// writer below is the whole of PNG that a flat, axis-aligned icon needs: a CRC,
+// a chunk framer, and zlib — already imported here to read the snapshot. The
+// 1200x630 share graphic needs the curved Texas boundary, gradients and smooth
+// scaling; Sharp rasterises that one SVG composition at build time. It contains
+// no font or text, so social clients supply the current page title themselves.
 //
 // WHY NO WEB MANIFEST. A manifest earns its file when an app has a standalone
 // display mode, an install prompt, offline behaviour or maskable icons. This is a
@@ -384,11 +386,75 @@ export function markPng(size) {
   )
 }
 
+/**
+ * A truthful, text-free share graphic: the real Texas outline already shipped
+ * on the homepage, beside the same three bars as the favicon. The important
+ * shapes sit away from the outer edges so clients can crop the 1.91:1 source to
+ * a square without turning it into an unrecognizable sliver.
+ */
+export async function sharePng() {
+  const texasSvg = await readFile(new URL('../site/texas.svg', import.meta.url), 'utf8')
+  const path = texasSvg.match(/<path\b[^>]*\sd="([^"]+)"/s)?.[1]
+  if (!path) throw new Error('site/texas.svg has no path for the share graphic')
+
+  const width = OG_IMAGE.width
+  const height = OG_IMAGE.height
+  const artwork = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#102a43"/>
+      <stop offset=".58" stop-color="#0d3b49"/>
+      <stop offset="1" stop-color="#0f4c5c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".5" cy=".5" r=".5">
+      <stop offset="0" stop-color="#65d2c9" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#65d2c9" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="texas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe5a5"/>
+      <stop offset="1" stop-color="#f2c96d"/>
+    </linearGradient>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M42 0H0V42" fill="none" stroke="#9ee3dd" stroke-opacity=".13" stroke-width="1"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#071b2a" flood-opacity=".35"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <ellipse cx="980" cy="150" rx="430" ry="380" fill="url(#glow)"/>
+  <rect x="58" y="54" width="1084" height="522" rx="42" fill="#f7fbfa" fill-opacity=".035" stroke="#f7fbfa" stroke-opacity=".12" stroke-width="2"/>
+  <g transform="translate(608 36) scale(.49)" filter="url(#shadow)">
+    <path d="${path}" fill="url(#texas)" fill-opacity=".9" stroke="#fff1c8" stroke-width="8" stroke-linejoin="round"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="104" y="126" width="292" height="292" rx="66" fill="#f7fbfa" fill-opacity=".1" stroke="#9ee3dd" stroke-opacity=".55" stroke-width="3"/>
+    <rect x="163" y="286" width="46" height="69" rx="7" fill="#f7fbfa"/>
+    <rect x="227" y="240" width="46" height="115" rx="7" fill="#f7fbfa"/>
+    <rect x="291" y="194" width="46" height="161" rx="7" fill="#f7fbfa"/>
+  </g>
+  <g fill="#9ee3dd" opacity=".9">
+    <rect x="115" y="469" width="98" height="12" rx="6"/>
+    <rect x="227" y="469" width="142" height="12" rx="6" opacity=".7"/>
+    <rect x="115" y="500" width="176" height="12" rx="6" opacity=".7"/>
+    <rect x="305" y="500" width="88" height="12" rx="6" opacity=".46"/>
+  </g>
+</svg>`
+
+  const { default: sharp } = await import('sharp')
+  return sharp(Buffer.from(artwork))
+    .flatten({ background: '#102a43' })
+    .removeAlpha()
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer()
+}
+
 /** Written to site/ root, where resetDir does not reach, so they survive a rebuild intact. */
 export async function writeBrandAssets(dir = 'site') {
   const assets = [
     ['favicon.svg', Buffer.from(faviconSvg(), 'utf8')],
-    [OG_IMAGE.path.replace(/^\//, ''), markPng(OG_IMAGE.width)],
+    [OG_IMAGE.path.replace(/^\//, ''), await sharePng()],
     [APPLE_TOUCH_ICON.path.replace(/^\//, ''), markPng(APPLE_TOUCH_ICON.size)],
   ]
   for (const [name, body] of assets) await writeFile(`${dir}/${name}`, body)

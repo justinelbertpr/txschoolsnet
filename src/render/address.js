@@ -160,13 +160,11 @@ export const ADDRESS_CSS = `
 .addressfind-disclaimer{margin:.7rem 0 0;font-size:.78rem;line-height:1.45;color:var(--ink-3)}
 .hero-home .addressfind{border-color:color-mix(in srgb,var(--hero-ink) 22%,transparent)}
 .hero-home .addressfind-details>summary small{color:color-mix(in srgb,var(--hero-ink) 68%,transparent)}
-.hero-home .addressfind-row{display:grid;grid-template-columns:minmax(0,1fr)}
 .hero-home .addressfind-suggestions{position:static;max-height:min(40dvh,16rem);margin-top:.2rem}
-.hero-home .addressfind-go{min-height:2.75rem;width:100%}
 .hero-home .addressfind-form a{color:var(--accent)}
 .hero-home .addressfind-form .addressfind-action-primary{color:var(--surface)}
 @media(max-width:44rem){
- .addressfind-details>summary{align-items:flex-start;flex-wrap:wrap;gap:.2rem .55rem}
+ .addressfind-details>summary{align-items:flex-start;flex-wrap:wrap;gap:.2rem .55rem;padding-right:2rem}
  .addressfind-details>summary small{flex:1 0 100%}
  .addressfind-details>summary:after{position:absolute;right:0}
  .addressfind-details{position:relative}

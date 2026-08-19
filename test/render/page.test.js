@@ -17,7 +17,15 @@ import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import { railFor, renderEntity, sectionIndex, stickyFor } from '../../src/render/page.js'
 import { HERO_ID, HERO_LABEL } from '../../src/render/sections.js'
-import { GTAG_INLINE, THEME_INIT_SCRIPT, TRUSTED_TYPES_INIT_SCRIPT, shell, table } from '../../src/render/shell.js'
+import {
+  BRAND,
+  GTAG_INLINE,
+  OG_IMAGE,
+  THEME_INIT_SCRIPT,
+  TRUSTED_TYPES_INIT_SCRIPT,
+  shell,
+  table,
+} from '../../src/render/shell.js'
 
 const COHORTS = [
   { key: 'peer', label: 'Similar student population', short: 'similar', n: 294, metrics: { ecoDis: 60 } },
@@ -263,6 +271,25 @@ describe('shell layout', () => {
   it('renders a rail-less page byte for byte as it did before there were rails', () => {
     expect(shell({ ...args, rail: null, sticky: null })).toBe(shell(args))
   })
+
+  it('gives link previews a wide, cache-busted image and complete metadata', () => {
+    const html = shell(args)
+    const image = `https://txschools.net${OG_IMAGE.path}?v=${OG_IMAGE.revision}`
+    expect(OG_IMAGE.width).toBeGreaterThanOrEqual(900)
+    expect(OG_IMAGE.height).toBe(630)
+    expect(html).toContain(`<meta property="og:title" content="T">`)
+    expect(html).toContain(`<meta property="og:description" content="D">`)
+    expect(html).toContain(`<meta property="og:url" content="${args.canonical}">`)
+    expect(html).toContain(`<meta property="og:image" content="${image}">`)
+    expect(html).toContain(`<meta property="og:image:secure_url" content="${image}">`)
+    expect(html).toContain(`<meta property="og:image:width" content="${OG_IMAGE.width}">`)
+    expect(html).toContain(`<meta property="og:image:height" content="${OG_IMAGE.height}">`)
+    expect(html).toContain(`<meta property="og:image:alt" content="${BRAND.shareAlt}">`)
+    expect(html).toContain('<meta name="twitter:card" content="summary_large_image">')
+    expect(html).toContain(`<meta name="twitter:image" content="${image}">`)
+    expect(html).toContain('<meta http-equiv="Content-Security-Policy" content="trusted-types default">')
+    expect(html.indexOf('content="trusted-types default"')).toBeLessThan(html.indexOf(`<script>${TRUSTED_TYPES_INIT_SCRIPT}</script>`))
+  })
 })
 
 /* ------------------------------------------------------------ the page ----- */
@@ -376,6 +403,8 @@ describe('the primary nav cannot become unreachable', () => {
     const header = html.slice(html.indexOf('<header class="site">'), html.indexOf('</header>'))
     const tools = header.slice(header.indexOf('<div class="masthead-tools">'))
     expect(html).toContain('class="wordmark" href="/"')
+    expect(tools).toContain('class="brand-mark-texas" href="/texas.svg"')
+    expect(tools).toContain('class="brand-mark-bars"')
     expect(html).toContain('<div class="desktop-nav">')
     for (const href of ['/districts/a', '/rankings', '/download', '/about']) {
       expect(tools.match(new RegExp(`<a href="${href}"`, 'g'))).toHaveLength(2)
@@ -474,6 +503,12 @@ describe('inline scripts match the CSP hashes in site/_headers', () => {
     expect(csp).toMatch(/connect-src[^;]*https:\/\/www\.google-analytics\.com/)
     // GA falls back to an image beacon where fetch/sendBeacon is unavailable.
     expect(csp).toMatch(/img-src[^;]*google-analytics\.com/)
+  })
+
+  it('enforces Trusted Types sinks without the policy-name directive that breaks Apple link previews', () => {
+    const csp = headers.match(/Content-Security-Policy: (.*)/)[1]
+    expect(csp).toContain("require-trusted-types-for 'script'")
+    expect(csp).not.toMatch(/(?:^|;)\s*trusted-types(?:\s|;|$)/)
   })
 
   it('keeps createScript unimplemented while allowing gtag its script URL', () => {

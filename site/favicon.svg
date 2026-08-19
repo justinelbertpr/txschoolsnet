@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="t">
 <title id="t">txschools.net</title>
 <style>
-  .tile { fill: #0f4c5c }
+  .tile { fill: #0f5966 }
   .bar { fill: #ffffff }
   @media (prefers-color-scheme: dark) {
     .tile { fill: #65d2c9 }

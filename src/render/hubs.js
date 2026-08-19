@@ -602,7 +602,7 @@ const scopedHomeStats = (items) =>
   })
 
 /** The homepage alone gets a two-column composition; other hub heroes stay unchanged. */
-const homeHero = ({ place, search }) => `<section class="hero hero-home">
+const homeHero = ({ place, search, address }) => `<section class="hero hero-home">
   <div class="home-hero-grid">
     <div class="home-hero-copy">
       <h1>Texas school ratings</h1>
@@ -610,6 +610,8 @@ const homeHero = ({ place, search }) => `<section class="hero hero-home">
     </div>
     <div class="home-hero-action">
       <div class="home-hero-search">${search}</div>
+    </div>
+    <div class="home-hero-address">${address}
       <p class="lede">Explore TEA&rsquo;s A&ndash;F ratings for traditional public districts and schools.
         Follow five years of history and compare each one with a similar economic context.
         <strong>Open-enrollment charter districts and campuses are not included.</strong></p>
@@ -730,7 +732,7 @@ export function renderHomePage({
     // The shell emits the header instance's assets once per page.
     assets: false,
   })
-  const search = `${searchByName}${renderAddressLookup({ id: 'home-address' })}`
+  const address = renderAddressLookup({ id: 'home-address' })
 
   return shell({
     title: 'Traditional Texas public school ratings — find a district or school',
@@ -740,7 +742,7 @@ export function renderHomePage({
     scripts: [ADDRESS_SCRIPT_PATH],
     crumbs: [],
     sections: [
-      homeHero({ place, search }),
+      homeHero({ place, search: searchByName, address }),
       homeTrustStrip(snapshotDate),
       homeTaskCards(rankingsIndex),
       rankingsSection({

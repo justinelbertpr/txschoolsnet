@@ -1,4 +1,6 @@
 // test/render/hubs.test.js
+import { readFileSync } from 'node:fs'
+import { JSDOM } from 'jsdom'
 import { describe, it, expect } from 'vitest'
 import { renderRegionPage, renderCountyPage, renderLetterPage, renderHomePage, regionPath } from '../../src/render/hubs.js'
 
@@ -245,16 +247,35 @@ describe('home page', () => {
     expect(html).not.toContain('Every Texas public school district in this snapshot')
   })
 
-  it('exposes a two-column hero and a three-part trust strip', () => {
+  it('exposes a responsive hero and a three-part trust strip', () => {
     const html = renderHomePage({ snapshotDate: '15 August 2026' })
     expect(html).toContain('<div class="home-hero-grid">')
     expect(html).toContain('<div class="home-hero-copy">')
     expect(html).toContain('<div class="home-hero-action">')
+    expect(html).toContain('<div class="home-hero-address">')
+    expect(html.indexOf('home-hero-address')).toBeGreaterThan(html.indexOf('home-hero-action'))
+    const action = html.slice(html.indexOf('home-hero-action'), html.indexOf('home-hero-address'))
+    expect(action).not.toContain('data-address-lookup')
+    expect(action).not.toContain('Explore TEA')
+    const hero = new JSDOM(html).window.document.querySelector('.home-hero-grid')
+    expect([...hero.children].map((node) => node.className)).toEqual([
+      'home-hero-copy',
+      'home-hero-action',
+      'home-hero-address',
+    ])
+    expect(hero.children[2].textContent).toContain('Explore TEA')
     expect(html).toContain('<aside class="home-trust-strip"')
     expect(html).toContain('home-trust-independent')
     expect(html).toContain('home-trust-coverage')
     expect(html).toContain('home-trust-source')
     expect(html).toContain('fetched 15 August 2026')
+  })
+
+  it('keeps the title stable while the address drawer grows downward', () => {
+    const css = readFileSync(new URL('../../site/style.css', import.meta.url), 'utf8')
+    expect(css).toMatch(/\.home-hero-grid\s*\{[^}]*align-items:\s*center/)
+    expect(css).toMatch(/\.home-hero-address\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/)
+    expect(css).toMatch(/@media \(max-width: 70rem\)[\s\S]*?\.home-hero-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)/)
   })
 
   it('offers explicit paths for families, ranking readers and journalists', () => {
