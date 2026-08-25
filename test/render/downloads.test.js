@@ -51,6 +51,8 @@ const vm = {
   isAlt: false,
   enrollment: 1204,
   snapshotDate: '15 August 2026',
+  enrollmentSnapshotDate: '24 August 2026',
+  enrollmentSourceUrl: 'https://rptsvr1.tea.texas.gov/adhocrpt/adspr.html',
   notRated: false,
   multYear: 0,
 
@@ -74,11 +76,16 @@ const vm = {
   ],
 
   profile: {
-    total: 1204, ecoDisPct: 62.5, engLrnPct: null, specEdPct: 12.1,
+    total: 1204, schoolYear: '2025-26', ecoDisPct: 62.5, engLrnPct: null, specEdPct: 12.1,
     attendance: 94.2, absenteeism: null, avgSalary: 58231, teachers: 84.5, stuPerStaff: null,
   },
   raceShare: [12.4, 41.2, 0, null],
   staffYears: [8.1, 22.4],
+  enrollmentReported: [
+    { year: '2023-24', enrollment: 1_260 },
+    { year: '2024-25', enrollment: null },
+    { year: '2025-26', enrollment: 1_204 },
+  ],
 
   /* The four cohorts buildCohorts really produces. The region and county ones are
      not decoration: the page's headline region rank and the comparison engine both
@@ -284,7 +291,136 @@ describe('entityCsv provenance', () => {
   })
 })
 
+const supplementalVm = {
+  ...vm,
+  transferContext: {
+    netLabel: 'Transfers in minus transfers out (arithmetic context only; not a quality measure)',
+    history: [
+      {
+        year: '2024-25', transfersIn: null, transfersOut: 20, net: null,
+        coverage: {
+          officialTotals: { in: 'masked', out: 'reported' },
+          origins: { published: 3, reported: 2, masked: 1 },
+          destinations: { published: 4, reported: 3, masked: 1 },
+        },
+      },
+      {
+        year: '2025-26', transfersIn: 10, transfersOut: 25, net: -15,
+        coverage: {
+          officialTotals: { in: 'reported', out: 'reported' },
+          origins: { published: 2, reported: 2, masked: 0 },
+          destinations: { published: 3, reported: 2, masked: 1 },
+        },
+      },
+    ],
+    current: {
+      year: '2025-26', transfersIn: 10, transfersOut: 25, net: -15,
+      coverage: {
+        officialTotals: { in: 'reported', out: 'reported' },
+        origins: { published: 2, reported: 2, masked: 0 },
+        destinations: { published: 3, reported: 2, masked: 1 },
+      },
+      topOrigins: [{ id: '001902', name: 'Cayuga ISD', transfers: 7 }],
+      topDestinations: [{ id: '101919', name: 'Spring ISD', transfers: 9 }],
+    },
+    changeSinceFirst: {
+      fromYear: '2024-25', toYear: '2025-26',
+      transfersInChange: null, transfersOutChange: 5, netChange: null,
+    },
+    caveats: { meaning: 'A transfer does not identify why a student attends elsewhere.' },
+    scope: 'District only.',
+  },
+  teacherTurnover: {
+    unit: 'percent',
+    history: [
+      { year: '2024-25', ratePct: 12.3 },
+      { year: '2025-26', ratePct: null },
+    ],
+    latest: { year: '2025-26', ratePct: null },
+  },
+  discipline: {
+    history: [
+      {
+        year: '2025-26',
+        cumulativeEnrollment: { count: 1_200, status: 'reported', mask: null },
+        students: { count: null, status: 'suppressed', mask: '<5', ratePct: null },
+        actions: { count: 12, status: 'reported', mask: null, ratePer100: 1 },
+      },
+    ],
+    current: {
+      year: '2025-26',
+      cumulativeEnrollment: { count: 1_200, status: 'reported', mask: null },
+      categories: [
+        {
+          key: 'allDiscipline', label: 'All discipline',
+          students: { count: null, status: 'suppressed', mask: '<5', ratePct: null },
+          actions: { count: 12, status: 'reported', mask: null, ratePer100: 1 },
+        },
+        {
+          key: 'expulsions', label: 'Expulsions',
+          students: { count: null, status: 'not-reported', mask: null, ratePct: null },
+          actions: { count: 0, status: 'reported', mask: null, ratePer100: 0 },
+        },
+      ],
+    },
+    caveats: { overlap: 'Do not add categories.', pandemic2020_21: 'Use cautiously.', source: 'Stable headings.' },
+  },
+  publicDataMeta: {
+    transfers: { source: 'https://tea.example/transfers', fetchedAt: '24 August 2026' },
+    educators: { source: 'https://tea.example/tapr', fetchedAt: '24 August 2026' },
+    discipline: { source: 'https://tea.example/discipline', fetchedAt: '24 August 2026' },
+  },
+}
+
+describe('supplemental per-entity downloads', () => {
+  it('writes status and mask as real CSV columns and records each additional source', () => {
+    const csv = entityCsv(supplementalVm)
+    const rows = readCsv(csv)
+    expect(ENTITY_COLUMNS.slice(8, 11)).toEqual(['unit', 'status', 'mask'])
+    expect(rows.find((row) => row.metric === 'transfers_in' && row.year === '2024-25')).toMatchObject({
+      value: '', status: 'masked', mask: '',
+    })
+    expect(rows.find((row) => row.metric === 'allDiscipline:students')).toMatchObject({
+      value: '', status: 'suppressed', mask: '<5',
+    })
+    expect(csv).toContain('https://tea.example/transfers')
+    expect(csv).toContain('https://tea.example/tapr')
+    expect(csv).toContain('https://tea.example/discipline')
+    expect(csv).toMatch(/arithmetic context, not quality measures/i)
+    expect(csv).toMatch(/categories overlap/i)
+  })
+
+  it('keeps the typed source objects and source list in JSON', () => {
+    const doc = JSON.parse(entityJson(supplementalVm))
+    expect(doc.transfers.current.transfersOut).toBe(25)
+    expect(doc.teacherTurnover.history[1].ratePct).toBe(null)
+    expect(doc.classSize).toBe(null)
+    expect(doc.discipline.current.categories[0].students).toEqual({
+      count: null, status: 'suppressed', mask: '<5', ratePct: null,
+    })
+    expect(doc._meta.sources.map((source) => source.name)).toEqual(expect.arrayContaining([
+      'TEA Student Transfer Reports',
+      'TEA Texas Academic Performance Reports (TAPR)',
+      'TEA Discipline Reports',
+    ]))
+    expect(doc._meta.sources).toHaveLength(5)
+    expect(doc._meta.sources.at(-1)).toMatchObject({
+      url: 'https://tea.example/discipline', fetched: '24 August 2026',
+    })
+  })
+})
+
 describe('entityRows', () => {
+  it('exports each PEIMS enrollment year with suppression kept missing', () => {
+    const rows = entityRows(vm).filter((row) => row.section === 'enrollment_history')
+    expect(rows).toEqual([
+      expect.objectContaining({ year: '2023-24', value: 1_260, unit: 'count' }),
+      expect.objectContaining({ year: '2024-25', value: null, unit: 'count' }),
+      expect.objectContaining({ year: '2025-26', value: 1_204, unit: 'count' }),
+    ])
+    expect(entityRows(vm).find((row) => row.metric === 'students_total').year).toBe('2025-26')
+  })
+
   it('carries a denominator on every row that carries a rank', () => {
     const ranked = entityRows(vm).filter((r) => r.rank != null && r.rank !== '')
     expect(ranked.length).toBeGreaterThan(0)
@@ -317,6 +453,69 @@ describe('entityRows', () => {
     const region = rows.find((r) => r.section === 'rating' && r.cohort === 'region')
     expect([texas.rank, texas.rank_of]).toEqual([214, 1207])
     expect([region.rank, region.rank_of]).toEqual([9, 61])
+  })
+
+  it('exports transfer totals, coverage, reported flows and arithmetic changes without converting masks to zero', () => {
+    const rows = entityRows(supplementalVm)
+    expect(rows.find((row) => row.metric === 'transfers_in' && row.year === '2024-25')).toMatchObject({
+      value: null, unit: 'students', status: 'masked',
+    })
+    expect(rows.find((row) => row.metric === 'transfers_in_minus_out' && row.year === '2024-25')).toMatchObject({
+      value: null, unit: 'students_net', status: 'not-calculable',
+    })
+    expect(rows.find((row) => row.metric === 'origin_rows_masked' && row.year === '2024-25')).toMatchObject({
+      value: 1, unit: 'counterpart_rows', status: 'reported',
+    })
+    expect(rows.find((row) => row.metric === 'transfers_in_from:001902')).toMatchObject({
+      value: 7, unit: 'students', status: 'reported',
+    })
+    expect(rows.find((row) => row.metric === 'transfers_out_change')).toMatchObject({
+      value: 5, unit: 'students_change', status: 'derived',
+    })
+  })
+
+  it('exports district turnover and every campus class-size category with explicit units and null status', () => {
+    const turnover = entityRows(supplementalVm).filter((row) => row.section === 'teacher_turnover')
+    expect(turnover).toEqual([
+      expect.objectContaining({ year: '2024-25', value: 12.3, unit: 'percent', status: 'reported' }),
+      expect.objectContaining({ year: '2025-26', value: null, unit: 'percent', status: 'not-reported' }),
+    ])
+
+    const campusVm = {
+      ...vm,
+      id: '057905001', level: 'campus',
+      teacherTurnover: null,
+      classSize: {
+        year: '2025-26', reported: 1,
+        categories: [
+          { key: 'kindergarten', label: 'Kindergarten', studentsPerClass: 15 },
+          { key: 'grade4', label: 'Grade 4', studentsPerClass: null },
+        ],
+      },
+    }
+    const classRows = entityRows(campusVm).filter((row) => row.section === 'class_size')
+    expect(classRows).toEqual([
+      expect.objectContaining({ metric: 'class_size:kindergarten', value: 15, unit: 'students_per_class', status: 'reported' }),
+      expect.objectContaining({ metric: 'class_size:grade4', value: null, unit: 'students_per_class', status: 'not-reported' }),
+    ])
+    expect(JSON.parse(entityJson(campusVm)).classSize.categories).toHaveLength(2)
+  })
+
+  it('keeps discipline students, actions, status and masks separate, including a genuine zero', () => {
+    const rows = entityRows(supplementalVm)
+    expect(rows.find((row) => row.metric === 'allDiscipline:students')).toMatchObject({
+      value: null, unit: 'students', status: 'suppressed', mask: '<5',
+    })
+    expect(rows.find((row) => row.metric === 'allDiscipline:students_rate')).toMatchObject({
+      value: null, unit: 'percent_of_cumulative_enrollment', status: 'suppressed', mask: '<5',
+    })
+    expect(rows.find((row) => row.metric === 'allDiscipline:actions_rate')).toMatchObject({
+      value: 1, unit: 'disciplinary_actions_per_100_cumulative_enrollment', status: 'derived',
+    })
+    expect(rows.find((row) => row.metric === 'expulsions:actions')).toMatchObject({
+      value: 0, unit: 'disciplinary_actions', status: 'reported',
+    })
+    expect(rows.filter((row) => row.metric === 'allDiscipline:students' && row.year === '2025-26')).toHaveLength(1)
   })
 })
 
@@ -397,6 +596,62 @@ describe('entityJson', () => {
     expect(doc._meta.entityId).toBe('057905')
     expect(doc._meta.officialSource).toBe('https://txschools.gov')
     expect(doc._meta.sourceUrl).toContain('txschools.gov')
+    expect(doc._meta.sources).toHaveLength(2)
+    expect(doc._meta.sources[1]).toMatchObject({ fetched: '24 August 2026' })
+  })
+
+  it('exports enrollment history as numbers and nulls, not formatted prose', () => {
+    expect(doc.enrollmentHistory).toEqual([
+      { year: '2023-24', students: 1_260 },
+      { year: '2024-25', students: null },
+      { year: '2025-26', students: 1_204 },
+    ])
+  })
+
+  it('exports dated notices, Census context and THECB outcomes without mixing them into ratings', () => {
+    const enriched = {
+      ...vm,
+      actionNotices: [{
+        id: '057905001', name: 'Wells High School',
+        improvement: { kind: 'TSI', year: '2026', reason: 'Special Education' },
+        peg: null,
+      }],
+      communityContext: {
+        year: 2024, totalPopulation: 2_000, schoolAgePopulation: 300,
+        schoolAgePoverty: 60, schoolAgePovertyRate: 20,
+      },
+      postsecondaryOutcome: {
+        graduateYear: '2023-24', fallTerm: 'Fall 2024', graduates: 50,
+        enrolledPublic: 20, rate: 40, notFound: 29, notTrackable: 1,
+        destinations: [{ institution: 'Texas State University', students: 8 }],
+      },
+      publicDataMeta: {
+        actionFlags: { sources: { landing: 'https://tea.example/notices' }, fetchedAt: '24 August 2026' },
+        community: { landing: 'https://census.example/saipe', fetchedAt: '24 August 2026' },
+        postsecondary: { landing: 'https://thecb.example/outcomes', fetchedAt: '24 August 2026' },
+      },
+    }
+    const json = JSON.parse(entityJson(enriched))
+    expect(json.officialNotices[0].improvement.kind).toBe('TSI')
+    expect(json.community.schoolAgePovertyRate).toBe(20)
+    expect(json.postsecondary.enrolledPublic).toBe(20)
+    expect(json._meta.postsecondaryNote).toContain('non-standard identifier')
+    expect(json._meta.sources).toHaveLength(5)
+
+    const rows = entityRows(enriched)
+    expect(rows.find((row) => row.metric === 'improvement:057905001')).toMatchObject({ value: 'TSI', unit: 'official_status' })
+    expect(rows.find((row) => row.metric === 'resident_children_5_17_poverty_rate')).toMatchObject({ value: 20, unit: 'percent' })
+    expect(rows.find((row) => row.metric === 'texas_public_enrolled_following_fall_rate')).toMatchObject({ value: 40, unit: 'percent' })
+    expect(rows.find((row) => row.metric === 'destination:1')).toMatchObject({
+      label: 'Named Texas public destination — Texas State University', value: 8, unit: 'students',
+    })
+    expect(rows.filter((row) => row.section === 'rating')).toEqual(entityRows(vm).filter((row) => row.section === 'rating'))
+
+    const csv = entityCsv(enriched)
+    expect(csv).toContain('https://tea.example/notices')
+    expect(csv).toContain('https://census.example/saipe')
+    expect(csv).toContain('https://thecb.example/outcomes')
+    expect(csv).toContain('non-standard identifier')
   })
 
   it('states in the file that the site is unofficial', () => {
@@ -489,6 +744,20 @@ describe('datasetCsv', () => {
     expect(csv).toContain('rows: 2')
   })
 
+  it('uses publisher-generic revision and missing-value language for non-TEA sources', () => {
+    const csv = datasetCsv(rows, {
+      snapshotDate: '24 August 2026',
+      dataset: 'community',
+      meta: { sourceName: 'U.S. Census Bureau', sourceUrl: 'https://census.example/saipe' },
+    })
+    expect(csv).toContain('source: U.S. Census Bureau')
+    expect(csv).toContain('https://census.example/saipe')
+    expect(csv).toMatch(/publisher may have revised/i)
+    expect(csv).toMatch(/source did not publish/i)
+    expect(csv).not.toMatch(/TEA may have revised|TEA did not publish/i)
+    expect(csv).toMatch(/not operated by, endorsed by, or affiliated with the Texas Education Agency/i)
+  })
+
   it('works with no options at all', () => {
     const csv = datasetCsv(rows)
     expect(csv).toMatch(/^# /)
@@ -536,6 +805,7 @@ describe('fileSize', () => {
 describe('renderDownloadPage', () => {
   const html = renderDownloadPage({
     snapshotDate: '15 August 2026',
+    enrollmentSnapshotDate: '24 August 2026',
     counts: { districts: 1207, campuses: 9029, ratingYears: 5 },
     files: [
       { href: '/data/entities.csv', label: 'Every district and campus', format: 'csv', bytes: 1_240_000, rows: 10236, description: 'One row per entity.' },
@@ -564,6 +834,8 @@ describe('renderDownloadPage', () => {
 
   it('links txschools.gov as the official source', () => {
     expect(html).toContain('https://txschools.gov')
+    expect(html).toContain('PEIMS enrollment reports')
+    expect(html).toContain('24 August 2026')
   })
 
   it('never implies affiliation with TEA', () => {
@@ -575,6 +847,13 @@ describe('renderDownloadPage', () => {
   it('is honest about the licence rather than claiming rights it does not hold', () => {
     expect(html).toMatch(/claims no rights/i)
     expect(html).toMatch(/ask TEA/i)
+  })
+
+  it('attributes supplemental figures to their actual public publishers', () => {
+    expect(html).toMatch(/U\.S\. Census Bureau/i)
+    expect(html).toMatch(/Texas Higher Education Coordinating Board/i)
+    expect(html).toMatch(/each file names its actual publisher/i)
+    expect(html).toMatch(/other publisher named in the file/i)
   })
 
   it('explains that an empty cell is not a zero', () => {

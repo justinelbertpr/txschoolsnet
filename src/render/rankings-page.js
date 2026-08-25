@@ -697,10 +697,12 @@ const sourceSection = (snapshotDate) =>
   section(
     'source',
     'Where this comes from',
-    `<p>Every figure in this table comes from data the Texas Education Agency publishes at
+    `<p>The ranked measure and accountability context come from data the Texas Education Agency publishes at
      <a href="${OFFICIAL_SOURCE}" rel="nofollow">txschools.gov</a>${
        snapshotDate ? `, fetched ${esc(snapshotDate)}` : ''
-     }. TEA publishes the ratings; it does not publish this ordering. This site is unofficial and is
+     }. Enrollment shown as context comes from TEA's separate
+     <a href="https://rptsvr1.tea.texas.gov/adhocrpt/adspr.html" rel="nofollow">PEIMS Student Program reports</a>.
+     TEA publishes the ratings; it does not publish this ordering. This site is unofficial and is
      not affiliated with TEA. <a href="/about">How this site works</a> records the snapshot this page
      was built from and what this site does and does not verify about it.</p>
   <p class="downloads"><a href="/download">Download the whole dataset</a> &middot;

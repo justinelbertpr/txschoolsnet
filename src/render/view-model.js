@@ -113,6 +113,293 @@ const placement = ({ entity, pool, score }) => {
   return { rank: better + 1, of, tied }
 }
 
+/**
+ * Turn an academic-year label into its starting calendar year. Requiring the
+ * second half to agree with the first keeps an arbitrary string that happens
+ * to contain a dash from entering a chronological series.
+ */
+const academicYearStart = (year) => {
+  const match = /^(\d{4})-(\d{2})$/.exec(String(year ?? ''))
+  if (!match) return null
+  const start = Number(match[1])
+  return Number(match[2]) === (start + 1) % 100 ? start : null
+}
+
+const adjacentAcademicYears = (from, to) => {
+  const a = academicYearStart(from)
+  const b = academicYearStart(to)
+  return a != null && b === a + 1
+}
+
+const enrollmentChange = (from, to) => {
+  const delta = to.enrollment - from.enrollment
+  return {
+    fromYear: from.year,
+    toYear: to.year,
+    from: from.enrollment,
+    to: to.enrollment,
+    delta,
+    // A percentage from a zero base is undefined. The absolute change remains
+    // available, so the page can state what happened without inventing a rate.
+    pct: from.enrollment === 0 ? null : (delta / from.enrollment) * 100,
+  }
+}
+
+/**
+ * Enrollment is context, not a rating. Keep its chronology separate from the
+ * accountability history and calculate changes only where two reported school
+ * years are truly adjacent. Gaps remain gaps: no zeroes and no interpolation.
+ */
+const buildEnrollmentTrend = ({ entity, rows }) => {
+  const byYear = new Map()
+  const reportedByYear = new Map()
+  for (const row of rows ?? []) {
+    if (String(row?.id ?? '') !== String(entity.id)) continue
+    if (row.level != null && row.level !== entity.level) continue
+    const start = academicYearStart(row.year)
+    if (start == null) continue
+    if (row.enrollment == null) {
+      reportedByYear.set(row.year, { year: row.year, enrollment: null, start })
+      continue
+    }
+    if (!Number.isInteger(row.enrollment) || row.enrollment < 0) continue
+    reportedByYear.set(row.year, { year: row.year, enrollment: row.enrollment, start })
+    byYear.set(row.year, { year: row.year, enrollment: row.enrollment, start })
+  }
+
+  const reported = [...reportedByYear.values()]
+    .sort((a, b) => a.start - b.start)
+    .map(({ year, enrollment }) => ({ year, enrollment }))
+  const base = [...byYear.values()].sort((a, b) => a.start - b.start)
+  const points = base.map((point, i) => {
+    const previous = base[i - 1]
+    return {
+      year: point.year,
+      enrollment: point.enrollment,
+      change: previous && adjacentAcademicYears(previous.year, point.year)
+        ? enrollmentChange(previous, point)
+        : null,
+    }
+  })
+
+  if (points.length < 2) return { points, reported, summary: null }
+  const latest = points.at(-1)
+  const previous = points.at(-2)
+  const contiguous = points.every((point, i) => i === 0 || adjacentAcademicYears(points[i - 1].year, point.year))
+  return {
+    points,
+    reported,
+    summary: {
+      latest,
+      previous: latest.change ? previous : null,
+      yoy: latest.change,
+      contiguous,
+      sinceFirst: contiguous && points.length >= 3 ? enrollmentChange(points[0], latest) : null,
+    },
+  }
+}
+
+/**
+ * TAPR publishes twelve separate campus class-size averages. Keeping the
+ * categories explicit prevents a renderer from quietly manufacturing one
+ * campus-wide average out of unlike grade and subject groups.
+ */
+export const CLASS_SIZE_CATEGORIES = Object.freeze([
+  Object.freeze({ key: 'kindergarten', label: 'Kindergarten' }),
+  Object.freeze({ key: 'grade1', label: 'Grade 1' }),
+  Object.freeze({ key: 'grade2', label: 'Grade 2' }),
+  Object.freeze({ key: 'grade3', label: 'Grade 3' }),
+  Object.freeze({ key: 'grade4', label: 'Grade 4' }),
+  Object.freeze({ key: 'grade5', label: 'Grade 5' }),
+  Object.freeze({ key: 'grade6', label: 'Grade 6' }),
+  Object.freeze({ key: 'secondaryEnglish', label: 'Secondary English' }),
+  Object.freeze({
+    key: 'secondaryLanguagesOtherThanEnglish',
+    label: 'Secondary languages other than English',
+  }),
+  Object.freeze({ key: 'secondaryMath', label: 'Secondary math' }),
+  Object.freeze({ key: 'secondaryScience', label: 'Secondary science' }),
+  Object.freeze({ key: 'secondarySocialStudies', label: 'Secondary social studies' }),
+])
+
+const DISCIPLINE_CATEGORIES = Object.freeze([
+  Object.freeze({ key: 'allDiscipline', heading: 'ALL DISCIPLINE', label: 'All discipline' }),
+  Object.freeze({
+    key: 'inSchoolSuspensions',
+    heading: 'IN SCHOOL SUSPENSIONS',
+    label: 'In-school suspensions',
+  }),
+  Object.freeze({
+    key: 'outOfSchoolSuspensions',
+    heading: 'OUT OF SCHOOL SUSPENSIONS',
+    label: 'Out-of-school suspensions',
+  }),
+  Object.freeze({ key: 'daepPlacements', heading: 'DAEP PLACEMENTS', label: 'DAEP placements' }),
+  Object.freeze({
+    key: 'mandatoryDaepPlacements',
+    heading: 'MANDATORY DAEP PLACEMENTS',
+    label: 'Mandatory DAEP placements',
+  }),
+  Object.freeze({
+    key: 'discretionaryDaepPlacements',
+    heading: 'DISCRETIONARY DAEP PLACEMENTS',
+    label: 'Discretionary DAEP placements',
+  }),
+  Object.freeze({ key: 'jjaepPlacements', heading: 'JJAEP PLACEMENTS', label: 'JJAEP placements' }),
+  Object.freeze({
+    key: 'mandatoryJjaepPlacements',
+    heading: 'MANDATORY JJAEP PLACEMENTS',
+    label: 'Mandatory JJAEP placements',
+  }),
+  Object.freeze({
+    key: 'discretionaryJjaepPlacements',
+    heading: 'DISCRETIONARY JJAEP PLACEMENTS',
+    label: 'Discretionary JJAEP placements',
+  }),
+  Object.freeze({ key: 'expulsions', heading: 'EXPULSIONS', label: 'Expulsions' }),
+  Object.freeze({
+    key: 'mandatoryExpulsions',
+    heading: 'MANDATORY EXPULSIONS',
+    label: 'Mandatory expulsions',
+  }),
+  Object.freeze({
+    key: 'discretionaryExpulsions',
+    heading: 'DISCRETIONARY EXPULSIONS',
+    label: 'Discretionary expulsions',
+  }),
+])
+
+const reportedNumber = (value) =>
+  typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null
+
+/**
+ * Level-aware educator context. TEA reports turnover for districts and actual
+ * class size for campuses; no value is inferred across that boundary.
+ */
+export function buildEducatorContext({ entity, rows = [], latestYear = null }) {
+  const matching = rows
+    .filter(
+      (row) =>
+        String(row?.id ?? '') === String(entity.id) &&
+        row?.level === entity.level &&
+        academicYearStart(row?.year) != null
+    )
+    .sort((a, b) => academicYearStart(a.year) - academicYearStart(b.year))
+
+  if (entity.level === 'district') {
+    const history = matching.map((row) => ({
+      year: row.year,
+      ratePct: reportedNumber(row.teacherTurnoverRate),
+    }))
+    return {
+      teacherTurnover: history.length
+        ? {
+            unit: 'percent',
+            history,
+            latest: latestYear ? history.find((point) => point.year === latestYear) ?? null : null,
+          }
+        : null,
+      classSize: null,
+    }
+  }
+
+  if (entity.level === 'campus') {
+    const current = latestYear ? matching.find((row) => row.year === latestYear) : null
+    if (!current) return { teacherTurnover: null, classSize: null }
+    const categories = CLASS_SIZE_CATEGORIES.map(({ key, label }) => ({
+      key,
+      label,
+      studentsPerClass: reportedNumber(current.classSize?.[key]),
+    }))
+    return {
+      teacherTurnover: null,
+      classSize: {
+        year: current.year,
+        categories,
+        reported: categories.filter((category) => category.studentsPerClass != null).length,
+      },
+    }
+  }
+
+  return { teacherTurnover: null, classSize: null }
+}
+
+const copyDisciplineDatum = (datum, rateKey = null) => {
+  const value = {
+    count: Number.isSafeInteger(datum?.count) && datum.count >= 0 ? datum.count : null,
+    status: ['reported', 'suppressed', 'not-reported'].includes(datum?.status)
+      ? datum.status
+      : 'not-reported',
+    mask: typeof datum?.mask === 'string' && datum.mask ? datum.mask : null,
+  }
+  return rateKey ? { ...value, [rateKey]: reportedNumber(datum?.[rateKey]) } : value
+}
+
+/**
+ * The build table already contains only TEA's explicit Section B totals. This
+ * final shape changes object-keyed current categories into a stable display
+ * list and carries the non-additivity and 2020-21 cautions beside the data.
+ */
+export function buildDisciplineContext({ entity, summary = null, meta = null }) {
+  if (
+    !summary ||
+    String(summary.id ?? '') !== String(entity.id) ||
+    summary.level !== entity.level
+  ) return null
+
+  const categorySchema =
+    Array.isArray(meta?.headlineCategories) && meta.headlineCategories.length === DISCIPLINE_CATEGORIES.length
+      ? meta.headlineCategories
+      : DISCIPLINE_CATEGORIES
+  const point = (row) => ({
+    year: row.year,
+    cumulativeEnrollment: copyDisciplineDatum(row.cumulativeEnrollment),
+    students: copyDisciplineDatum(row.students, 'ratePct'),
+    actions: copyDisciplineDatum(row.actions, 'ratePer100'),
+  })
+  const latest = summary.latest
+  return {
+    history: Array.isArray(summary.history) ? summary.history.map(point) : [],
+    current: latest
+      ? {
+          year: latest.year,
+          cumulativeEnrollment: copyDisciplineDatum(latest.cumulativeEnrollment),
+          categories: categorySchema.map(({ key, heading, label }) => ({
+            key,
+            heading,
+            label,
+            students: copyDisciplineDatum(latest.categories?.[key]?.students, 'ratePct'),
+            actions: copyDisciplineDatum(latest.categories?.[key]?.actions, 'ratePer100'),
+          })),
+        }
+      : null,
+    caveats: {
+      overlap: meta?.overlapCaveat ?? null,
+      pandemic2020_21: meta?.pandemicCaveat ?? null,
+      source: meta?.sourceCaveat ?? null,
+    },
+  }
+}
+
+/** District-only transfer totals and flows, already reduced from official rows. */
+export function buildTransferContext({ entity, summary = null, meta = null }) {
+  if (
+    entity.level !== 'district' ||
+    !summary ||
+    String(summary.id ?? '') !== String(entity.id) ||
+    summary.level !== 'district'
+  ) return null
+
+  return {
+    netLabel: summary.netLabel ?? null,
+    history: Array.isArray(summary.history) ? summary.history : [],
+    current: summary.current ?? null,
+    changeSinceFirst: summary.changeSinceFirst ?? null,
+    caveats: meta?.caveats ?? null,
+    scope: meta?.scope ?? null,
+  }
+}
+
 export function buildViewModel({
   entity,
   entities,
@@ -127,6 +414,17 @@ export function buildViewModel({
   latestYear,
   previousYear = null,
   recentChangeRanks = [],
+  enrollmentHistory = [],
+  enrollmentSnapshotDate = null,
+  enrollmentSourceUrl = null,
+  actionNotices = [],
+  communityContext = null,
+  postsecondaryOutcome = null,
+  educatorHistory = [],
+  educatorLatestYear = null,
+  disciplineSummary = null,
+  transferSummary = null,
+  publicDataMeta = null,
 }) {
   const ecoDis = new Map(profile.map((p) => [p.id, p.ecoDisPct]))
 
@@ -226,6 +524,22 @@ export function buildViewModel({
     // full comparisons/rankings below rather than being hidden from the site.
     limit: 3,
   })
+  const enrollmentTrend = buildEnrollmentTrend({ entity, rows: enrollmentHistory })
+  const educatorContext = buildEducatorContext({
+    entity,
+    rows: educatorHistory,
+    latestYear: educatorLatestYear,
+  })
+  const discipline = buildDisciplineContext({
+    entity,
+    summary: disciplineSummary,
+    meta: publicDataMeta?.discipline ?? null,
+  })
+  const transferContext = buildTransferContext({
+    entity,
+    summary: transferSummary,
+    meta: publicDataMeta?.transfers ?? null,
+  })
 
   return {
     ...entity,
@@ -234,9 +548,24 @@ export function buildViewModel({
     countySlug: slugify(entity.county ?? ''),
     regionName: str(raw?.region) ?? `Region ${entity.regionId}`,
     snapshotDate,
+    enrollmentSnapshotDate,
+    enrollmentSourceUrl,
+    actionNotices,
+    communityContext,
+    postsecondaryOutcome,
+    teacherTurnover: educatorContext.teacherTurnover,
+    classSize: educatorContext.classSize,
+    discipline,
+    transferContext,
+    publicDataMeta,
     notRated: entity.rating === 'Not Rated',
 
     history,
+    enrollmentHistory: enrollmentTrend.points,
+    enrollmentReported: enrollmentTrend.reported,
+    enrollmentTrend: enrollmentTrend.summary
+      ? { points: enrollmentTrend.points, ...enrollmentTrend.summary }
+      : null,
     stateByYear,
     stateAvg: stateByYear[latestYear] ?? null,
     peerByYear,

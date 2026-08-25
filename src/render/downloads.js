@@ -23,6 +23,10 @@ import { metricSpecs } from './metrics.js'
 import { RACE, EXPERIENCE } from './labels.js'
 
 export const OFFICIAL_SOURCE = 'https://txschools.gov'
+export const ENROLLMENT_SOURCE = 'https://rptsvr1.tea.texas.gov/adhocrpt/adspr.html'
+const TRANSFER_SOURCE = 'https://rptsvr1.tea.texas.gov/adhocrpt/Standard_Reports/Transfer_Reports/transfer_reports.html'
+const EDUCATOR_SOURCE = 'https://tea.texas.gov/texas-schools/accountability/academic-accountability/performance-reporting/texas-academic-performance-reports'
+const DISCIPLINE_SOURCE = 'https://tea.texas.gov/data-reports/student-data/discipline-data-products/discipline-reports'
 
 /* ------------------------------------------------------------------- csv --- */
 
@@ -52,18 +56,18 @@ const csvRow = (values) => values.map(csvCell).join(',')
  * Order matters: what this is, where it came from, when, and what the blanks
  * mean — the four questions a reader asks before trusting a column.
  */
-const provenanceLines = ({ snapshotDate = null, entityId = null, entityName = null, level = null, page = null, dataset = null, rows = null, notes = [] }) => {
+const provenanceLines = ({ snapshotDate = null, sourceUrl = OFFICIAL_SOURCE, sourceName = 'Texas Education Agency', entityId = null, entityName = null, level = null, page = null, dataset = null, rows = null, notes = [] }) => {
   const lines = [
     'txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.',
-    `source: Texas Education Agency, published publicly at ${OFFICIAL_SOURCE}`,
-    `snapshot: ${snapshotDate ?? 'unrecorded'} — the date this site fetched TEA's data. TEA may have revised it since.`,
+    `source: ${sourceName}, published publicly at ${sourceUrl}`,
+    `snapshot: ${snapshotDate ?? 'unrecorded'} — the date this site fetched the source data. The publisher may have revised it since.`,
   ]
   if (dataset) lines.push(`dataset: ${dataset}`)
   if (entityId) lines.push(`entity: ${entityId}${entityName ? ` — ${entityName}` : ''}${level ? ` (${level})` : ''}`)
   if (page) lines.push(`page: ${page}`)
   if (rows !== null) lines.push(`rows: ${rows} (excluding this header and the column row)`)
   for (const n of notes) lines.push(n)
-  lines.push('empty cell = TEA did not publish that figure. It does not mean zero.')
+  lines.push('empty cell = the source did not publish that figure, suppressed it, or did not report it. It does not mean zero.')
   lines.push('numbers are unformatted: no thousands separators, no currency symbols, no percent signs.')
   lines.push("lines starting with # are comments — pandas: read_csv(path, comment='#')")
   return lines
@@ -95,6 +99,7 @@ export function datasetCsv(rows, { columns, snapshotDate = null, dataset = null,
 // its own cohort and denominator: a rank without an n is a boast, not a fact.
 export const ENTITY_COLUMNS = [
   'entity_id', 'level', 'name', 'section', 'metric', 'label', 'year', 'value', 'unit',
+  'status', 'mask',
   'cohort', 'cohort_label', 'cohort_n', 'cohort_value', 'rank', 'rank_of', 'rank_tied',
 ]
 
@@ -265,7 +270,233 @@ export function entityRows(vm) {
     if (v == null) return
     push({ section: 'teachers', metric: `experience:${i}`, label: `Teachers with ${EXPERIENCE[i] ?? `band ${i + 1}`} of experience`, year: latestYear, value: v, unit: 'percent' })
   })
-  if (vm.profile?.total != null) push({ section: 'students', metric: 'students_total', label: 'Students', year: latestYear, value: vm.profile.total, unit: 'count' })
+  if (vm.profile?.total != null) push({ section: 'students', metric: 'students_total', label: 'Students', year: vm.profile.schoolYear ?? latestYear, value: vm.profile.total, unit: 'count' })
+
+  // One row per official PEIMS school-year report, including a null for a
+  // suppressed count. The bulk file and entity JSON therefore preserve the
+  // difference between “not reported” and zero instead of making a chart's
+  // available points the only historical record.
+  for (const point of vm.enrollmentReported ?? vm.enrollmentHistory ?? []) {
+    push({
+      section: 'enrollment_history', metric: 'students_enrolled', label: 'Students enrolled',
+      year: point.year, value: point.enrollment ?? null, unit: 'count',
+    })
+  }
+
+  /* Dated public-data modules. These remain separate from the comparison
+     engine: an official notice is not a score, Census residents are not an
+     enrolled cohort, and THECB observes only Texas public higher education. */
+  for (const notice of vm.actionNotices ?? []) {
+    if (notice.improvement) {
+      push({
+        section: 'official_notices', metric: `improvement:${notice.id}`,
+        label: `${notice.name ?? notice.id} — ${notice.improvement.reason || notice.improvement.supportLabel || notice.improvement.kind}`,
+        year: notice.improvement.year ?? null, value: notice.improvement.kind, unit: 'official_status',
+      })
+    }
+    if (notice.peg) {
+      push({
+        section: 'official_notices', metric: `peg:${notice.id}`,
+        label: `${notice.name ?? notice.id} — Public Education Grant transfer list`,
+        year: notice.peg.schoolYear ?? null, value: true, unit: 'boolean',
+      })
+    }
+  }
+
+  const community = vm.communityContext
+  if (community) {
+    const values = [
+      ['resident_population', 'People living inside the district boundary', community.totalPopulation, 'count'],
+      ['resident_children_5_17', 'Resident children ages 5–17', community.schoolAgePopulation, 'count'],
+      ['resident_children_5_17_poverty', 'Resident children ages 5–17 in families in poverty', community.schoolAgePoverty, 'count'],
+      ['resident_children_5_17_poverty_rate', 'School-age child poverty rate', community.schoolAgePovertyRate, 'percent'],
+    ]
+    for (const [metric, label, value, unit] of values) {
+      push({ section: 'community', metric, label, year: community.year ?? null, value: value ?? null, unit })
+    }
+  }
+
+  const postsecondary = vm.postsecondaryOutcome
+  if (postsecondary) {
+    const values = [
+      ['graduates', 'High-school graduates in THECB report', postsecondary.graduates, 'count'],
+      ['texas_public_enrolled_following_fall', 'Enrolled in Texas public higher education the following fall', postsecondary.enrolledPublic, 'count'],
+      ['texas_public_enrolled_following_fall_rate', 'Share enrolled in Texas public higher education the following fall', postsecondary.rate, 'percent'],
+      ['not_found', 'Not found in Texas public higher-education records', postsecondary.notFound, 'count'],
+      ['not_trackable', 'Not trackable by THECB', postsecondary.notTrackable, 'count'],
+    ]
+    for (const [metric, label, value, unit] of values) {
+      push({ section: 'postsecondary', metric, label, year: postsecondary.graduateYear ?? null, value: value ?? null, unit })
+    }
+    for (const [index, destination] of (postsecondary.destinations ?? []).entries()) {
+      push({
+        section: 'postsecondary', metric: `destination:${index + 1}`,
+        label: `Named Texas public destination — ${destination.institution}`,
+        year: postsecondary.graduateYear ?? null,
+        value: destination.students ?? null,
+        unit: 'students',
+      })
+    }
+  }
+
+  /* Transfers remain district-only and retain TEA's status for each official
+     total. Detail rows here are only the reported flows selected for the page;
+     the coverage rows are what disclose how many additional counterpart rows
+     TEA masked. Net and change values are arithmetic, never source totals. */
+  const transfers = vm.transferContext
+  if (transfers) {
+    const current = transfers.current
+    for (const point of transfers.history ?? []) {
+      const coverage = point.coverage ?? (current?.year === point.year ? current.coverage : null)
+      const totals = [
+        ['transfers_in', 'Official transfers in', point.transfersIn, coverage?.officialTotals?.in],
+        ['transfers_out', 'Official transfers out', point.transfersOut, coverage?.officialTotals?.out],
+      ]
+      for (const [metric, label, value, sourceStatus] of totals) {
+        push({
+          section: 'transfers', metric, label, year: point.year, value: value ?? null,
+          unit: 'students', status: sourceStatus ?? (value == null ? 'not-reported' : 'reported'),
+        })
+      }
+      push({
+        section: 'transfers', metric: 'transfers_in_minus_out',
+        label: transfers.netLabel ?? 'Transfers in minus transfers out',
+        year: point.year, value: point.net ?? null, unit: 'students_net',
+        status: point.net == null ? 'not-calculable' : 'derived',
+      })
+
+      for (const [direction, label, detail] of [
+        ['origin', 'Transfer-origin detail rows', coverage?.origins],
+        ['destination', 'Transfer-destination detail rows', coverage?.destinations],
+      ]) {
+        if (!detail) continue
+        for (const [kind, value] of Object.entries({
+          published: detail.published,
+          reported: detail.reported,
+          masked: detail.masked,
+        })) {
+          push({
+            section: 'transfer_coverage', metric: `${direction}_rows_${kind}`,
+            label: `${label} — ${kind}`, year: point.year, value: value ?? null,
+            unit: 'counterpart_rows', status: value == null ? 'not-reported' : 'reported',
+          })
+        }
+      }
+    }
+
+    for (const flow of current?.topOrigins ?? []) {
+      push({
+        section: 'transfer_flows', metric: `transfers_in_from:${flow.id}`,
+        label: `Transfers in from ${flow.name ?? `district ${flow.id}`}`,
+        year: current.year ?? null, value: flow.transfers ?? null, unit: 'students',
+        status: flow.transfers == null ? 'not-reported' : 'reported',
+      })
+    }
+    for (const flow of current?.topDestinations ?? []) {
+      push({
+        section: 'transfer_flows', metric: `transfers_out_to:${flow.id}`,
+        label: `Transfers out to ${flow.name ?? `district ${flow.id}`}`,
+        year: current.year ?? null, value: flow.transfers ?? null, unit: 'students',
+        status: flow.transfers == null ? 'not-reported' : 'reported',
+      })
+    }
+
+    const change = transfers.changeSinceFirst
+    if (change) {
+      for (const [metric, label, value, unit] of [
+        ['transfers_in_change', 'Change in transfers in', change.transfersInChange, 'students_change'],
+        ['transfers_out_change', 'Change in transfers out', change.transfersOutChange, 'students_change'],
+        ['transfers_net_change', 'Change in transfers in minus transfers out', change.netChange, 'students_net_change'],
+      ]) {
+        push({
+          section: 'transfer_change', metric,
+          label: `${label}, ${change.fromYear ?? 'first year'} to ${change.toYear ?? 'latest year'}`,
+          year: change.toYear ?? null, value: value ?? null, unit,
+          status: value == null ? 'not-calculable' : 'derived',
+        })
+      }
+    }
+  }
+
+  /* TAPR publishes teacher turnover for districts and twelve distinct class-
+     size averages for campuses. Every category is retained, including nulls;
+     no campus-wide class-size average is manufactured. */
+  for (const point of vm.teacherTurnover?.history ?? []) {
+    push({
+      section: 'teacher_turnover', metric: 'teacher_turnover_rate',
+      label: 'Teacher turnover rate', year: point.year, value: point.ratePct ?? null,
+      unit: vm.teacherTurnover?.unit ?? 'percent',
+      status: point.ratePct == null ? 'not-reported' : 'reported',
+    })
+  }
+  for (const category of vm.classSize?.categories ?? []) {
+    push({
+      section: 'class_size', metric: `class_size:${category.key}`,
+      label: `${category.label} — average class size`, year: vm.classSize?.year ?? null,
+      value: category.studentsPerClass ?? null, unit: 'students_per_class',
+      status: category.studentsPerClass == null ? 'not-reported' : 'reported',
+    })
+  }
+
+  /* Discipline uses two irreducible measures: students and actions. The count
+     rows preserve TEA's exact status and mask. Rates are explicitly labelled as
+     derived and remain null when either numerator or cumulative enrollment was
+     unavailable; overlapping categories are never added together. */
+  const discipline = vm.discipline
+  if (discipline) {
+    const rateStatus = (datum, rateKey) =>
+      datum?.[rateKey] != null
+        ? 'derived'
+        : datum?.status === 'reported'
+          ? 'not-calculable'
+          : datum?.status ?? 'not-reported'
+    const addCumulativeEnrollment = (year, datum) => push({
+      section: 'discipline', metric: 'cumulative_year_end_enrollment',
+      label: 'Cumulative year-end enrollment', year, value: datum?.count ?? null,
+      unit: 'students_cumulative_year_end', status: datum?.status ?? 'not-reported',
+      mask: datum?.mask ?? null,
+    })
+    const addCategory = (year, category) => {
+      const label = category.label ?? category.heading ?? category.key
+      for (const [measure, datum, countUnit, rateKey, rateUnit] of [
+        ['students', category.students, 'students', 'ratePct', 'percent_of_cumulative_enrollment'],
+        ['actions', category.actions, 'disciplinary_actions', 'ratePer100', 'disciplinary_actions_per_100_cumulative_enrollment'],
+      ]) {
+        push({
+          section: 'discipline', metric: `${category.key}:${measure}`,
+          label: `${label} — ${measure}`, year, value: datum?.count ?? null,
+          unit: countUnit, status: datum?.status ?? 'not-reported', mask: datum?.mask ?? null,
+        })
+        push({
+          section: 'discipline', metric: `${category.key}:${measure}_rate`,
+          label: `${label} — ${measure === 'students' ? 'students as a share of cumulative enrollment' : 'actions per 100 cumulative students'}`,
+          year, value: datum?.[rateKey] ?? null, unit: rateUnit,
+          status: rateStatus(datum, rateKey), mask: datum?.mask ?? null,
+        })
+      }
+    }
+
+    const disciplineHistoryYears = new Set()
+    for (const point of discipline.history ?? []) {
+      disciplineHistoryYears.add(point.year)
+      addCumulativeEnrollment(point.year, point.cumulativeEnrollment)
+      addCategory(point.year, {
+        key: 'allDiscipline', label: 'All discipline',
+        students: point.students, actions: point.actions,
+      })
+    }
+    if (discipline.current) {
+      const currentAlreadyInHistory = disciplineHistoryYears.has(discipline.current.year)
+      if (!currentAlreadyInHistory) {
+        addCumulativeEnrollment(discipline.current.year, discipline.current.cumulativeEnrollment)
+      }
+      for (const category of discipline.current.categories ?? []) {
+        if (currentAlreadyInHistory && category.key === 'allDiscipline') continue
+        addCategory(discipline.current.year, category)
+      }
+    }
+  }
+
   if (vm.profile?.teachers != null) push({ section: 'teachers', metric: 'teachers_full_time', label: 'Full-time teachers', year: latestYear, value: vm.profile.teachers, unit: 'count' })
   if (vm.profile?.stuPerStaff != null) push({ section: 'teachers', metric: 'students_per_staff', label: 'Students per staff member', year: latestYear, value: vm.profile.stuPerStaff, unit: 'ratio' })
 
@@ -299,6 +530,13 @@ export function entityRows(vm) {
 /** One entity's full record as CSV, provenance header included. */
 export function entityCsv(vm) {
   const rows = entityRows(vm)
+  const actionMeta = vm.publicDataMeta?.actionFlags
+  const communityMeta = vm.publicDataMeta?.community
+  const postsecondaryMeta = vm.publicDataMeta?.postsecondary
+  const transfersMeta = vm.publicDataMeta?.transfers
+  const educatorsMeta = vm.publicDataMeta?.educators
+  const disciplineMeta = vm.publicDataMeta?.discipline
+  const fetched = (date) => date ? `, fetched ${date}` : ''
   const head = commentBlock({
     snapshotDate: vm.snapshotDate ?? null,
     entityId: vm.id,
@@ -307,9 +545,28 @@ export function entityCsv(vm) {
     page: entityPath(vm),
     rows: rows.length,
     notes: [
+      `additional source: enrollment history comes from ${vm.enrollmentSourceUrl ?? ENROLLMENT_SOURCE}${vm.enrollmentSnapshotDate ? `, fetched ${vm.enrollmentSnapshotDate}` : ''}.`,
+      vm.actionNotices?.length
+        ? `additional source: official improvement and Public Education Grant notices come from dated TEA lists at ${actionMeta?.sources?.landing ?? actionMeta?.sources?.improvement ?? 'https://tea.texas.gov'}${fetched(actionMeta?.fetchedAt)}.`
+        : null,
+      vm.communityContext
+        ? `additional source: community figures come from U.S. Census Bureau SAIPE at ${communityMeta?.landing ?? 'https://www.census.gov/programs-surveys/saipe.html'}${fetched(communityMeta?.fetchedAt)}; they describe residents inside the district boundary, not enrolled students.`
+        : null,
+      vm.postsecondaryOutcome
+        ? `additional source: following-fall outcomes come from the Texas Higher Education Coordinating Board at ${postsecondaryMeta?.landing ?? 'https://www.txhighereddata.org/high-school-graduates/hsgradsenrolled/'}${fetched(postsecondaryMeta?.fetchedAt)} and cover Texas public higher education only. “Not trackable” means a graduate had a non-standard identifier that could not be matched; it is not a non-enrollment outcome.`
+        : null,
+      vm.transferContext
+        ? `additional source: district transfer totals, detail coverage and reported top flows come from TEA Student Transfer Reports at ${transfersMeta?.source ?? TRANSFER_SOURCE}${fetched(transfersMeta?.fetchedAt)}. Net and change rows are arithmetic context, not quality measures.`
+        : null,
+      vm.teacherTurnover || vm.classSize
+        ? `additional source: teacher turnover and class-size averages come from TEA Texas Academic Performance Reports at ${educatorsMeta?.source ?? EDUCATOR_SOURCE}${fetched(educatorsMeta?.fetchedAt)}. Turnover is district-only; class sizes are separate grade/subject averages, with no invented campus-wide average.`
+        : null,
+      vm.discipline
+        ? `additional source: discipline counts come from TEA Discipline Reports at ${disciplineMeta?.source ?? DISCIPLINE_SOURCE}${fetched(disciplineMeta?.fetchedAt)}. Students and actions have different units, categories overlap, masks and statuses are preserved, and rates use cumulative year-end enrollment.`
+        : null,
       'key: (section, metric, year, cohort). That tuple appears at most once in this file, so the table pivots without collapsing two different values into one cell.',
       "reconciled: where this site's comparison engine and the page's headline rank both described a cohort, the comparison engine's row is the one kept — it also carries cohort_n and cohort_value. The headline rank is folded into that row, and rank_of is the number of entities actually ranked, which can be smaller than cohort_n because entities without a score cannot be ranked.",
-    ],
+    ].filter(Boolean),
   })
   return head + [csvRow(ENTITY_COLUMNS), ...rows.map((r) => csvRow(ENTITY_COLUMNS.map((c) => r[c])))].join('\n') + '\n'
 }
@@ -328,16 +585,29 @@ export function entityJson(vm, { space = 2 } = {}) {
       source: 'Texas Education Agency',
       sourceUrl: `${OFFICIAL_SOURCE}/?view=${kind}&id=${vm.id}&lng=en`,
       officialSource: OFFICIAL_SOURCE,
+      sources: [
+        { name: 'TEA accountability and profile data', url: `${OFFICIAL_SOURCE}/?view=${kind}&id=${vm.id}&lng=en`, fetched: vm.snapshotDate ?? null },
+        { name: 'TEA PEIMS Student Program and Special Populations Reports', url: vm.enrollmentSourceUrl ?? ENROLLMENT_SOURCE, fetched: vm.enrollmentSnapshotDate ?? null },
+        vm.actionNotices?.length ? { name: 'TEA Schools Identified for Improvement and Public Education Grant lists', url: vm.publicDataMeta?.actionFlags?.sources?.landing ?? vm.publicDataMeta?.actionFlags?.sources?.improvement ?? null, fetched: vm.publicDataMeta?.actionFlags?.fetchedAt ?? null } : null,
+        vm.communityContext ? { name: 'U.S. Census Bureau Small Area Income and Poverty Estimates', url: vm.publicDataMeta?.community?.landing ?? null, fetched: vm.publicDataMeta?.community?.fetchedAt ?? null } : null,
+        vm.postsecondaryOutcome ? { name: 'Texas Higher Education Coordinating Board following-fall enrollment report', url: vm.publicDataMeta?.postsecondary?.landing ?? null, fetched: vm.publicDataMeta?.postsecondary?.fetchedAt ?? null } : null,
+        vm.transferContext ? { name: 'TEA Student Transfer Reports', url: vm.publicDataMeta?.transfers?.source ?? TRANSFER_SOURCE, fetched: vm.publicDataMeta?.transfers?.fetchedAt ?? null } : null,
+        vm.teacherTurnover || vm.classSize ? { name: 'TEA Texas Academic Performance Reports (TAPR)', url: vm.publicDataMeta?.educators?.source ?? EDUCATOR_SOURCE, fetched: vm.publicDataMeta?.educators?.fetchedAt ?? null } : null,
+        vm.discipline ? { name: 'TEA Discipline Reports', url: vm.publicDataMeta?.discipline?.source ?? DISCIPLINE_SOURCE, fetched: vm.publicDataMeta?.discipline?.fetchedAt ?? null } : null,
+      ].filter(Boolean),
       snapshotDate: vm.snapshotDate ?? null,
-      snapshotNote: "The date this site fetched TEA's data. TEA may have revised it since.",
+      snapshotNote: 'Snapshot dates record when this site fetched each source. A publisher may have revised its data since.',
       entityId: vm.id,
       entityName: vm.name ?? null,
       level: vm.level ?? null,
       page: entityPath(vm),
-      nullNote: 'null means TEA did not publish that figure. It does not mean zero.',
+      nullNote: 'null means the source did not publish, suppressed, or did not report that figure. It does not mean zero; use status and mask where present.',
       numberNote: 'Numbers are unformatted: percentages are plain numbers, money is plain dollars.',
+      postsecondaryNote: vm.postsecondaryOutcome
+        ? '“Not found” can include private or out-of-state college and later enrollment. “Not trackable” means a graduate had a non-standard identifier that could not be matched; neither label by itself means no college.'
+        : null,
       highlightsNote: 'highlights is a deterministic selection of positive evidence, not a summary or a separate source. Each item carries the values, years, benchmark coverage and ties that caused it to be selected.',
-      license: 'The underlying figures are TEA public data and this site claims no rights in them. The structure, derived comparisons and ranks are free to reuse; a link back is appreciated.',
+      license: 'The underlying figures are public data from the publishers named in sources, and this site claims no rights in them. The structure, derived comparisons and ranks are free to reuse; a link back is appreciated.',
     },
 
     entity: {
@@ -378,6 +648,19 @@ export function entityJson(vm, { space = 2 } = {}) {
       peerAverage: vm.peerByYear?.[h.year] ?? null,
       stateAverage: vm.stateByYear?.[h.year] ?? null,
     })),
+
+    enrollmentHistory: (vm.enrollmentReported ?? vm.enrollmentHistory ?? []).map((point) => ({
+      year: point.year,
+      students: point.enrollment ?? null,
+    })),
+
+    officialNotices: vm.actionNotices ?? [],
+    community: vm.communityContext ?? null,
+    postsecondary: vm.postsecondaryOutcome ?? null,
+    transfers: vm.transferContext ?? null,
+    teacherTurnover: vm.teacherTurnover ?? null,
+    classSize: vm.classSize ?? null,
+    discipline: vm.discipline ?? null,
 
     // The UI never gets a prose-only claim that the reporter file cannot audit.
     // Keep the selector's typed evidence intact: endpoints, benchmark averages,
@@ -487,7 +770,7 @@ const humanKey = (k) =>
  * files:   [{ href, label, format, bytes?, rows?, description? }]
  * counts:  { districts: 1207, campuses: 9029, ... } — rendered as-is
  */
-export function renderDownloadPage({ files = [], snapshotDate = null, counts = {} } = {}) {
+export function renderDownloadPage({ files = [], snapshotDate = null, enrollmentSnapshotDate = null, counts = {} } = {}) {
   const rows = files.map((f) => {
     const size = fileSize(f.bytes)
     return `<tr><th scope="row"><a href="${esc(f.href)}"${f.href?.startsWith('http') ? '' : ' download'}>${esc(f.label ?? f.href)}</a>${
@@ -530,10 +813,13 @@ export function renderDownloadPage({ files = [], snapshotDate = null, counts = {
       `<section class="hero">
   <p class="eyebrow">Data</p>
   <h1>Download the data</h1>
-  <p class="summary">Everything on this site comes from one archived snapshot of what the Texas Education
-  Agency publishes at <a href="${OFFICIAL_SOURCE}">txschools.gov</a>${snapshotDate ? `, fetched <strong>${esc(snapshotDate)}</strong>` : ''}.
-  These files are that snapshot, restructured. Each one records inside itself where it came from and when,
-  so a figure taken from here can be traced back to TEA without this page.</p>
+  <p class="summary">The site combines archived Texas Education Agency data from
+  <a href="${OFFICIAL_SOURCE}">txschools.gov</a>${snapshotDate ? `, fetched <strong>${esc(snapshotDate)}</strong>` : ''},
+  with five years of <a href="${ENROLLMENT_SOURCE}">PEIMS enrollment reports</a>${enrollmentSnapshotDate ? `, fetched <strong>${esc(enrollmentSnapshotDate)}</strong>` : ''}.
+  Separate TEA staffing, discipline, transfer and action lists, Census community estimates, and THECB
+  postsecondary outcomes are listed with their own dates and limits below. These files restructure those
+  official public sources. Each one records inside itself where it came from and when, so a figure taken
+  from here can be traced back without this page.</p>
   ${countList ? `<dl class="stats">${countList}</dl>` : ''}
 </section>`,
 
@@ -574,9 +860,10 @@ export function renderDownloadPage({ files = [], snapshotDate = null, counts = {
         'reading',
         'How to read these files',
         `<ul class="legend">
-    <li><strong>An empty cell is not a zero.</strong> TEA masks small groups and omits measures that do
-      not apply to a campus. Empty in CSV and <code>null</code> in JSON both mean “not published”.
-      Treating them as zero will invent schools with no graduates.</li>
+    <li><strong>An empty cell is not a zero.</strong> Source publishers mask, suppress or omit figures
+      that are unavailable or do not apply. Empty in CSV and <code>null</code> in JSON both mean “not
+      published”; a <code>status</code> or <code>mask</code> column preserves the reason where the source
+      supplies one. Treating an empty cell as zero invents data.</li>
     <li><strong>Numbers are unformatted.</strong> No thousands separators, no dollar signs, no percent
       signs. A percentage is <code>52.6</code>, money is <code>11482</code>.</li>
     <li><strong>The header is commented.</strong> CSV files begin with <code>#</code> lines carrying the
@@ -593,17 +880,20 @@ export function renderDownloadPage({ files = [], snapshotDate = null, counts = {
       section(
         'citing',
         'Citing and licence',
-        `<p>The figures in these files are the Texas Education Agency's, published publicly by the agency.
-  This site claims no rights in them, and cannot grant you any — if you need formal terms for TEA's data,
-  ask TEA. What this site adds is the structure: the joins between TEA's separate tables, the comparison
-  cohorts, the ranks and their denominators. That part is free to use, commercially or otherwise, and a
-  link back is appreciated rather than required.</p>
-  <p>An honest citation names both:</p>
-  <p class="callout">Texas Education Agency accountability data${snapshotDate ? `, snapshot of ${esc(snapshotDate)}` : ''},
-  via txschools.net (unofficial). Original: <a href="${OFFICIAL_SOURCE}">txschools.gov</a>.</p>
-  <p>If a number here matters to your story, check it against
-  <a href="${OFFICIAL_SOURCE}">txschools.gov</a> before you publish it. This site is one person's
-  restructuring of a snapshot; TEA is the authority, and the agency revises its files.</p>`
+        `<p>The files combine public figures from the Texas Education Agency, U.S. Census Bureau and
+  Texas Higher Education Coordinating Board. Each file names its actual publisher and source URL. This
+  site claims no rights in those figures and cannot grant formal terms for them — ask TEA for TEA data,
+  or the other publisher named in the file. What this site adds is the structure: joins across separate
+  tables, comparison cohorts, ranks and their denominators. That part is free to use, commercially or
+  otherwise, and a link back is appreciated rather than required.</p>
+  <p>An honest citation names the originating publisher and this unofficial restructuring. For example:</p>
+  <p class="callout">Texas Education Agency accountability and PEIMS enrollment data${snapshotDate ? `, accountability snapshot of ${esc(snapshotDate)}` : ''},
+  via txschools.net (unofficial). Originals: <a href="${OFFICIAL_SOURCE}">txschools.gov</a> and
+  <a href="${ENROLLMENT_SOURCE}">TEA PEIMS Student Program reports</a>. For Census, THECB or another
+  supplemental table, substitute the publisher and source recorded in that file's header.</p>
+  <p>If a number matters to your story, check it against the original publisher before publishing. This
+  site is one person's restructuring of snapshots; the agencies named in each file remain the authorities
+  and may revise their files.</p>`
       ),
     ],
   })

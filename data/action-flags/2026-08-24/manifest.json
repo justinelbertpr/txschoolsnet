@@ -1,0 +1,26 @@
+{
+  "fetchedAt": "2026-08-24T19:00:17.460Z",
+  "rows": 2077,
+  "improvementRows": 2038,
+  "pegRows": 317,
+  "sources": {
+    "landing": "https://tea2.tea.texas.gov/school-district-leaders/reporting-and-accountability",
+    "improvement": "https://tea2.tea.texas.gov/school-and-district-leaders/accountability/academic-accountability/performance-reporting/2026-schools-identified-for-improvement.xlsx",
+    "peg": "https://tea.texas.gov/texas-schools/accountability/academic-accountability/performance-reporting/peg-list-2025-final.pdf",
+    "pegProgram": "https://tea.texas.gov/school-and-district-leaders/accountability/academic-accountability/performance-reporting/public-education-grant"
+  },
+  "files": {
+    "improvement.xlsx": {
+      "bytes": 175251,
+      "sha256": "0613a030383a4b2c0b3e96ce71b670cbfea67c1158e3a1898aa3e00cb9cffca6"
+    },
+    "peg-final.pdf": {
+      "bytes": 466909,
+      "sha256": "f18cad3813e565c42c998ec8c5c62fea93ae65b2ab31aefaa1cb72fc29575741"
+    },
+    "action-flags.json.gz": {
+      "bytes": 24834,
+      "sha256": "af5c354c08d3d4e15507f876704414b661a6f26f4871bceba1bba8b32fc00d8c"
+    }
+  }
+}

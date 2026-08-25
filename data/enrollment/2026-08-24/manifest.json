@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "fetchedAt": "2026-08-24T18:28:22.066Z",
+  "source": "https://rptsvr1.tea.texas.gov/adhocrpt/adspr.html",
+  "definitions": "https://rptsvr1.tea.texas.gov/adhocrpt/Standard_Reports/About/About_StudentProgram.html",
+  "files": {
+    "2021-22-district": {
+      "file": "2021-22-district.csv.gz",
+      "sha256": "98c0dd23bea464cf9db1fbc5e84d3ffc6cdb65565078747d8c2664c905649078",
+      "bytes": 162366,
+      "rows": 1207,
+      "year": "2021-22",
+      "level": "district",
+      "request": {
+        "method": "POST",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "form": {
+          "_service": "marykay",
+          "_program": "adhoc.std_driver1.sas",
+          "RptClass": "StudPgm",
+          "_debug": "0",
+          "SchoolYr": "22",
+          "report": "StateDistrict",
+          "format": "csv"
+        }
+      },
+      "etag": null,
+      "lastModified": null
+    },
+    "2021-22-campus": {
+      "file": "2021-22-campus.csv.gz",
+      "sha256": "49ba07296f3d4634706b0a00b92dfceb304fd2296246005dcd9a19f2394100ef",
+      "bytes": 1527839,
+      "rows": 8973,
+      "year": "2021-22",
+      "level": "campus",
+      "request": {
+        "method": "POST",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "form": {
+          "_service": "marykay",
+          "_program": "adhoc.std_driver1.sas",
+          "RptClass": "StudPgm",
+          "_debug": "0",
+          "SchoolYr": "22",
+          "report": "StateCampus",
+          "format": "csv"
+        }
+      },
+      "etag": null,
+      "lastModified": null
+    },
+    "2022-23-district": {
+      "file": "2022-23-district.csv.gz",
+      "sha256": "74d90225052d907b693fac60573af23369e43d94eeb38886991d2443d9d69c53",
+      "bytes": 162790,
+      "rows": 1209,
+      "year": "2022-23",
+      "level": "district",
+      "request": {
+        "method": "POST",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "form": {
+          "_service": "marykay",
+          "_program": "adhoc.std_driver1.sas",
+          "RptClass": "StudPgm",
+          "_debug": "0",
+          "SchoolYr": "23",
+          "report": "StateDistrict",
+          "format": "csv"
+        }
+      },
+      "etag": null,
+      "lastModified": null
+    },
+    "2022-23-campus": {
+      "file": "2022-23-campus.csv.gz",
+      "sha256": "63d44cf2ec9c86167afd603e26b89c958857ad328a3aadda8ef01c48d3006aea",
+      "bytes": 1542267,
+      "rows": 9054,
+      "year": "2022-23",
+      "level": "campus",
+      "request": {
+        "method": "POST",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "form": {
+          "_service": "marykay",
+          "_program": "adhoc.std_driver1.sas",
+          "RptClass": "StudPgm",
+          "_debug": "0",
+          "SchoolYr": "23",
+          "report": "StateCampus",
+          "format": "csv"
+        }
+      },
+      "etag": null,
+      "lastModified": null
+    },
+    "2023-24-district": {
+      "file": "2023-24-district.csv.gz",
+      "sha256": "2d6bd87848b69d5bc151a37dda4e5e3c8db47a4264b2907264167304e512be57",
+      "bytes": 162484,
+      "rows": 1207,
+      "year": "2023-24",
+      "level": "district",
+      "request": {
+        "method": "POST",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "form": {
+          "_service": "marykay",
+          "_program": "adhoc.std_driver1.sas",
+          "RptClass": "StudPgm",
+          "_debug": "0",
+          "SchoolYr": "24",
+          "report": "StateDistrict",
+          "format": "csv"
+        }
+      },
+      "etag": null,
+      "lastModified": null
+    },
+    "2023-24-campus": {
+      "file": "2023-24-campus.csv.gz",
+      "sha256": "5d59f63fe21854aa628f6c51c01d27d56111e86a3cae7c14a4ce0a08e431053c",
+      "bytes": 1550017,
+      "rows": 9088,
+      "year": "2023-24",
+      "level": "campus",
+      "request": {
+        "method": "POST",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "form": {
+          "_service": "marykay",
+          "_program": "adhoc.std_driver1.sas",
+          "RptClass": "StudPgm",
+          "_debug": "0",
+          "SchoolYr": "24",
+          "report": "StateCampus",
+          "format": "csv"
+        }
+      },
+      "etag": null,
+      "lastModified": null
+    },
+    "2024-25-district": {
+      "file": "2024-25-district.csv.gz",
+      "sha256": "54afa36531ddb4b7a8e9a266934fafa57e103cd32111555a8ad474e4244b1ade",
+      "bytes": 162724,
+      "rows": 1208,
+      "year": "2024-25",
+      "level": "district",
+      "request": {
+        "method": "POST",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "form": {
+          "_service": "marykay",
+          "_program": "adhoc.std_driver1.sas",
+          "RptClass": "StudPgm",
+          "_debug": "0",
+          "SchoolYr": "25",
+          "report": "StateDistrict",
+          "format": "csv"
+        }
+      },
+      "etag": null,
+      "lastModified": null
+    },
+    "2024-25-campus": {
+      "file": "2024-25-campus.csv.gz",
+      "sha256": "e66eb0418300494f392bcbe18a7882ce2c81ef5842a423f55f6bf507fe2c9585",
+      "bytes": 1551752,
+      "rows": 9088,
+      "year": "2024-25",
+      "level": "campus",
+      "request": {
+        "method": "POST",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "form": {
+          "_service": "marykay",
+          "_program": "adhoc.std_driver1.sas",
+          "RptClass": "StudPgm",
+          "_debug": "0",
+          "SchoolYr": "25",
+          "report": "StateCampus",
+          "format": "csv"
+        }
+      },
+      "etag": null,
+      "lastModified": null
+    },
+    "2025-26-district": {
+      "file": "2025-26-district.csv.gz",
+      "sha256": "e1055e20dcee144b09b604ae60fbfb7a0edbb3ce571670a0bbc4b1d783bd2d5d",
+      "bytes": 161893,
+      "rows": 1202,
+      "year": "2025-26",
+      "level": "district",
+      "request": {
+        "method": "POST",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "form": {
+          "_service": "marykay",
+          "_program": "adhoc.std_driver1.sas",
+          "RptClass": "StudPgm",
+          "_debug": "0",
+          "SchoolYr": "26",
+          "report": "StateDistrict",
+          "format": "csv"
+        }
+      },
+      "etag": null,
+      "lastModified": null
+    },
+    "2025-26-campus": {
+      "file": "2025-26-campus.csv.gz",
+      "sha256": "6ef583f3a1f243ab364fbc2e15d3a1ed7850faaeca448e2af8a4c809462256ba",
+      "bytes": 1557194,
+      "rows": 9113,
+      "year": "2025-26",
+      "level": "campus",
+      "request": {
+        "method": "POST",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "form": {
+          "_service": "marykay",
+          "_program": "adhoc.std_driver1.sas",
+          "RptClass": "StudPgm",
+          "_debug": "0",
+          "SchoolYr": "26",
+          "report": "StateCampus",
+          "format": "csv"
+        }
+      },
+      "etag": null,
+      "lastModified": null
+    }
+  }
+}

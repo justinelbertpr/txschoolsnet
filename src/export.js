@@ -10,7 +10,7 @@ const COLUMNS = ['id', 'level', 'name', 'regionId', 'countyId', 'isCharter', 'is
                  'enrollment', 'score', 'rating']
 
 /** Column-oriented: repeated object keys dominate the payload at 10,230 rows. */
-export function buildPayload(entities, ratings, profile) {
+export function buildPayload(entities, ratings, profile, meta = null) {
   const ecoDis = new Map(profile.map((p) => [p.id, p.ecoDisPct]))
 
   const cols = Object.fromEntries(COLUMNS.map((c) => [c, entities.map((e) => e[c] ?? null)]))
@@ -41,15 +41,42 @@ export function buildPayload(entities, ratings, profile) {
     if (i !== undefined) original[r.year][i] = r.score
   }
 
-  return { years, entities: cols, scores, grades, original }
+  return { ...(meta ? { _meta: meta } : {}), years, entities: cols, scores, grades, original }
 }
 
 const read = async (t) =>
   (await readFile(`build/${t}.ndjson`, 'utf8')).trim().split('\n').map((l) => JSON.parse(l))
 
 export async function exportPayload() {
-  const [entities, ratings, profile] = await Promise.all([read('entities'), read('ratings'), read('profile')])
-  const text = JSON.stringify(buildPayload(entities, ratings, profile))
+  const [entities, ratings, profile, snapshotName, enrollmentMeta] = await Promise.all([
+    read('entities'),
+    read('ratings'),
+    read('profile'),
+    readFile('build/snapshot.txt', 'utf8').then((text) => text.trim()),
+    readFile('build/enrollment-meta.json', 'utf8').then(JSON.parse),
+  ])
+  const accountabilityManifest = JSON.parse(
+    await readFile(`data/raw/${snapshotName}/manifest.json`, 'utf8')
+  )
+  const meta = {
+    site: 'txschools.net',
+    unofficial: 'Not operated by, endorsed by, or affiliated with the Texas Education Agency.',
+    sources: [
+      {
+        name: 'Texas Education Agency txschools.gov accountability and directory data',
+        url: accountabilityManifest.source ?? 'https://txschools.gov/data',
+        fetchedAt: accountabilityManifest.fetchedAt ?? null,
+      },
+      {
+        name: 'Texas Education Agency PEIMS Student Program reports',
+        url: enrollmentMeta.source ?? null,
+        fetchedAt: enrollmentMeta.fetchedAt ?? null,
+      },
+    ],
+    enrollmentNote: 'The enrollment column is reconciled against the current PEIMS count when TEA reports it; a suppressed PEIMS count remains the current txschools.gov total rather than becoming zero.',
+    nullNote: 'null means the source did not publish that figure. It does not mean zero.',
+  }
+  const text = JSON.stringify(buildPayload(entities, ratings, profile, meta))
   const hash = contentHash(text)
   const file = `payload-${hash}.json`
 

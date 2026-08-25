@@ -35,6 +35,8 @@
   const note = document.querySelector('[data-map-legend-note]')
   const figure = root.closest('[data-map-palette]')
   const missingKey = document.querySelector('[data-map-missing-key]')
+  const missingLabel = document.querySelector('[data-map-missing-label]')
+  const layerDetails = [...document.querySelectorAll('[data-map-layer-detail]')]
 
   // The accessible name of each district is rebuilt per layer, because "Klein
   // ISD, rated B" is wrong once the map is shading by dropout rate. Everything
@@ -44,16 +46,19 @@
   const nf = new Intl.NumberFormat('en-US')
 
   const paint = (layer) => {
-    const { buckets, ranges, label, direction, counted } = layer
+    const { buckets, ranges, label, direction, counted, valueLabels } = layer
     for (let i = 0; i < shapes.length; i += 1) {
       const b = buckets[i]
       if (b == null) shapes[i].removeAttribute('data-b')
       else shapes[i].setAttribute('data-b', String(b))
       const band = b == null ? 'not reported' : ranges[b]
+      const exact = Array.isArray(valueLabels) && typeof valueLabels[i] === 'string'
+        ? valueLabels[i]
+        : band
       const a = links[i]
-      if (a) a.setAttribute('aria-label', `${names[i]}, ${label}: ${band}`)
+      if (a) a.setAttribute('aria-label', `${names[i]}, ${label}: ${exact}`)
       const t = shapes[i].querySelector('title')
-      if (t) t.textContent = `${names[i]} — ${band}`
+      if (t) t.textContent = `${names[i]} — ${exact}`
     }
     if (figure && layer.palette) figure.setAttribute('data-map-palette', layer.palette)
     if (title) title.textContent = label
@@ -68,11 +73,16 @@
     }
     const missing = buckets.length - counted
     if (note) {
-      const coverage = `${nf.format(counted)} of ${nf.format(buckets.length)} districts ${counted === 1 ? 'reports' : 'report'} this measure` +
+      const coverage = layer.coverage || (`${nf.format(counted)} of ${nf.format(buckets.length)} districts ${counted === 1 ? 'reports' : 'report'} this measure` +
         (missing ? `; ${nf.format(missing)} ${missing === 1 ? 'is' : 'are'} shown as not reported` : '') + '.'
+      )
       note.textContent = `${direction} ${coverage}`
     }
     if (missingKey) missingKey.hidden = missing === 0
+    if (missingLabel) missingLabel.textContent = layer.missingLabel || 'Not reported'
+    layerDetails.forEach((detail) => {
+      detail.hidden = detail.getAttribute('data-map-layer-detail') !== layer.key
+    })
     root.setAttribute('aria-label', `Texas school districts shaded by ${label}`)
   }
 

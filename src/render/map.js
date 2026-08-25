@@ -7,8 +7,10 @@
 // end, at the site owner's explicit instruction. Which numeric end receives
 // which colour follows the metric's declared direction; resource measures
 // use a neutral single-hue scale because more dollars are not inherently
-// better or worse. site/style.css records the map as a deliberate exception
-// to the site's otherwise neutral grade treatment.
+// better or worse. Transfer balance is a signed exception: net outflow is the
+// weaker/red side and net inflow the stronger/green side, centred on zero.
+// site/style.css records the map as a deliberate exception to the site's
+// otherwise neutral grade treatment.
 //
 // The measurements are on RAMP below. The short version: the classic
 // green-amber-red ramp fails not on its adjacent pairs but on B/D, which close
@@ -89,10 +91,16 @@ export const MAP_PALETTES = Object.freeze({
   HIGHER: 'higher',
   LOWER: 'lower',
   NEUTRAL: 'neutral',
+  DIVERGING: 'diverging',
 })
 
 export const PERFORMANCE_RAMP = ['#0f5132', '#7cb342', '#ffe9a8', '#e8590c', '#7a0b16']
 export const NEUTRAL_RAMP = ['#dbebea', '#8ac4c9', '#3d95a2', '#155f70', '#082f39']
+// Transfer balance is directional by editorial policy: a net outflow is the
+// weaker/red end and a net inflow is the stronger/green end. Reuse the map's
+// measured performance ramp in numeric order (negative to positive) so its
+// color-vision separation does not regress.
+export const DIVERGING_RAMP = ['#7a0b16', '#e8590c', '#ffe9a8', '#7cb342', '#0f5132']
 // Kept as the public name used by the existing palette regression test.
 export const RAMP = PERFORMANCE_RAMP
 
@@ -115,6 +123,9 @@ export function mapDirectionNote(palette) {
   }
   if (palette === MAP_PALETTES.NEUTRAL) {
     return 'Darker teal marks a higher dollar amount. Color is not a judgment of quality.'
+  }
+  if (palette === MAP_PALETTES.DIVERGING) {
+    return 'Green marks more transfers in than out; red marks more transfers out than in. Darker shades mark the largest balances in each direction. The pale middle means no net difference. This layer treats net outflow as the weaker transfer balance, but the totals do not explain why students transfer or independently rate school quality.'
   }
   throw new Error(`map: unknown palette ${JSON.stringify(palette)}`)
 }
@@ -371,6 +382,106 @@ export function buildLayer({ key, label, fmt, dir, values, order }) {
   }
 }
 
+const magnitudeRange = (values, suffix, fallback) => {
+  const magnitudes = values.filter(finite).map(Math.abs).sort((a, b) => a - b)
+  if (!magnitudes.length) return fallback
+  const lo = num(magnitudes[0])
+  const hi = num(magnitudes.at(-1))
+  return `${lo === hi ? lo : `${lo}–${hi}`} ${suffix}`
+}
+
+/**
+ * A signed, zero-centred layer for arithmetic balances such as transfers in
+ * minus transfers out.
+ *
+ * Ordinary map measures use five statewide quantiles. That is wrong for a
+ * balance: a future year with mostly negative values could paint the "least
+ * negative" fifth like a positive result. Here zero is always the middle;
+ * positive and negative values are split independently so the darkest class
+ * on each side identifies that direction's largest fifth. Red always means
+ * more out and green always means more in. That is an explicit editorial
+ * direction for transfer balance, not an inference that the source itself
+ * explains why students transfer.
+ *
+ * `valueLabels` carries exact, already-audited text for each district so the
+ * hover/focus readout does not reduce a precise transfer total to its color
+ * band. Missing labels can likewise distinguish suppression from no report.
+ */
+export function buildDivergingLayer({
+  key,
+  label,
+  values,
+  order,
+  valueLabels = new Map(),
+  missingLabel = 'Suppressed or not reported',
+  direction = null,
+  coverage = null,
+  extremeShare = 0.2,
+  leaders = null,
+}) {
+  if (!(values instanceof Map)) throw new TypeError('map: diverging values must be a Map')
+  if (!(valueLabels instanceof Map)) throw new TypeError('map: diverging valueLabels must be a Map')
+  if (!Number.isFinite(extremeShare) || extremeShare <= 0 || extremeShare >= 0.5) {
+    throw new RangeError('map: extremeShare must be between 0 and 0.5')
+  }
+
+  const vals = order.map((id) => {
+    const v = values.get(id)
+    return finite(v) ? v : null
+  })
+  const reported = vals.filter(finite)
+  const cutoff = (side) => {
+    const magnitudes = side.map(Math.abs).sort((a, b) => a - b)
+    if (!magnitudes.length) return null
+    return magnitudes[Math.floor((magnitudes.length - 1) * (1 - extremeShare))]
+  }
+  const negativeCutoff = cutoff(reported.filter((v) => v < 0))
+  const positiveCutoff = cutoff(reported.filter((v) => v > 0))
+
+  const buckets = vals.map((v) => {
+    if (!finite(v)) return null
+    if (v === 0) return 2
+    if (v < 0) return negativeCutoff != null && Math.abs(v) >= negativeCutoff ? 0 : 1
+    return positiveCutoff != null && v >= positiveCutoff ? 4 : 3
+  })
+  const grouped = Array.from({ length: BUCKETS }, () => [])
+  vals.forEach((v, i) => {
+    const b = buckets[i]
+    if (b != null) grouped[b].push(v)
+  })
+  const ranges = [
+    magnitudeRange(grouped[0], 'more out', 'Largest net outflow'),
+    magnitudeRange(grouped[1], 'more out', 'Net outflow'),
+    'No net difference',
+    magnitudeRange(grouped[3], 'more in', 'Net inflow'),
+    magnitudeRange(grouped[4], 'more in', 'Largest net inflow'),
+  ]
+
+  return {
+    key,
+    label,
+    fmt: 'count',
+    dir: null,
+    palette: MAP_PALETTES.DIVERGING,
+    direction: [mapDirectionNote(MAP_PALETTES.DIVERGING), direction].filter(Boolean).join(' '),
+    breaks: [negativeCutoff == null ? null : -negativeCutoff, 0, 0, positiveCutoff],
+    ranges,
+    buckets,
+    counted: reported.length,
+    valueLabels: order.map((id, i) => {
+      const exact = valueLabels.get(id)
+      if (typeof exact === 'string' && exact.trim()) return exact.trim()
+      const value = vals[i]
+      if (!finite(value)) return missingLabel.toLowerCase()
+      if (value === 0) return 'transfers in and out are even'
+      return `${num(Math.abs(value))} more transfers ${value > 0 ? 'in' : 'out'}`
+    }),
+    missingLabel,
+    coverage,
+    leaders,
+  }
+}
+
 /**
  * The rating layer is categorical, not quantiled: A–F is already five classes,
  * and cutting it into quantiles would put some B districts in one shade and
@@ -460,6 +571,11 @@ export function renderMapPage({
           `Build layers from mappableDistricts(topo, districts) so the order matches.`
       )
     }
+    if (l.valueLabels && l.valueLabels.length !== drawn.length) {
+      throw new Error(
+        `map: layer "${l.key}" has ${l.valueLabels.length} exact labels for ${drawn.length} drawn districts.`
+      )
+    }
   }
 
   const allRings = drawn.map((d) => byGeoid.get(d.geoid))
@@ -543,6 +659,9 @@ export function renderMapPage({
       ranges: l.ranges,
       buckets: l.buckets,
       counted: l.counted,
+      ...(l.valueLabels ? { valueLabels: l.valueLabels } : {}),
+      ...(l.missingLabel ? { missingLabel: l.missingLabel } : {}),
+      ...(l.coverage ? { coverage: l.coverage } : {}),
     })),
   }
 
@@ -582,7 +701,7 @@ export function renderMapPage({
   // the paths with `~`, which only looks forward among SIBLINGS, and inside
   // the figure the figcaption and the svg are siblings.
   const missing = drawn.length - rating.counted
-  const noDataKey = `<li class="map-no-data-key" data-map-missing-key${missing ? '' : ' hidden'}><span class="map-swatch map-swatch-missing" aria-hidden="true"></span><span>Not reported</span></li>`
+  const noDataKey = `<li class="map-no-data-key" data-map-missing-key${missing ? '' : ' hidden'}><span class="map-swatch map-swatch-missing" aria-hidden="true"></span><span data-map-missing-label>Not reported</span></li>`
   const legend = `<figcaption class="map-legend map-classes" data-map-legend>
       <p class="map-legend-title"><span data-map-legend-title>${esc(rating.label)}</span><span class="map-legend-hint"> &mdash; untick a class to hide it</span></p>
       <ul data-map-legend-items>${rating.ranges.map((r, i) => swatch(i, r)).join('')}${noDataKey}</ul>
@@ -591,6 +710,26 @@ export function renderMapPage({
   const coverage = `${num(rating.counted)} of ${num(drawn.length)} districts ${rating.counted === 1 ? 'has' : 'have'} a published rating${
     missing ? `; ${num(missing)} ${missing === 1 ? 'is' : 'are'} shown as not reported` : ''
   }.`
+
+  const layerDetails = layers
+    .filter((layer) => layer.leaders?.groups?.length)
+    .map((layer) => {
+      const leaders = layer.leaders
+      const groups = leaders.groups.map((group) => `<section class="map-leader-group">
+        <h4>${esc(group.label)}</h4>
+        <ol>${(group.rows ?? []).map((row) => `<li>
+          <span>${row.href ? `<a href="${esc(row.href)}">${esc(row.name)}</a>` : esc(row.name)}</span>
+          <strong>${esc(row.value)}</strong>
+          <small>${esc(row.detail)}</small>
+        </li>`).join('')}</ol>
+      </section>`).join('')
+      return `<div class="map-layer-detail" data-map-layer-detail="${esc(layer.key)}" hidden>
+        <h3>${esc(leaders.title)}</h3>
+        <div class="map-leader-grid">${groups}</div>
+        ${leaders.note ? `<p class="note">${esc(leaders.note)}</p>` : ''}
+      </div>`
+    })
+    .join('')
 
   return shell({
     title: 'Map of Texas school districts — txschools.net',
@@ -626,6 +765,7 @@ export function renderMapPage({
     <p class="map-reset"><button type="reset">Show every class</button></p>
   </form>
   <p class="note" data-map-legend-note>${esc(rating.direction)} ${esc(coverage)}</p>
+  ${layerDetails}
   <div class="map-tip" data-map-tip hidden aria-hidden="true"></div>
   <script type="application/json" data-map-payload>${JSON.stringify(payload).replace(/</g, '\\u003c')}</script>`
       ),

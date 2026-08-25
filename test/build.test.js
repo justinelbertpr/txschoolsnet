@@ -6,6 +6,10 @@ import {
   dropOrphans,
   assertOrphanIdSet,
   excludeCharters,
+  mergeEnrollmentHistory,
+  DISCIPLINE_HEADLINES,
+  isDisciplineSummaryRow,
+  summarizeDisciplineRows,
   KNOWN_ORPHAN_IDS,
 } from '../src/build.js'
 
@@ -145,5 +149,197 @@ describe('excludeCharters', () => {
 
   it('returns an empty list when every entity is a charter', () => {
     expect(excludeCharters([{ id: 'a', isCharter: true }])).toEqual([])
+  })
+})
+
+describe('mergeEnrollmentHistory', () => {
+  const entities = [
+    { id: '001902', level: 'district', enrollment: 570 },
+    { id: '001902001', level: 'campus', enrollment: 120 },
+  ]
+  const profile = [
+    { id: '001902', total: 570, schoolYear: '2025-26' },
+    { id: '001902001', total: 120, schoolYear: '2025-26' },
+  ]
+  const enrollmentRows = [
+    { id: '001902', level: 'district', year: '2024-25', enrollment: 600 },
+    { id: '001902001', level: 'campus', year: '2024-25', enrollment: 130 },
+    { id: '001902', level: 'district', year: '2025-26', enrollment: 574 },
+    { id: '001902001', level: 'campus', year: '2025-26', enrollment: 118 },
+    // A campus that closed before the current txschools.gov snapshot is an
+    // ordinary property of history, not one of the current-export anomalies.
+    { id: '999999999', level: 'campus', year: '2024-25', enrollment: 42 },
+  ]
+
+  it('makes the latest PEIMS value canonical everywhere and retains history for current ids', () => {
+    const result = mergeEnrollmentHistory({ entities, profile, enrollmentRows })
+    expect(result.latestYear).toBe('2025-26')
+    expect(result.entities.map((row) => row.enrollment)).toEqual([574, 118])
+    expect(result.profile.map((row) => [row.total, row.schoolYear])).toEqual([
+      [574, '2025-26'],
+      [118, '2025-26'],
+    ])
+    expect(result.enrollment).toHaveLength(4)
+    expect(result.changed).toBe(2)
+  })
+
+  it('drops retired historical ids without applying the current-snapshot orphan invariant', () => {
+    const result = mergeEnrollmentHistory({ entities, profile, enrollmentRows })
+    expect(result.dropped).toBe(1)
+    expect(result.droppedIds).toEqual(['999999999'])
+  })
+
+  it('fails rather than silently mixing sources when a current entity has no latest PEIMS count', () => {
+    const incomplete = enrollmentRows.filter((row) => row.id !== '001902001' || row.year !== '2025-26')
+    expect(() => mergeEnrollmentHistory({ entities, profile, enrollmentRows: incomplete })).toThrow(
+      /1 current entities are absent from the 2025-26 PEIMS report/i
+    )
+  })
+
+  it('preserves the existing current count when PEIMS suppresses the latest value', () => {
+    const masked = enrollmentRows.map((row) =>
+      row.id === '001902001' && row.year === '2025-26' ? { ...row, enrollment: null } : row
+    )
+    const result = mergeEnrollmentHistory({ entities, profile, enrollmentRows: masked })
+    expect(result.entities.find((row) => row.id === '001902001').enrollment).toBe(120)
+    expect(result.profile.find((row) => row.id === '001902001').total).toBe(120)
+    expect(result.enrollment.find((row) => row.id === '001902001' && row.year === '2025-26').enrollment).toBe(null)
+    expect(result.maskedCurrent).toBe(1)
+  })
+
+  it('rejects a district/campus level mismatch', () => {
+    const mismatched = enrollmentRows.map((row) =>
+      row.id === '001902' && row.year === '2025-26' ? { ...row, level: 'campus' } : row
+    )
+    expect(() => mergeEnrollmentHistory({ entities, profile, enrollmentRows: mismatched })).toThrow(
+      /001902 is district.*campus/i
+    )
+  })
+})
+
+const disciplineRow = (overrides = {}) => ({
+  id: '001902',
+  level: 'district',
+  year: '2024-25',
+  section: 'B-DISCIPLINE DATA',
+  heading: 'ALL DISCIPLINE',
+  measure: 'students',
+  count: 10,
+  status: 'reported',
+  mask: null,
+  ...overrides,
+})
+
+const disciplineEnrollment = (overrides = {}) =>
+  disciplineRow({
+    section: 'A-ENROLLMENT',
+    heading: 'CUMULATIVE YEAR END ENROLLMENT',
+    measure: 'students',
+    count: 200,
+    ...overrides,
+  })
+
+describe('summarizeDisciplineRows', () => {
+  it('keeps a five-year ALL DISCIPLINE history with students and actions as distinct measures', () => {
+    const years = ['2020-21', '2021-22', '2022-23', '2023-24', '2024-25']
+    const source = years.flatMap((year, index) => [
+      disciplineEnrollment({ year, count: 200 + index * 10 }),
+      disciplineRow({ year, measure: 'students', count: 10 + index }),
+      disciplineRow({ year, measure: 'actions', count: 15 + index * 2 }),
+    ])
+    const result = summarizeDisciplineRows(source)
+    expect(result.years).toEqual(years)
+    expect(result.latestYear).toBe('2024-25')
+    expect(result.rows).toHaveLength(1)
+    expect(result.rows[0].history).toHaveLength(5)
+    expect(result.rows[0].history[0]).toEqual({
+      year: '2020-21',
+      cumulativeEnrollment: { count: 200, status: 'reported', mask: null },
+      students: { count: 10, status: 'reported', mask: null, ratePct: 5 },
+      actions: { count: 15, status: 'reported', mask: null, ratePer100: 7.5 },
+    })
+    expect(result.rows[0].latest.categories.allDiscipline.students).toHaveProperty('ratePct')
+    expect(result.rows[0].latest.categories.allDiscipline.actions).toHaveProperty('ratePer100')
+    expect(result.rows[0].latest.categories.allDiscipline.actions).not.toHaveProperty('ratePct')
+  })
+
+  it('calculates rates only from the same entity-year reported cumulative enrollment', () => {
+    const result = summarizeDisciplineRows([
+      // This denominator belongs to another district and cannot be borrowed.
+      disciplineEnrollment({ id: '999999', count: 100 }),
+      disciplineRow({ count: 25 }),
+      disciplineRow({ measure: 'actions', count: 30 }),
+    ])
+    const row = result.rows.find((item) => item.id === '001902')
+    expect(row.history[0].cumulativeEnrollment).toEqual({
+      count: null,
+      status: 'not-reported',
+      mask: null,
+    })
+    expect(row.history[0].students.ratePct).toBeNull()
+    expect(row.history[0].actions.ratePer100).toBeNull()
+  })
+
+  it('retains masks and unavailable values rather than turning them into zeroes', () => {
+    const [row] = summarizeDisciplineRows([
+      disciplineEnrollment({ count: null, status: 'suppressed', mask: '-1' }),
+      disciplineRow({ count: 10 }),
+      disciplineRow({ measure: 'actions', count: null, status: 'suppressed', mask: '-3' }),
+    ]).rows
+    expect(row.history[0].cumulativeEnrollment).toEqual({
+      count: null,
+      status: 'suppressed',
+      mask: '-1',
+    })
+    expect(row.history[0].students).toMatchObject({ count: 10, status: 'reported', ratePct: null })
+    expect(row.history[0].actions).toEqual({
+      count: null,
+      status: 'suppressed',
+      mask: '-3',
+      ratePer100: null,
+    })
+    expect(row.latest.categories.expulsions.students).toEqual({
+      count: null,
+      status: 'not-reported',
+      mask: null,
+      ratePct: null,
+    })
+  })
+
+  it('uses TEA headline values directly and never sums overlapping categories', () => {
+    const [row] = summarizeDisciplineRows([
+      disciplineEnrollment(),
+      disciplineRow({ count: 10 }),
+      disciplineRow({ measure: 'actions', count: 12 }),
+      disciplineRow({ heading: 'IN SCHOOL SUSPENSIONS', count: 8 }),
+      disciplineRow({ heading: 'OUT OF SCHOOL SUSPENSIONS', count: 9 }),
+      // A Section B incident dimension is not a student or action headline.
+      disciplineRow({ measure: 'incidents', count: 99 }),
+    ]).rows
+    expect(Object.keys(row.latest.categories)).toHaveLength(DISCIPLINE_HEADLINES.length)
+    expect(row.latest.categories.allDiscipline.students.count).toBe(10)
+    expect(row.latest.categories.inSchoolSuspensions.students.count).toBe(8)
+    expect(row.latest.categories.outOfSchoolSuspensions.students.count).toBe(9)
+    expect(row.latest.categories.allDiscipline.students.count).not.toBe(17)
+  })
+
+  it('does not present stale entity data as the current year', () => {
+    const result = summarizeDisciplineRows([
+      disciplineEnrollment({ id: '001902', year: '2023-24' }),
+      disciplineRow({ id: '001902', year: '2023-24' }),
+      disciplineEnrollment({ id: '999999', year: '2024-25' }),
+      disciplineRow({ id: '999999', year: '2024-25' }),
+    ])
+    expect(result.latestYear).toBe('2024-25')
+    expect(result.rows.find((row) => row.id === '001902').latest).toBeNull()
+    expect(result.rows.find((row) => row.id === '001902').history).toHaveLength(1)
+  })
+
+  it('selects only Section B rows plus the exact Section A denominator', () => {
+    expect(isDisciplineSummaryRow(disciplineRow())).toBe(true)
+    expect(isDisciplineSummaryRow(disciplineEnrollment())).toBe(true)
+    expect(isDisciplineSummaryRow(disciplineRow({ measure: 'incidents' }))).toBe(false)
+    expect(isDisciplineSummaryRow(disciplineRow({ heading: 'A FUTURE HEADING' }))).toBe(false)
+    expect(isDisciplineSummaryRow(disciplineEnrollment({ heading: 'FALL ENROLLMENT' }))).toBe(false)
   })
 })

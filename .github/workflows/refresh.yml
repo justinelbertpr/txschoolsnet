@@ -1,14 +1,16 @@
 # Refreshes the site from TEA data (or rebuilds from the committed snapshot)
-# and deploys it. Two triggers, two jobs:
+# and deploys it. Two triggers, one shared job:
 #
 #   push to main       every merge rebuilds from whatever snapshot is already
-#                      committed under data/raw/ and deploys it — no fetch,
+#                      committed under data/ and deploys it — no fetch,
 #                      no new commit. This is what makes "merged to main" and
 #                      "live on txschools.net" the same event.
 #
 #   workflow_dispatch  the annual path, run by hand (optionally with fetch
-#                      turned on to pull fresh TEA and Census street snapshots
-#                      first). NOT on
+#                      turned on to pull fresh automatically refreshable TEA,
+#                      THECB and Census snapshots first). Action-status flags
+#                      are excluded because the final PEG PDF requires reviewed
+#                      text extraction; see README.md. NOT on
 #                      a schedule — see the design doc: GitHub disables
 #                      scheduled workflows in public repos after 60 days
 #                      without repository activity, and this only runs about
@@ -29,7 +31,7 @@ on:
   workflow_dispatch:
     inputs:
       fetch:
-        description: 'Fetch fresh TEA and Census street snapshots (off = rebuild committed data)'
+        description: 'Fetch fresh automated TEA, THECB and Census snapshots (action flags remain reviewed/manual)'
         type: boolean
         default: false
 
@@ -49,9 +51,9 @@ jobs:
 
       - run: npm ci
 
-      - name: Fetch TEA and Census address snapshots
+      - name: Fetch automated accountability and supplemental snapshots
         if: inputs.fetch
-        run: npm run fetch && npm run fetch:addresses
+        run: npm run fetch && npm run fetch:automated && npm run fetch:addresses
 
       - name: Build, export, prerender
         run: npm run site
@@ -67,8 +69,13 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/raw/ data/addresses/
-          git diff --staged --quiet || git commit -m "Add TEA snapshot $(cat build/snapshot.txt)"
+          # action-flags stays in the explicit archive list for completeness,
+          # but the automated step above is not expected to modify it.
+          git add \
+            data/raw/ data/enrollment/ data/transfers/ data/educators/ \
+            data/discipline/ data/community/ data/postsecondary/ \
+            data/action-flags/ data/addresses/
+          git diff --staged --quiet || git commit -m "Add public-data snapshot $(cat build/snapshot.txt)"
           git push
 
       # site/style.css and site/app.js are hand-authored and heavily commented —

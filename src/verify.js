@@ -1,36 +1,36 @@
-// Snapshot integrity: does what is committed under data/raw/ still hash to
-// what the manifest says it hashed to when it was fetched?
+// Snapshot integrity for every committed data archive.
 //
-// WHY THIS EXISTS. The provenance claim this project makes is specific: every
-// published number traces back to the exact bytes TEA served on a given date.
-// Until now that claim rested on a sha256 written once, at fetch time, and
-// never checked again — so a truncated `git lfs` checkout, a corrupted object,
-// a well-meaning hand-edit of a .json.gz, or a merge that resurrected half of
-// an old snapshot would all produce a site that builds cleanly, tests green,
-// and publishes numbers nobody can trace. This closes that: the hashes are now
-// re-derived from the committed bytes and compared, and a mismatch fails the
-// build rather than shipping.
+// WHY THIS EXISTS. A sha256 written only at fetch time proves nothing later: a
+// truncated checkout, corrupt object, well-meaning hand edit, or partial merge
+// could otherwise build and publish cleanly. `npm run verify` re-derives every
+// archive's checks before the site is built and reports all findings together.
 //
-// WHAT IS ACTUALLY HASHED, precisely, because getting this wrong would make
-// the check meaningless. src/fetch.js does not store TEA's response bytes. It
-// decodes each response to JSON, validates it, re-serialises with
-// JSON.stringify, and stores gzip(that text) — and the manifest's sha256 is of
-// THAT text, not of TEA's original body. So verification has to gunzip the
-// stored file and hash the resulting string exactly as buildManifest does.
-// Hashing the .gz itself would compare gzip output, which is not guaranteed
-// byte-stable across zlib versions and would fail for the wrong reason.
+// STORAGE RULES ARE SOURCE-SPECIFIC. The original accountability fetch does
+// not retain HTTP response bytes: src/fetch.js validates each response,
+// JSON.stringify's it, stores gzip(that text), and hashes that decompressed
+// text. Its verifier below must mirror that exact convention; hashing gzip
+// output would be wrong because compression is not byte-stable. Supplemental
+// archives retain different combinations of broker bytes, XLSX/PDF inputs and
+// normalized rows, so their own source modules validate the matching manifest
+// semantics. verifyArchive enumerates snapshots but never substitutes one
+// generic hashing rule for those specialized checks.
 //
-// The three fields are checked together on purpose: sha256 catches any content
-// change, `bytes` catches a truncation that somehow collides, and `rows`
-// catches a structurally valid file that lost records — the partial-publication
-// failure mode src/decode.js's minRows floor exists to catch at fetch time, and
-// the one most likely to look like real data.
+// For accountability, sha256, decompressed byte count and parsed row count are
+// checked together. The row count catches a structurally valid file that lost
+// records—the partial-publication failure most likely to resemble real data.
 
 import { createHash } from 'node:crypto'
 import { gunzipSync } from 'node:zlib'
 import { readFile, readdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { SOURCES } from './sources.js'
+import { ENROLLMENT_ROOT, verifyEnrollmentSnapshot } from './enrollment.js'
+import { ACTION_ROOT, verifyActionSnapshot } from './action-flags.js'
+import { COMMUNITY_ROOT, verifyCommunitySnapshot } from './community.js'
+import { POSTSECONDARY_ROOT, verifyPostsecondarySnapshot } from './postsecondary.js'
+import { TRANSFER_ROOT, verifyTransferSnapshot } from './transfers.js'
+import { EDUCATOR_ROOT, verifyEducatorSnapshot } from './educators.js'
+import { DISCIPLINE_ROOT, verifyDisciplineSnapshot } from './discipline.js'
 
 export const RAW_DIR = 'data/raw'
 
@@ -145,24 +145,140 @@ export async function verifyAll(root = RAW_DIR) {
   return { results, problems: results.flatMap((r) => r.problems) }
 }
 
+/**
+ * Applies one archive's source-specific verifier to every committed snapshot.
+ *
+ * Supplemental products do not share a storage schema: some manifests hash
+ * raw broker response bytes, some hash XLSX/PDF inputs, and some also replay a
+ * deterministic normalization. Keeping that knowledge in each source module
+ * avoids a dangerous generic "hash the gzip" rule that would be wrong for
+ * several archives. This helper only owns complete-archive enumeration and
+ * combines all findings so one corrupt source cannot hide another.
+ */
+export async function verifyArchive(root, { label, refresh, verifySnapshot }) {
+  if (typeof verifySnapshot !== 'function') throw new TypeError('verifyArchive requires verifySnapshot')
+  const missing = `no ${label} snapshot found under ${root} — ${refresh}`
+  if (!existsSync(root)) return { results: [], problems: [missing] }
+
+  let dirs
+  try {
+    dirs = await snapshotDirs(root)
+  } catch (error) {
+    return { results: [], problems: [`${root}: ${error.message}`] }
+  }
+  if (dirs.length === 0) return { results: [], problems: [missing] }
+
+  const results = []
+  for (const dir of dirs) {
+    try {
+      results.push(await verifySnapshot(dir))
+    } catch (error) {
+      // A source verifier should normally return findings rather than throw,
+      // but a damaged directory must not abort checks of the remaining data.
+      results.push({ dir, checked: 0, problems: [`${dir}: verification failed (${error.message})`] })
+    }
+  }
+  return { results, problems: results.flatMap((result) => result.problems) }
+}
+
+/** The separate PEIMS enrollment archive follows the same manifest-last rule. */
+export async function verifyAllEnrollment(root = ENROLLMENT_ROOT) {
+  return verifyArchive(root, {
+    label: 'enrollment',
+    refresh: 'run `npm run fetch:enrollment`',
+    verifySnapshot: verifyEnrollmentSnapshot,
+  })
+}
+
+export async function verifyAllActionFlags(root = ACTION_ROOT) {
+  return verifyArchive(root, {
+    label: 'action-flags',
+    refresh: 'follow the reviewed action-flags refresh procedure in README.md',
+    verifySnapshot: verifyActionSnapshot,
+  })
+}
+
+export async function verifyAllCommunity(root = COMMUNITY_ROOT) {
+  return verifyArchive(root, {
+    label: 'community',
+    refresh: 'run `npm run fetch:community`',
+    verifySnapshot: verifyCommunitySnapshot,
+  })
+}
+
+export async function verifyAllPostsecondary(root = POSTSECONDARY_ROOT) {
+  return verifyArchive(root, {
+    label: 'postsecondary',
+    refresh: 'run `npm run fetch:postsecondary`',
+    verifySnapshot: verifyPostsecondarySnapshot,
+  })
+}
+
+export async function verifyAllTransfers(root = TRANSFER_ROOT) {
+  return verifyArchive(root, {
+    label: 'transfers',
+    refresh: 'run `npm run fetch:transfers`',
+    verifySnapshot: verifyTransferSnapshot,
+  })
+}
+
+export async function verifyAllEducators(root = EDUCATOR_ROOT) {
+  return verifyArchive(root, {
+    label: 'educators',
+    refresh: 'run `npm run fetch:educators`',
+    verifySnapshot: verifyEducatorSnapshot,
+  })
+}
+
+export async function verifyAllDiscipline(root = DISCIPLINE_ROOT) {
+  return verifyArchive(root, {
+    label: 'discipline',
+    refresh: 'run `npm run fetch:discipline`',
+    verifySnapshot: verifyDisciplineSnapshot,
+  })
+}
+
+/** All non-accountability data archives, verified sequentially to bound memory. */
+export async function verifyAllSupplemental() {
+  const archives = []
+  for (const verify of [
+    verifyAllEnrollment,
+    verifyAllActionFlags,
+    verifyAllCommunity,
+    verifyAllPostsecondary,
+    verifyAllTransfers,
+    verifyAllEducators,
+    verifyAllDiscipline,
+  ]) {
+    archives.push(await verify())
+  }
+  return {
+    results: archives.flatMap((archive) => archive.results),
+    problems: archives.flatMap((archive) => archive.problems),
+  }
+}
+
 /* ------------------------------------------------------------------- cli -- */
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const { results, problems } = await verifyAll()
+  const current = await verifyAll()
+  const supplemental = await verifyAllSupplemental()
+  const results = [...current.results, ...supplemental.results]
+  const problems = [...current.problems, ...supplemental.problems]
 
   for (const r of results) {
     const state = r.problems.length === 0 ? 'ok' : `${r.problems.length} PROBLEM(S)`
-    console.log(`  ${r.dir.padEnd(22)} ${String(r.checked).padStart(2)} files  fetched ${r.fetchedAt ?? '—'}  ${state}`)
+    console.log(`  ${r.dir.padEnd(42)} ${String(r.checked).padStart(3)} files  fetched ${r.fetchedAt ?? '—'}  ${state}`)
   }
 
   if (problems.length) {
     console.error(`\nSNAPSHOT VERIFICATION FAILED — ${problems.length} problem(s):\n`)
     for (const p of problems) console.error(`  ${p}`)
     console.error(
-      '\nThe committed snapshot no longer matches the hashes recorded when it was\n' +
-        'fetched, so the provenance chain is broken: numbers built from it can no\n' +
-        'longer be traced to the bytes TEA served. Restore the files from git\n' +
-        '(`git checkout -- data/raw`) or re-fetch (`npm run fetch`) before building.'
+      '\nAt least one committed archive no longer matches its recorded source bytes or\n' +
+        'normalization. Restore the named archive from git, or run its documented\n' +
+        'refresh command in README.md before building. Action flags require a\n' +
+        'reviewed PDF-extraction refresh and are intentionally not auto-fetched.'
     )
     process.exit(1)
   }
