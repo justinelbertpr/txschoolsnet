@@ -143,6 +143,7 @@
   --c-peer: #ea580c;
   --c-state: #0d9488;
   --c-tea: #a21caf;
+  --c-selected: #b45309;
 
   /* Categorical fills for composition figures (demographics, teacher
      experience). Deliberately a different visual family from the series
@@ -867,6 +868,65 @@ td .grade-letter { font-size: 1.05rem; }
   text-wrap: pretty;
 }
 
+/* The page-wide comparison rendered inside supplemental public-data sections.
+   These are reference values, not verdicts: a brass rule identifies the
+   selected-comparison family while every delta keeps its direction in text. */
+.comparison-readout-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: .65rem;
+  margin-top: 1rem;
+}
+.comparison-readout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: .2rem .75rem;
+  margin: 1rem 0 0;
+  padding: .8rem .9rem;
+  color: var(--ink-2);
+  background: var(--ground);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent-brass);
+  border-radius: .55rem;
+  font-size: var(--t-small);
+}
+.comparison-readout-grid .comparison-readout { margin: 0; }
+.comparison-readout-label {
+  color: var(--ink-3);
+  font-size: var(--t-label);
+  font-weight: 700;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+.comparison-readout > strong {
+  color: var(--ink);
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+.comparison-readout > span:not(.comparison-readout-label) { grid-column: 1 / -1; }
+.comparison-readout .cmp { grid-column: 1 / -1; margin-top: .15rem; }
+.comparison-cell { background: color-mix(in srgb, var(--accent-brass) 5%, transparent); }
+
+.comparison-composition-groups { margin-top: .8rem; }
+.comparison-composition {
+  padding: .85rem .9rem;
+  background: var(--ground);
+  border: 1px solid var(--line);
+  border-radius: .6rem;
+}
+.comparison-composition-title {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .25rem .8rem;
+  margin: 1rem 0 .45rem;
+  color: var(--ink-2);
+  font-size: var(--t-small);
+}
+.comparison-composition .comparison-composition-title { margin-top: 0; }
+.comparison-composition-title span { color: var(--ink-3); }
+
 /* ==========================================================================
    STATS
    ========================================================================== */
@@ -973,6 +1033,7 @@ td .grade-letter { font-size: 1.05rem; }
 .line-entity { stroke: var(--c-entity); stroke-width: 2.75; }  /* always the heaviest */
 .line-peer   { stroke: var(--c-peer); }
 .line-state  { stroke: var(--c-state); stroke-dasharray: 4 4; }
+.line-selected { stroke: var(--c-selected); stroke-width: 2.25; stroke-dasharray: 2 3; }
 /* Pinned districts. app.js documents this rule as the stylesheet's job: with
    no .line-pin here the stroke computes to none, and app.js falls back to
    painting every pin the same neutral ink — five pins, one colour, and no
@@ -1020,6 +1081,7 @@ td .grade-letter { font-size: 1.05rem; }
 .dot-peer { fill: var(--c-peer); }
 .dot-state { fill: var(--c-state); }
 .dot-tea { fill: var(--c-tea); }
+.dot-selected { fill: var(--c-selected); }
 .dot-region { fill: var(--s3); }
 .dot-county { fill: var(--s4); }
 .dot-size   { fill: var(--s5); }
@@ -1089,7 +1151,7 @@ td .grade-letter { font-size: 1.05rem; }
   background: var(--ink-3); flex: none;
 }
 /* Series swatches: a rule, not a square. */
-.swatch-entity, .swatch-peer, .swatch-state, .swatch-tea,
+.swatch-entity, .swatch-peer, .swatch-state, .swatch-tea, .swatch-selected,
 .swatch-region, .swatch-county, .swatch-size, .swatch-pin, .swatch-spend-pin {
   width: 1.35rem; height: .1875rem; border-radius: 0;
   background-repeat: repeat-x;
@@ -1099,6 +1161,10 @@ td .grade-letter { font-size: 1.05rem; }
 .swatch-state  {
   background: transparent;
   background-image: repeating-linear-gradient(90deg, var(--c-state) 0 .3rem, transparent .3rem .5rem);
+}
+.swatch-selected {
+  background: transparent;
+  background-image: repeating-linear-gradient(90deg, var(--c-selected) 0 .15rem, transparent .15rem .35rem);
 }
 /* A pinned district on the spending chart, written by site/app.js. Its colour
    is an inline --pin-hue rather than a token, because there is a pin per hue
@@ -1201,6 +1267,14 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 .data tbody th { font-weight: 550; }
 .data tbody th a { text-decoration-thickness: 1px; }
 .data .num { text-align: right; font-variant-numeric: tabular-nums; }
+.data .trajectory-reporting {
+  display: block;
+  margin-top: .1rem;
+  color: var(--ink-3);
+  font-size: var(--t-micro);
+  font-weight: 450;
+  white-space: nowrap;
+}
 /* A 237-row list is easier to track across with a stripe. Kept far lighter
    than --hover so the two never read as the same state. */
 .data tbody tr:nth-child(even) { background: var(--stripe); }

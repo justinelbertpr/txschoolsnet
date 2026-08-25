@@ -122,9 +122,9 @@ describe('RANKABLE', () => {
     expect(RANKABLE_BY_SLUG.size).toBe(RANKABLE.length)
   })
 
-  it('ranks no context metric — demographics are compared, never placed', () => {
+  it('ranks no context metric — demographics and staffing are compared, never placed', () => {
     for (const m of RANKABLE) expect(isContextMetric(m.specKey), `${m.key} is a demographic share`).toBe(false)
-    for (const key of ['ecoDis', 'engLrn', 'specEd']) {
+    for (const key of ['ecoDis', 'engLrn', 'specEd', 'avgSalary']) {
       expect(isRankable(key)).toBe(false)
       expect(() => resolveMetric(key)).toThrow(/not rankable|unknown metric/)
     }
@@ -149,7 +149,7 @@ describe('RANKABLE', () => {
   })
 
   it('marks the single-year measures as not change-capable, so growth cannot be faked', () => {
-    for (const key of ['grad:0', 'grad:3', 'ccmr:0', 'attendance', 'absenteeism', 'avgSalary', 'staar:Reading:1']) {
+    for (const key of ['grad:0', 'grad:3', 'ccmr:0', 'attendance', 'absenteeism', 'staar:Reading:1']) {
       expect(RANKABLE_BY_KEY.get(key)?.change, `${key} must not claim history`).toBeFalsy()
     }
   })
@@ -631,7 +631,7 @@ describe('changeMetrics', () => {
 
   it('refuses to compute change for a metric with one year of data', () => {
     const { entities, bundles } = historyFixture()
-    for (const key of ['attendance', 'ccmr:0', 'grad:0', 'staar:Reading:1', 'avgSalary']) {
+    for (const key of ['attendance', 'ccmr:0', 'grad:0', 'staar:Reading:1']) {
       expect(() => changeMetrics({ entities, bundles, metric: key })).toThrow(/change over time cannot be computed/)
     }
   })

@@ -23,6 +23,7 @@ import {
   OG_IMAGE,
   THEME_INIT_SCRIPT,
   TRUSTED_TYPES_INIT_SCRIPT,
+  cmp,
   shell,
   table,
 } from '../../src/render/shell.js'
@@ -76,6 +77,20 @@ const vm = (over = {}) => ({
 })
 
 const PAYLOAD = '/data/payload-deadbeef.json'
+
+describe('comparison hooks', () => {
+  it('keeps a hidden delta hook when only a non-default cohort reports the metric', () => {
+    const html = cmp({
+      own: { attendance: 94 },
+      cohorts: [
+        { key: 'peer', short: 'similar', metrics: {} },
+        { key: 'state', short: 'state', metrics: { attendance: 92 } },
+      ],
+    }, 'attendance', { fmt: 'pct' })
+    expect(html).toContain('data-metric="attendance"')
+    expect(html).toContain('hidden style="display:none"')
+  })
+})
 
 /* ------------------------------------------------------------ sectionIndex -- */
 

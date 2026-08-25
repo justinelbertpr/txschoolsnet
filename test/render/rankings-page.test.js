@@ -911,15 +911,18 @@ describe('the catalogue and the file budget', () => {
 
   it('generates metric x scope, one end each — the flattering one — and nothing else', () => {
     const cat = rankingCatalogue({ metrics, scopes })
-    // 9 district metrics statewide x1 end = 9; 7 campus metrics x1 = 7;
+    // 8 rankable district metrics statewide x1 end = 8; 7 campus metrics x1 = 7;
     // 2 headline metrics x 20 regions x1 = 40. Half of what publishing both
-    // ends would have cost (112), give or take: it is exact here because
-    // every one of these 9 metrics has a real 'top' or 'bottom' page — see
+    // ends would have cost (110), give or take: it is exact here because
+    // every one of these 8 metrics has a real 'top' or 'bottom' page — see
     // the "only the flattering end" tests above for the lower-is-better case.
-    expect(cat.filter((e) => e.scope === TEXAS).length).toBe(9)
+    // Salary is useful comparison context, but higher pay is not inherently a
+    // better student outcome, so it is deliberately excluded from rankings.
+    expect(cat.filter((e) => e.scope === TEXAS).length).toBe(8)
+    expect(cat.some((e) => e.metric.key === 'avgSalary')).toBe(false)
     expect(cat.filter((e) => e.scope === CAMPUSES).length).toBe(7)
     expect(cat.filter((e) => e.scope.kind === 'region').length).toBe(40)
-    expect(cat.length).toBe(56)
+    expect(cat.length).toBe(55)
   })
 
   it('gives every page a unique path and a title', () => {
@@ -980,12 +983,12 @@ describe('the catalogue and the file budget', () => {
     // now — each metric contributes exactly one — so there is never a real
     // inverse in a catalogue rankingCatalogue() produced.
     expect(rel.inverse).toBeNull()
-    // 8 other metrics at the Texas-districts scope, regardless of THEIR own
+    // 7 other metrics at the Texas-districts scope, regardless of THEIR own
     // end: chronic absenteeism's only entry is 'bottom' while score's is
     // 'top', and it still belongs in "other rankings of Texas school
     // districts" — see relatedFor's own comment on why `end` is not part of
     // this filter.
-    expect(rel.metrics.length).toBe(8)
+    expect(rel.metrics.length).toBe(7)
     expect(rel.scopes.length).toBe(21)
     for (const l of [...rel.metrics, ...rel.scopes]) expect(paths.has(l.href)).toBe(true)
   })

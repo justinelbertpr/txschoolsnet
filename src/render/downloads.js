@@ -100,7 +100,8 @@ export function datasetCsv(rows, { columns, snapshotDate = null, dataset = null,
 export const ENTITY_COLUMNS = [
   'entity_id', 'level', 'name', 'section', 'metric', 'label', 'year', 'value', 'unit',
   'status', 'mask',
-  'cohort', 'cohort_label', 'cohort_n', 'cohort_value', 'rank', 'rank_of', 'rank_tied',
+  'cohort', 'cohort_label', 'cohort_n', 'cohort_reporting_n', 'cohort_value',
+  'rank', 'rank_of', 'rank_tied',
 ]
 
 const UNIT = { points: 'points', pct: 'percent', usd: 'usd', ratio: 'ratio' }
@@ -115,7 +116,199 @@ const SECTION_OF = (key) =>
   : key === 'spend' ? 'spending'
   : 'students'
 
+/**
+ * Human-readable metadata for the supplemental comparison keys merged into
+ * `vm.own` and each cohort. These metrics are not part of metricSpecs because
+ * they come from separately dated public datasets, but a downloaded comparison
+ * still needs an intelligible section, label, year and unit.
+ */
+const publicComparisonDescriptor = (key, vm) => {
+  let match
+  if ((match = key.match(/^public:spending:(.+)$/))) {
+    return { section: 'spending', label: 'Spending per student', year: match[1], unit: 'usd_per_student' }
+  }
+  if ((match = key.match(/^public:enrollment:(.+)$/))) {
+    return { section: 'enrollment_history', label: 'Students enrolled', year: match[1], unit: 'students' }
+  }
+  if ((match = key.match(/^public:transfers:(in|out|balance):(.+)$/))) {
+    const [, direction, year] = match
+    return {
+      section: 'transfers',
+      label: direction === 'in' ? 'Official transfers in' : direction === 'out' ? 'Official transfers out' : 'Transfers in minus transfers out',
+      year,
+      unit: direction === 'balance' ? 'students_net' : 'students',
+    }
+  }
+  if ((match = key.match(/^public:educators:turnover:(.+)$/))) {
+    return { section: 'teacher_turnover', label: 'Teacher turnover rate', year: match[1], unit: 'percent' }
+  }
+  if ((match = key.match(/^public:educators:class-size:([^:]+):(.+)$/))) {
+    const [, year, category] = match
+    const categoryLabel = vm.classSize?.categories?.find((item) => item.key === category)?.label ?? category
+    return { section: 'class_size', label: `${categoryLabel} — average class size`, year, unit: 'students_per_class' }
+  }
+  if ((match = key.match(/^public:discipline:(students|actions)-rate:(.+)$/))) {
+    const [, measure, year] = match
+    return {
+      section: 'discipline',
+      label: measure === 'students'
+        ? 'All discipline — students as a share of cumulative enrollment'
+        : 'All discipline — actions per 100 cumulative students',
+      year,
+      unit: measure === 'students'
+        ? 'percent_of_cumulative_enrollment'
+        : 'disciplinary_actions_per_100_cumulative_enrollment',
+    }
+  }
+  if ((match = key.match(/^public:discipline:category:([^:]+):([^:]+):(students|actions)-rate$/))) {
+    const [, year, category, measure] = match
+    const categoryLabel = vm.discipline?.current?.categories?.find((item) => item.key === category)?.label ?? category
+    return {
+      section: 'discipline',
+      label: measure === 'students'
+        ? `${categoryLabel} — students as a share of cumulative enrollment`
+        : `${categoryLabel} — actions per 100 cumulative students`,
+      year,
+      unit: measure === 'students'
+        ? 'percent_of_cumulative_enrollment'
+        : 'disciplinary_actions_per_100_cumulative_enrollment',
+    }
+  }
+
+  const staticDescriptors = {
+    'public:community:population': ['community', 'People living inside the district boundary', vm.communityContext?.year, 'people'],
+    'public:community:school-age': ['community', 'Resident children ages 5–17', vm.communityContext?.year, 'children'],
+    'public:community:school-age-poverty': ['community', 'Resident children ages 5–17 in families in poverty', vm.communityContext?.year, 'children'],
+    'public:community:school-age-poverty-rate': ['community', 'School-age child poverty rate', vm.communityContext?.year, 'percent'],
+    'public:postsecondary:graduates': ['postsecondary', 'High-school graduates in THECB report', vm.postsecondaryOutcome?.graduateYear, 'graduates'],
+    'public:postsecondary:enrolled': ['postsecondary', 'Enrolled in Texas public higher education the following fall', vm.postsecondaryOutcome?.graduateYear, 'graduates'],
+    'public:postsecondary:rate': ['postsecondary', 'Share enrolled in Texas public higher education the following fall', vm.postsecondaryOutcome?.graduateYear, 'percent'],
+    'public:postsecondary:not-found-rate': ['postsecondary', 'Share not found in Texas public higher-education records', vm.postsecondaryOutcome?.graduateYear, 'percent'],
+    'public:postsecondary:not-trackable-rate': ['postsecondary', 'Share not trackable by THECB', vm.postsecondaryOutcome?.graduateYear, 'percent'],
+    'public:notices:improvement': ['official_notices', 'Campus identified for federal improvement support', '2026', 'percent'],
+    'public:notices:peg': ['official_notices', 'Campus on the Public Education Grant transfer list', '2026-27', 'percent'],
+    'public:campuses:count': ['campuses', 'Schools in the district', null, 'schools'],
+    'public:notices:improvement-count': ['official_notices', 'Campuses identified for federal improvement support', '2026', 'campuses'],
+    'public:notices:peg-count': ['official_notices', 'Campuses on the Public Education Grant transfer list', '2026-27', 'campuses'],
+    'public:notices:improvement-share': ['official_notices', 'Share of campuses identified for federal improvement support', '2026', 'percent'],
+    'public:notices:peg-share': ['official_notices', 'Share of campuses on the Public Education Grant transfer list', '2026-27', 'percent'],
+  }
+  const descriptor = staticDescriptors[key]
+  return descriptor
+    ? { section: descriptor[0], label: descriptor[1], year: descriptor[2] ?? null, unit: descriptor[3] }
+    : { section: 'public_comparisons', label: key, year: null, unit: 'number' }
+}
+
 const entityPath = (vm) => `${SITE_ORIGIN}/${vm.level}/${vm.slug ?? vm.id}`
+
+const hasOfficialNoticeData = (vm) =>
+  Boolean(
+    vm.actionNotices?.length ||
+    vm.publicDataMeta?.actionFlags ||
+    Object.keys(vm.own ?? {}).some((key) => key.startsWith('public:notices:'))
+  )
+
+/** Every trajectory cohort carried by the view model, with a legacy fallback. */
+const historyComparisons = (vm) => {
+  const declared = (vm.comparisons ?? []).filter((comparison) => comparison?.key && comparison?.byYear)
+  if (declared.length) return declared
+  return [
+    vm.peerByYear
+      ? {
+          key: 'peer', label: 'Similar economic-disadvantage rate',
+          n: vm.peerN ?? vm.cohorts?.find((cohort) => cohort.key === 'peer')?.n ?? null,
+          byYear: vm.peerByYear,
+        }
+      : null,
+    vm.stateByYear
+      ? {
+          key: 'state', label: 'Texas average',
+          n: vm.cohorts?.find((cohort) => cohort.key === 'state')?.n ?? null,
+          byYear: vm.stateByYear,
+        }
+      : null,
+  ].filter(Boolean)
+}
+
+/**
+ * Interpretation limits that must travel with the supplemental figures.
+ *
+ * The rendered page already explains these beside each section. A downloaded
+ * record has no surrounding page, though, and a source URL alone cannot tell a
+ * reporter that a PEG listing is only permission to request a transfer, or that
+ * THECB's "not found" bucket is not a no-college outcome. Keep the notes typed
+ * by dataset for JSON; entityCsv flattens the same object into comment lines.
+ */
+const entityDataNotes = (vm) => {
+  const notes = {}
+
+  if ((vm.enrollmentReported ?? vm.enrollmentHistory ?? []).length) {
+    notes.enrollmentHistory = [
+      'Counts are TEA fall PEIMS snapshots; adjacent-year changes use only published counts.',
+      'Enrollment growth or decline is not a measure of school quality and does not identify why enrollment changed.',
+    ]
+  }
+
+  if (hasOfficialNoticeData(vm)) {
+    notes.officialNotices = [
+      'These are dated campus statuses kept separate from the district or campus rating; absence from these two lists does not mean absence from every intervention or support program.',
+      'A Public Education Grant listing allows an assigned student to request a transfer; it does not guarantee acceptance, available space, or transportation.',
+    ]
+  }
+
+  if (vm.communityContext) {
+    notes.community = [
+      'SAIPE modeled estimates describe residents inside the geographic district boundary, not students enrolled by the district.',
+      "A family's poverty status is community context, not a measure of school quality.",
+    ]
+  }
+
+  if (vm.postsecondaryOutcome) {
+    notes.postsecondary = [
+      'The report observes enrollment in Texas public higher education in the fall immediately after graduation and includes only districts or campuses with more than 25 graduates; it is not an eventual college-going or completion rate.',
+      '“Not found” can include private or out-of-state college, work, military service, later enrollment, or another path outside the Texas public higher-education records.',
+      '“Not trackable” means a graduate had a non-standard identifier that THECB could not match; it is not an outcome.',
+    ]
+  }
+
+  if (vm.transferContext) {
+    const published = Object.values(vm.transferContext.caveats ?? {}).filter(
+      (note) => typeof note === 'string' && note.trim()
+    )
+    notes.transfers = [
+      ...published,
+      'Transfers in minus transfers out and changes over time are arithmetic context derived by txschools.net, not TEA source totals and not measures of school quality.',
+    ]
+  }
+
+  if (vm.teacherTurnover || vm.classSize) {
+    notes.educators = [
+      ...(vm.teacherTurnover
+        ? ['Teacher turnover is a district rate: the share of prior-fall teacher full-time equivalents not employed as district teachers in the current fall. It can include leaving the district or moving to a different role; it is not a campus-level measure.']
+        : []),
+      ...(vm.classSize
+        ? ["Class-size figures are separate TEA averages for the named grade or subject, not student-to-teacher ratios; categories are not combined into an invented campus-wide average."]
+        : []),
+    ]
+  }
+
+  if (vm.discipline) {
+    const published = Object.values(vm.discipline.caveats ?? {}).filter(
+      (note) => typeof note === 'string' && note.trim()
+    )
+    notes.discipline = [
+      'Students, disciplinary actions, and incidents are different units. One student can receive multiple actions; overlapping categories must not be added together.',
+      "Rates use TEA's matching cumulative year-end enrollment, not the October enrollment reported elsewhere.",
+      'Suppressed values remain null rather than being estimated. Use 2020–21 cautiously because remote instruction changed students’ exposure to in-person discipline.',
+      ...published,
+    ]
+  }
+
+  return notes
+}
+
+const dataNoteLines = (notes) =>
+  Object.entries(notes).flatMap(([dataset, items]) => items.map((note) => `caveat (${dataset}): ${note}`))
 
 // (section, metric, year, cohort) is the key a reader pivots on, so it has to be
 // unique. Two things used to break that: the page's headline ranks and the
@@ -210,21 +403,22 @@ export function entityRows(vm) {
     push({ section: 'rating', metric: 'rating_original_methodology', label: 'Rating under the pre-2023 methodology', year: '2021-22', value: vm.originalRating, unit: 'grade' })
   }
 
-  /* history — one row per year per comparison line drawn on the page */
+  /* history — one row per year per comparison line available on the page */
+  const trajectoryComparisons = historyComparisons(vm)
   for (const h of vm.history ?? []) {
     push({ section: 'rating_history', metric: 'rating', label: 'Overall rating', year: h.year, value: h.rating, unit: 'grade' })
-    const lines = [
-      vm.peerByYear ? ['peer', 'Similar economic-disadvantage rate', vm.peerN ?? cohortN('peer'), vm.peerByYear[h.year] ?? null] : null,
-      vm.stateByYear ? ['state', 'Texas average', cohortN('state'), vm.stateByYear[h.year] ?? null] : null,
-    ].filter(Boolean)
-    if (!lines.length) {
+    if (!trajectoryComparisons.length) {
       push({ section: 'rating_history', metric: 'score', label: 'Overall score', year: h.year, value: h.score, unit: 'points' })
       continue
     }
-    for (const [key, label, n, value] of lines) {
+    for (const comparison of trajectoryComparisons) {
       push({
         section: 'rating_history', metric: 'score', label: 'Overall score', year: h.year, value: h.score, unit: 'points',
-        cohort: key, cohort_label: label, cohort_n: n, cohort_value: value,
+        cohort: comparison.key,
+        cohort_label: comparison.label,
+        cohort_n: comparison.n ?? cohortN(comparison.key),
+        cohort_reporting_n: comparison.reportingNByYear?.[h.year] ?? null,
+        cohort_value: comparison.byYear?.[h.year] ?? null,
       })
     }
   }
@@ -247,8 +441,48 @@ export function entityRows(vm) {
       const h = s.key === 'score' && !r ? headlineRank.get(c.key) : null
       push({
         ...row,
-        cohort: c.key, cohort_label: c.label, cohort_n: c.n, cohort_value: c.metrics[s.key] ?? null,
+        cohort: c.key,
+        cohort_label: c.label,
+        cohort_n: c.n,
+        cohort_reporting_n: c.metricN?.[s.key] ?? null,
+        cohort_value: c.metrics[s.key] ?? null,
         rank: r?.rank ?? h?.rank ?? null, rank_of: r?.of ?? h?.of ?? null, rank_tied: r?.tied ?? null,
+      })
+    }
+  }
+
+  /* Supplemental comparisons use stable `public:*` keys rather than
+     metricSpecs. Export them in the same long comparison shape without folding
+     their reporting denominator into cohort membership: cohort_n says how many
+     rated entities belong to the group, while cohort_reporting_n says how many
+     actually supplied this particular source figure. */
+  const publicKeys = [...new Set([
+    ...Object.keys(vm.own ?? {}),
+    ...(vm.cohorts ?? []).flatMap((cohort) => Object.keys(cohort.metrics ?? {})),
+  ])].filter((key) => key.startsWith('public:'))
+  for (const key of publicKeys) {
+    const descriptor = publicComparisonDescriptor(key, vm)
+    const cohorts = (vm.cohorts ?? []).filter((cohort) => cohort.metrics?.[key] != null)
+    const row = {
+      section: descriptor.section,
+      metric: key,
+      label: descriptor.label,
+      year: descriptor.year,
+      value: vm.own?.[key] ?? null,
+      unit: descriptor.unit,
+    }
+    if (!cohorts.length) {
+      push(row)
+      continue
+    }
+    for (const cohort of cohorts) {
+      push({
+        ...row,
+        cohort: cohort.key,
+        cohort_label: cohort.label,
+        cohort_n: cohort.n,
+        cohort_reporting_n: cohort.metricN?.[key] ?? null,
+        cohort_value: cohort.metrics[key],
       })
     }
   }
@@ -530,6 +764,7 @@ export function entityRows(vm) {
 /** One entity's full record as CSV, provenance header included. */
 export function entityCsv(vm) {
   const rows = entityRows(vm)
+  const dataNotes = entityDataNotes(vm)
   const actionMeta = vm.publicDataMeta?.actionFlags
   const communityMeta = vm.publicDataMeta?.community
   const postsecondaryMeta = vm.publicDataMeta?.postsecondary
@@ -546,7 +781,7 @@ export function entityCsv(vm) {
     rows: rows.length,
     notes: [
       `additional source: enrollment history comes from ${vm.enrollmentSourceUrl ?? ENROLLMENT_SOURCE}${vm.enrollmentSnapshotDate ? `, fetched ${vm.enrollmentSnapshotDate}` : ''}.`,
-      vm.actionNotices?.length
+      hasOfficialNoticeData(vm)
         ? `additional source: official improvement and Public Education Grant notices come from dated TEA lists at ${actionMeta?.sources?.landing ?? actionMeta?.sources?.improvement ?? 'https://tea.texas.gov'}${fetched(actionMeta?.fetchedAt)}.`
         : null,
       vm.communityContext
@@ -564,8 +799,11 @@ export function entityCsv(vm) {
       vm.discipline
         ? `additional source: discipline counts come from TEA Discipline Reports at ${disciplineMeta?.source ?? DISCIPLINE_SOURCE}${fetched(disciplineMeta?.fetchedAt)}. Students and actions have different units, categories overlap, masks and statuses are preserved, and rates use cumulative year-end enrollment.`
         : null,
+      ...dataNoteLines(dataNotes),
+      'comparison scope: this static file contains every available peer, similar-size, region, county, and state cohort for the entity. It does not inherit a transient comparison selection or pinned entity from the web page; use cohort and cohort_label to select a comparison.',
       'key: (section, metric, year, cohort). That tuple appears at most once in this file, so the table pivots without collapsing two different values into one cell.',
-      "reconciled: where this site's comparison engine and the page's headline rank both described a cohort, the comparison engine's row is the one kept — it also carries cohort_n and cohort_value. The headline rank is folded into that row, and rank_of is the number of entities actually ranked, which can be smaller than cohort_n because entities without a score cannot be ranked.",
+      'denominators: cohort_n is the rated membership of the selected group; cohort_reporting_n is the subset reporting that row\'s metric and is the denominator behind cohort_value. rank_of is the number actually ranked and can differ from both.',
+      "reconciled: where this site's comparison engine and the page's headline rank both described a cohort, the comparison engine's row is the one kept. The headline rank is folded into that row.",
     ].filter(Boolean),
   })
   return head + [csvRow(ENTITY_COLUMNS), ...rows.map((r) => csvRow(ENTITY_COLUMNS.map((c) => r[c])))].join('\n') + '\n'
@@ -577,6 +815,7 @@ export function entityCsv(vm) {
 export function entityJson(vm, { space = 2 } = {}) {
   const latest = vm.history?.[0] ?? null
   const kind = vm.level === 'district' ? 'district' : 'campus'
+  const dataNotes = entityDataNotes(vm)
 
   const doc = {
     _meta: {
@@ -588,7 +827,7 @@ export function entityJson(vm, { space = 2 } = {}) {
       sources: [
         { name: 'TEA accountability and profile data', url: `${OFFICIAL_SOURCE}/?view=${kind}&id=${vm.id}&lng=en`, fetched: vm.snapshotDate ?? null },
         { name: 'TEA PEIMS Student Program and Special Populations Reports', url: vm.enrollmentSourceUrl ?? ENROLLMENT_SOURCE, fetched: vm.enrollmentSnapshotDate ?? null },
-        vm.actionNotices?.length ? { name: 'TEA Schools Identified for Improvement and Public Education Grant lists', url: vm.publicDataMeta?.actionFlags?.sources?.landing ?? vm.publicDataMeta?.actionFlags?.sources?.improvement ?? null, fetched: vm.publicDataMeta?.actionFlags?.fetchedAt ?? null } : null,
+        hasOfficialNoticeData(vm) ? { name: 'TEA Schools Identified for Improvement and Public Education Grant lists', url: vm.publicDataMeta?.actionFlags?.sources?.landing ?? vm.publicDataMeta?.actionFlags?.sources?.improvement ?? null, fetched: vm.publicDataMeta?.actionFlags?.fetchedAt ?? null } : null,
         vm.communityContext ? { name: 'U.S. Census Bureau Small Area Income and Poverty Estimates', url: vm.publicDataMeta?.community?.landing ?? null, fetched: vm.publicDataMeta?.community?.fetchedAt ?? null } : null,
         vm.postsecondaryOutcome ? { name: 'Texas Higher Education Coordinating Board following-fall enrollment report', url: vm.publicDataMeta?.postsecondary?.landing ?? null, fetched: vm.publicDataMeta?.postsecondary?.fetchedAt ?? null } : null,
         vm.transferContext ? { name: 'TEA Student Transfer Reports', url: vm.publicDataMeta?.transfers?.source ?? TRANSFER_SOURCE, fetched: vm.publicDataMeta?.transfers?.fetchedAt ?? null } : null,
@@ -603,6 +842,8 @@ export function entityJson(vm, { space = 2 } = {}) {
       page: entityPath(vm),
       nullNote: 'null means the source did not publish, suppressed, or did not report that figure. It does not mean zero; use status and mask where present.',
       numberNote: 'Numbers are unformatted: percentages are plain numbers, money is plain dollars.',
+      comparisonNote: 'This static file contains every available peer, similar-size, region, county, and state cohort for the entity. It does not inherit a transient comparison selection or pinned entity from the web page; select a cohort by its key or label. Cohort n is rated membership; current cohort averages use metricN for their reporting denominator, while history[].comparisons[] uses reportingN for each year.',
+      dataNotes,
       postsecondaryNote: vm.postsecondaryOutcome
         ? '“Not found” can include private or out-of-state college and later enrollment. “Not trackable” means a graduate had a non-standard identifier that could not be matched; neither label by itself means no college.'
         : null,
@@ -645,8 +886,17 @@ export function entityJson(vm, { space = 2 } = {}) {
       year: h.year,
       rating: h.rating ?? null,
       score: h.score ?? null,
+      // Retained for backwards compatibility with files published before the
+      // page-wide comparison picker existed.
       peerAverage: vm.peerByYear?.[h.year] ?? null,
       stateAverage: vm.stateByYear?.[h.year] ?? null,
+      comparisons: historyComparisons(vm).map((comparison) => ({
+        key: comparison.key,
+        label: comparison.label,
+        cohortN: comparison.n ?? null,
+        reportingN: comparison.reportingNByYear?.[h.year] ?? null,
+        average: comparison.byYear?.[h.year] ?? null,
+      })),
     })),
 
     enrollmentHistory: (vm.enrollmentReported ?? vm.enrollmentHistory ?? []).map((point) => ({
@@ -685,8 +935,8 @@ export function entityJson(vm, { space = 2 } = {}) {
         }
       : null,
 
-    graduation: vm.graduation ? vm.graduation.map((g) => ({ label: g.label, value: g.value ?? null, unit: 'percent' })) : null,
-    ccmr: vm.ccmr ? vm.ccmr.map((c) => ({ label: c.label, value: c.value ?? null })) : null,
+    graduation: vm.graduation ? vm.graduation.map((g) => ({ key: g.key ?? null, label: g.label, value: g.value ?? null, unit: 'percent' })) : null,
+    ccmr: vm.ccmr ? vm.ccmr.map((c) => ({ key: c.key ?? null, label: c.label, value: c.value ?? null })) : null,
 
     students: vm.profile
       ? {
@@ -727,6 +977,7 @@ export function entityJson(vm, { space = 2 } = {}) {
       n: c.n,
       note: c.note ?? null,
       averages: c.metrics ?? {},
+      metricN: c.metricN ?? {},
     })),
     metrics: vm.own ?? {},
     ranks: (vm.ranks ?? []).map((r) => ({

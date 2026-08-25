@@ -93,9 +93,10 @@ describe('metricSpecs', () => {
     expect(spec(specs, 'staar:Reading:0').get({})).toBeNull()
   })
 
-  it('declares no spec that would resolve to undefined for every entity', () => {
-    // Students-per-staff is deliberately absent: toProfile does not carry it.
-    expect(keys(metricSpecs())).not.toContain('stuPerStaff')
+  it('declares the normalized students-per-staff context metric', () => {
+    // toProfile now carries this ratio, so it can follow the page-wide
+    // comparison as neutral context without becoming a ranked result.
+    expect(keys(metricSpecs())).toContain('stuPerStaff')
   })
 
   it('carries a delta format on every spec so a dollar never reads as a point', () => {
@@ -138,13 +139,13 @@ describe('metric direction', () => {
   })
 
   it('reads more of every performance measure as better', () => {
-    for (const k of ['score', 'domain:achievement', 'domain:gaps', 'staar:Reading:0', 'ccmr:0', 'avgSalary', 'spend']) {
+    for (const k of ['score', 'domain:achievement', 'domain:gaps', 'staar:Reading:0', 'ccmr:0', 'spend']) {
       expect(spec(specs, k).dir, k).toBe(HIGHER)
     }
   })
 
-  it('gives the three student-population shares no direction at all', () => {
-    for (const k of ['ecoDis', 'engLrn', 'specEd']) {
+  it('gives student-population and staffing context no good direction', () => {
+    for (const k of ['ecoDis', 'engLrn', 'specEd', 'avgSalary']) {
       expect(spec(specs, k).dir, k).toBe(CONTEXT)
       expect(isContextMetric(k)).toBe(true)
     }
@@ -525,6 +526,18 @@ describe('rankAll', () => {
   it('publishes nothing for a metric the entity itself does not report', () => {
     expect(ranked({ mine: null, others: Array.from({ length: 15 }, (_, i) => i) })).toHaveLength(0)
     expect(ranked({ mine: undefined, others: Array.from({ length: 15 }, (_, i) => i) })).toHaveLength(0)
+  })
+
+  it('publishes no placement when the page entity is outside the rated cohort', () => {
+    const others = Array.from({ length: 12 }, (_, i) => ({ id: `o${i}`, v: i }))
+    const out = rankAll({
+      entity: { id: 'me' },
+      cohorts: [cohortOf('state')],
+      bundles: bundleMap([{ id: 'me', v: 99 }, ...others]),
+      specs: [{ key: 'score', label: 'Overall score', fmt: 'points', get: (b) => b.v }],
+      cohortIds: { state: others.map((row) => row.id) },
+    })
+    expect(out).toEqual([])
   })
 
   it('gives a top placement the highest percentile and a bottom placement the lowest', () => {

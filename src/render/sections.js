@@ -6,9 +6,10 @@
 // in SECTIONS at the bottom.
 
 import { cmp, esc, fmtDelta, grade, legend, navList, num, ordinal, pct, section, statGrid, table, usd } from './shell.js'
-import { trajectoryChart, scoreBars, stackedShare, comparisonChart, groupedBars } from './charts.js'
+import { trajectoryChart, trajectoryDomain, scoreBars, stackedShare, comparisonChart, groupedBars, cmpDomain } from './charts.js'
 import { RACE, EXPERIENCE, STAAR_LEVELS, GRADUATION, COMPLETION, CCMR } from './labels.js'
 import { closestCounted, countedDomains, isContextMetric } from './metrics.js'
+import { publicMetric } from './public-comparisons.js'
 // A page size and a URL rule — no renderer, so importing them does not pull
 // this file into rankings-page.js's own layout choices. Together they are what
 // turns "this entity is 6,000th" into the one board page that actually lists
@@ -214,11 +215,128 @@ const contextCmp = (vm, key, { fmt = 'pct' } = {}) => {
   if (mine == null || !vm.cohorts?.length) return ''
   const active = vm.cohorts[0]
   const other = active.metrics[key]
-  if (other == null) return ''
+  const attrs = `data-metric="${esc(key)}" data-fmt="${esc(fmt)}" data-neutral="1"`
+  if (other == null) {
+    if (!vm.cohorts.some((cohort) => cohort?.metrics?.[key] != null)) return ''
+    return `<span class="cmp cmp-neutral" ${attrs} hidden style="display:none"><span class="cmp-vs"></span></span>`
+  }
   return `<span class="cmp cmp-neutral" data-metric="${esc(key)}" data-fmt="${esc(fmt)}" data-neutral="1">${fmtDelta(
     mine - other,
     fmt
   )} <span class="cmp-vs">vs ${esc(active.short)}</span></span>`
+}
+
+/** Format one server-published cohort average for a supplemental data section. */
+const comparisonValue = (value, format = 'decimal') => {
+  if (!finite(value)) return '—'
+  if (format === 'usd') return usd(value)
+  if (format === 'pct') return pct(value)
+  if (format === 'count') return num(value, Number.isInteger(value) ? 0 : 1)
+  if (format === 'rate') return num(value, 2)
+  if (format === 'signed-count') {
+    const rounded = Math.round(value)
+    return `${rounded > 0 ? '+' : rounded < 0 ? '−' : '±'}${num(Math.abs(rounded))}`
+  }
+  return num(value, 1)
+}
+
+/** A grammatical noun phrase for “average for …” comparison copy. */
+const comparisonAverageTarget = (vm, cohort) => {
+  const units = vm.level === 'district' ? 'districts' : 'schools'
+  if (cohort?.key === 'peer') return `${units} with a similar economic-disadvantage rate`
+  if (cohort?.key === 'size') return `similarly sized ${units}`
+  return cohort?.label ?? 'the selected group'
+}
+
+/**
+ * A selected-cohort value with an explicit reporting denominator. The browser
+ * updates these hooks from the same data-cohorts payload as the rating charts;
+ * no supplemental section gets to keep a private/default benchmark.
+ */
+const comparisonReadout = (
+  vm,
+  key,
+  { format = 'decimal', label = 'Selected comparison', neutral = true, invert = false, showDelta = true } = {}
+) => {
+  const active = vm.cohorts?.[0]
+  const value = active?.metrics?.[key]
+  const reporting = active?.metricN?.[key]
+  if (!active || !vm.cohorts.some((cohort) => finite(cohort?.metrics?.[key]))) return ''
+  const available = finite(value)
+  const delta = !available || !showDelta
+    ? ''
+    : neutral
+      ? contextCmp(vm, key, { fmt: format === 'usd' ? 'usd' : format === 'pct' ? 'pct' : 'ratio' })
+      : cmp(vm, key, {
+          fmt: format === 'usd' ? 'usd' : format === 'pct' ? 'pct' : 'ratio',
+          invert,
+        })
+  const statewide = active.key === 'state'
+  const averageTarget = comparisonAverageTarget(vm, active)
+  const reportingUnits = vm.level === 'district' ? 'districts' : 'schools'
+  return `<p class="comparison-readout" data-comparison-readout data-metric="${esc(key)}" data-format="${esc(format)}"${available ? '' : ' hidden style="display:none"'}>
+    <span class="comparison-readout-label">${esc(label)}</span>
+    <strong data-compare-value>${available ? comparisonValue(value, format) : '—'}</strong>
+    <span><span data-compare-kind>${statewide ? 'statewide cohort average across' : 'average for'}</span> <span data-compare-label>${statewide ? 'Texas' : esc(averageTarget)}</span>${finite(reporting) ? ` &middot; <span data-compare-n>${num(reporting)}</span> rated ${reportingUnits} reporting` : ''}</span>
+    ${delta}
+  </p>`
+}
+
+/**
+ * Metric-specific coverage for an average already printed in an adjacent
+ * table/stat. It deliberately uses the generic readout hook without a value
+ * node: the browser will still replace its cohort name and reporting n, but it
+ * cannot duplicate the average or turn a one-entity pin into an "average."
+ */
+const comparisonCoverage = (vm, key) => {
+  const active = vm.cohorts?.[0]
+  const value = active?.metrics?.[key]
+  const reporting = active?.metricN?.[key]
+  if (!active || !vm.cohorts.some((cohort) => finite(cohort?.metrics?.[key]))) return ''
+  const available = finite(value)
+  const statewide = active.key === 'state'
+  const averageTarget = comparisonAverageTarget(vm, active)
+  const reportingUnits = vm.level === 'district' ? 'districts' : 'schools'
+  return ` <small class="comparison-coverage" data-comparison-readout data-metric="${esc(key)}" data-format="pct"${available ? '' : ' hidden style="display:none"'}><span><span data-compare-kind>${statewide ? 'statewide cohort average across' : 'average for'}</span> <span data-compare-label>${statewide ? 'Texas' : esc(averageTarget)}</span>${finite(reporting) ? ` &middot; <span data-compare-n>${num(reporting)}</span> rated ${reportingUnits} reporting` : ''}</span></small>`
+}
+
+const comparisonCell = (vm, key, format = 'decimal') => {
+  const active = vm.cohorts?.[0]
+  const value = active?.metrics?.[key]
+  return `<td class="num comparison-cell" data-comparison-cell data-metric="${esc(key)}" data-format="${esc(format)}">${
+    finite(value) ? comparisonValue(value, format) : '<span class="na">—</span>'
+  }</td>`
+}
+
+/** A full selected-cohort composition chart, precomputed for every cohort. */
+const comparisonStackedShares = (vm, prefix, labels, heading) => {
+  const groups = (vm.cohorts ?? []).map((cohort, cohortIndex) => {
+    const rows = labels
+      .map((label, i) => ({
+        label,
+        value: cohort.metrics?.[`${prefix}:${i}`],
+        reporting: cohort.metricN?.[`${prefix}:${i}`],
+      }))
+      .filter((row) => finite(row.value) && row.value > 0)
+    if (!rows.length) return ''
+    const statewide = cohort.key === 'state'
+    const groupUnits = vm.level === 'district' ? 'Texas districts' : 'Texas schools'
+    const averageTarget = comparisonAverageTarget(vm, cohort)
+    const reportingCounts = [...new Set(rows.map((row) => row.reporting).filter(finite))].sort((a, b) => a - b)
+    const reportingText = !reportingCounts.length
+      ? 'Reporting count unavailable'
+      : reportingCounts.length === 1
+        ? `${num(reportingCounts[0])} reporting for every category shown`
+        : `${num(reportingCounts[0])}&ndash;${num(reportingCounts.at(-1))} reporting, depending on category`
+    return `<div class="comparison-composition" data-comparison-cohort="${esc(cohort.key)}"${cohortIndex ? ' hidden' : ''}>
+      <p class="comparison-composition-title"><strong>${esc(statewide ? 'Statewide average' : heading)}</strong> <span>${statewide ? `${reportingText} &middot; ${num(cohort.n)} ${groupUnits} in full cohort` : `For ${esc(averageTarget)} &middot; ${reportingText} &middot; ${num(cohort.n)} in full cohort`}</span></p>
+      ${stackedShare(rows)}
+      ${legend(rows.map((row, i) => ({ key: String(i % 7), label: `${row.label} ${num(row.value, 1)}%` })))}
+    </div>`
+  }).filter(Boolean)
+  return groups.length
+    ? `<div class="comparison-composition-groups">${groups.join('')}<p class="note na" data-comparison-pin-unavailable hidden style="display:none">A precomputed composition average is not available for <span data-comparison-pin-label>this pinned entity</span>. The pin's individual numeric comparisons elsewhere on the page still update.</p></div>`
+    : ''
 }
 
 /* ---------------------------------------------------------------- verdict -- */
@@ -242,7 +360,28 @@ export const HERO_LABEL = 'Overview'
  * the score AND what it is out of, then put that score beside a group whose
  * size is stated. Then the trend, in a sentence that finishes.
  */
-function verdictSummary(vm, { reconcileRescore = true } = {}) {
+const scorePlacement = (vm, cohort) =>
+  cohort?.placements?.score ?? vm.ranks?.find((row) => row.metric === 'score' && row.cohort === cohort?.key) ?? null
+
+const comparisonPopulation = (vm, cohort, reporting = null) => {
+  const units = vm.level === 'district' ? 'districts' : 'schools'
+  const n = finite(reporting) ? reporting : cohort?.n
+  if (!cohort || !finite(n)) return cohort?.label ?? 'selected comparison'
+  if (cohort.key === 'state') return `${num(n)} rated Texas ${units}`
+  if (cohort.key === 'peer') return `${num(n)} rated ${units} serving a similar economic context`
+  if (cohort.key === 'size') return `${num(n)} similarly sized rated ${units}`
+  return `${num(n)} rated ${units} in ${esc(cohort.label)}`
+}
+
+const scoreContext = (vm, cohort) => {
+  const mine = vm.own?.score ?? vm.history?.[0]?.score
+  const average = cohort?.metrics?.score
+  if (!finite(mine) || !finite(average)) return null
+  const population = comparisonPopulation(vm, cohort, cohort.metricN?.score)
+  return `The current score is ${versus(mine, average)} the <strong>${num(average, 1)}</strong> average for ${population}.`
+}
+
+function verdictSummary(vm, { reconcileRescore = true, cohort = vm.cohorts?.[0] ?? null } = {}) {
   const latest = vm.history?.[0]
   // Reader-facing nouns. TEA calls them campuses; a parent calls them schools,
   // and this is the sentence a parent reads.
@@ -272,13 +411,26 @@ function verdictSummary(vm, { reconcileRescore = true } = {}) {
     ? `${esc(vm.name)} is rated <strong>${esc(latest.rating)}</strong> by TEA, scoring <strong>${latest.score} out of 100</strong> for ${esc(latest.year)}`
     : `${esc(vm.name)} scored <strong>${latest.score} out of 100</strong> for ${esc(latest.year)}`
 
-  const peer =
-    vm.peerAvg != null && vm.peerN > 1
-      ? `${versus(latest.score, vm.peerAvg)} the ${vm.peerAvg.toFixed(1)} average of the ${num(vm.peerN)} ${units} serving a similar share of economically disadvantaged students`
-      : null
-  const state = vm.stateAvg != null ? `${versus(latest.score, vm.stateAvg)} the statewide average of ${vm.stateAvg.toFixed(1)}` : null
-
-  const against = peer && state ? ` — ${peer}, and ${state}.` : peer ? ` — ${peer}.` : state ? ` — ${state}.` : '.'
+  const average = cohort?.metrics?.score
+  const peer = !cohort && vm.peerAvg != null && vm.peerN > 1
+    ? `${versus(latest.score, vm.peerAvg)} the ${vm.peerAvg.toFixed(1)} average of the ${num(vm.peerN)} ${units} serving a similar share of economically disadvantaged students`
+    : null
+  const state = !cohort && vm.stateAvg != null
+    ? `${versus(latest.score, vm.stateAvg)} the statewide average of ${vm.stateAvg.toFixed(1)}`
+    : null
+  const against = finite(average)
+    ? ` — ${versus(latest.score, average)} the ${num(average, 1)} average for ${comparisonPopulation(
+        vm,
+        cohort,
+        cohort.metricN?.score
+      )}.`
+    : peer && state
+      ? ` — ${peer}, and ${state}.`
+      : peer
+        ? ` — ${peer}.`
+        : state
+          ? ` — ${state}.`
+          : '.'
 
   /* --- two: the trend, with the 2023 rule change reconciled in the clause --- */
 
@@ -318,19 +470,32 @@ function verdictSummary(vm, { reconcileRescore = true } = {}) {
   // Built inside the branch, not above it: ordinal() has no answer for a null
   // rank and throws, and an entity TEA did not rate has no placement at all.
   const share = (n) => (n > 0 ? ` (tied with ${plural(n, 'other')})` : '')
-  const stateBoard = rankedBoard(vm, 'score', 'state', vm.rank, vm.rankOf)
-  const regionBoard = rankedBoard(vm, 'score', 'region', vm.regionRank, vm.regionRankOf)
-  const rank = !(vm.rank && vm.rankOf)
-    ? null
-    : `Ranks ${linked(
-        stateBoard?.href ?? null,
-        `${ordinal(vm.rank)} of ${num(vm.rankOf)} Texas ${units}`,
-        stateBoard?.title ?? null
-      )}${share(vm.rankTied)}, and ${linked(
-        regionBoard?.href ?? null,
-        `${ordinal(vm.regionRank)} of ${num(vm.regionRankOf)} in ${esc(vm.regionName)}`,
-        regionBoard?.title ?? null
-      )}${share(vm.regionRankTied)}.`
+  const placement = scorePlacement(vm, cohort)
+  let rank = null
+  if (placement && cohort) {
+    const board = rankedBoard(vm, 'score', cohort.key, placement.rank, placement.of)
+    rank = `Ranks ${linked(
+      board?.href ?? null,
+      `${ordinal(placement.rank)} of ${comparisonPopulation(vm, cohort, placement.of)}`,
+      board?.title ?? null
+    )}${share(placement.tied)}.`
+  } else if (!cohort && vm.rank && vm.rankOf) {
+    const stateBoard = rankedBoard(vm, 'score', 'state', vm.rank, vm.rankOf)
+    const regionBoard = rankedBoard(vm, 'score', 'region', vm.regionRank, vm.regionRankOf)
+    const stateClaim = linked(
+      stateBoard?.href ?? null,
+      `${ordinal(vm.rank)} of ${num(vm.rankOf)} Texas ${units}`,
+      stateBoard?.title ?? null
+    ) + share(vm.rankTied)
+    const regionClaim = vm.regionRank && vm.regionRankOf
+      ? `, and ${linked(
+          regionBoard?.href ?? null,
+          `${ordinal(vm.regionRank)} of ${num(vm.regionRankOf)} in ${esc(vm.regionName)}`,
+          regionBoard?.title ?? null
+        )}${share(vm.regionRankTied)}`
+      : ''
+    rank = `Ranks ${stateClaim}${regionClaim}.`
+  }
 
   return { summary: `${head}${against} ${trend}`, rank }
 }
@@ -342,7 +507,6 @@ export function verdict(vm) {
   const scored = (vm.history ?? []).filter((h) => finite(h.score))
   const earliest = scored.at(-1)
   const change = latest && earliest && latest !== earliest ? latest.score - earliest.score : null
-  const peerGap = finite(latest?.score) && finite(vm.peerAvg) && vm.peerN > 1 ? latest.score - vm.peerAvg : null
   const facts = [
     finite(latest?.score)
       ? ['Current score', `${latest.score}<small>/100</small>`, latest.year]
@@ -354,22 +518,40 @@ export function verdict(vm) {
     // measure or the basis, leaving the reader to infer both. The label now
     // says which number moved, and the note says it is an average of a stated
     // number of districts rather than some unnamed benchmark.
-    finite(peerGap)
-      ? [
-          `Score vs similar ${one}s`,
-          `${peerGap > 0 ? '+' : peerGap < 0 ? '−' : '±'}${Math.abs(peerGap).toFixed(1)}<small> pts</small>`,
-          `vs the average of ${num(vm.peerN)} with a similar economic-disadvantage rate`,
-        ]
-      : null,
-    vm.regionRank && vm.regionRankOf
-      ? ['Regional placement', `${num(vm.regionRank)}<small> of ${num(vm.regionRankOf)}</small>`, vm.regionName]
-      : vm.rank && vm.rankOf
-        ? ['Texas placement', `${num(vm.rank)}<small> of ${num(vm.rankOf)}</small>`, `among rated ${one}s`]
-        : null,
   ].filter(Boolean)
 
-  const factGrid = facts.length
-    ? `<dl class="hero-facts">${facts.map(([label, value, note]) => `<div><dt>${esc(label)}</dt><dd><strong>${value}</strong><span>${esc(note)}</span></dd></div>`).join('')}</dl>`
+  if (!(vm.cohorts ?? []).length) {
+    const peerGap = finite(latest?.score) && finite(vm.peerAvg) && vm.peerN > 1 ? latest.score - vm.peerAvg : null
+    if (finite(peerGap)) {
+      facts.push([
+        `Score vs similar ${one}s`,
+        `${peerGap > 0 ? '+' : peerGap < 0 ? '−' : '±'}${Math.abs(peerGap).toFixed(1)}<small> pts</small>`,
+        `vs the average of ${num(vm.peerN)} with a similar economic-disadvantage rate`,
+      ])
+    }
+    if (vm.regionRank && vm.regionRankOf) {
+      facts.push(['Regional placement', `${num(vm.regionRank)}<small> of ${num(vm.regionRankOf)}</small>`, vm.regionName])
+    } else if (vm.rank && vm.rankOf) {
+      facts.push(['Texas placement', `${num(vm.rank)}<small> of ${num(vm.rankOf)}</small>`, `among rated ${one}s`])
+    }
+  }
+
+  const comparisonFacts = (vm.cohorts ?? []).map((cohort, i) => {
+    const average = cohort.metrics?.score
+    const gap = finite(latest?.score) && finite(average) ? latest.score - average : null
+    const placement = scorePlacement(vm, cohort)
+    const hidden = i ? ' hidden' : ''
+    const gapFact = !finite(gap)
+      ? ''
+      : `<div data-comparison-cohort="${esc(cohort.key)}"${hidden}><dt>Score vs ${esc(cohort.short ?? cohort.label)}</dt><dd><strong>${gap > 0 ? '+' : gap < 0 ? '−' : '±'}${Math.abs(gap).toFixed(1)}<small> pts</small></strong><span>vs ${num(average, 1)} average &middot; ${comparisonPopulation(vm, cohort, cohort.metricN?.score)}</span></dd></div>`
+    const placeFact = !placement
+      ? ''
+      : `<div data-comparison-cohort="${esc(cohort.key)}"${hidden}><dt>${esc(cohort.key === 'state' ? 'Texas placement' : `${cohort.label} placement`)}</dt><dd><strong>${num(placement.rank)}<small> of ${num(placement.of)}</small></strong><span>${placement.tied > 0 ? `tied with ${plural(placement.tied, 'other')}` : `among reporting ${one}s`}</span></dd></div>`
+    return gapFact + placeFact
+  }).join('')
+
+  const factGrid = facts.length || comparisonFacts
+    ? `<dl class="hero-facts">${facts.map(([label, value, note]) => `<div><dt>${esc(label)}</dt><dd><strong>${value}</strong><span>${esc(note)}</span></dd></div>`).join('')}${comparisonFacts}</dl>`
     : ''
 
   const alert =
@@ -382,21 +564,29 @@ export function verdict(vm) {
   // The compact summary below owns the historical-rescoring clarification.
   // Repeating the same old score inside the adjacent disclosure would publish
   // it three times once the trajectory footnote is counted.
-  const { summary, rank } = verdictSummary(vm, { reconcileRescore: false })
+  const detailGroups = (vm.cohorts ?? []).map((cohort, i) => {
+    const result = verdictSummary(vm, { reconcileRescore: false, cohort })
+    return `<div data-comparison-cohort="${esc(cohort.key)}"${i ? ' hidden' : ''}><p>${result.summary}</p>${result.rank ? `<p class="summary-rank">${result.rank}</p>` : ''}</div>`
+  }).join('')
+  const fallbackDetail = verdictSummary(vm, { reconcileRescore: false })
   const directionRead = !finite(change) ? null : change > 0 ? 'moving up' : change < 0 ? 'moving down' : 'flat'
   const direction = !directionRead
     ? null
     : earliest?.year === '2021-22' && finite(vm.originalScore)
       ? `Under TEA&rsquo;s current rules, the available rating history is ${directionRead}; under the rules in force back then it scored <strong>${vm.originalScore}</strong> in ${esc(earliest.year)}.`
       : `The available rating history is ${directionRead}.`
-  const context = !finite(peerGap)
-    ? null
-    : Math.abs(peerGap) < 0.5
+  const contexts = (vm.cohorts ?? []).map((cohort, i) => {
+    const text = scoreContext(vm, cohort)
+    return text ? `<span data-comparison-cohort="${esc(cohort.key)}"${i ? ' hidden' : ''}>${text}</span>` : ''
+  }).join('')
+  const legacyContext = !(vm.cohorts ?? []).length && finite(latest?.score) && finite(vm.peerAvg)
+    ? Math.abs(latest.score - vm.peerAvg) < 0.5
       ? `The current score is level with comparable ${one}s in a similar economic context.`
-      : `The current score is ${peerGap > 0 ? 'above' : 'below'} comparable ${one}s in a similar economic context.`
+      : `The current score is ${latest.score > vm.peerAvg ? 'above' : 'below'} comparable ${one}s in a similar economic context.`
+    : null
   const plainSummary = latest?.score == null
-    ? summary
-    : [direction, context].filter(Boolean).join(' ') || 'Use the sections below to read the trend, score components and student outcomes.'
+    ? fallbackDetail.summary
+    : [direction, contexts || legacyContext].filter(Boolean).join(' ') || 'Use the sections below to read the trend, score components and student outcomes.'
   const officialHref = officialWebsiteHref(vm.website)
   const officialLink = !officialHref
     ? ''
@@ -418,7 +608,7 @@ export function verdict(vm) {
     <div class="verdict-copy"><p class="verdict-label">At a glance</p><p class="summary">${plainSummary}</p></div>
   </div>
   ${positiveSignals ?? ''}
-  <details class="verdict-detail"><summary>Read the full rating context${rank ? ' and placement' : ''}</summary><p>${summary}</p>${rank ? `<p class="summary-rank">${rank}</p>` : ''}</details>
+  <details class="verdict-detail"><summary>Read the full rating context and placement</summary>${detailGroups || `<p>${fallbackDetail.summary}</p>${fallbackDetail.rank ? `<p class="summary-rank">${fallbackDetail.rank}</p>` : ''}`}</details>
   ${alert}
   ${vm.notRated ? `<p class="note">TEA did not issue an overall rating for this ${unit(vm)}. Scores below are the figures TEA published; the letter grades are the state's where it issued them.</p>` : ''}
 </section>`
@@ -449,7 +639,9 @@ const benchmarkScope = (vm, evidence) => {
     ? `${n} Texas ${units} reporting this measure`
     : evidence.cohort === 'peer'
       ? `${n} ${units} with a similar economic-disadvantage rate reporting this measure`
-      : `${n} ${units} in ${esc(evidence.cohortLabel)} reporting this measure`
+      : evidence.cohort === 'size'
+        ? `${n} similarly sized ${units} reporting this measure`
+        : `${n} ${units} in ${esc(evidence.cohortLabel)} reporting this measure`
   return scope + population
 }
 
@@ -468,7 +660,10 @@ const rankScope = (vm, evidence, reporting) => {
   if (evidence.cohort === 'peer') {
     return `${num(evidence.of)} ${units} with a similar economic-disadvantage rate${suffix}${population}`
   }
-  return `${num(evidence.of)} ${units} in ${esc(evidence.cohortLabel)}${suffix}${population}`
+  if (evidence.cohort === 'size') return `${num(evidence.of)} similarly sized ${units}${suffix}${population}`
+  // Region and county rank labels already include the accountability
+  // population; adding it here repeated the same qualifier twice.
+  return `${num(evidence.of)} ${units} in ${esc(evidence.cohortLabel)}${suffix}`
 }
 
 const rankSentence = (vm, evidence) => {
@@ -501,7 +696,13 @@ const highlightCard = (vm, card) => {
     primary = `<p class="strength-change"><strong>${highlightValue(change.fromValue, change.fmt)} to ${highlightValue(change.toValue, change.fmt)}</strong> <span>${esc(change.previousYear)} to ${esc(change.latestYear)}</span></p>`
   } else if (card.kind === 'subject-benchmark' && primaryBenchmark) {
     const subject = card.label.replace(/\s*[—-]\s*Meets and Masters$/, '')
-    const scope = primaryBenchmark.cohort === 'state' ? 'Texas averages' : 'similar-context averages'
+    const scope = primaryBenchmark.cohort === 'state'
+      ? 'Texas averages'
+      : primaryBenchmark.cohort === 'peer'
+        ? 'similar-context averages'
+        : primaryBenchmark.cohort === 'size'
+          ? 'similar-size averages'
+          : `${primaryBenchmark.cohortLabel} averages`
     kicker = 'STAAR result'
     title = `${subject} above ${scope} at Meets and Masters`
     const reporting = [...new Set(benchmarks.map((e) => e.metricN))]
@@ -511,7 +712,13 @@ const highlightCard = (vm, card) => {
     primary = `<dl class="strength-pair">${benchmarks.map((e) => `<div><dt>${subjectLevel(e.metric)}</dt><dd><strong>${highlightValue(e.value, e.fmt)}</strong><span>vs ${highlightValue(e.benchmark, e.fmt)} avg &middot; +${num(e.advantage, 1)} pts</span></dd></div>`).join('')}</dl>
       <p class="strength-scope">${reportingScope}</p>`
   } else if (primaryBenchmark) {
-    const scope = primaryBenchmark.cohort === 'state' ? 'Texas average' : 'similar-context average'
+    const scope = primaryBenchmark.cohort === 'state'
+      ? 'Texas average'
+      : primaryBenchmark.cohort === 'peer'
+        ? 'similar-context average'
+        : primaryBenchmark.cohort === 'size'
+          ? 'similar-size average'
+          : `${primaryBenchmark.cohortLabel} average`
     title = `${card.label} ${primaryBenchmark.lowerIsBetter ? 'lower than' : 'above'} the ${scope}`
     primary = `<p class="strength-current"><strong>${highlightValue(primaryBenchmark.value, primaryBenchmark.fmt)}</strong> <span>${primaryBenchmark.lowerIsBetter ? '−' : '+'}${num(primaryBenchmark.advantage, 1)} pts vs ${highlightValue(primaryBenchmark.benchmark, primaryBenchmark.fmt)}</span></p>`
   } else if (ranks[0]) {
@@ -540,18 +747,31 @@ const highlightCard = (vm, card) => {
   </article>`
 }
 
-/** Compact, fixed-comparator evidence immediately after the overall rating. */
+/** Compact evidence immediately after the overall rating, rebuilt per cohort. */
 export function highlights(vm) {
-  const cards = (vm.highlights ?? []).slice(0, 3)
-  if (!cards.length) return null
+  const cohorts = vm.cohorts ?? []
+  const precomputedByCohort = Boolean(vm.highlightsByCohort && cohorts.length)
+  const sets = precomputedByCohort
+    ? cohorts.map((cohort) => ({ cohort, cards: (vm.highlightsByCohort[cohort.key] ?? []).slice(0, 3) }))
+    : [{ cohort: null, cards: (vm.highlights ?? []).slice(0, 3) }]
+  if (!sets.some((set) => set.cards.length)) return null
   const one = unit(vm)
+  const groups = sets.map(({ cohort, cards }, i) => {
+    const attrs = cohort ? ` data-comparison-cohort="${esc(cohort.key)}"${i ? ' hidden' : ''}` : ''
+    return `<div class="strengths-grid"${attrs}>${
+      cards.length
+        ? cards.map((card) => highlightCard(vm, card)).join('')
+        : `<p class="note na">No academic result met this site&rsquo;s published threshold for a selected positive signal against ${cohort?.key === 'size' ? `similarly sized ${vm.level === 'district' ? 'districts' : 'schools'}` : esc(cohort?.label ?? 'this comparison')}.</p>`
+    }</div>`
+  }).join('')
   return `<div class="strengths" aria-labelledby="strengths-title">
     <div class="strengths-heading">
       <p class="verdict-label">Evidence worth noticing</p>
       <h2 id="strengths-title">Strengths and momentum</h2>
     </div>
-    <div class="strengths-grid">${cards.map((card) => highlightCard(vm, card)).join('')}</div>
-    <p class="strengths-note"><strong>Selected positive signals, not a summary of performance.</strong> The same rules choose them on every page: only the latest one-year gain, results meaningfully above Texas or a similar-context average with broad reporting, and distinctive top-three placements. Demographics, staffing and spending cannot become academic &ldquo;wins.&rdquo; The overall rating and the full results below remain the complete picture for this ${one}.</p>
+    ${groups}
+    ${precomputedByCohort ? '<p class="note na" data-comparison-pin-unavailable hidden style="display:none">A precomputed strengths set is not available for <span data-comparison-pin-label>this pinned entity</span>. The page&rsquo;s direct numeric comparisons still update to that pin.</p>' : ''}
+    <p class="strengths-note"><strong>Selected positive signals, not a summary of performance.</strong> The same rules choose them on every page: only the latest one-year gain, results meaningfully better than the currently selected comparison with broad reporting, and distinctive top-three placements. Demographics, staffing and spending cannot become academic &ldquo;wins.&rdquo; The overall rating and the full results below remain the complete picture for this ${one}.</p>
   </div>`
 }
 
@@ -561,13 +781,6 @@ export function trajectory(vm) {
   if (!vm.history?.length) return null
   const years = [...vm.history].reverse().map((h) => h.year)
   const mine = [...vm.history].reverse().map((h) => h.score)
-  const peer = vm.peerByYear ? years.map((y) => vm.peerByYear[y] ?? null) : null
-  const state = vm.stateByYear ? years.map((y) => vm.stateByYear[y] ?? null) : null
-
-  const rows = vm.history.map((h) => {
-    const p = vm.peerByYear?.[h.year]
-    return `<tr><th scope="row">${esc(h.year)}</th><td>${grade(h.rating)}</td><td class="num">${h.score ?? '—'}</td><td class="num">${p == null ? '—' : p.toFixed(1)}</td><td class="num">${vm.stateByYear?.[h.year]?.toFixed(1) ?? '—'}</td></tr>`
-  })
 
   // The rescoring footnote explains one row. Entities whose history starts after
   // 2021-22 have no such row, and 657 pages carried the explanation anyway —
@@ -585,10 +798,42 @@ export function trajectory(vm) {
   // draws nothing. Offer only cohorts that have at least one value in the years
   // this page actually shows — and default only to those that survive.
   const comparisons = (vm.comparisons ?? []).filter((c) => years.some((y) => c.byYear?.[y] != null))
+  // A comparison switch must not make the entity's unchanged score line jump.
+  // Fix one grade-band domain from the entity plus every built-in cohort, even
+  // though only the selected cohort and state are initially drawn.
+  const stableDomain = trajectoryDomain([
+    ...mine,
+    ...comparisons.flatMap((comparison) => years.map((year) => comparison.byYear?.[year] ?? null)),
+  ])
 
-  // Two comparisons are on by default so the page is complete without JavaScript.
-  // The picker below is progressive enhancement: it swaps which cohorts are drawn.
-  const defaults = ['peer', 'state'].filter((k) => comparisons.some((c) => c.key === k))
+  // The first cohort is the page-wide selected comparison. Start both the SVG
+  // and its accessible table with that exact series rather than privately
+  // defaulting this one section to the economic-context peer band. Fixtures and
+  // older callers without cohorts retain the historical peer-first fallback.
+  const activeKey = vm.cohorts?.[0]?.key ?? null
+  const selectedComparison = comparisons.find((c) => c.key === activeKey)
+    ?? comparisons.find((c) => c.key === 'peer')
+    ?? comparisons[0]
+    ?? null
+  const stateComparison = comparisons.find((c) => c.key === 'state') ?? null
+  const fixedState = stateComparison && selectedComparison?.key !== 'state' ? stateComparison : null
+  const selectedValues = selectedComparison
+    ? years.map((year) => selectedComparison.byYear?.[year] ?? null)
+    : null
+  const stateValues = fixedState ? years.map((year) => fixedState.byYear?.[year] ?? null) : null
+  const trajectoryCell = (comparison, year) => {
+    const value = comparison?.byYear?.[year]
+    if (value == null) return '—'
+    const reporting = comparison?.reportingNByYear?.[year]
+    return `${value.toFixed(1)}${finite(reporting) ? ` <small class="trajectory-reporting">${num(reporting)} reporting</small>` : ''}`
+  }
+  const rows = vm.history.map((h) => {
+    return `<tr><th scope="row">${esc(h.year)}</th><td>${grade(h.rating)}</td><td class="num">${h.score ?? '—'}</td>${selectedComparison ? `<td class="num">${trajectoryCell(selectedComparison, h.year)}</td>` : ''}${fixedState ? `<td class="num">${trajectoryCell(fixedState, h.year)}</td>` : ''}</tr>`
+  })
+
+  // The selected cohort and the statewide context (when different) are on by
+  // default so the no-JavaScript chart and the page-wide control agree.
+  const defaults = [selectedComparison?.key, fixedState?.key].filter(Boolean)
   const picker = comparisons.length
     ? `<div class="picker" role="group" aria-label="Choose comparisons">
     <span class="picker-label">Compare against</span>
@@ -612,6 +857,7 @@ export function trajectory(vm) {
           label: c.label,
           n: c.n,
           values: years.map((y) => c.byYear[y] ?? null),
+          reportingNs: years.map((y) => c.reportingNByYear?.[y] ?? null),
         })),
         defaults,
       }).replace(/</g, '\\u003c')}</script>`
@@ -624,18 +870,22 @@ export function trajectory(vm) {
   ${picker}
   ${trajectoryChart({ years, series: [
       { key: 'entity', values: mine, label: vm.name },
-      // This is the line's accessible name. It was fixed at 'Districts like this
-      // one' on 8,857 campus pages — the only string in the legend not switched
-      // on the level of the page it appears on.
-      peer ? { key: 'peer', values: peer, label: vm.level === 'district' ? 'Districts like this one' : 'Schools like this one' } : null,
-      state ? { key: 'state', values: state, label: 'Texas average' } : null,
-    ].filter(Boolean) })}
+      selectedComparison ? { key: selectedComparison.key, values: selectedValues, label: selectedComparison.label } : null,
+      fixedState ? { key: 'state', values: stateValues, label: fixedState.label } : null,
+    ].filter(Boolean), domain: stableDomain })}
   ${payload}
   ${note ? `<p class="note">${note}</p>` : ''}
+  ${comparisons.some((comparison) => comparison.reportingNByYear) ? '<p class="note">Comparison lines follow the current rated cohort backward through time. The table gives the number in that fixed cohort that reported a score each year; it can be smaller than cohort membership.</p>' : ''}
   <details class="data-details"><summary>View the yearly scores and comparisons</summary>
   ${table({
       caption: 'Rating history with comparisons',
-      head: ['Year', 'Rating', { label: 'Score', num: true }, { label: 'Similar', num: true }, { label: 'State', num: true }],
+      head: [
+        'Year',
+        'Rating',
+        { label: 'Score', num: true },
+        ...(selectedComparison ? [{ label: 'Selected comparison', sub: selectedComparison.label, num: true }] : []),
+        ...(fixedState ? [{ label: 'State', sub: fixedState.label, num: true }] : []),
+      ],
       rows,
     })}</details>`
   )
@@ -755,7 +1005,7 @@ export function domains(vm) {
         // last, so a fixed "second slot is state" reads a region or county
         // cohort's tick in --c-state teal — the colour every other page on
         // the site uses for "Texas average".
-        markers: (vm.cohorts ?? []).slice(0, 2).map((c) => ({
+        markers: (vm.cohorts ?? []).slice(0, 1).map((c) => ({
           key: c.key,
           label: c.label,
           short: c.short,
@@ -764,7 +1014,7 @@ export function domains(vm) {
         })),
       }))
     )}
-  ${vm.cohorts?.length ? legend([{ key: 'entity', label: vm.name }, ...vm.cohorts.slice(0, 2).map((c) => ({ key: c.key, label: `${c.label} (${num(c.n)} in cohort)` }))]) : ''}
+  ${vm.cohorts?.length ? legend([{ key: 'entity', label: vm.name }, ...vm.cohorts.slice(0, 1).map((c) => ({ key: c.key, label: `${c.label} (${num(c.n)} in cohort)` }))]) : ''}
   ${table({
       caption: 'Domain scores',
       head: ['Domain', { label: 'Score', num: true }, 'Grade', { label: 'Points to next grade', num: true }],
@@ -823,15 +1073,25 @@ export function outcomes(vm) {
     tickCohort
       ? tickCohort.key === 'state'
         ? `The tick on each bar marks the statewide average`
-        : `The tick on each bar marks the average for <strong>${esc(tickCohort.label)}</strong>`
+        : `The tick on each bar marks the average for <strong>${esc(comparisonAverageTarget(vm, tickCohort))}</strong>`
       : `The tick on each bar marks the average for ${vm.level === 'district' ? 'districts' : 'schools'} serving a similar share of economically disadvantaged students`
   } &mdash; a comparison TEA does not publish.</p>`
     : ''
 
   const grad = vm.graduation?.length
     ? `<h3>${vm.isAlt ? 'Completion' : 'Graduation'}</h3>
-  ${statGrid(vm.graduation.map((g, i) => [g.label.replace(/ (Graduation|Completion) Rate/, ''), pct(g.value) + cmp(vm, `grad:${i}`, { fmt: 'pct', invert: g.label === 'Dropout Rate' })]))}`
+  ${statGrid(vm.graduation.map((g, i) => {
+        const key = g.key ?? `grad:${i}`
+        return [
+        g.label.replace(/ (Graduation|Completion) Rate/, ''),
+        pct(g.value) + cmp(vm, key, { fmt: 'pct', invert: g.label === 'Dropout Rate' }) + comparisonCoverage(vm, key),
+      ]}))}
+  <p class="note">These measures use TEA's ${vm.isAlt ? 'alternative-education accountability' : 'standard-accountability'} population. Each comparison average includes only ${vm.level === 'district' ? 'districts' : 'schools'} in that population that report that specific measure; its reporting count is shown beside the average. It is an unweighted average of those reported ${vm.level === 'district' ? 'district' : 'school'} rates, not a pooled rate across every student in the group.</p>`
     : ''
+
+  const ccmrCohort = vm.cohorts?.[0] ?? null
+  const ccmrStatewide = ccmrCohort?.key === 'state'
+  const ccmrTarget = comparisonAverageTarget(vm, ccmrCohort)
 
   // The 12 criteria used to sit behind <details>, which meant the page
   // published one CCMR number and hid the eleven that explain it. A district
@@ -839,9 +1099,13 @@ export function outcomes(vm) {
   // spread across certifications, military enlistment and advanced diplomas —
   // and those are different districts to write about. The breakdown IS the
   // section; it is not an appendix to it.
+  const hasCcmrCoverage = vm.ccmr?.some((row, i) =>
+    vm.cohorts?.some((cohort) => finite(cohort?.metrics?.[row.key ?? `ccmr:${i}`]))
+  )
+  const ccmrHeadline = vm.ccmr?.find((row, i) => (row.key ?? `ccmr:${i}`) === 'ccmr:0') ?? null
   const ccmr = vm.ccmr?.length
     ? `<h3>College, career and military readiness</h3>
-  ${statGrid([[vm.ccmr[0].label, `${vm.ccmr[0].value ?? '—'}${cmp(vm, 'ccmr:0', { fmt: 'pct' })}`]])}
+  ${ccmrHeadline ? statGrid([[ccmrHeadline.label, `${ccmrHeadline.value ?? '—'}${cmp(vm, 'ccmr:0', { fmt: 'pct' })}`]]) : ''}
   ${table({
         caption: 'CCMR criteria',
         className: 'data scroll ccmr-tbl',
@@ -850,23 +1114,25 @@ export function outcomes(vm) {
           { label: 'This ' + (vm.level === 'district' ? 'district' : 'school'), sub: '% of graduates', num: true },
           { label: 'Average', sub: vm.cohorts?.[0]?.short ?? 'cohort', num: true },
           { label: 'Difference', sub: 'percentage points', num: true },
+          ...(hasCcmrCoverage ? [{ label: 'Reporting', sub: 'selected comparison', num: true }] : []),
         ],
         rows: vm.ccmr.map((c, i) => {
-          const other = vm.cohorts?.[0]?.metrics[`ccmr:${i}`] ?? null
-          const mine = vm.own?.[`ccmr:${i}`] ?? null
+          const key = c.key ?? `ccmr:${i}`
+          const other = vm.cohorts?.[0]?.metrics[key] ?? null
+          const mine = vm.own?.[key] ?? null
           const gap = mine != null && other != null ? mine - other : null
-          return `<tr><th scope="row" class="wrap">${esc(c.label)}</th><td class="num">${c.value ?? '—'}</td><td class="num">${other == null ? '—' : other.toFixed(1) + '%'}</td><td class="num">${gap == null ? '—' : `<span class="${gap >= 0 ? 'cmp-up' : 'cmp-down'}">${gap >= 0 ? '+' : '−'}${Math.abs(gap).toFixed(1)}</span>`}</td></tr>`
+          return `<tr data-metric="${esc(key)}"><th scope="row" class="wrap">${esc(c.label)}</th><td class="num">${c.value ?? '—'}</td><td class="num">${other == null ? '—' : other.toFixed(1) + '%'}</td><td class="num">${gap == null ? '—' : `<span class="${gap >= 0 ? 'cmp-up' : 'cmp-down'}">${gap >= 0 ? '+' : '−'}${Math.abs(gap).toFixed(1)}</span>`}</td>${hasCcmrCoverage ? `<td class="num comparison-coverage-cell">${comparisonCoverage(vm, key)}</td>` : ''}</tr>`
         }),
       })}
   <p class="note">Every row is a share of this ${unit(vm)}'s graduates, and every row is a way of
   meeting CCMR &mdash; so on every row, a bigger share is better. <strong>Difference</strong> is this
-  ${unit(vm)} minus <span data-ccmr-comparison>the average for</span> <strong data-ccmr-cohort>${esc(vm.cohorts?.[0]?.label ?? 'the comparison group')}</strong>,
+  ${unit(vm)} minus <span data-ccmr-comparison>${ccmrStatewide ? 'the statewide cohort average across' : 'the average for'}</span> <strong data-ccmr-cohort>${ccmrStatewide ? 'Texas' : esc(ccmrTarget)}</strong>,
   counted in percentage points: <strong>+5.0</strong> would mean five more graduates in every hundred met that
-  criterion here. Graduates may meet several criteria, so the rows do not add up to the total.</p>`
+  criterion here. The selected comparison is an unweighted average of the reported ${vm.level === 'district' ? 'district' : 'school'} percentages, not a pooled rate across all graduates in the group. Graduates may meet several criteria, so the rows do not add up to the total.</p>`
     : ''
 
   const coverage = vm.cohorts?.length
-    ? `<p class="note">Counts in the comparison controls describe cohort membership. Each average uses only ${vm.level === 'district' ? 'districts' : 'schools'} for which TEA reported that measure; reporting counts are shown on the STAAR rows and may vary.</p>`
+    ? `<p class="note">Counts in the comparison controls describe full cohort membership, not the denominator of every average. Each average uses only ${vm.level === 'district' ? 'districts' : 'schools'} for which TEA reported that measure; metric-specific reporting counts are shown on the STAAR, graduation and CCMR rows and may vary.</p>`
     : ''
 
   return section('outcomes', 'Student outcomes', `${staar}\n  ${grad}\n  ${ccmr}\n  ${coverage}`)
@@ -889,7 +1155,10 @@ export function students(vm) {
       ['Attendance', pct(vm.profile.attendance) + cmp(vm, 'attendance', { fmt: 'pct' })],
       ['Chronically absent', pct(vm.profile.absenteeism) + cmp(vm, 'absenteeism', { fmt: 'pct', invert: true })],
     ])}
-  ${race.length ? `<h3>Student demographics</h3>${stackedShare(race)}${legend(race.map((r, i) => ({ key: String(i % 7), label: `${r.label} ${r.value}%` })))}` : ''}`,
+  ${race.length ? `<h3>Student demographics</h3>
+    <p class="comparison-composition-title"><strong>${esc(vm.name)}</strong></p>
+    ${stackedShare(race)}${legend(race.map((r, i) => ({ key: String(i % 7), label: `${r.label} ${r.value}%` })))}
+    ${comparisonStackedShares(vm, 'race', RACE, 'Selected comparison average')}` : ''}`,
     'Placed after the results deliberately: this is context for reading them, not an explanation of them.'
   )
 }
@@ -970,6 +1239,7 @@ export function enrollment(vm) {
       <th scope="row">${esc(schoolYear(report.year))}</th>
       <td class="num enrollment-count-cell"><span class="enrollment-measure enrollment-measure-na"><span class="enrollment-na">Not reported</span></span></td>
       <td class="enrollment-change"><span class="enrollment-na">Not available</span></td>
+      ${comparisonCell(vm, publicMetric.enrollment(report.year), 'count')}
     </tr>`
     }
     const width = max > 0 ? (point.enrollment / max) * 100 : 0
@@ -982,6 +1252,7 @@ export function enrollment(vm) {
       <th scope="row">${esc(schoolYear(point.year))}</th>
       <td class="num enrollment-count-cell"><span class="enrollment-measure" style="--enrollment-width:${width.toFixed(2)}%"><span class="enrollment-bar" aria-hidden="true"${point.enrollment === 0 ? ' hidden' : ''}></span><span class="enrollment-value">${num(point.enrollment)}</span></span></td>
       <td class="enrollment-change">${change}</td>
+      ${comparisonCell(vm, publicMetric.enrollment(point.year), 'count')}
     </tr>`
   })
 
@@ -990,12 +1261,21 @@ export function enrollment(vm) {
     'Enrollment over time',
     `<p class="enrollment-takeaway">${takeaway}</p>
   ${statGrid(stats)}
+  ${comparisonReadout(vm, publicMetric.enrollment(trend.latest.year), {
+    format: 'count', label: `Average enrollment in ${latestYear}`, showDelta: false,
+  })}
   ${table({
       caption: `Student enrollment by school year for ${vm.name}`,
       className: 'data scroll enrollment-table',
-      head: ['School year', { label: 'Students enrolled', num: true }, 'Change from previous school year'],
+      head: [
+        'School year',
+        { label: 'Students enrolled', sub: vm.name, num: true },
+        'Change from previous school year',
+        { label: 'Average enrollment', sub: 'selected comparison', num: true },
+      ],
       rows,
     })}
+  <p class="note">The selected comparison column is the average enrollment among reporting ${vm.level === 'district' ? 'districts' : 'schools'} in that group. It changes with the comparison control; this ${unit(vm)}'s own counts do not.</p>
   <p class="note">Source: <a href="${esc(vm.enrollmentSourceUrl ?? 'https://rptsvr1.tea.texas.gov/adhocrpt/adspr.html')}" rel="nofollow">TEA PEIMS Student Program and Special Populations Reports</a>${vm.enrollmentSnapshotDate ? `, fetched ${esc(vm.enrollmentSnapshotDate)}` : ''}. TEA reports these counts from its fall student snapshot; changes compare adjacent reported school years.</p>
   <p class="note">These counts show how enrollment changed, not why. Attendance-zone changes, school openings or closures, grade reconfigurations, transfers and population shifts can affect the total.</p>`,
     'TEA-reported student enrollment for each available school year. Enrollment growth or decline is not a measure of school quality.'
@@ -1035,6 +1315,9 @@ export function transfers(vm) {
     <td class="num">${reportedCount(point.transfersIn, point.coverage?.officialTotals?.in)}</td>
     <td class="num">${reportedCount(point.transfersOut, point.coverage?.officialTotals?.out)}</td>
     <td class="num">${point.net == null ? '<span class="na">Not available</span>' : signedEnrollment(point.net)}</td>
+    ${comparisonCell(vm, publicMetric.transfersIn(point.year), 'count')}
+    ${comparisonCell(vm, publicMetric.transfersOut(point.year), 'count')}
+    ${comparisonCell(vm, publicMetric.transferBalance(point.year), 'signed-count')}
   </tr>`)
   const net = current.net == null ? '<span class="na">Not available</span>' : signedEnrollment(current.net)
 
@@ -1046,16 +1329,36 @@ export function transfers(vm) {
       ['Transfers out', reportedCount(current.transfersOut, current.coverage?.officialTotals?.out), `Live here; attend in another public district or charter · ${schoolYear(current.year)}`],
       ['Transfers in minus transfers out', net, 'Arithmetic context only'],
     ])}
+    <div class="comparison-readout-grid" aria-label="Selected comparison transfer averages">
+      ${comparisonReadout(vm, publicMetric.transfersIn(current.year), {
+        format: 'count', label: `Average transfers in · ${schoolYear(current.year)}`, showDelta: false,
+      })}
+      ${comparisonReadout(vm, publicMetric.transfersOut(current.year), {
+        format: 'count', label: `Average transfers out · ${schoolYear(current.year)}`, showDelta: false,
+      })}
+      ${comparisonReadout(vm, publicMetric.transferBalance(current.year), {
+        format: 'signed-count', label: `Average in minus out · ${schoolYear(current.year)}`, showDelta: false,
+      })}
+    </div>
     ${table({
       caption: `Official transfer totals by school year for ${vm.name}`,
       className: 'data scroll transfer-history',
-      head: ['School year', { label: 'Transfers in', num: true }, { label: 'Transfers out', num: true }, { label: 'In minus out', num: true }],
+      head: [
+        'School year',
+        { label: 'Transfers in', sub: vm.name, num: true },
+        { label: 'Transfers out', sub: vm.name, num: true },
+        { label: 'In minus out', sub: vm.name, num: true },
+        { label: 'Transfers in', sub: 'selected comparison average', num: true },
+        { label: 'Transfers out', sub: 'selected comparison average', num: true },
+        { label: 'In minus out', sub: 'selected comparison average', num: true },
+      ],
       rows: historyRows,
     })}
     <div class="transfer-flow-grid">
       ${flowList('Largest reported origins for transfers in', current.topOrigins, current.coverage?.origins)}
       ${flowList('Largest reported destinations for transfers out', current.topDestinations, current.coverage?.destinations)}
     </div>
+    <p class="note">Selected comparison figures are average reported counts, not rates; group size and district enrollment affect them. They provide scale context and are not a performance judgment. This district's official totals do not change when the comparison does.</p>
     <p class="note">Source: TEA <a href="${esc(meta.source ?? 'https://rptsvr1.tea.texas.gov/adhocrpt/Standard_Reports/Transfer_Reports/transfer_reports.html')}" rel="nofollow">Student Transfer Reports</a>${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}. The totals are TEA's official district rows; this site does not add masked detail cells. A transfer records a mismatch between district of residence and public district or charter of attendance. It does not say why a family transferred, whether the move was optional, or whether either school is better.</p>`,
     'How many students live in one public-school district and attend in another. These are movement counts, not a measure of family satisfaction or school quality.'
   )
@@ -1093,6 +1396,8 @@ export function discipline(vm) {
     <td class="num">${disciplineRate(point.students, 'ratePct')}</td>
     <td class="num">${disciplineCount(point.actions)}</td>
     <td class="num">${point.actions?.ratePer100 == null ? '<span class="na">—</span>' : point.actions.ratePer100.toFixed(2)}</td>
+    ${comparisonCell(vm, publicMetric.disciplineStudents(point.year), 'pct')}
+    ${comparisonCell(vm, publicMetric.disciplineActions(point.year), 'rate')}
   </tr>`)
   const categoryRows = (current?.categories ?? []).map((category) => `<tr>
     <th scope="row" class="wrap">${esc(category.label)}</th>
@@ -1100,12 +1405,22 @@ export function discipline(vm) {
     <td class="num">${disciplineRate(category.students, 'ratePct')}</td>
     <td class="num">${disciplineCount(category.actions)}</td>
     <td class="num">${category.actions?.ratePer100 == null ? '<span class="na">—</span>' : category.actions.ratePer100.toFixed(2)}</td>
+    ${comparisonCell(vm, publicMetric.disciplineCategoryStudents(current.year, category.key), 'pct')}
+    ${comparisonCell(vm, publicMetric.disciplineCategoryActions(current.year, category.key), 'rate')}
   </tr>`)
 
   return section(
     'discipline',
     'Discipline and removal from class',
     `${stats}
+    ${current && all ? `<div class="comparison-readout-grid" aria-label="Selected comparison discipline rates">
+      ${comparisonReadout(vm, publicMetric.disciplineStudents(current.year), {
+        format: 'pct', label: `Average share of students · ${schoolYear(current.year)}`,
+      })}
+      ${comparisonReadout(vm, publicMetric.disciplineActions(current.year), {
+        format: 'rate', label: `Average actions per 100 students · ${schoolYear(current.year)}`,
+      })}
+    </div>` : ''}
     ${historyRows.length ? table({
       caption: `TEA all-discipline student and action counts by school year for ${vm.name}`,
       className: 'data scroll discipline-history',
@@ -1116,6 +1431,8 @@ export function discipline(vm) {
         { label: 'Students', sub: '% of enrollment', num: true },
         { label: 'Actions', sub: 'all discipline', num: true },
         { label: 'Actions', sub: 'per 100 students', num: true },
+        { label: 'Students', sub: 'selected comparison average %', num: true },
+        { label: 'Actions', sub: 'selected comparison average per 100', num: true },
       ],
       rows: historyRows,
     }) : ''}
@@ -1128,9 +1445,12 @@ export function discipline(vm) {
         { label: 'Students', sub: '% of enrollment', num: true },
         { label: 'Actions', num: true },
         { label: 'Actions', sub: 'per 100 students', num: true },
+        { label: 'Students', sub: 'selected comparison average %', num: true },
+        { label: 'Actions', sub: 'selected comparison average per 100', num: true },
       ],
       rows: categoryRows,
     })}</details>` : ''}
+    <p class="note">Selected comparisons use rates, not raw counts, so differently sized ${vm.level === 'district' ? 'districts' : 'schools'} can be read on the same basis. Each average uses only group members for which TEA reported that rate; this ${unit(vm)}'s own counts and rates remain fixed.</p>
     <p class="note"><strong>Students, actions and incidents are different units.</strong> One student can receive multiple actions. The categories overlap, so they must not be added together. Rates use TEA's matching cumulative year-end enrollment, not the October enrollment shown elsewhere on this page.</p>
     <p class="note">Source: TEA <a href="${esc(meta.source ?? 'https://tea.texas.gov/data-reports/student-data/discipline-data-products/discipline-reports')}" rel="nofollow">Discipline Reports</a>${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}. Suppressed values stay unavailable rather than being estimated. Use 2020–21 cautiously because remote instruction during the pandemic changed students' exposure to in-person discipline. TEA consolidated its separate action-group reports into this product in 2024–25; this trend uses only the stable “All discipline” heading.</p>`,
     'TEA’s annual student and action counts, kept separate and divided only by the matching full-year enrollment. These figures describe removals from instruction, not a simple safe-or-unsafe score.'
@@ -1185,6 +1505,14 @@ export function actionNotices(vm) {
         ['Campuses identified for federal improvement support', num(improvement.length), '2026 TEA list'],
         ['Campuses on the final PEG transfer list', num(peg.length), '2026–27 school year'],
       ])}
+      <div class="comparison-readout-grid" aria-label="Selected comparison notice prevalence">
+        ${comparisonReadout(vm, publicMetric.districtImprovementShare, {
+          format: 'pct', label: 'Average share of campuses identified for improvement',
+        })}
+        ${comparisonReadout(vm, publicMetric.districtPegShare, {
+          format: 'pct', label: 'Average share of campuses on the PEG list',
+        })}
+      </div>
       <details class="notice-disclosure"><summary>See the campuses and official reasons</summary>
       ${table({
         caption: `Official improvement and Public Education Grant notices for campuses in ${vm.name}`,
@@ -1192,6 +1520,7 @@ export function actionNotices(vm) {
         head: ['Campus', 'Notice', 'Official status or reason'],
         rows,
       })}</details>
+      <p class="note">Selected comparison percentages describe how common each dated campus notice is across reporting districts in that group. They are neutral prevalence context; changing the comparison never changes a campus's official status.</p>
       <p class="note">Sources: TEA's <a href="${esc(improvementUrl)}" rel="nofollow">2026 Schools Identified for Improvement</a> and <a href="${esc(pegUrl)}" rel="nofollow">Public Education Grant program</a>${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}. A PEG listing makes a student assigned to that campus eligible to <em>request</em> a transfer; it does not guarantee acceptance, available space or transportation.</p>`,
       'Dated TEA notices for campuses in this district. They are shown separately from the district rating because they describe specific campuses, support programs and transfer eligibility.'
     )
@@ -1223,6 +1552,15 @@ export function actionNotices(vm) {
     'official-notices',
     'Official improvement and transfer notices',
     `<div class="notice-cards">${cards}</div>
+     <div class="comparison-readout-grid" aria-label="Selected comparison notice prevalence">
+       ${comparisonReadout(vm, publicMetric.campusImprovement, {
+         format: 'pct', label: 'Share of schools identified for improvement', showDelta: false,
+       })}
+       ${comparisonReadout(vm, publicMetric.campusPeg, {
+         format: 'pct', label: 'Share of schools on the PEG list', showDelta: false,
+       })}
+     </div>
+     <p class="note">Selected comparison percentages are the share of reporting schools in that group found on each dated list. They are neutral prevalence context; changing the comparison never changes this school's official status.</p>
      <p class="note">These are dated TEA statuses${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}; they are not added to or subtracted from this site's rating.</p>`,
     'Official state and federal designations can carry support, reporting requirements or a family transfer option that a single A–F rating does not explain.'
   )
@@ -1243,6 +1581,21 @@ export function community(vm) {
       ['Children ages 5–17 in families in poverty', num(c.schoolAgePoverty), pct(c.schoolAgePovertyRate)],
       ['School-age child poverty rate', pct(c.schoolAgePovertyRate), `${num(c.schoolAgePoverty)} of ${num(c.schoolAgePopulation)}`],
     ])}
+    <div class="comparison-readout-grid" aria-label="Selected comparison community averages">
+      ${comparisonReadout(vm, publicMetric.communityPopulation, {
+        format: 'count', label: 'Average boundary population', showDelta: false,
+      })}
+      ${comparisonReadout(vm, publicMetric.communitySchoolAge, {
+        format: 'count', label: 'Average school-age population', showDelta: false,
+      })}
+      ${comparisonReadout(vm, publicMetric.communitySchoolAgePoverty, {
+        format: 'count', label: 'Average school-age population in poverty', showDelta: false,
+      })}
+      ${comparisonReadout(vm, publicMetric.communitySchoolAgePovertyRate, {
+        format: 'pct', label: 'Average school-age child poverty rate',
+      })}
+    </div>
+    <p class="note">Population averages provide neutral scale context and can differ sharply across a region, county or the state. The poverty-rate comparison is the like-for-like percentage; none of these Census measures is treated as school performance.</p>
     <p class="note">Source: U.S. Census Bureau <a href="${esc(meta.landing ?? 'https://www.census.gov/data/datasets/2024/demo/saipe/2024-school-districts.html')}" rel="nofollow">2024 Small Area Income and Poverty Estimates</a>${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}. These are modeled estimates for residents inside the geographic district, not the students enrolled by the district. A family's poverty status is context, never a school-quality measure.</p>`,
     'A district serves a place as well as a roster. These Census estimates describe the resident community without treating its circumstances as an explanation or a verdict on students.'
   )
@@ -1267,7 +1620,25 @@ export function postsecondary(vm) {
       ['Not found in Texas public higher-ed records', num(p.notFound), `${p.graduates ? pct((p.notFound / p.graduates) * 100) : '—'} of graduates`],
       ['Not trackable', num(p.notTrackable), p.fallTerm],
     ])}
+    <div class="comparison-readout-grid" aria-label="Selected comparison postsecondary averages">
+      ${comparisonReadout(vm, publicMetric.postsecondaryGraduates, {
+        format: 'count', label: 'Average graduates in the report', showDelta: false,
+      })}
+      ${comparisonReadout(vm, publicMetric.postsecondaryEnrolled, {
+        format: 'count', label: 'Average enrolled in Texas public higher education', showDelta: false,
+      })}
+      ${comparisonReadout(vm, publicMetric.postsecondaryRate, {
+        format: 'pct', label: 'Average Texas-public enrollment rate',
+      })}
+      ${comparisonReadout(vm, publicMetric.postsecondaryNotFoundRate, {
+        format: 'pct', label: 'Average not-found rate',
+      })}
+      ${comparisonReadout(vm, publicMetric.postsecondaryNotTrackableRate, {
+        format: 'pct', label: 'Average not-trackable rate',
+      })}
+    </div>
     ${destinations}
+    <p class="note">Selected comparison counts are neutral cohort scale context. The percentages put differently sized graduating classes on the same basis, but still cover only the limited Texas-public system observed by this report.</p>
     <p class="note">Source: Texas Higher Education Coordinating Board, <a href="${esc(meta.landing ?? 'https://www.txhighereddata.org/high-school-graduates/hsgradsenrolled/')}" rel="nofollow">high-school graduates enrolled in higher education</a>${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}. The report covers graduates who enrolled in a Texas public college or university the following fall and includes only districts or campuses with more than 25 graduates.</p>
     <p class="note"><strong>“Not found” does not mean a graduate did not continue their education.</strong> It can include private or out-of-state college, work, military service, enrollment after the fall term, or another path the Texas public system does not observe.</p>
     <p class="note"><strong>“Not trackable” is not an outcome.</strong> THECB uses it for graduates with a non-standard identifier that could not be matched to higher-education records.</p>`,
@@ -1280,6 +1651,30 @@ export function postsecondary(vm) {
 export function spending(vm) {
   if (!vm.finance?.years?.length) return null
   const f = vm.finance
+  const active = vm.cohorts?.[0] ?? null
+  const cohortMetricKeys = f.years.map((year) => publicMetric.spending(year))
+  const selectedValues = cohortMetricKeys.map((key) => active?.metrics?.[key] ?? null)
+  const selectedLatestIndex = selectedValues.findLastIndex(finite)
+  const selectedLatestReporting = selectedLatestIndex >= 0
+    ? active?.metricN?.[cohortMetricKeys[selectedLatestIndex]]
+    : null
+  const hasSelectedComparison = (vm.cohorts ?? []).some((cohort) =>
+    cohortMetricKeys.some((key) => finite(cohort?.metrics?.[key]))
+  )
+  const latestComparisonIndex = cohortMetricKeys.findLastIndex((key) =>
+    (vm.cohorts ?? []).some((cohort) => finite(cohort?.metrics?.[key]))
+  )
+  const selected = active && selectedValues.some(finite)
+    ? {
+        key: 'selected',
+        label: active.key === 'state'
+          ? `Selected comparison: txschools.net statewide cohort average${finite(selectedLatestReporting) ? ` (${num(selectedLatestReporting)} rated Texas ${vm.level === 'district' ? 'districts' : 'schools'} reporting for ${esc(f.years[selectedLatestIndex])})` : ''}`
+          : active.key === 'size'
+            ? `Selected comparison: average for ${comparisonAverageTarget(vm, active)}`
+            : `Selected comparison: ${active.label}`,
+        values: selectedValues,
+      }
+    : null
   const definitions = [
     { key: 'entity', field: 'spendEntity', label: vm.name },
     // 'tea', not 'peer': this is the one figure whose "peer" is TEA's own
@@ -1293,6 +1688,18 @@ export function spending(vm) {
     .map((d) => ({ ...d, values: Array.isArray(f[d.field]) ? f[d.field] : [] }))
     .filter((d) => d.values.some(finite))
   const missing = definitions.filter((d) => !available.some((a) => a.key === d.key))
+  const chartSeries = [...available, selected].filter(Boolean)
+  // Keep the dollar scale fixed while the reader moves among the site's five
+  // standard comparison groups. If the domain were derived only from the
+  // currently selected line, the district's unchanged dollar values would
+  // jump vertically and look as though they had changed. Include every
+  // available cohort here; the client receives this same domain below.
+  const stableDomain = cmpDomain([
+    ...available.flatMap((series) => series.values),
+    ...(vm.cohorts ?? []).flatMap((cohort) =>
+      cohortMetricKeys.map((key) => cohort?.metrics?.[key]).filter(finite)
+    ),
+  ])
 
   const gap = (value, label) => {
     if (!finite(value)) return null
@@ -1307,12 +1714,21 @@ export function spending(vm) {
   const figures = available.length
     ? table({
         caption: 'Spending per student by year',
-        head: ['Year', ...available.map((s) => ({ label: s.label, num: true }))],
+        head: [
+          'Year',
+          ...available.map((s) => ({ label: s.label, num: true })),
+          ...(hasSelectedComparison
+            ? [
+                { label: 'Selected comparison average', num: true },
+                { label: 'Reporting', sub: 'selected comparison', num: true },
+              ]
+            : []),
+        ],
         rows: f.years.map(
           (year, i) =>
             `<tr><th scope="row">${esc(year)}</th>${available
               .map((s) => `<td class="num">${finite(s.values[i]) ? usd(s.values[i]) : '&mdash;'}</td>`)
-              .join('')}</tr>`
+              .join('')}${hasSelectedComparison ? `${comparisonCell(vm, cohortMetricKeys[i], 'usd')}<td class="num comparison-coverage-cell">${comparisonCoverage(vm, cohortMetricKeys[i])}</td>` : ''}</tr>`
         ),
       })
     : ''
@@ -1320,15 +1736,16 @@ export function spending(vm) {
     'spending',
     'Spending per student',
     `${
-      available.length
+      chartSeries.length
         ? comparisonChart({
             years: f.years,
-            series: available.map(({ key, values }) => ({ key, values })),
+            series: chartSeries.map(({ key, values }) => ({ key, values })),
+            domain: stableDomain,
             fmt: (v) => `$${(v / 1000).toFixed(0)}k`,
           })
         : ''
     }
-  ${available.length ? legend(available.map(({ key, label }) => ({ key, label }))) : ''}
+  ${chartSeries.length ? legend(chartSeries.map(({ key, label }) => ({ key, label }))) : ''}
   ${
     // The values this chart was drawn from, for site/app.js to redraw it with a
     // pinned district's line added. Spending was the one section that answered
@@ -1343,9 +1760,16 @@ export function spending(vm) {
       ? `<script type="application/json" data-spending>${JSON.stringify({
           years: f.years,
           series: available.map(({ key, label, values }) => ({ key, label, values })),
+          cohortMetricKeys,
+          selected,
+          domain: stableDomain,
         }).replace(/</g, '\\u003c')}</script>`
       : ''
   }
+  ${latestComparisonIndex >= 0 ? comparisonReadout(vm, cohortMetricKeys[latestComparisonIndex], {
+    format: 'usd',
+    label: `Selected comparison for ${esc(f.years[latestComparisonIndex])}`,
+  }) : ''}
   ${comparisonNote}
   ${
     missing.length
@@ -1353,8 +1777,8 @@ export function spending(vm) {
       : ''
   }
   ${figures ? `<details class="data-details"><summary>View yearly spending figures</summary>${figures}</details>` : ''}
-  <p class="note">Dollar amounts are shown as TEA published them and are not adjusted for inflation.</p>`,
-    "Compared with TEA's own peer group and the statewide average. TEA's peer group is separate from this site's economic-context comparison."
+  <p class="note">The selected-comparison reporting count is year-specific and can vary across the table. Dollar amounts are shown as TEA published them and are not adjusted for inflation.</p>`,
+    "The selected txschools.net comparison changes with the page-wide control. TEA's own peer group and statewide reference stay visible as separately published, fixed TEA references."
   )
 }
 
@@ -1364,40 +1788,54 @@ export function teachers(vm) {
   const turnover = vm.teacherTurnover
   const classSize = vm.classSize
   const profileStats = [
-    vm.profile?.avgSalary ? ['Average salary', usd(vm.profile.avgSalary) + cmp(vm, 'avgSalary', { fmt: 'usd' })] : null,
-    vm.profile?.teachers ? ['Teachers', num(vm.profile.teachers)] : null,
-    vm.profile?.stuPerStaff ? ['Students per staff member', num(vm.profile.stuPerStaff, 1)] : null,
+    vm.profile?.avgSalary ? ['Average salary', usd(vm.profile.avgSalary) + contextCmp(vm, 'avgSalary', { fmt: 'usd' })] : null,
+    vm.profile?.teachers ? ['Teachers', num(vm.profile.teachers) + contextCmp(vm, 'teachers', { fmt: 'ratio' })] : null,
+    vm.profile?.stuPerStaff ? ['Students per staff member', num(vm.profile.stuPerStaff, 1) + contextCmp(vm, 'stuPerStaff', { fmt: 'ratio' })] : null,
   ]
   const exp = (vm.staffYears ?? []).map((v, i) => ({ label: EXPERIENCE[i], value: v })).filter((x) => x.value > 0)
   const turnoverHistory = turnover?.history ?? []
-  const turnoverRows = turnoverHistory.map((point) => `<tr><th scope="row">${esc(schoolYear(point.year))}</th><td class="num">${point.ratePct == null ? '<span class="na">Not reported</span>' : pct(point.ratePct)}</td></tr>`)
+  const turnoverRows = turnoverHistory.map((point) => `<tr><th scope="row">${esc(schoolYear(point.year))}</th><td class="num">${point.ratePct == null ? '<span class="na">Not reported</span>' : pct(point.ratePct)}</td>${comparisonCell(vm, publicMetric.turnover(point.year), 'pct')}</tr>`)
   const classRows = (classSize?.categories ?? [])
     .filter((category) => category.studentsPerClass != null)
-    .map((category) => `<tr><th scope="row" class="wrap">${esc(category.label)}</th><td class="num">${num(category.studentsPerClass, 1)}</td></tr>`)
+    .map((category) => `<tr><th scope="row" class="wrap">${esc(category.label)}</th><td class="num">${num(category.studentsPerClass, 1)}</td>${comparisonCell(vm, publicMetric.classSize(classSize.year, category.key), 'decimal')}</tr>`)
   if (!profileStats.some(Boolean) && !exp.length && !turnoverRows.length && !classRows.length) return null
   const meta = vm.publicDataMeta?.educators ?? {}
   return section(
     'teachers',
     vm.level === 'campus' && classRows.length ? 'Teachers and actual class size' : 'Teachers',
     `${profileStats.some(Boolean) ? statGrid(profileStats) : ''}
-  ${exp.length ? `<h3>Teaching experience</h3>${stackedShare(exp)}${legend(exp.map((x, i) => ({ key: String(i % 7), label: `${x.label} ${x.value}%` })))}` : ''}
+  ${exp.length ? `<h3>Teaching experience</h3>
+    <p class="comparison-composition-title"><strong>${esc(vm.name)}</strong></p>
+    ${stackedShare(exp)}${legend(exp.map((x, i) => ({ key: String(i % 7), label: `${x.label} ${x.value}%` })))}
+    ${comparisonStackedShares(vm, 'experience', EXPERIENCE, 'Selected comparison average')}` : ''}
   ${turnoverRows.length ? `<h3>Teacher turnover over time</h3>
     ${turnover?.latest?.ratePct != null ? `<p class="callout">TEA reported a <strong>${pct(turnover.latest.ratePct)} teacher turnover rate</strong> in ${esc(schoolYear(turnover.latest.year))}.</p>` : ''}
+    ${turnover?.latest?.ratePct != null ? comparisonReadout(vm, publicMetric.turnover(turnover.latest.year), {
+      format: 'pct', label: `Average teacher turnover rate · ${schoolYear(turnover.latest.year)}`,
+    }) : ''}
     ${table({
       caption: `District teacher turnover rate by school year for ${vm.name}`,
       className: 'data educator-table',
-      head: ['School year', { label: 'Teacher turnover rate', num: true }],
+      head: [
+        'School year',
+        { label: 'Teacher turnover rate', sub: vm.name, num: true },
+        { label: 'Average turnover rate', sub: 'selected comparison', num: true },
+      ],
       rows: turnoverRows,
     })}
-    <p class="note">TEA defines this district rate as the share of teacher full-time equivalents from the prior fall who are not employed as teachers in the district in the current fall. That can include leaving the district or remaining in a different role; it is not a campus-level measure.</p>` : ''}
+    <p class="note">TEA defines this district rate as the share of teacher full-time equivalents from the prior fall who are not employed as teachers in the district in the current fall. That can include leaving the district or remaining in a different role; it is not a campus-level measure. The comparison average changes with the selected group; this district's reported rate does not.</p>` : ''}
   ${classRows.length ? `<h3>Average students in a class</h3>
     ${table({
       caption: `TEA average class size by grade or subject for ${vm.name} in ${schoolYear(classSize.year)}`,
       className: 'data educator-table',
-      head: ['Grade or subject', { label: 'Average students per class', sub: schoolYear(classSize.year), num: true }],
+      head: [
+        'Grade or subject',
+        { label: 'Average students per class', sub: `${vm.name} · ${schoolYear(classSize.year)}`, num: true },
+        { label: 'Average students per class', sub: 'selected comparison', num: true },
+      ],
       rows: classRows,
     })}
-    <p class="note">These are TEA's actual class-size averages for the grade or subject shown, not the student-to-teacher ratio. TEA reported ${num(classSize.reported)} of 12 categories for this campus; the categories are not combined into a made-up campus-wide average.</p>` : ''}
+    <p class="note">These are TEA's actual class-size averages for the grade or subject shown, not the student-to-teacher ratio. TEA reported ${num(classSize.reported)} of 12 categories for this campus; the categories are not combined into a made-up campus-wide average. Each selected comparison average uses only schools reporting that same grade or subject.</p>` : ''}
   ${(turnoverRows.length || classRows.length) ? `<p class="note">Source: TEA <a href="${esc(meta.source ?? 'https://tea.texas.gov/texas-schools/accountability/academic-accountability/performance-reporting/texas-academic-performance-reports')}" rel="nofollow">Texas Academic Performance Reports</a>${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}.</p>` : ''}`
   )
 }
@@ -1419,7 +1857,11 @@ export function campuses(vm) {
   return section(
     'campuses',
     `${num(vm.campuses.length)} schools in this district`,
-    `<dl class="campus-mix" aria-label="Schools by type">${typeCounts
+    `${comparisonReadout(vm, publicMetric.districtCampusCount, {
+      format: 'count', label: 'Average number of schools in a district', showDelta: false,
+    })}
+    <p class="note">The selected comparison is a neutral average district size. This district's school count and school-type mix remain its own facts.</p>
+    <dl class="campus-mix" aria-label="Schools by type">${typeCounts
       .map(([label, count]) => `<div><dt>${esc(label)}</dt><dd>${num(count)}</dd></div>`)
       .join('')}</dl>
     <details class="campus-roster">
@@ -1444,6 +1886,7 @@ export const claimSentence = (vm, r) => {
   const scope =
     r.cohort === 'state' ? `Texas ${unit}`
     : r.cohort === 'peer' ? `${unit} serving a similar share of economically disadvantaged students`
+    : r.cohort === 'size' ? `similarly sized ${unit}`
     : `${unit} in ${r.cohortLabel}`
   const tie = r.tied > 0 ? `, tied with ${r.tied} other${r.tied === 1 ? '' : 's'}` : ''
   const dir = r.lowerIsBetter ? 'lowest' : 'highest'
@@ -1466,10 +1909,16 @@ export function standouts(vm) {
   // with no good direction cannot appear in it. metrics.js drops these before a
   // rank row exists at all; this is the presentation-side lock, so a view model
   // assembled elsewhere still cannot put a poverty rate under this heading.
-  const placements = (vm.standouts ?? []).filter((r) => !isContextMetric(r.metric))
-  if (!placements.length) return null
+  const precomputedByCohort = Boolean(vm.standoutsByCohort && vm.cohorts?.length)
+  const cohortSets = precomputedByCohort
+    ? vm.cohorts.map((cohort) => ({
+        cohort,
+        placements: (vm.standoutsByCohort[cohort.key] ?? []).filter((r) => !isContextMetric(r.metric)),
+      }))
+    : [{ cohort: null, placements: (vm.standouts ?? []).filter((r) => !isContextMetric(r.metric)) }]
+  if (!cohortSets.some((set) => set.placements.length)) return null
 
-  const rows = placements
+  const rowsFor = (placements) => placements
     .map((r) => {
       const claim = claimSentence(vm, r)
       // The whole ranking, not just this entity's place in it — pointed at the
@@ -1504,6 +1953,14 @@ export function standouts(vm) {
     </li>`
     })
     .join('\n    ')
+  const groups = cohortSets.map(({ cohort, placements }, i) => {
+    const attrs = cohort ? ` data-comparison-cohort="${esc(cohort.key)}"${i ? ' hidden' : ''}` : ''
+    const rows = rowsFor(placements)
+    return `<div${attrs}>${rows
+      ? `<ul class="standouts">${rows}</ul>`
+      : `<p class="note na">No distinctive top placement met this site&rsquo;s threshold within ${cohort?.key === 'size' ? `similarly sized ${vm.level === 'district' ? 'districts' : 'schools'}` : esc(cohort?.label ?? 'the selected comparison')}.</p>`
+    }</div>`
+  }).join('\n  ')
 
   // The section's own escape hatch out of the selection. "These are selected
   // high placements" is only an honest disclosure if the unselected ones are
@@ -1517,14 +1974,13 @@ export function standouts(vm) {
   return section(
     'standouts',
     'Where this ' + (vm.level === 'district' ? 'district' : 'school') + ' ranks best',
-    `<ul class="standouts">
-    ${rows}
-  </ul>
+    `${groups}
+  ${precomputedByCohort ? '<p class="note na" data-comparison-pin-unavailable hidden style="display:none">A precomputed standout ranking set is not available for <span data-comparison-pin-label>this pinned entity</span>. Direct metric comparisons elsewhere on the page still update to that pin.</p>' : ''}
   <p class="note"><strong>These are selected high placements, not a summary.</strong> Every figure above
   this section is the full picture, including where this ${vm.level} ranks poorly. Each measure appears
   at most once here. Very large ties are left out because they do not distinguish this ${vm.level}; any
   tie that does appear is labeled.${allRankings}</p>`,
-    `Out of ${num(vm.ranks.length)} rankings computed across every published metric and every comparison group, these are the strongest distinctive placements, with each measure shown once. Press Copy for a citable sentence.`
+    `The list follows the page-wide comparison choice. Out of ${num(vm.ranks.length)} rankings computed across every published metric and every comparison group, it shows the strongest distinctive placements in the selected group, with each measure shown once. Press Copy for a citable sentence.`
   )
 }
 

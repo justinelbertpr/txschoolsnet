@@ -353,6 +353,11 @@ describe('buildViewModel', () => {
     for (const c of vm.comparisons) {
       expect(c.n).toBeGreaterThan(0)
       expect(Object.keys(c.byYear).length).toBeGreaterThan(0)
+      expect(Object.keys(c.reportingNByYear).length).toBeGreaterThan(0)
+      for (const year of Object.keys(c.byYear)) {
+        expect(c.reportingNByYear[year]).toBeGreaterThan(0)
+        expect(c.reportingNByYear[year]).toBeLessThanOrEqual(c.n)
+      }
     }
     expect(vm.comparisons.map((c) => c.key)).toContain('state')
   })
@@ -384,11 +389,22 @@ describe('buildViewModel', () => {
 
   it('computes a rank for every metric against every cohort', () => {
     const vm = build()
-    expect(vm.cohorts.map((c) => c.key)).toEqual(['peer', 'region', 'county', 'state'])
+    expect(vm.cohorts.map((c) => c.key)).toEqual(['peer', 'region', 'county', 'size', 'state'])
     expect(vm.ranks.length).toBeGreaterThan(0)
     for (const r of vm.ranks) {
       expect(r.of).toBeGreaterThanOrEqual(10)
       expect(r.cohortLabel).toBeTruthy()
+    }
+  })
+
+  it('publishes cohort-specific placements and editorial selections for synchronous switching', () => {
+    const vm = build()
+    expect(Object.keys(vm.highlightsByCohort)).toEqual(vm.cohorts.map((c) => c.key))
+    expect(Object.keys(vm.standoutsByCohort)).toEqual(vm.cohorts.map((c) => c.key))
+    for (const cohort of vm.cohorts) {
+      expect(cohort.placements.score).toMatchObject({ cohort: cohort.key, metric: 'score' })
+      expect(Array.isArray(vm.highlightsByCohort[cohort.key])).toBe(true)
+      expect(Array.isArray(vm.standoutsByCohort[cohort.key])).toBe(true)
     }
   })
 
@@ -475,7 +491,9 @@ describe('buildViewModel', () => {
     expect(vm.staar.levels[0]).toEqual([null, null])
     expect(vm.staar.levels[1]).toEqual([0, 100])
     expect(vm.graduation.map((g) => g.value)).toEqual([100, 0])
+    expect(vm.graduation.map((g) => g.key)).toEqual(['grad:2', 'grad:3'])
     expect(vm.ccmr.map((c) => c.value)).toEqual(['50%', '0%'])
+    expect(vm.ccmr.map((c) => c.key)).toEqual(['ccmr:2', 'ccmr:3'])
     expect(vm.ccmr.map((c) => c.compare)).toEqual(['40%', '0%'])
   })
 

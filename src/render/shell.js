@@ -538,10 +538,18 @@ export const cmp = (vm, key, { fmt = 'points', invert = false } = {}) => {
   if (mine == null || !vm.cohorts?.length) return ''
   const active = vm.cohorts[0]
   const other = active.metrics[key]
-  if (other == null) return ''
+  const attrs = `data-metric="${esc(key)}" data-fmt="${esc(fmt)}"${invert ? ' data-invert="1"' : ''}`
+  // The default cohort may not report a metric that another selectable group
+  // does. Keep a hidden, data-bearing hook so the client can reveal the real
+  // comparison after a switch; omitting the node made that metric permanently
+  // unresponsive for the life of the page.
+  if (other == null) {
+    if (!vm.cohorts.some((cohort) => cohort?.metrics?.[key] != null)) return ''
+    return `<span class="cmp cmp-level" ${attrs} hidden style="display:none"><span class="cmp-vs"></span></span>`
+  }
   const d = mine - other
   const good = invert ? d < 0 : d > 0
-  return `<span class="cmp${Math.abs(d) < 0.05 ? ' cmp-level' : good ? ' cmp-up' : ' cmp-down'}" data-metric="${esc(key)}" data-fmt="${esc(fmt)}"${invert ? ' data-invert="1"' : ''}>${fmtDelta(d, fmt)} <span class="cmp-vs">vs ${esc(active.short)}</span></span>`
+  return `<span class="cmp${Math.abs(d) < 0.05 ? ' cmp-level' : good ? ' cmp-up' : ' cmp-down'}" ${attrs}>${fmtDelta(d, fmt)} <span class="cmp-vs">vs ${esc(active.short)}</span></span>`
 }
 
 export const fmtDelta = (d, fmt) => {
@@ -566,7 +574,7 @@ export const fmtDelta = (d, fmt) => {
 export const cohortSwitch = (vm) =>
   !vm.cohorts?.length
     ? ''
-    : `<div class="cohort-bar" role="group" aria-label="Compare every figure against">
+    : `<div class="cohort-bar" role="group" aria-label="Compare every figure against" data-accountability-population="${vm.isAlt ? 'alternative' : 'standard'}">
   ${vm.cohorts
     .map(
       (c, i) =>
@@ -574,7 +582,15 @@ export const cohortSwitch = (vm) =>
     )
     .join('\n  ')}
   <script type="application/json" data-cohorts>${JSON.stringify(
-    vm.cohorts.map((c) => ({ key: c.key, short: c.short, label: c.label, n: c.n, metrics: c.metrics, metricN: c.metricN }))
+    vm.cohorts.map((c) => ({
+      key: c.key,
+      short: c.short,
+      label: c.label,
+      n: c.n,
+      metrics: c.metrics,
+      metricN: c.metricN,
+      placements: c.placements,
+    }))
   ).replace(/</g, '\\u003c')}</script>
   <script type="application/json" data-own>${JSON.stringify(vm.own).replace(/</g, '\\u003c')}</script>
 </div>`

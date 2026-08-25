@@ -73,6 +73,27 @@ describe('the spending chart’s two renderers', () => {
     // not just the pinned one, because the scale may have moved.
     expect(data.series.map((s) => s.key)).toEqual(['entity', 'tea', 'state'])
     expect(data.series[0]).toEqual({ key: 'entity', label: 'Klein ISD', values: [12935, 12174, 10934] })
+    expect(data.domain).toEqual(cmpDomain(data.series.flatMap((series) => series.values)))
+  })
+
+  it('locks the scale across every standard comparison cohort', () => {
+    const html = spending(vm({
+      cohorts: [
+        { key: 'peer', metrics: { 'public:spending:2018': 10_000, 'public:spending:2019': 10_500 } },
+        { key: 'county', metrics: { 'public:spending:2018': 19_000, 'public:spending:2019': 20_000 } },
+      ],
+    }))
+    const island = html.match(/<script type="application\/json" data-spending>([\s\S]*?)<\/script>/)
+    const data = JSON.parse(island[1])
+    expect(data.domain).toEqual(cmpDomain([
+      ...data.series.flatMap((series) => series.values),
+      10_000,
+      10_500,
+      19_000,
+      20_000,
+    ]))
+    expect(html).toContain('>$9k</text>')
+    expect(html).toContain('>$21k</text>')
   })
 
   it('gives the client a layer to replace rather than loose siblings', () => {

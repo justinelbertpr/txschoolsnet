@@ -160,8 +160,15 @@ const benchmarkEvidence = ({ spec, ownValue, cohort, average, metricN, latestYea
 
 const qualifyingBenchmarks = ({ own, cohorts, specs, latestYear }) => {
   const byMetric = new Map()
+  // A page-wide comparison choice has to mean the same thing here as it does
+  // in the charts below. Historically this surface silently restricted
+  // benchmark evidence to the state and economic-context cohorts, so selecting
+  // a region or county left the hero talking about a different population.
+  // Callers may still pass all cohorts (the priority keeps the editorial
+  // default stable), or pass one selected cohort to build that cohort's exact
+  // set of evidence cards.
   const eligibleCohorts = (cohorts ?? [])
-    .filter((cohort) => cohort?.key === 'state' || cohort?.key === 'peer')
+    .filter((cohort) => cohort?.key && finite(cohort?.n))
     .sort((a, b) => cohortPriority(a.key) - cohortPriority(b.key))
 
   for (const spec of specs ?? []) {
@@ -345,10 +352,11 @@ export function buildHighlights({
   const pairedMetrics = new Set()
   for (const [subject, group] of subjectGroups) {
     if (!group[1] || !group[2]) continue
-    const sharedCohort = ['state', 'peer'].find((cohort) =>
-      (benchmarks.get(group[1].key) ?? []).some((evidence) => evidence.cohort === cohort) &&
-      (benchmarks.get(group[2].key) ?? []).some((evidence) => evidence.cohort === cohort)
-    )
+    const leftCohorts = new Set((benchmarks.get(group[1].key) ?? []).map((evidence) => evidence.cohort))
+    const sharedCohort = (benchmarks.get(group[2].key) ?? [])
+      .map((evidence) => evidence.cohort)
+      .filter((cohort) => leftCohorts.has(cohort))
+      .sort((a, b) => cohortPriority(a) - cohortPriority(b) || String(a).localeCompare(String(b)))[0]
     if (!sharedCohort) continue
     const metrics = [group[1].key, group[2].key]
     const evidence = metrics.map((metric) => benchmarks.get(metric).find((item) => item.cohort === sharedCohort))

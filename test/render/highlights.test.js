@@ -276,6 +276,31 @@ describe('buildHighlights', () => {
     expect(out[0].metrics).toEqual(['staar:Math:1', 'staar:Math:2'])
   })
 
+  it('pairs Meets and Masters against a selected county cohort', () => {
+    const county = cohort('county', 40, {
+      'staar:Math:1': 40,
+      'staar:Math:2': 20,
+    }, {
+      'staar:Math:1': 40,
+      'staar:Math:2': 40,
+    })
+    county.label = 'Bexar County'
+    const out = buildHighlights({
+      own: { 'staar:Math:1': 45, 'staar:Math:2': 25 },
+      cohorts: [county],
+      specs: [
+        spec('staar:Math:1', 'Math — Meets'),
+        spec('staar:Math:2', 'Math — Masters'),
+      ],
+      ...years,
+    })
+    expect(out.map((card) => card.id)).toEqual(['subject:math:county'])
+    expect(out[0].evidence.filter((item) => item.kind === 'benchmark').map((item) => item.cohort)).toEqual([
+      'county',
+      'county',
+    ])
+  })
+
   it('never emits an unsupported fallback and caps output at four', () => {
     expect(buildHighlights({ specs: SPECS, ...years })).toEqual([])
 

@@ -58,14 +58,17 @@
                         export as a heading with nothing underneath it.
    - nav/form/button/svg/script/style/template — chrome
    - .rail, .stickybar, .crumbs, .rail-sheet — navigation repeated elsewhere
-   - .eyebrow, .place   moved up into the provenance header instead, where
-                        "which district, where, how big" belongs
+   - .hero .eyebrow,
+     .hero .place       moved up into the provenance header instead, where
+                        "which district, where, how big" belongs. Eyebrows in
+                        later sections are data: for example, the year attached
+                        to a campus's federal-improvement notice.
    Charts themselves are dropped with svg/aria-hidden. Nothing is lost: every
    chart on this site is accompanied by the table it was drawn from — that was
    the point of the "expose the data points" work — and the table is kept. */
 const SKIP =
-  'script,style,template,nav,form,button,svg,[aria-hidden="true"],.sr-only,.legend,' +
-  '.rail,.stickybar,.crumbs,.rail-sheet,.sitesearch,.mobile-compare,.md-export,.eyebrow,.place'
+  'script,style,template,nav,form,button,svg,[hidden],[aria-hidden="true"],.sr-only,.legend,' +
+  '.rail,.stickybar,.crumbs,.rail-sheet,.sitesearch,.mobile-compare,.md-export,.hero .eyebrow,.hero .place'
 
 const skipped = (el) => el.matches(SKIP)
 
@@ -82,7 +85,12 @@ const raw = (el, drop) => {
   let s = ''
   for (const n of el.childNodes) {
     if (n.nodeType === 3) s += n.nodeValue
-    else if (n.nodeType === 1 && !skipped(n) && !drop?.has(n)) s += raw(n, drop)
+    else if (n.nodeType === 1 && !skipped(n) && !drop?.has(n)) {
+      // A <br> has no textContent of its own. Without an explicit separator,
+      // two official notice reasons on opposite visual lines become one token
+      // ("Special EducationFinal 2026-27 PEG list") in Markdown.
+      s += n.tagName.toUpperCase() === 'BR' ? ' · ' : raw(n, drop)
+    }
   }
   return s
 }
@@ -92,12 +100,48 @@ const raw = (el, drop) => {
 // and welds it into "+7pts".
 const text = (el, drop = null) => (el ? raw(el, drop).replace(/\s+/g, ' ').trim() : '')
 
+/**
+ * Paragraph text with real links kept as Markdown links.
+ *
+ * `text()` is intentionally presentation-blind, which made a source note such
+ * as "Source: TEA Student Transfer Reports" look complete while silently
+ * throwing away the report URL. That is especially damaging in the AI export:
+ * the prose and number survive the paste, but the route back to the publisher
+ * does not. Keep anchors here, where prose is emitted, while all of the compact
+ * numeric readers above continue to use plain text.
+ */
+const mdLabel = (s) => s.replace(/([\\\[\]])/g, '\\$1')
+const mdHref = (s) => s.replace(/([()\\])/g, '\\$1')
+const inlineRaw = (el) => {
+  let s = ''
+  for (const n of el.childNodes) {
+    if (n.nodeType === 3) {
+      s += n.nodeValue
+      continue
+    }
+    if (n.nodeType !== 1 || skipped(n)) continue
+    if (n.tagName.toUpperCase() === 'A' && n.href) {
+      const label = text(n)
+      s += label ? `[${mdLabel(label)}](${mdHref(n.href)})` : n.href
+      continue
+    }
+    s += inlineRaw(n)
+  }
+  return s
+}
+const inlineText = (el) => (el ? inlineRaw(el).replace(/\s+/g, ' ').trim() : '')
+
 /** Escape the pipes that would otherwise split a GFM table cell in two. */
 const cell = (s) => s.replace(/\|/g, '\\|')
 
 /** `value (annotation · annotation)` — the shape every figure on this site has. */
 const withAnnotations = (host, selector) => {
-  const annots = [...host.querySelectorAll(selector)]
+  // A comparison chip remains in the DOM when its selected cohort did not
+  // report the metric; app.js hides it so the prior cohort's delta cannot look
+  // current. Treat it exactly like any other skipped node here. Calling text()
+  // on the hidden chip directly would otherwise resurrect that stale delta in
+  // Copy-for-AI even though raw() correctly omitted it from the value.
+  const annots = [...host.querySelectorAll(selector)].filter((annot) => !skipped(annot))
   const drop = new Set(annots)
   const value = text(host, drop)
   const notes = annots.map((a) => text(a)).filter(Boolean)
@@ -117,6 +161,10 @@ const bullet = (label, value) => (label && value ? `- **${label}:** ${value}` : 
  */
 const statLines = (dl) =>
   [...dl.children]
+    // Hero comparison facts are precomputed once per cohort and switched with
+    // [hidden]. A <dl> is handled as one block, so its rows do not pass through
+    // blocks()' normal skipped-node guard unless they are filtered here too.
+    .filter((row) => !skipped(row))
     .map((row) => {
       const dd = row.querySelector('dd')
       return bullet(text(row.querySelector('dt')), dd ? withAnnotations(dd, ':scope > span, :scope > .cmp, :scope > .stat-note') : '')
@@ -145,12 +193,12 @@ const barLines = (ul) =>
  * exactly the context a model reading a column of signed numbers needs.
  */
 const tableLines = (table) => {
-  const head = [...table.querySelectorAll('thead th')].map((th) => {
+  const head = [...table.querySelectorAll('thead th')].filter((th) => !skipped(th)).map((th) => {
     const sub = th.querySelector('small')
     return cell(sub ? `${text(th, new Set([sub]))} (${text(sub)})` : text(th))
   })
-  const rows = [...table.querySelectorAll('tbody tr')].map((tr) =>
-    [...tr.children].map((c) => cell(text(c)))
+  const rows = [...table.querySelectorAll('tbody tr')].filter((tr) => !skipped(tr)).map((tr) =>
+    [...tr.children].filter((c) => !skipped(c)).map((c) => cell(text(c)))
   )
   if (!rows.length) return ''
   const width = Math.max(head.length, ...rows.map((r) => r.length))
@@ -178,12 +226,13 @@ const HEADINGS = { H1: '# ', H2: '## ', H3: '### ', H4: '#### ', H5: '##### ', H
  * whole figure in their segment titles — "Hispanic: 44.6%" — and have no
  * accompanying table, so dropping the SVG wholesale left a heading with nothing
  * under it and lost the only copy of that breakdown. The trajectory chart's
- * titles are series names ("Texas average") with no value in them, and its
- * numbers are already in the table beside it. Requiring a ": " is what tells
- * those two apart without hard-coding either chart's class name.
+ * titles are series names ("Texas average" or "Region 20: San Antonio") and
+ * its numbers are already in the table beside it. Restrict extraction to the
+ * composition chart class instead of guessing from punctuation in a title.
  */
 const chartLines = (svg) => {
-  const items = [...svg.querySelectorAll('title')].map((t) => text(t)).filter((s) => /: /.test(s))
+  if (!svg.classList.contains('chart-stack')) return ''
+  const items = [...svg.querySelectorAll('title')].map((t) => text(t)).filter(Boolean)
   return items.map((s) => `- ${s}`).join('\n')
 }
 
@@ -221,7 +270,7 @@ function blocks(root) {
         continue
       }
       if (tag === 'P') {
-        const t = text(node)
+        const t = inlineText(node)
         if (!t) continue
         const cls = node.classList
         // The one outbound link on the page that is itself data. Without the
@@ -240,6 +289,15 @@ function blocks(root) {
       if (tag === 'UL' || tag === 'OL') {
         const items = node.classList.contains('hbars')
           ? barLines(node)
+          : node.classList.contains('destination-list')
+            ? [...node.children]
+                .map((li) => {
+                  const label = text(li.querySelector(':scope > span'))
+                  const value = text(li.querySelector(':scope > strong'))
+                  return label ? `- ${label}${value ? ` — ${value} students` : ''}` : ''
+                })
+                .filter(Boolean)
+                .join('\n')
           : [...node.children]
               .filter((li) => !skipped(li))
               // A standout ranking already carries a fully-qualified sentence
@@ -286,6 +344,39 @@ function blocks(root) {
 
 const meta = (name) => document.querySelector(`meta[name="${name}"]`)?.content ?? null
 
+/** The page-wide cohort that was active at the instant Copy was pressed. */
+const selectedComparison = () => {
+  const button =
+    document.querySelector('.cohort-bar .chip-cohort[aria-pressed="true"]') ??
+    document.querySelector('.mobile-cohort-scroll .chip-cohort[aria-pressed="true"]')
+  if (!button) return null
+  const count = button.querySelector('.chip-n')
+  const label = text(button, count ? new Set([count]) : null)
+  if (!label) return null
+  if (button.classList.contains('chip-pin')) return `${label} (one pinned entity)`
+  const n = text(count)
+  return n ? `${label} (${n} members in the comparison cohort)` : label
+}
+
+/**
+ * Supplemental publishers represented on this particular entity page.
+ * Source notes remain in their sections too; repeating the links up front makes
+ * the provenance complete before the first figure, even when an AI tool only
+ * pays close attention to the document header.
+ */
+const supplementalSources = () => {
+  const anchors = [
+    ...document.querySelectorAll('main section:not(.hero) p.note a[rel~="nofollow"]'),
+    ...document.querySelectorAll('main #official-notices .notice-card a[rel~="nofollow"]'),
+  ]
+  const unique = new Map()
+  for (const a of anchors) {
+    if (!a.href || unique.has(a.href)) continue
+    unique.set(a.href, `[${mdLabel(text(a) || a.href)}](${mdHref(a.href)})`)
+  }
+  return [...unique.values()]
+}
+
 /**
  * The header that goes above every export. Written as prose rather than a YAML
  * front-matter block because the consumer is a chat model reading it as text,
@@ -302,6 +393,8 @@ function provenance() {
   const what = [text(document.querySelector('main .eyebrow')), text(document.querySelector('main .place'))]
     .filter(Boolean)
     .join(' · ')
+  const comparison = selectedComparison()
+  const sources = supplementalSources()
   return [
     `# ${title}`,
     ...(what ? ['', `_${what}_`] : []),
@@ -309,7 +402,8 @@ function provenance() {
     '## Source and terms of use',
     '',
     [
-      `- **Data source:** Texas Education Agency (TEA) accountability data${snapshot ? `, archived snapshot of ${snapshot}` : ''}.`,
+      `- **Primary data source:** Texas Education Agency (TEA) accountability data${snapshot ? `, archived snapshot of ${snapshot}` : ''}.`,
+      ...(sources.length ? [`- **Supplemental sources on this page:** ${sources.join(' · ')}. Their dates, scope and caveats appear with the relevant figures below.`] : []),
       `- **Page:** ${url}`,
       '- **Publisher:** txschools.net — an independent, unofficial site. It is **not** operated by, endorsed by, or connected to the Texas Education Agency.',
       '- **Scope:** traditional public school districts and campuses.',
@@ -320,6 +414,7 @@ function provenance() {
         const files = [...document.querySelectorAll('main a[href*="/data/entity/"]')].map((a) => a.href)
         return files.length ? [`- **Machine-readable copy of this data:** ${[...new Set(files)].join(' · ')}`] : []
       })(),
+      ...(comparison ? [`- **Selected page-wide comparison:** ${comparison}. Every switchable comparison below reflects this selection; fixed reference series are named separately.`] : []),
       '- **Comparisons:** figures labelled as an average of similar districts, a region, a county or the state are computed by txschools.net from TEA data. TEA does not publish them.',
     ].join('\n'),
     '',

@@ -24,7 +24,7 @@ describe('pinned current-measure comparisons', () => {
         <ul class="pin-list" aria-label="Pinned schools and districts"></ul>
         <script type="application/json" data-pin-source>{"payload":"/data/payload-test.json"}</script>
       </aside>
-      <div class="cohort-bar">
+      <div class="cohort-bar" data-accountability-population="standard">
         <button class="chip chip-cohort" data-cohort="peer" aria-pressed="true">Similar districts</button>
       </div>
       <div class="trajectory">
@@ -51,9 +51,10 @@ describe('pinned current-measure comparisons', () => {
         <thead><tr><th>Criterion</th><th>This district</th><th>Average<small>similar districts</small></th><th>Difference</th></tr></thead>
         <tbody><tr><th>Ready</th><td>61%</td><td>50.0%</td><td>+11.0</td></tr></tbody>
       </table>
+      <p><span class="cmp" data-metric="grad:0" data-fmt="pct">+5.0 pts <span class="cmp-vs">vs similar districts</span></span></p>
       <p>Difference is this district minus <span data-ccmr-comparison>the average for</span> <strong data-ccmr-cohort>Similar districts</strong>.</p>
-      <script type="application/json" data-cohorts>[{"key":"peer","short":"similar districts","label":"Similar districts","n":20,"metrics":{"domain:achievement":70,"domain:progress":74,"ccmr:0":50},"metricN":{"domain:achievement":20,"domain:progress":20,"ccmr:0":20}}]</script>
-      <script type="application/json" data-own>{"domain:achievement":80,"domain:progress":75,"ccmr:0":61}</script>
+      <script type="application/json" data-cohorts>[{"key":"peer","short":"similar districts","label":"Similar districts","n":20,"metrics":{"domain:achievement":70,"domain:progress":74,"ccmr:0":50,"grad:0":90},"metricN":{"domain:achievement":20,"domain:progress":20,"ccmr:0":20,"grad:0":18}}]</script>
+      <script type="application/json" data-own>{"domain:achievement":80,"domain:progress":75,"ccmr:0":61,"grad:0":95}</script>
     </body></html>`, {
       url: 'https://txschools.net/district/test-isd-123456',
       runScripts: 'outside-only',
@@ -69,7 +70,7 @@ describe('pinned current-measure comparisons', () => {
           return {
             version: 1,
             districtId: '001902',
-            entities: { '001902001': { 'domain:achievement': 92, 'ccmr:0': 55 } },
+            entities: { '001902001': { 'domain:achievement': 92, 'ccmr:0': 55, 'grad:0': 81 } },
           }
         },
       }
@@ -79,6 +80,7 @@ describe('pinned current-measure comparisons', () => {
       name: 'Cayuga HS',
       label: 'Cayuga HS (Cayuga ISD)',
       level: 'campus',
+      isAlt: true,
       hue: 8,
       byYear: { '2025-26': 98 },
     }]))
@@ -101,10 +103,11 @@ describe('pinned current-measure comparisons', () => {
     expect(row.querySelector('.hbar-sub')?.textContent).toContain('−12.0 vs Cayuga HS (Cayuga ISD)')
     expect(missingRow.querySelector('.hbar-mark')?.hidden).toBe(true)
     expect(window.document.querySelector('.cohort-status')?.textContent).toBe(
-      'Every comparison on this page is now against Cayuga HS (Cayuga ISD).'
+      'Every switchable benchmark on this page is now against Cayuga HS (Cayuga ISD).'
     )
     expect(window.document.querySelector('table.data thead th:nth-child(3)')?.textContent).toContain('Pinned school')
     expect(window.document.querySelector('[data-ccmr-comparison]')?.textContent).toBe('the figure for')
+    expect(window.document.querySelector('.cmp[data-metric="grad:0"]')?.hidden).toBe(true)
     expect(window.fetch).toHaveBeenCalledTimes(1)
 
     row.ownerDocument.querySelector('.pin-remove').click()

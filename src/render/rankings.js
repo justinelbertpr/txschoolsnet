@@ -352,7 +352,6 @@ export function rankable({ subjects = STAAR_SUBJECTS } = {}) {
     from(std, 'attendance', { slug: 'attendance', title: 'Attendance rate', group: 'outcomes' }),
     from(std, 'absenteeism', { slug: 'chronically-absent', title: 'Chronic absenteeism', group: 'outcomes' }),
 
-    from(std, 'avgSalary', { slug: 'average-teacher-salary', title: 'Average teacher salary', group: 'resources' }),
     from(std, 'spend', {
       slug: 'per-student-spending',
       title: 'Per-student spending',

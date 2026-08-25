@@ -644,7 +644,7 @@ describe('campus pins extend the page-wide comparison contract', () => {
   })
 
   it('keeps full current metrics out of sessionStorage', () => {
-    expect(js).toContain('const storedPin = ({ id, name, label, level, hue, byYear })')
+    expect(js).toContain('const storedPin = ({ id, name, label, level, hue, byYear, isAlt })')
     expect(js).toContain('[...pinned.values()].map(storedPin)')
   })
 })

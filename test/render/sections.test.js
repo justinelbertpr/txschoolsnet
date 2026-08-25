@@ -396,8 +396,8 @@ describe('trajectory', () => {
     stateByYear: { '2025-26': 72.4, '2024-25': 71.1 },
     peerByYear: { '2025-26': 70.2, '2024-25': 69.0 },
     comparisons: [
-      { key: 'state', label: 'Texas average', n: 1207, byYear: { '2025-26': 72.4, '2024-25': 71.1 } },
-      { key: 'peer', label: 'Similar student population', n: 294, byYear: { '2025-26': 70.2, '2024-25': 69.0 }, note: 'Within 10 points' },
+      { key: 'state', label: 'Texas average', n: 1207, byYear: { '2025-26': 72.4, '2024-25': 71.1 }, reportingNByYear: { '2025-26': 1201, '2024-25': 1188 } },
+      { key: 'peer', label: 'Similar student population', n: 294, byYear: { '2025-26': 70.2, '2024-25': 69.0 }, reportingNByYear: { '2025-26': 290, '2024-25': 275 }, note: 'Within 10 points' },
     ],
   })
 
@@ -413,6 +413,13 @@ describe('trajectory', () => {
     const html = trajectory(vm)
     expect(html).toContain('1,207')
     expect(html).toContain('294')
+  })
+
+  it('states the year-specific reporting n beside each trajectory average', () => {
+    const html = trajectory(vm)
+    expect(html).toContain('290 reporting')
+    expect(html).toContain('1,201 reporting')
+    expect(html).toContain('"reportingNs":[275,290]')
   })
 
   it('embeds the comparison payload with < escaped, so it cannot close the script tag', () => {
@@ -474,9 +481,9 @@ describe('domains', () => {
     expect(one).toContain('1 point below A')
   })
 
-  it('states the n of every cohort in the legend', () => {
+  it('states the selected cohort n in the legend without a stale second marker', () => {
     expect(domains(vm)).toContain('Similar student population (294 in cohort)')
-    expect(domains(vm)).toContain('Texas average (1,207 in cohort)')
+    expect(domains(vm)).not.toContain('Texas average (1,207 in cohort)')
     expect(domains(vm)).toContain('286 reporting')
   })
 
@@ -571,6 +578,18 @@ describe('students', () => {
     expect(html).toMatch(/cmp-neutral[^>]*data-metric="ecoDis"/)
     expect(html).not.toMatch(/cmp-up[^>]*data-metric="ecoDis"/)
     expect(html).toContain('vs similar')
+  })
+
+  it('keeps a hidden neutral hook when only another cohort reports a context metric', () => {
+    const html = students(empty({
+      profile,
+      cohorts: [
+        { key: 'peer', label: 'Similar context', short: 'similar', n: 20, metrics: {}, metricN: {} },
+        { key: 'state', label: 'Texas average', short: 'state', n: 100, metrics: { ecoDis: 60 }, metricN: { ecoDis: 100 } },
+      ],
+      own: { ecoDis: 88.4 },
+    }))
+    expect(html).toMatch(/cmp cmp-neutral[^>]*data-metric="ecoDis"[^>]*hidden style="display:none"/)
   })
 
   it('treats a HIGH chronic-absence figure as worse, not better', () => {

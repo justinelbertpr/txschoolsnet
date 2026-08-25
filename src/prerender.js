@@ -118,6 +118,7 @@ import { toFinance } from './normalize/finance.js'
 import { toProfile } from './normalize/profile.js'
 import { buildViewModel, entitySlug, slugify } from './render/view-model.js'
 import { metricSpecs } from './render/metrics.js'
+import { buildPublicComparisonBundles } from './render/public-comparisons.js'
 import { renderEntity } from './render/page.js'
 import { renderRegionPage, renderCountyPage, renderLetterPage, renderHomePage, regionPath } from './render/hubs.js'
 import { searchIndexJson, searchClientJs, renderSearchPage, SEARCH_LETTERS } from './render/search.js'
@@ -251,6 +252,7 @@ export function loadTables(dir) {
   const educators = ndjson('educators')
   const discipline = ndjson('discipline')
   const publicDataMeta = JSON.parse(readFileSync('build/public-data-meta.json', 'utf8'))
+  const finance = [...toFinance(gz(dir, 'finance_district')), ...toFinance(gz(dir, 'finance_school'))]
 
   const raw = new Map()
   for (const r of rawDistricts) raw.set(r.id, r)
@@ -286,6 +288,17 @@ export function loadTables(dir) {
     transfers,
     educators,
     discipline,
+    publicComparisonBundles: buildPublicComparisonBundles({
+      entities,
+      finance,
+      enrollment,
+      transfers,
+      educators,
+      discipline,
+      community,
+      postsecondary,
+      actionFlags,
+    }),
     actionById: new Map(actionFlags.map((row) => [row.id, row])),
     actionByDistrict,
     entityById,
@@ -296,7 +309,7 @@ export function loadTables(dir) {
     disciplineById: new Map(discipline.map((row) => [row.id, row])),
     publicDataMeta,
     domains: toDomains(gz(dir, 'overview')),
-    finance: [...toFinance(gz(dir, 'finance_district')), ...toFinance(gz(dir, 'finance_school'))],
+    finance,
     achievement: cleanAchievement(gz(dir, 'student_achievement_tab')),
     raw,
     latestYear,
@@ -378,6 +391,7 @@ const viewModelFor = (t, entity, snapshotDate, { previousYear = null, recentChan
           : null,
       },
     },
+    publicComparisonBundles: t.publicComparisonBundles,
   })
 
 /* ----------------------------------------------------------- brand assets -- */
@@ -1371,7 +1385,12 @@ export async function prerender({ concurrency } = {}) {
   // it holds that district's campuses, so 8,066 campus records cost 1,020 files
   // and a second pin from the same district reuses the same request. District
   // metrics remain in their existing reporter JSON and are not duplicated.
-  const pinPayloads = pinMetricPayloads({ entities, bundles, subjects })
+  const pinPayloads = pinMetricPayloads({
+    entities,
+    bundles,
+    publicBundles: tables.publicComparisonBundles,
+    subjects,
+  })
   if (pinPayloads.size !== districts.length) {
     throw new Error(`pin metric payload count ${pinPayloads.size} does not match ${districts.length} published districts`)
   }

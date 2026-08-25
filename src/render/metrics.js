@@ -9,7 +9,7 @@
 // The consequence that matters: adding a metric to the page automatically makes
 // it comparable. There is no way to ship a number without its context.
 
-import { CCMR, GRADUATION, COMPLETION, STAAR_LEVELS } from './labels.js'
+import { CCMR, GRADUATION, COMPLETION, STAAR_LEVELS, RACE, EXPERIENCE } from './labels.js'
 import { DOMAIN_LABELS } from '../normalize/domains.js'
 import { percentage } from '../normalize/entities.js'
 
@@ -80,12 +80,17 @@ export const CONTEXT = 'context'
  * above impossible to produce rather than merely unlikely.
  *
  * Where the line falls: an entity does not choose how many of its students are
- * poor, and ranking it for that is ranking its intake. It does choose what it
- * spends per student and what it pays teachers, and a district will defend those
- * numbers as decisions, so they stay ranked. If that reading is ever rejected
- * for spending, adding 'spend' here is the whole change.
+ * poor, and ranking it for that is ranking its intake. Teacher compensation is
+ * also staffing context rather than a student outcome: it remains comparable,
+ * but a larger salary is not labelled a school-quality “win.” Per-student
+ * spending remains ranked as a resource decision; if that reading is ever
+ * rejected, adding 'spend' here is the whole change.
  */
-const CONTEXT_KEYS = new Set(['ecoDis', 'engLrn', 'specEd'])
+const CONTEXT_KEYS = new Set([
+  'ecoDis', 'engLrn', 'specEd', 'avgSalary', 'teachers', 'stuPerStaff',
+  ...RACE.map((_, i) => `race:${i}`),
+  ...EXPERIENCE.map((_, i) => `experience:${i}`),
+])
 
 /** True for a metric key that describes the student population, not performance. */
 export const isContextMetric = (key) => CONTEXT_KEYS.has(key)
@@ -160,10 +165,23 @@ export function metricSpecs({ subjects = [], isAlt = false } = {}) {
     // opposite metrics with opposite directions, not one metric twice.
     { key: 'attendance', label: 'Attendance', fmt: 'pct', dir: HIGHER, get: (s) => s.profile?.attendance },
     { key: 'absenteeism', label: 'Chronically absent', fmt: 'pct', dir: LOWER, get: (s) => s.profile?.absenteeism },
-    { key: 'avgSalary', label: 'Average teacher salary', fmt: 'usd', dir: HIGHER, get: (s) => s.profile?.avgSalary },
-    // Students-per-staff is deliberately absent: toProfile does not carry
-    // Stu_Per_Staff, so a spec for it would resolve to undefined for every entity
-    // and quietly produce an empty comparison. Add it to the normalizer first.
+    { key: 'avgSalary', label: 'Average teacher salary', fmt: 'usd', dir: CONTEXT, get: (s) => s.profile?.avgSalary },
+    { key: 'teachers', label: 'Teachers', fmt: 'ratio', dir: CONTEXT, get: (s) => s.profile?.teachers },
+    { key: 'stuPerStaff', label: 'Students per staff member', fmt: 'ratio', dir: CONTEXT, get: (s) => s.profile?.stuPerStaff },
+    ...RACE.map((label, i) => ({
+      key: `race:${i}`,
+      label: `${label} student share`,
+      fmt: 'pct',
+      dir: CONTEXT,
+      get: (s) => s.profile?.raceShare?.[i] ?? null,
+    })),
+    ...EXPERIENCE.map((label, i) => ({
+      key: `experience:${i}`,
+      label: `${label} teacher share`,
+      fmt: 'pct',
+      dir: CONTEXT,
+      get: (s) => s.profile?.staffYears?.[i] ?? null,
+    })),
     { key: 'spend', label: 'Per-student spending', fmt: 'usd', dir: HIGHER, get: (s) => s.spend },
   ]
   return specs
@@ -242,10 +260,21 @@ export function cohortMetricSummary(specs, bundles, ids) {
 export const cohortMetrics = (specs, bundles, ids) => cohortMetricSummary(specs, bundles, ids).metrics
 
 /** The three cohorts every metric is compared against. */
+const finiteEnrollment = (value) => typeof value === 'number' && Number.isFinite(value) && value > 0
+
 export function buildCohorts({ entity, entities, bundles, specs, band, regionName, countyName }) {
   const sameLevel = entities.filter((e) => e.level === entity.level)
   const region = sameLevel.filter((e) => e.regionId === entity.regionId)
   const county = sameLevel.filter((e) => e.countyId === entity.countyId)
+  const enrollment = entity.enrollment
+  const similarSize = finiteEnrollment(enrollment)
+    ? sameLevel.filter(
+        (e) =>
+          finiteEnrollment(e.enrollment) &&
+          e.enrollment >= enrollment * 0.6 &&
+          e.enrollment <= enrollment * 1.6
+      )
+    : []
 
   const defs = [
     band.n > 1
@@ -259,6 +288,15 @@ export function buildCohorts({ entity, entities, bundles, specs, band, regionNam
       : null,
     region.length > 1 ? { key: 'region', label: regionName, short: 'region', ids: region.map((e) => e.id) } : null,
     county.length > 1 ? { key: 'county', label: `${countyName} County`, short: 'county', ids: county.map((e) => e.id) } : null,
+    similarSize.length > 1
+      ? {
+          key: 'size',
+          label: 'Similar size',
+          short: 'similar-size group',
+          note: `Between 60% and 160% of this ${entity.level}'s enrollment`,
+          ids: similarSize.map((e) => e.id),
+        }
+      : null,
     { key: 'state', label: 'Texas average', short: 'state', ids: sameLevel.map((e) => e.id) },
   ].filter(Boolean)
 
@@ -359,6 +397,11 @@ export function rankAll({ entity, cohorts, bundles, specs, cohortIds }) {
   const out = []
   for (const c of cohorts) {
     const ids = cohortIds[c.key] ?? []
+    // Cohorts are built from the current-year rated pool. If this page entity
+    // is outside that pool, it cannot honestly receive a placement “of” that
+    // cohort for some other reported metric: the denominator would exclude the
+    // entity itself and an exact tie could even produce tied = -1.
+    if (!ids.includes(entity.id)) continue
     for (const s of specs) {
       if (directionOf(s) === CONTEXT) continue // context is compared, never placed
       const mine = s.get(bundles.get(entity.id) ?? {})

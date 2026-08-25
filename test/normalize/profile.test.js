@@ -4,6 +4,9 @@ import { toProfile } from '../../src/normalize/profile.js'
 const rec = {
   id: '001902', Total: 574, Eco_Dis: 52.6, Spec_Ed: 15.2, Eng_Lrn: 1.2,
   Attendance: 95.8, Absenteeism: 8.7, Avg_Salary: 65465, School_Year: '2025-26',
+  Full_Time_Teachers: 52.4, Stu_Per_Staff: 10.9,
+  Enrollment: [6.6, 9.6, 77.7, 0, 1.2, 0, 4.9],
+  Staff_Years: [9, 25.2, 9, 26.5, 21.6, 9],
 }
 
 describe('toProfile', () => {
@@ -16,6 +19,10 @@ describe('toProfile', () => {
     expect(p.total).toBe(574)
     expect(p.attendance).toBe(95.8)
     expect(p.avgSalary).toBe(65465)
+    expect(p.teachers).toBe(52.4)
+    expect(p.stuPerStaff).toBe(10.9)
+    expect(p.raceShare).toEqual(rec.Enrollment)
+    expect(p.staffYears).toEqual(rec.Staff_Years)
   })
 
   it('nulls a missing eco-dis rather than defaulting to zero', () => {

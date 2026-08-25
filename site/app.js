@@ -69,13 +69,11 @@ const UNIT = location.pathname.startsWith('/campus/') ? 'campuses' : 'districts'
 /* ---------------------------------------------------------- the payload ---- */
 
 /**
- * The 10,230-entity dashboard payload, fetched at most once per page and shared
- * by everything that needs it: the pinner's search box and the cohort switch's
- * placement line. It used to be the pinner's private business, which meant a
- * second consumer would have downloaded 230 KB a second time.
+ * The 10,230-entity dashboard payload, fetched at most once per page for the
+ * pinner's search box. Placements for server cohorts are now precomputed in the
+ * page rather than rebuilt from this search payload in the browser.
  *
- * Never fetched on load — only when the reader touches the search box or moves
- * the cohort switch.
+ * Never fetched on load — only when the reader touches the pinner's search box.
  */
 let payloadPromise = null
 
@@ -134,7 +132,29 @@ function initTrajectory(svg) {
 
   const active = new Set(data.defaults)
   const pins = new Map() // id -> { label, values, hue }
-  let domain = { lo: +svg.dataset.lo, hi: +svg.dataset.hi }
+
+  /** Same grade-band snapping rule used by the server renderer. */
+  const scoreDomain = (values) => {
+    const all = values.filter((v) => typeof v === 'number' && Number.isFinite(v))
+    if (!all.length) return { lo: 0, hi: 100 }
+    return {
+      lo: Math.max(0, Math.floor((Math.min(...all) - 4) / 10) * 10),
+      hi: Math.min(100, Math.ceil((Math.max(...all) + 4) / 10) * 10),
+    }
+  }
+
+  // The server scale includes every built-in cohort, not only the lines drawn
+  // initially. Derive the same union as a backward-compatible guard for an
+  // older generated page, then hold it fixed across all standard switches.
+  const builtInDomain = scoreDomain([
+    data.entity.values,
+    ...data.comparisons.map((comparison) => comparison.values),
+  ].flat())
+  const baseDomain = {
+    lo: Math.min(+svg.dataset.lo, builtInDomain.lo),
+    hi: Math.max(+svg.dataset.hi, builtInDomain.hi),
+  }
+  let domain = { ...baseDomain }
 
   // The picker and the rail's cohort switch are two controls over one idea, so
   // they share state rather than fighting: `autoKey` is the line the cohort
@@ -151,22 +171,21 @@ function initTrajectory(svg) {
   const baseLabel = svg.getAttribute('aria-label') ?? ''
 
   const seriesFor = (key) => data.comparisons.find((c) => c.key === key)
-  const activeValues = () => [
-    data.entity.values,
-    ...[...active].map((k) => seriesFor(k)?.values ?? []),
-    // A pin switched off at its chip must not stretch the axis for a line that
-    // is no longer drawn — the scale would jump on a toggle that visibly
-    // removed nothing.
-    ...[...pins.values()].filter((p) => !p.off).map((p) => p.values),
-  ].flat().filter((v) => v !== null && v !== undefined)
-
-  /** Same band-snapping rule the server uses, so JS and HTML never disagree. */
+  /**
+   * Standard cohorts never alter the scale. A newly loaded pin outside the
+   * built-in range can expand it so real values are not clipped; removing that
+   * pin returns to the same built-in scale.
+   */
   const targetDomain = () => {
-    const all = activeValues()
-    if (!all.length) return domain
+    const pinValues = [...pins.values()]
+      .filter((pin) => !pin.off)
+      .flatMap((pin) => pin.values)
+      .filter((v) => typeof v === 'number' && Number.isFinite(v))
+    if (!pinValues.length) return { ...baseDomain }
+    const pinDomain = scoreDomain(pinValues)
     return {
-      lo: Math.max(0, Math.floor((Math.min(...all) - 4) / 10) * 10),
-      hi: Math.min(100, Math.ceil((Math.max(...all) + 4) / 10) * 10),
+      lo: Math.min(baseDomain.lo, pinDomain.lo),
+      hi: Math.max(baseDomain.hi, pinDomain.hi),
     }
   }
 
@@ -532,10 +551,8 @@ function initBars() {
  *
  *   Nothing is computed here that the server did not publish. Every figure
  *   written below comes out of [data-cohorts], [data-own] or the trajectory
- *   payload — the same numbers, read against a different cohort. The one
- *   exception is the placement line, which is computed from the shared entity
- *   payload and refuses to publish unless it can prove it counted the same
- *   population the page names (see `placement`).
+ *   payload — the same numbers, read against a different cohort. Placement and
+ *   editorial claims are precomputed for every server cohort and merely toggled.
  *
  *   Anything that cannot be identified with certainty is left exactly as the
  *   server drew it. The HTML bar lists publish a metric key on every row, so
@@ -545,7 +562,7 @@ function initBars() {
  *   guessed at, and a cohort with no value for a metric hides its mark rather
  *   than leaving it pointing at the previous cohort's number.
  */
-function initCohorts(chart) {
+function initCohorts(chart, spend = null) {
   const cohortsTag = document.querySelector('script[data-cohorts]')
   const ownTag = document.querySelector('script[data-own]')
   if (!cohortsTag || !ownTag) return
@@ -578,10 +595,22 @@ function initCohorts(chart) {
    * phrase below that counts members or says "average" branches on this.
    */
   const isOne = (c) => c.single === true
+  const isState = (c) => !isOne(c) && c?.key === 'state'
+  const isSize = (c) => !isOne(c) && c?.key === 'size'
+  // "Texas average" is the state cohort's display label. It is a useful chip
+  // label but not a grammatical object after "average for"; prose names the
+  // geography instead and states that this is a cohort average.
+  const proseLabel = (c) =>
+    isState(c)
+      ? 'Texas'
+      : isSize(c)
+        ? `similarly sized ${UNIT}`
+        : c?.key === 'peer'
+          ? `${UNIT} with a similar economic-disadvantage rate`
+          : label(c)
   /** "Region 04: Houston (46 districts)" for a cohort, the bare name for a pin. */
   const withCount = (c) => (isOne(c) ? label(c) : `${label(c)} (${num(c.n)} ${UNIT})`)
   const sbCohort = document.querySelector('[data-sb-cohort]')
-  const entityId = location.pathname.match(/-(\d{6,9})(?:\.html)?$/)?.[1] ?? null
 
   /* ---- small DOM helpers ---- */
 
@@ -625,8 +654,24 @@ function initCohorts(chart) {
     return out
   }
 
-  /** Metric keys in the order the server declares them, which is the row order. */
-  const keysLike = (prefix) => Object.keys(base.metrics).filter((k) => k.startsWith(prefix))
+  /**
+   * Metric keys in stable server order across every cohort. The default cohort
+   * can legitimately have no reported value for a row that a county or the
+   * state does report; using only base.metrics made that later value impossible
+   * for a table updater to identify and reveal.
+   */
+  const keysLike = (prefix) => {
+    const seen = new Set()
+    const keys = []
+    for (const cohort of cohorts) {
+      for (const key of Object.keys(cohort.metrics ?? {})) {
+        if (!key.startsWith(prefix) || seen.has(key)) continue
+        seen.add(key)
+        keys.push(key)
+      }
+    }
+    return keys
+  }
 
   /* ---- the delta chips ---- */
 
@@ -681,6 +726,129 @@ function initCohorts(chart) {
         if (!REDUCED) {
           el.animate([{ opacity: 0, transform: 'translateY(-3px)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: 'ease-out' })
         }
+      }
+    }
+  }
+
+  /* ---- selected values in supplemental public-data sections ---- */
+
+  /**
+   * The supplemental datasets (enrollment, transfers, discipline, educators,
+   * community, postsecondary and spending) do not all fit one chart shape.
+   * Their renderer therefore publishes two deliberately small, generic hooks:
+   *
+   *   [data-comparison-readout] is a labelled sentence/card, and
+   *   [data-comparison-cell] is one selected-comparison table cell.
+   *
+   * Both name the exact metric in [data-cohorts]. This updater only formats a
+   * value the build already published; a missing value hides a readout or
+   * prints an em dash in a table rather than retaining the previous cohort's
+   * number. Rebuilding the readout's metadata span is intentional: it keeps a
+   * one-entity pin from being called an "average" or "reporting cohort".
+   */
+  const comparisonHooks = () => {
+    const readouts = [...document.querySelectorAll('[data-comparison-readout][data-metric]')]
+    const cells = [...document.querySelectorAll('[data-comparison-cell][data-metric]')]
+    if (!readouts.length && !cells.length) return null
+
+    const display = (value, format = 'decimal') => {
+      const v = finite(value)
+      if (v === null) return '—'
+      if (format === 'usd') return `$${Math.round(v).toLocaleString('en-US')}`
+      if (format === 'pct') return `${v.toFixed(1)}%`
+      if (format === 'count') {
+        return v.toLocaleString('en-US', { maximumFractionDigits: Number.isInteger(v) ? 0 : 1 })
+      }
+      if (format === 'rate') return v.toLocaleString('en-US', { maximumFractionDigits: 2 })
+      if (format === 'signed-count') {
+        const rounded = Math.round(v)
+        const sign = rounded > 0 ? '+' : rounded < 0 ? '−' : '±'
+        return `${sign}${Math.abs(rounded).toLocaleString('en-US')}`
+      }
+      return v.toLocaleString('en-US', { maximumFractionDigits: 1 })
+    }
+
+    const writeMeta = (root, c, metric) => {
+      const oldKind = root.querySelector('[data-compare-kind]')
+      const meta = oldKind?.parentElement
+      if (!meta) return
+      meta.textContent = ''
+
+      const kind = document.createElement('span')
+      kind.dataset.compareKind = ''
+      kind.textContent = isOne(c) ? 'figure for' : isState(c) ? 'statewide cohort average across' : 'average for'
+      const name = document.createElement('span')
+      name.dataset.compareLabel = ''
+      name.textContent = proseLabel(c)
+      meta.append(kind, document.createTextNode(' '), name)
+
+      const reporting = finite(c.metricN?.[metric])
+      if (isOne(c) || reporting === null) return
+      const n = document.createElement('span')
+      n.dataset.compareN = ''
+      n.textContent = num(reporting)
+      const reportingUnit = UNIT === 'campuses' ? 'schools' : 'districts'
+      meta.append(document.createTextNode(' · '), n, document.createTextNode(` rated ${reportingUnit} reporting`))
+    }
+
+    return (c) => {
+      for (const el of readouts) {
+        const metric = el.dataset.metric
+        const value = finite(c.metrics?.[metric])
+        // Both, for the same reason as .cmp above: an author stylesheet can
+        // override the UA's [hidden] rule with a class selector.
+        el.hidden = value === null
+        el.style.display = value === null ? 'none' : ''
+        if (value === null) continue
+        const out = el.querySelector('[data-compare-value]')
+        if (out) out.textContent = display(value, el.dataset.format)
+        writeMeta(el, c, metric)
+      }
+
+      for (const cell of cells) {
+        const value = finite(c.metrics?.[cell.dataset.metric])
+        cell.textContent = display(value, cell.dataset.format)
+        cell.classList.toggle('na', value === null)
+      }
+    }
+  }
+
+  /**
+   * Some editorial comparisons (hero placement, selected strengths and best
+   * ranks) are safest precomputed by the build, because regenerating their
+   * claims in the browser would duplicate ranking and tie rules. The renderer
+   * publishes one group per cohort; switching only reveals the matching one.
+   * An individual runtime pin has no precomputed editorial group, so all of
+   * these claims stay hidden while the ordinary numeric hooks still compare it.
+   */
+  const comparisonGroups = () => {
+    const groups = [...document.querySelectorAll('[data-comparison-cohort]')]
+    if (!groups.length) return null
+    return (c) => {
+      for (const group of groups) {
+        const show = !isOne(c) && group.dataset.comparisonCohort === c.key
+        group.hidden = !show
+        group.style.display = show ? '' : 'none'
+      }
+    }
+  }
+
+  /**
+   * Server comparison groups cannot exist for an entity pinned after the page
+   * was built. Sections that need to explain that gap publish an explicit
+   * placeholder; reveal it only for a runtime pin instead of leaving an empty
+   * heading or showing the last server cohort's editorial claims.
+   */
+  const pinUnavailable = () => {
+    const placeholders = [...document.querySelectorAll('[data-comparison-pin-unavailable]')]
+    if (!placeholders.length) return null
+    return (c) => {
+      for (const placeholder of placeholders) {
+        const show = isOne(c)
+        placeholder.hidden = !show
+        placeholder.style.display = show ? '' : 'none'
+        const name = placeholder.querySelector('[data-comparison-pin-label]')
+        if (name && show) name.textContent = label(c)
       }
     }
   }
@@ -873,8 +1041,11 @@ function initCohorts(chart) {
           `Approaches. ` +
           (isOne(c)
             ? `The tick on each bar is ${label(c)}'s own figure, not an average. This comparison is not published by TEA.`
-            : `The tick on each bar is the average for ${label(c)}. The row gives the number ` +
-              `reporting that measure; ${num(c.n)} ${UNIT} are in the full cohort. This comparison is not published by TEA.`)
+            : (isState(c)
+                ? `The tick on each bar is the statewide cohort average across Texas. `
+                : `The tick on each bar is the average for ${proseLabel(c)}. `) +
+              `The row gives the number reporting that measure; ${num(c.n)} ${UNIT} are in the full cohort. ` +
+              `This comparison is not published by TEA.`)
       }
     }
   }
@@ -896,21 +1067,32 @@ function initCohorts(chart) {
     const rows = [...table.querySelectorAll('tbody tr')]
       .map((tr) => {
         const cells = tr.querySelectorAll('td')
-        return { mine: parseFloat(cells[0]?.textContent ?? ''), other: parseFloat(cells[1]?.textContent ?? ''), cells }
+        return { metric: tr.dataset.metric ?? null, mine: parseFloat(cells[0]?.textContent ?? ''), other: parseFloat(cells[1]?.textContent ?? ''), cells }
       })
       .filter((r) => r.cells.length >= 3)
     if (!rows.length) return null
-    const keys = assign(
-      rows.map((r) => ({ mine: Number.isFinite(r.mine) ? r.mine : null, other: Number.isFinite(r.other) ? r.other : null })),
-      keysLike('ccmr:')
-    )
+    const explicit = rows.every((row) => row.metric)
+    const keys = explicit
+      ? rows.map((row) => row.metric)
+      : assign(
+          rows.map((r) => ({ mine: Number.isFinite(r.mine) ? r.mine : null, other: Number.isFinite(r.other) ? r.other : null })),
+          keysLike('ccmr:')
+        )
     if (!keys) return null
 
     return (c) => {
-      if (headLabel) headLabel.nodeValue = isOne(c) ? `Pinned ${c.level ?? 'entity'}` : 'Average'
-      if (head) head.textContent = c.short
-      if (noteComparison) noteComparison.textContent = isOne(c) ? 'the figure for' : 'the average for'
-      if (noteCohort) noteCohort.textContent = c.label ?? c.short
+      if (headLabel) headLabel.nodeValue = isOne(c)
+        ? `Pinned ${c.level ?? 'entity'}`
+        : isState(c)
+          ? 'Statewide average'
+          : 'Average'
+      if (head) head.textContent = isState(c) ? 'Texas cohort' : c.short
+      if (noteComparison) noteComparison.textContent = isOne(c)
+        ? 'the figure for'
+        : isState(c)
+          ? 'the statewide cohort average across'
+          : 'the average for'
+      if (noteCohort) noteCohort.textContent = proseLabel(c)
       rows.forEach((r, i) => {
         const v = c.metrics[keys[i]]
         const mine = own[keys[i]]
@@ -937,13 +1119,22 @@ function initCohorts(chart) {
     if (!Array.isArray(data?.years)) return null
 
     // Year | Rating | Score | comparison | State.
-    const head = table.querySelectorAll('thead th')[3] ?? null
+    const heads = table.querySelectorAll('thead th')
+    const head = heads[3] ?? null
+    const fixedStateHead = heads[4] ?? null
     const headHtml = head?.innerHTML ?? null
     const rows = [...table.querySelectorAll('tbody tr')]
-      .map((tr) => ({ year: tr.querySelector('th')?.textContent?.trim(), cell: tr.querySelectorAll('td')[2] }))
+      .map((tr) => {
+        const cells = tr.querySelectorAll('td')
+        return {
+          year: tr.querySelector('th')?.textContent?.trim(),
+          cell: cells[2],
+          fixedStateCell: cells[3] ?? null,
+        }
+      })
       .filter((r) => r.cell && r.year)
     if (!rows.length) return null
-    const original = rows.map((r) => r.cell.textContent)
+    const original = rows.map((r) => r.cell.innerHTML)
 
     return (c) => {
       // A server cohort has a precomputed year series in [data-trajectory]. A
@@ -954,78 +1145,49 @@ function initCohorts(chart) {
       const series =
         data.comparisons?.find((s) => s.key === c.key) ??
         (c.byYear ? { key: c.key, values: data.years.map((y) => c.byYear[y] ?? null) } : null)
-      // The last column is always the state average. When the reader picks the
-      // state there is nothing left for this column to become, so it goes back
-      // to the cohort the server put there rather than printing the same series
-      // twice under two headings.
-      const restore = !series || c.key === 'state' || c === base
+      // The last column is a fixed state reference. When state is the selected
+      // page-wide cohort, put that series in the selected-comparison column and
+      // hide the redundant fixed column. Restoring the peer/default column here
+      // made the only table beside the chart ignore the state selection.
+      const restore = !series || c === base
+      const stateSelected = !!series && c.key === 'state' && !restore
+      if (fixedStateHead) {
+        fixedStateHead.hidden = stateSelected
+        fixedStateHead.style.display = stateSelected ? 'none' : ''
+      }
+      for (const row of rows) {
+        if (!row.fixedStateCell) continue
+        row.fixedStateCell.hidden = stateSelected
+        row.fixedStateCell.style.display = stateSelected ? 'none' : ''
+      }
       if (head && headHtml != null) {
         if (restore) head.innerHTML = headHtml
-        else head.textContent = isOne(c) ? c.short : `${cap(c.short)} (${num(c.n)})`
+        else if (stateSelected) head.textContent = 'Texas average'
+        else head.textContent = isOne(c) ? c.short : cap(c.short)
       }
       rows.forEach((r, i) => {
-        if (restore) { r.cell.textContent = original[i]; return }
+        if (restore) { r.cell.innerHTML = original[i]; return }
         const at = data.years.indexOf(r.year)
         const v = at < 0 ? null : series.values[at]
         // A cohort average earns its decimal; one district's score is a whole
         // number and printing "89.0" would imply a precision TEA never gave.
         r.cell.textContent = v == null ? '—' : isOne(c) ? String(v) : v.toFixed(1)
+        const reporting = at < 0 ? null : series.reportingNs?.[at]
+        if (!isOne(c) && Number.isFinite(reporting)) {
+          const detail = document.createElement('small')
+          detail.className = 'trajectory-reporting'
+          detail.textContent = `${num(reporting)} reporting`
+          r.cell.append(document.createTextNode(' '), detail)
+        }
       })
     }
   }
 
   /* ---- the sentence at the top of the page ---- */
 
-  /**
-   * Where this entity places inside the chosen cohort, computed from the same
-   * payload the pinner searches and by the rule the server ranks with: one plus
-   * the number scoring strictly better, with ties disclosed.
-   *
-   * Two guards decide whether the answer may be published, and both check this
-   * file's cohort against the one the page names — the membership count has to
-   * equal the n the server printed on the chip, and the mean of those members'
-   * scores has to equal the cohort average the server published. If either
-   * differs, the population counted here is not the population the page is
-   * talking about, and nothing is written. A rank whose denominator cannot be
-   * verified is exactly the boast this site exists to avoid.
-   */
-  const placement = (raw, c) => {
-    const cols = raw?.entities
-    if (!cols?.id || !Array.isArray(raw.scores) || !entityId) return null
-    const i = cols.id.indexOf(entityId)
-    if (i < 0) return null
-    const scoreAt = (k) => raw.scores[k]?.[0] ?? null
-    const mine = scoreAt(i)
-    if (mine == null || !near(mine, own.score)) return null
-
-    const belongs =
-      c.key === 'state' ? () => true
-      : c.key === 'region' ? (k) => cols.regionId?.[k] === cols.regionId[i]
-      : c.key === 'county' ? (k) => cols.countyId?.[k] === cols.countyId[i]
-      : c.key === 'peer'
-        ? (k) => cols.ecoDisPct?.[k] != null && cols.ecoDisPct[i] != null && Math.abs(cols.ecoDisPct[k] - cols.ecoDisPct[i]) <= 10
-        : null
-    if (!belongs) return null
-
-    const scores = []
-    for (let k = 0; k < cols.id.length; k++) {
-      if (cols.level?.[k] !== cols.level[i] || scoreAt(k) == null || !belongs(k)) continue
-      scores.push(scoreAt(k))
-    }
-    if (scores.length !== c.n) return null
-    const mean = Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10
-    if (c.metrics.score != null && !near(mean, c.metrics.score)) return null
-    return {
-      rank: scores.filter((v) => v > mine).length + 1,
-      of: scores.length,
-      tied: scores.filter((v) => v === mine).length - 1,
-    }
-  }
-
   const verdictClause = () => {
     const summary = document.querySelector('.hero .summary') ?? document.querySelector('.verdict .summary')
     if (!summary || own.score == null) return null
-    let seq = 0
 
     // A hook the renderer may one day own; until then this file makes its own,
     // and either way there is exactly one of them.
@@ -1052,29 +1214,26 @@ function initCohorts(chart) {
       el.append(strong, document.createTextNode(` against ${withCount(c)}${tail}.`))
     }
 
+    const clear = () => {
+      const el = summary.querySelector('[data-cohort-clause]')
+      if (el?.previousSibling?.nodeType === 3) el.previousSibling.remove()
+      el?.remove()
+    }
+
     return (c) => {
-      const token = ++seq
       const other = c.metrics.score
-      // The server's own sentence already states the default cohort, and would
-      // then be followed by the same fact in different words.
-      if (c === base || other == null) {
-        const el = summary.querySelector('[data-cohort-clause]')
-        if (el?.previousSibling?.nodeType === 3) el.previousSibling.remove()
-        el?.remove()
+      // Every server-built cohort already has a complete, precomputed summary
+      // and placement in [data-comparison-cohort]. Appending this legacy clause
+      // as well repeated the same score gap (and sometimes the rank) in both the
+      // page and Copy-for-AI. Runtime pins are the one comparison the server
+      // could not precompute, so only they still need this small prose fallback.
+      if (!isOne(c) || other == null) {
+        clear()
         return
       }
       const el = slot()
       const d = own.score - other
       write(el, c, d, null)
-      // The placement needs the entity payload, so it arrives a moment later and
-      // only if it can be verified. The sentence is complete and true without it.
-      loadPayload()
-        .then((raw) => {
-          if (token !== seq) return
-          const place = placement(raw, c)
-          if (place) write(el, c, d, place)
-        })
-        .catch(() => {})
     }
   }
 
@@ -1087,13 +1246,23 @@ function initCohorts(chart) {
     ;(document.querySelector('.cohort-bar') ?? document.body).append(el)
     return (c, onChart) => {
       el.textContent = isOne(c)
-        ? `Every comparison on this page is now against ${label(c)}.`
-        : `Every comparison on this page is now against ${label(c)}, ${num(c.n)} ${UNIT}.` +
+        ? `Every switchable benchmark on this page is now against ${label(c)}.`
+        : `Every switchable benchmark on this page is now against ${label(c)}, ${num(c.n)} ${UNIT}.` +
           (onChart ? ' Its line is on the trajectory chart.' : '')
     }
   })()
 
-  const updaters = [chips(), domainBars(), staarBars(), ccmrTable(), trajTable(), verdictClause()].filter(Boolean)
+  const updaters = [
+    chips(),
+    comparisonHooks(),
+    comparisonGroups(),
+    pinUnavailable(),
+    domainBars(),
+    staarBars(),
+    ccmrTable(),
+    trajTable(),
+    verdictClause(),
+  ].filter(Boolean)
   let current = base
 
   const apply = (key) => {
@@ -1104,6 +1273,7 @@ function initCohorts(chart) {
     document.querySelectorAll('.chip-cohort').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.cohort === key)))
     if (sbCohort) sbCohort.textContent = label(c)
     for (const u of updaters) u(c)
+    spend?.setCohort?.(c)
     announce(c, chart?.setCohort?.(c.key) === true)
   }
 
@@ -1306,20 +1476,19 @@ function initStickybar() {
 /* ------------------------------------------------------- spending chart ---- */
 
 /**
- * Adds pinned districts to "Spending per student".
+ * Keeps "Spending per student" on the page-wide comparison and adds pins.
  *
- * This chart was the one section that answered to no comparison at all — not
- * even the cohort switch — because its three series are fixed (this entity,
- * TEA's own peer group, the statewide average) and the server SVG was the only
- * copy of their numbers. Pin a neighbouring district and every other figure on
- * the page moved while this chart sat still, which is what "I don't see the
- * comparison here" was pointing at.
+ * The entity, TEA peer group and TEA statewide figures are fixed-source series:
+ * changing the site's comparison must never silently relabel either TEA series.
+ * A fourth, explicitly labelled "Selected comparison" series is drawn from the
+ * same [data-cohorts] metrics as the rest of the page and moves with the switch.
  *
  * So the section now publishes its values as [data-spending] and this redraws
- * the whole plot from them whenever the pins change. Redrawing rather than
- * appending is not optional: a pinned district that spends more than any
- * existing series changes the y-domain, and appending one path to a chart drawn
- * on the old scale would plot it against an axis the other lines do not share.
+ * the whole plot from them whenever the comparison or pins change. Its base
+ * y-domain includes every standard site cohort, not only the active one. That
+ * keeps the entity line and dollar axis fixed while a reader switches among
+ * peer, region, county, similar-size and statewide comparisons. A newly loaded
+ * pin may expand that fixed domain outward so its values are not clipped.
  *
  * The geometry and the domain rule below MUST match
  * src/render/charts.js:CMP_GEOM and cmpDomain. They are duplicated here rather
@@ -1346,14 +1515,93 @@ function initSpendChart() {
   const ok = (v) => typeof v === 'number' && Number.isFinite(v)
   const money = (v) => `$${(v / 1000).toFixed(0)}k`
 
+  // `series` stays reserved for the fixed-source lines. The renderer may also
+  // publish the initially-selected site cohort so the no-JS chart is complete;
+  // if it does not, derive the same values from [data-cohorts].
+  const fixedSeries = data.series.filter((s) => s?.role !== 'selected' && s?.key !== 'comparison')
+  const metricKeys = Array.isArray(data.cohortMetricKeys) && data.cohortMetricKeys.length === data.years.length
+    ? data.cohortMetricKeys
+    : data.years.map((year) => `public:spending:${year}`)
   const pins = new Map() // id -> { label, hue, values }
+  let selected = null // { key, label, values, cohort }
+
+  const selectedFor = (c) => {
+    if (!c?.metrics) return null
+    const values = metricKeys.map((key) => {
+      const value = c.metrics[key]
+      return ok(value) ? value : null
+    })
+    if (!values.some(ok)) return null
+    return { key: c.key, label: c.label ?? c.short ?? c.key, values, cohort: c }
+  }
+
+  /** Reporting denominator for the newest plotted selected-cohort point. */
+  const latestReportingFor = (entry) => {
+    if (!entry?.cohort || !Array.isArray(entry.values)) return null
+    for (let i = entry.values.length - 1; i >= 0; i--) {
+      if (!ok(entry.values[i])) continue
+      const reporting = entry.cohort.metricN?.[metricKeys[i]]
+      return ok(reporting) ? { reporting, year: data.years[i] } : null
+    }
+    return null
+  }
+
+  let cohorts = []
+  const cohortsTag = document.querySelector('script[data-cohorts]')
+  try {
+    const parsed = JSON.parse(cohortsTag?.textContent ?? '[]')
+    cohorts = Array.isArray(parsed) ? parsed : []
+  } catch {}
+  const initialCohort = cohorts[0] ?? null
+
+  // The server publishes the exact domain used for its no-JS chart. The
+  // fallback keeps older generated pages stable too by deriving a domain from
+  // all standard cohorts at once, never just the currently selected cohort.
+  const baseValues = [
+    ...fixedSeries.flatMap((s) => s.values),
+    ...cohorts.flatMap((cohort) => selectedFor(cohort)?.values ?? []),
+  ].filter(ok)
+  const fallbackLo = baseValues.length ? Math.min(...baseValues) * 0.9 : 0
+  const fallbackHi = baseValues.length ? Math.max(...baseValues) * 1.05 : 1
+  const baseDomain = {
+    lo: ok(data.domain?.lo) ? data.domain.lo : fallbackLo,
+    hi: ok(data.domain?.hi) && data.domain.hi > (ok(data.domain?.lo) ? data.domain.lo : fallbackLo)
+      ? data.domain.hi
+      : fallbackHi,
+  }
+
+  // Support the renderer's initial selected series without requiring its
+  // values to be duplicated into data.series (where it could be mistaken for a
+  // fixed TEA source on the next switch). Its SVG series key is deliberately
+  // `selected`; the actual cohort identity still comes from [data-cohorts].
+  if (data.selected?.values?.some?.(ok)) {
+    selected = {
+      key: initialCohort?.key ?? data.selected.cohortKey ?? data.selected.key ?? 'peer',
+      label: initialCohort?.label ?? String(data.selected.label ?? 'Selected comparison').replace(/^Selected comparison:\s*/i, ''),
+      values: data.selected.values,
+      cohort: initialCohort ?? { key: data.selected.cohortKey ?? data.selected.key ?? 'peer', hue: data.selected.hue },
+    }
+  } else {
+    selected = selectedFor(initialCohort)
+  }
 
   const draw = () => {
-    const series = [...data.series, ...[...pins.entries()].map(([id, p]) => ({ key: `pin-${id}`, pin: p, values: p.values }))]
+    const ownSeries = fixedSeries.filter((s) => s.key === 'entity')
+    const referenceSeries = fixedSeries.filter((s) => s.key !== 'entity')
+    // If an individual pin is selected page-wide, its existing pin line is the
+    // selected line; do not draw the exact values twice on top of one another.
+    const selectedSeries = selected?.cohort?.single ? [] : selected ? [{ ...selected, selected: true }] : []
+    const series = [
+      ...ownSeries,
+      ...selectedSeries,
+      ...referenceSeries,
+      ...[...pins.entries()].map(([id, p]) => ({ key: `pin-${id}`, pin: p, values: p.values })),
+    ]
     const all = series.flatMap((s) => s.values).filter(ok)
     if (!all.length) return
-    const lo = Math.min(...all) * 0.9
-    const hi = Math.max(...all) * 1.05
+    const pinValues = [...pins.values()].flatMap((pin) => pin.values).filter(ok)
+    const lo = pinValues.length ? Math.min(baseDomain.lo, Math.min(...pinValues) * 0.9) : baseDomain.lo
+    const hi = pinValues.length ? Math.max(baseDomain.hi, Math.max(...pinValues) * 1.05) : baseDomain.hi
     const X = (i) => PAD.l + (i * iw) / Math.max(1, data.years.length - 1)
     const Y = (v) => PAD.t + ih - ((v - lo) / (hi - lo || 1)) * ih
 
@@ -1387,12 +1635,16 @@ function initSpendChart() {
         // A pinned line is coloured from its own hue, like the trajectory
         // chart's, and dashed so it reads as an addition rather than one of the
         // three series the section's prose is written about.
-        const style = s.pin ? ` style="--pin-hue:${s.pin.hue}"` : ''
-        const cls = s.pin ? 'line line-spend-pin' : `line line-${s.key}`
+        const style = s.pin
+          ? ` style="--pin-hue:${s.pin.hue}"`
+          : ''
+        const cls = s.pin ? 'line line-spend-pin' : s.selected ? 'line line-selected' : `line line-${s.key}`
         const dots = s.values
           .map((v, i) =>
             ok(v)
-              ? `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="${i === last ? 4 : 2.6}" class="dot ${s.pin ? 'dot-spend-pin' : `dot-${s.key}`}"${style}/>`
+              ? `<circle cx="${X(i).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="${i === last ? 4 : 2.6}" class="dot ${
+                  s.pin ? 'dot-spend-pin' : s.selected ? 'dot-selected' : `dot-${s.key}`
+                }"${style}/>`
               : ''
           )
           .join('')
@@ -1401,6 +1653,33 @@ function initSpendChart() {
       .join('')
 
     if (legendEl) {
+      let comparison = legendEl.querySelector('li[data-spend-comparison]') ?? legendEl.querySelector('.swatch-selected')?.parentElement
+      if (selected && !selected.cohort?.single) {
+        if (!comparison) {
+          comparison = document.createElement('li')
+          const entityItem = legendEl.querySelector('li')
+          if (entityItem) entityItem.after(comparison)
+          else legendEl.prepend(comparison)
+        }
+        comparison.dataset.spendComparison = ''
+        comparison.textContent = ''
+        comparison.hidden = false
+        const sw = document.createElement('span')
+        sw.className = 'swatch swatch-selected'
+        const latestReporting = latestReportingFor(selected)
+        const selectedLabel = selected.cohort?.key === 'state'
+          ? `Selected comparison: txschools.net statewide cohort average${
+              latestReporting
+                ? ` (${num(latestReporting.reporting)} Texas ${UNIT} reporting for ${latestReporting.year})`
+                : ''
+            }`
+          : selected.cohort?.key === 'size'
+            ? `Selected comparison: average for similarly sized ${UNIT}`
+          : `Selected comparison: ${selected.label}`
+        comparison.append(sw, document.createTextNode(selectedLabel))
+      } else if (comparison) {
+        comparison.hidden = true
+      }
       for (const li of [...legendEl.querySelectorAll('li[data-spend-pin]')]) li.remove()
       for (const [id, p] of pins) {
         const li = document.createElement('li')
@@ -1408,13 +1687,57 @@ function initSpendChart() {
         const sw = document.createElement('span')
         sw.className = 'swatch swatch-spend-pin'
         sw.style.setProperty('--pin-hue', String(p.hue))
-        li.append(sw, document.createTextNode(p.label))
+        const activePin = selected?.cohort?.single && selected.key === `pin:${id}`
+        li.append(sw, document.createTextNode(`${activePin ? 'Selected comparison: ' : ''}${p.label}`))
         legendEl.append(li)
       }
     }
+
+    const selectedPinId = selected?.cohort?.single
+      ? String(selected.key ?? '').replace(/^pin:/, '')
+      : null
+    const selectedPinMissing = selectedPinId && !pins.has(selectedPinId)
+    let unavailable = document.querySelector('#spending [data-spend-unavailable]')
+    if (selectedPinMissing) {
+      if (!unavailable) {
+        unavailable = document.createElement('p')
+        unavailable.className = 'note na'
+        unavailable.dataset.spendUnavailable = ''
+        if (legendEl) legendEl.after(unavailable)
+        else tag.before(unavailable)
+      }
+      const campus = selected.cohort?.level === 'school' || selected.cohort?.level === 'campus'
+      unavailable.textContent = campus
+        ? `Selected comparison: ${selected.label}. A campus spending history is not available through the comparison picker, so no comparison line can be shown here.`
+        : `Selected comparison: ${selected.label}. Spending history is unavailable, so no comparison line can be shown here.`
+      unavailable.hidden = false
+      unavailable.style.display = ''
+    } else if (unavailable) {
+      unavailable.hidden = true
+      unavailable.style.display = 'none'
+    }
   }
 
+  // Bring the progressive client chart onto the same four-series model even
+  // before the reader changes a control. The server SVG remains the no-JS
+  // fallback; this redraw uses the identical geometry and domain above.
+  draw()
+
   return {
+    setCohort(c) {
+      if (!c) return false
+      if (c.single) {
+        // The pin's spending history is loaded separately from its current
+        // metric payload. Once present it already has a labelled line.
+        const id = String(c.key ?? '').replace(/^pin:/, '')
+        selected = { key: c.key, label: c.label ?? c.short ?? c.key, values: [], cohort: c }
+        draw()
+        return pins.has(id)
+      }
+      selected = selectedFor(c)
+      draw()
+      return selected !== null
+    },
     add(id, rec) {
       if (!Array.isArray(rec?.values) || !rec.values.some(ok)) return false
       pins.set(id, rec)
@@ -1542,6 +1865,7 @@ function initPins(chart, compare = null, spend = null) {
         // because 1,279 of them share a name with another campus.
         label: district ? `${name} (${district})` : name,
         region: cols.regionId?.[i] ?? null,
+        isAlt: typeof cols.isAlt?.[i] === 'boolean' ? cols.isAlt[i] : null,
         key: name.toLowerCase(),
         row: i,
       })
@@ -1701,6 +2025,18 @@ function initPins(chart, compare = null, spend = null) {
             // creates a new pin with the same id, and the old request must not
             // attach its result to that new incarnation.
             if (pinned.get(rec.id) !== rec) return false
+            const pagePopulation = document.querySelector('.cohort-bar')?.dataset.accountabilityPopulation ?? null
+            const pinPopulation = typeof rec.isAlt === 'boolean' ? (rec.isAlt ? 'alternative' : 'standard') : null
+            const comparableMetrics = { ...metrics }
+            // Standard graduation and alternative completion use the same
+            // `grad:*` key slots but are different populations. An older
+            // restored pin may not carry isAlt, so unknown is treated as
+            // incompatible too instead of risking a false comparison.
+            if (!pagePopulation || pinPopulation !== pagePopulation) {
+              for (const key of Object.keys(comparableMetrics)) {
+                if (key.startsWith('grad:')) delete comparableMetrics[key]
+              }
+            }
             return compare.add({
               key: compareKey(rec.id),
               short: nameOf(rec),
@@ -1709,7 +2045,7 @@ function initPins(chart, compare = null, spend = null) {
               single: true,
               level: levelOf(rec) === 'campus' ? 'school' : 'district',
               hue: rec.hue,
-              metrics,
+              metrics: comparableMetrics,
               // The same year->score map the chart line uses, so the table beside
               // the chart can follow the pin too.
               byYear: rec.byYear ?? null,
@@ -1726,7 +2062,7 @@ function initPins(chart, compare = null, spend = null) {
   // sessionStorage is intentionally a line-restoration cache, not a second copy
   // of the published metrics. The explicit allowlist keeps future additions to
   // a live pin record from quietly bloating or exposing the stored value.
-  const storedPin = ({ id, name, label, level, hue, byYear }) => ({ id, name, label, level, hue, byYear })
+  const storedPin = ({ id, name, label, level, hue, byYear, isAlt }) => ({ id, name, label, level, hue, byYear, isAlt })
   const save = () => {
     try {
       sessionStorage.setItem(PIN_KEY, JSON.stringify([...pinned.values()].map(storedPin)))
@@ -1905,7 +2241,7 @@ function initPins(chart, compare = null, spend = null) {
 
   const pick = (it) => {
     if (pinned.size >= PIN_MAX) { say(capMessage); close(); return }
-    add([{ id: it.id, name: it.name, label: `${it.label}${it.detail ?? ''}`, level: it.level, hue: nextHue(), byYear: byYearFor(it) }])
+    add([{ id: it.id, name: it.name, label: `${it.label}${it.detail ?? ''}`, level: it.level, isAlt: it.isAlt, hue: nextHue(), byYear: byYearFor(it) }])
     input.value = ''
     close()
   }
@@ -1989,9 +2325,10 @@ function initPins(chart, compare = null, spend = null) {
       return {
         id: p.id,
         name: p.name,
-        label: typeof p.label === 'string' ? p.label : p.name,
-        level: p.level === 'campus' || p.level === 'district' ? p.level : p.id.length > 6 ? 'campus' : 'district',
-        hue,
+         label: typeof p.label === 'string' ? p.label : p.name,
+         level: p.level === 'campus' || p.level === 'district' ? p.level : p.id.length > 6 ? 'campus' : 'district',
+         isAlt: typeof p.isAlt === 'boolean' ? p.isAlt : null,
+         hue,
         byYear: p.byYear,
       }
     })
@@ -2109,8 +2446,9 @@ initBars()
 // entity as a comparison the whole page can switch to. It must therefore run
 // BEFORE initPins, which restores last page's pins on load and would otherwise
 // have nothing to register them with.
-const compare = initCohorts(charts[0])
+const spend = initSpendChart()
+const compare = initCohorts(charts[0], spend)
 initCopy()
 initSpy()
 initStickybar()
-initPins(charts[0], compare, initSpendChart())
+initPins(charts[0], compare, spend)

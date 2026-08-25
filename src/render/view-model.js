@@ -6,6 +6,7 @@ import { CCMR, GRADUATION, COMPLETION, DOMAIN_ORDER } from './labels.js'
 import { DOMAIN_LABELS } from '../normalize/domains.js'
 import { metricSpecs, sourceBundles, cohortMetrics, buildCohorts, rankAll, standouts } from './metrics.js'
 import { buildHighlights } from './highlights.js'
+import { mergePublicComparisons } from './public-comparisons.js'
 
 export const slugify = (s) =>
   String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
@@ -46,6 +47,16 @@ const seriesByYear = (rows, keep) => {
     ;(acc[r.year] ??= []).push(r.score)
   }
   return Object.fromEntries(Object.entries(acc).map(([y, xs]) => [y, Math.round(mean(xs) * 10) / 10]))
+}
+
+/** Reporting denominator for each point in a trajectory average. */
+const seriesReportingByYear = (rows, keep) => {
+  const acc = {}
+  for (const r of rows) {
+    if (r.score == null || !keep(r.id)) continue
+    ;(acc[r.year] ??= new Set()).add(r.id)
+  }
+  return Object.fromEntries(Object.entries(acc).map(([year, ids]) => [year, ids.size]))
 }
 
 /**
@@ -425,6 +436,7 @@ export function buildViewModel({
   disciplineSummary = null,
   transferSummary = null,
   publicDataMeta = null,
+  publicComparisonBundles = null,
 }) {
   const ecoDis = new Map(profile.map((p) => [p.id, p.ecoDisPct]))
 
@@ -443,7 +455,9 @@ export function buildViewModel({
   })
 
   const stateByYear = seriesByYear(ratings, (id) => poolIds.has(id))
+  const stateReportingByYear = seriesReportingByYear(ratings, (id) => poolIds.has(id))
   const peerByYear = band.n > 1 ? seriesByYear(ratings, (id) => band.ids.has(id)) : null
+  const peerReportingByYear = band.n > 1 ? seriesReportingByYear(ratings, (id) => band.ids.has(id)) : null
 
   // Comparison groups the reader can switch between. Each is a real cohort with a
   // stated n, so a line never appears without the reader knowing what it averages.
@@ -451,18 +465,28 @@ export function buildViewModel({
     const ids = pool.filter(pred).map((e) => e.id)
     if (ids.length < 2) return null
     const set = new Set(ids)
-    return { key, label, n: ids.length, byYear: seriesByYear(ratings, (id) => set.has(id)) }
+    return {
+      key,
+      label,
+      n: ids.length,
+      byYear: seriesByYear(ratings, (id) => set.has(id)),
+      reportingNByYear: seriesReportingByYear(ratings, (id) => set.has(id)),
+    }
   }
 
   const enrol = entity.enrollment
   const comparisons = [
-    { key: 'state', label: 'Texas average', n: pool.length, byYear: stateByYear },
+    {
+      key: 'state', label: 'Texas average', n: pool.length,
+      byYear: stateByYear, reportingNByYear: stateReportingByYear,
+    },
     band.n > 1
       ? {
           key: 'peer',
           label: 'Similar economic-disadvantage rate',
           n: band.n,
           byYear: peerByYear,
+          reportingNByYear: peerReportingByYear,
           note: `Within 10 points of this ${entity.level}'s economically disadvantaged share`,
         }
       : null,
@@ -498,7 +522,7 @@ export function buildViewModel({
   const specs = metricSpecs({ subjects: ach?.subject ?? [], isAlt: entity.isAlt })
   // `pool`, not `entities`: the cohort switch counts the same population the
   // trajectory picker and the headline rank do. See the cohort rule above.
-  const { cohorts, ids: cohortIds } = buildCohorts({
+  let { cohorts, ids: cohortIds } = buildCohorts({
     entity,
     entities: pool,
     bundles,
@@ -507,8 +531,27 @@ export function buildViewModel({
     regionName: str(raw?.region) ?? `Region ${entity.regionId}`,
     countyName: entity.county,
   })
-  const own = cohortMetrics(specs, bundles, [entity.id])
+  let own = cohortMetrics(specs, bundles, [entity.id])
+  ;({ own, cohorts } = mergePublicComparisons({
+    entityId: entity.id,
+    own,
+    cohorts,
+    cohortIds,
+    bundles: publicComparisonBundles,
+  }))
   const ranks = rankAll({ entity, cohorts, bundles, specs, cohortIds })
+  // Put the already-computed placements beside the cohort they describe. The
+  // browser can then switch hero placement and other rank claims without
+  // downloading the statewide entity payload or recomputing a population.
+  // Only performance metrics have rows here; context metrics remain unranked.
+  cohorts = cohorts.map((cohort) => ({
+    ...cohort,
+    placements: Object.fromEntries(
+      ranks
+        .filter((row) => row.cohort === cohort.key)
+        .map((row) => [row.metric, row])
+    ),
+  }))
   const highlights = buildHighlights({
     history,
     domainHistory: entityDomains,
@@ -524,6 +567,29 @@ export function buildViewModel({
     // full comparisons/rankings below rather than being hidden from the site.
     limit: 3,
   })
+  // The hero and standout list are editorial selections, not just single
+  // numbers. Precompute each selected population's honest set instead of
+  // relabelling evidence chosen against a different group in the browser.
+  const highlightsByCohort = Object.fromEntries(
+    cohorts.map((cohort) => [
+      cohort.key,
+      buildHighlights({
+        history,
+        domainHistory: entityDomains,
+        own,
+        cohorts: [cohort],
+        ranks: ranks.filter((row) => row.cohort === cohort.key),
+        specs,
+        recentChangeRanks: recentChangeRanks.filter((row) => row.cohort === cohort.key),
+        latestYear,
+        previousYear,
+        limit: 3,
+      }),
+    ])
+  )
+  const standoutsByCohort = Object.fromEntries(
+    cohorts.map((cohort) => [cohort.key, standouts(ranks.filter((row) => row.cohort === cohort.key))])
+  )
   const enrollmentTrend = buildEnrollmentTrend({ entity, rows: enrollmentHistory })
   const educatorContext = buildEducatorContext({
     entity,
@@ -585,16 +651,22 @@ export function buildViewModel({
 
     domains: dom,
     profile: prof
-      ? { ...prof, teachers: num(raw?.Full_Time_Teachers), stuPerStaff: num(raw?.Stu_Per_Staff) }
+      ? {
+          ...prof,
+          teachers: prof.teachers ?? num(raw?.Full_Time_Teachers),
+          stuPerStaff: prof.stuPerStaff ?? num(raw?.Stu_Per_Staff),
+        }
       : null,
-    raceShare: raw?.Enrollment ?? null,
-    staffYears: raw?.Staff_Years ?? null,
+    raceShare: prof?.raceShare ?? raw?.Enrollment ?? null,
+    staffYears: prof?.staffYears ?? raw?.Staff_Years ?? null,
 
     cohorts,
     own,
     ranks,
     standouts: standouts(ranks),
+    standoutsByCohort,
     highlights,
+    highlightsByCohort,
 
     staar:
       ach?.subject?.length && ach?.approach?.length
@@ -603,12 +675,14 @@ export function buildViewModel({
     graduation:
       ach?.grad_rate_col2?.length
         ? ach.grad_rate_col2
-            .map((v, i) => ({ label: gradLabels[i] ?? `Measure ${i + 1}`, value: percentage(v) }))
+            .map((v, i) => ({ key: `grad:${i}`, index: i, label: gradLabels[i] ?? `Measure ${i + 1}`, value: percentage(v) }))
             .filter((g) => g.value != null)
         : null,
     ccmr:
       ach?.ccmr_col2?.length > 1
-        ? CCMR.map((label, i) => ({
+          ? CCMR.map((label, i) => ({
+            key: `ccmr:${i}`,
+            index: i,
             label,
             value: percentage(ach.ccmr_col2[i]) == null ? null : ach.ccmr_col2[i],
             compare: percentage(ach.ccmr_col3?.[i]) == null ? null : ach.ccmr_col3[i],

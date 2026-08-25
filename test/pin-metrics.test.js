@@ -22,9 +22,18 @@ const bundles = new Map([
   ['999999', { id: '999999', level: 'district', isCharter: true, score: 100 }],
 ])
 
+const publicBundles = new Map([
+  ['001902001', {
+    'public:enrollment:2025-26': 420,
+    'public:educators:class-size:2025-26:math': 18.4,
+    'public:notices:improvement': 0,
+  }],
+  ['003801001', { 'public:enrollment:2025-26': 85 }],
+])
+
 describe('pinMetricPayloads', () => {
   it('publishes one payload per district with campus measures only', () => {
-    const result = pinMetricPayloads({ entities, bundles, subjects: ['Reading'] })
+    const result = pinMetricPayloads({ entities, bundles, publicBundles, subjects: ['Reading'] })
 
     expect([...result.keys()]).toEqual(['001902', '003801'])
     expect(result.size).toBe(entities.filter((entity) => entity.level === 'district').length)
@@ -35,14 +44,19 @@ describe('pinMetricPayloads', () => {
       version: 1,
       districtId: '001902',
       entities: {
-        '001902001': { score: 92, 'staar:Reading:0': 91, 'staar:Reading:1': 72, 'staar:Reading:2': 35 },
+        '001902001': {
+          score: 92, 'staar:Reading:0': 91, 'staar:Reading:1': 72, 'staar:Reading:2': 35,
+          'public:enrollment:2025-26': 420,
+          'public:educators:class-size:2025-26:math': 18.4,
+          'public:notices:improvement': 0,
+        },
       },
     })
     expect(result.get('001902').entities).not.toHaveProperty('001902')
   })
 
   it('keeps standard and alternative graduation populations separate', () => {
-    const result = pinMetricPayloads({ entities, bundles, subjects: ['Reading'] })
+    const result = pinMetricPayloads({ entities, bundles, publicBundles, subjects: ['Reading'] })
 
     expect(result.get('001902').entities['001902001']['grad:0']).toBe(96.1)
     expect(result.get('003801').entities['003801001']['grad:0']).toBe(81)

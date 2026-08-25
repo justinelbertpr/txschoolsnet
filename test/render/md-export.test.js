@@ -22,10 +22,32 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest'
-import { outcomes, verdict, standouts, students, domains, campuses } from '../../src/render/sections.js'
+import {
+  outcomes,
+  verdict,
+  standouts,
+  students,
+  domains,
+  campuses,
+  enrollment,
+  transfers,
+  discipline,
+  actionNotices,
+  community,
+  postsecondary,
+  teachers,
+} from '../../src/render/sections.js'
 
 const COHORTS = [
-  { key: 'peer', label: 'Similar economic-disadvantage rate', short: 'similar economic context', n: 399, metrics: { 'ccmr:0': 55, 'ccmr:1': 30 }, metricN: {} },
+  {
+    key: 'region',
+    label: 'Region 10',
+    short: 'region',
+    n: 46,
+    metrics: { score: 81.6, 'ccmr:0': 55, 'ccmr:1': 30 },
+    metricN: { score: 46 },
+    placements: { score: { metric: 'score', cohort: 'region', rank: 8, of: 46, tied: 0 } },
+  },
 ]
 
 const vm = (over = {}) => ({
@@ -92,7 +114,7 @@ const WELDED_ACROSS_CHAR_CLASSES = /\d(?:pts|%[A-Za-z]|of )|[a-z](?:[A-Z][a-z]{3
 const SEPARATIONS = [
   ['88/100 (2025-26)', 'a value, its scale and its year'],
   ['+7 pts (since 2021-22)', 'a delta and its unit'],
-  ['8 of 46 (Region 10)', 'a rank, its denominator and its cohort'],
+  ['8 of 46 (among reporting districts)', 'a rank, its denominator and its cohort'],
 ]
 
 describe('the Markdown export', () => {
@@ -180,7 +202,7 @@ describe('the Markdown export', () => {
     })))
     const md = pageMarkdown()
     expect(md).toContain('| --- |')
-    expect(md).toContain('Average (similar economic context)')
+    expect(md).toContain('Average (region)')
     expect(md).toContain('Difference (percentage points)')
     expect(md).toContain('Earned an industry-based certification')
     expect(md).toContain('a bigger share is better')
@@ -224,12 +246,276 @@ describe('the Markdown export', () => {
     expect(md).not.toMatch(/### Student demographics\n\n##/)
   })
 
+  it('does not mistake a region name containing a colon for an SVG data value', () => {
+    mount(`<section><h2>Rating trajectory</h2>
+      <svg class="chart chart-line"><path><title>Region 20: San Antonio</title></path></svg>
+      <table><thead><tr><th>Year</th><th>Score</th></tr></thead><tbody><tr><td>2025-26</td><td>81</td></tr></tbody></table>
+    </section>`)
+    const md = pageMarkdown()
+    expect(md).toContain('| 2025-26 | 81 |')
+    expect(md).not.toContain('Region 20: San Antonio')
+  })
+
   it('drops decoration the page already hides from assistive tech', () => {
     mount(verdict(vm()))
     const md = pageMarkdown()
     expect(md).not.toContain('↗') // the outbound-link arrow, aria-hidden
     // …but keeps the URL that arrow was decorating.
     expect(md).toContain('dallasisd.org')
+  })
+
+  it('includes every supplemental district section with its definitions, source links and caveats', () => {
+    const rich = vm({
+      enrollmentReported: [
+        { year: '2024-25', enrollment: 1_000 },
+        { year: '2025-26', enrollment: 1_100 },
+      ],
+      enrollmentTrend: {
+        points: [
+          { year: '2024-25', enrollment: 1_000, change: null },
+          { year: '2025-26', enrollment: 1_100, change: { delta: 100, pct: 10, fromYear: '2024-25' } },
+        ],
+        latest: { year: '2025-26', enrollment: 1_100 },
+        yoy: { delta: 100, pct: 10, fromYear: '2024-25' },
+        sinceFirst: { delta: 100, pct: 10, fromYear: '2024-25' },
+      },
+      enrollmentSourceUrl: 'https://tea.example/enrollment',
+      enrollmentSnapshotDate: '24 August 2026',
+      transferContext: {
+        netLabel: 'Transfers in minus transfers out (arithmetic context only; not a quality measure)',
+        history: [{
+          year: '2025-26', transfersIn: 10, transfersOut: 25, net: -15,
+          coverage: {
+            officialTotals: { in: 'reported', out: 'reported' },
+            origins: { published: 2, reported: 1, masked: 1 },
+            destinations: { published: 3, reported: 2, masked: 1 },
+          },
+        }],
+        current: {
+          year: '2025-26', transfersIn: 10, transfersOut: 25, net: -15,
+          coverage: {
+            officialTotals: { in: 'reported', out: 'reported' },
+            origins: { published: 2, reported: 1, masked: 1 },
+            destinations: { published: 3, reported: 2, masked: 1 },
+          },
+          topOrigins: [{ id: '001902', name: 'Cayuga ISD', transfers: 7 }],
+          topDestinations: [{ id: '101919', name: 'Spring ISD', transfers: 9 }],
+        },
+      },
+      teacherTurnover: {
+        unit: 'percent',
+        history: [{ year: '2025-26', ratePct: 12.3 }],
+        latest: { year: '2025-26', ratePct: 12.3 },
+      },
+      discipline: {
+        history: [{
+          year: '2025-26',
+          cumulativeEnrollment: { count: 1_100, status: 'reported', mask: null },
+          students: { count: 40, status: 'reported', mask: null, ratePct: 3.6 },
+          actions: { count: 52, status: 'reported', mask: null, ratePer100: 4.73 },
+        }],
+        current: {
+          year: '2025-26',
+          cumulativeEnrollment: { count: 1_100, status: 'reported', mask: null },
+          categories: [{
+            key: 'allDiscipline', label: 'All discipline',
+            students: { count: 40, status: 'reported', mask: null, ratePct: 3.6 },
+            actions: { count: 52, status: 'reported', mask: null, ratePer100: 4.73 },
+          }],
+        },
+      },
+      actionNotices: [{
+        id: '057905001', name: 'Sample High School', href: '/school/sample-high-school-057905001',
+        improvement: { kind: 'TSI', year: '2026', reason: 'Special Education' },
+        peg: { schoolYear: '2026-27' },
+      }],
+      communityContext: {
+        year: 2024, totalPopulation: 2_000, schoolAgePopulation: 300,
+        schoolAgePoverty: 60, schoolAgePovertyRate: 20,
+      },
+      postsecondaryOutcome: {
+        graduateYear: '2023-24', fallTerm: 'Fall 2024', graduates: 50,
+        enrolledPublic: 20, rate: 40, notFound: 29, notTrackable: 1,
+        destinations: [{ institution: 'Texas State University', students: 8 }],
+      },
+      publicDataMeta: {
+        transfers: { source: 'https://tea.example/transfers', fetchedAt: '24 August 2026' },
+        educators: { source: 'https://tea.example/tapr', fetchedAt: '24 August 2026' },
+        discipline: { source: 'https://tea.example/discipline', fetchedAt: '24 August 2026' },
+        actionFlags: {
+          sources: {
+            improvement: 'https://tea.example/improvement',
+            pegProgram: 'https://tea.example/peg',
+          },
+          fetchedAt: '24 August 2026',
+        },
+        community: { landing: 'https://census.example/saipe', fetchedAt: '24 August 2026' },
+        postsecondary: { landing: 'https://thecb.example/outcomes', fetchedAt: '24 August 2026' },
+      },
+    })
+
+    mount(
+      verdict(rich),
+      enrollment(rich),
+      transfers(rich),
+      discipline(rich),
+      actionNotices(rich),
+      community(rich),
+      postsecondary(rich),
+      teachers(rich)
+    )
+    const md = pageMarkdown()
+
+    for (const heading of [
+      'Enrollment over time',
+      'Students crossing district lines',
+      'Discipline and removal from class',
+      'Official improvement and transfer notices',
+      'Community around the district',
+      'After high school: the following fall',
+      'Teachers',
+    ]) expect(md).toContain(`## ${heading}`)
+
+    // Definitions and cautions must travel with the figures, not just appear on
+    // the visual page that the model never sees.
+    expect(md).toContain('Enrollment growth or decline is not a measure of school quality')
+    expect(md).toContain('These are movement counts, not a measure of family satisfaction or school quality')
+    expect(md).toContain('Arithmetic context only')
+    expect(md).toContain('The categories overlap, so they must not be added together')
+    expect(md).toContain('not the students enrolled by the district')
+    expect(md).toContain('“Not found” does not mean a graduate did not continue their education')
+    expect(md).toContain('“Not trackable” is not an outcome')
+    expect(md).toContain('it is not a campus-level measure')
+
+    // The structured lists used for transfer flows and college destinations
+    // used to weld the value onto the name ("1019199").
+    expect(md).toContain('- Spring ISD 101919 — 9 students')
+    expect(md).toContain('- Texas State University — 8 students')
+    expect(md).not.toContain('1019199')
+    expect(md).toContain('Special Education · Final 2026-27 PEG list')
+
+    // All publisher links are present both in the source header and beside the
+    // section where their definitions and limitations are explained.
+    for (const href of [
+      'https://tea.example/enrollment',
+      'https://tea.example/transfers',
+      'https://tea.example/discipline',
+      'https://tea.example/improvement',
+      'https://tea.example/peg',
+      'https://census.example/saipe',
+      'https://thecb.example/outcomes',
+      'https://tea.example/tapr',
+    ]) expect(md).toContain(href)
+    expect(md.indexOf('Supplemental sources on this page')).toBeLessThan(md.indexOf('## Enrollment over time'))
+  })
+
+  it('keeps campus notice years and actual class-size definitions', () => {
+    const campus = vm({
+      id: '057905001',
+      name: 'Sample High School',
+      level: 'campus',
+      actionNotices: [{
+        id: '057905001', name: 'Sample High School',
+        improvement: { kind: 'TSI', supportLabel: 'Targeted Support', reason: 'Special Education', trackYear: 2 },
+        peg: { schoolYear: '2026-27' },
+      }],
+      classSize: {
+        year: '2025-26', reported: 2,
+        categories: [
+          { key: 'english', label: 'English/language arts', studentsPerClass: 18.4 },
+          { key: 'math', label: 'Mathematics', studentsPerClass: 17.2 },
+        ],
+      },
+      publicDataMeta: {
+        actionFlags: {
+          sources: { improvement: 'https://tea.example/improvement', pegProgram: 'https://tea.example/peg' },
+          fetchedAt: '24 August 2026',
+        },
+        educators: { source: 'https://tea.example/tapr', fetchedAt: '24 August 2026' },
+      },
+    })
+    mount(verdict(campus), actionNotices(campus), teachers(campus))
+    const md = pageMarkdown()
+
+    // These dates are section data. A global `.eyebrow` skip used to erase
+    // both of them while correctly removing only the hero's eyebrow.
+    expect(md).toContain('2026 federal improvement status')
+    expect(md).toContain('2026-27 school year')
+    expect(md).toContain('### Average students in a class')
+    expect(md).toContain('not the student-to-teacher ratio')
+    expect(md).toContain('not combined into a made-up campus-wide average')
+  })
+
+  it('records the active page-wide comparison at copy time', () => {
+    mount(verdict(vm()))
+    document.body.insertAdjacentHTML('afterbegin', `<aside class="rail">
+      <div class="cohort-bar">
+        <button class="chip chip-cohort" aria-pressed="false">Similar economic-disadvantage rate<span class="chip-n">187</span></button>
+        <button class="chip chip-cohort" aria-pressed="true">Bexar County<span class="chip-n">15</span></button>
+      </div>
+    </aside>`)
+    const md = pageMarkdown()
+    expect(md).toContain('**Selected page-wide comparison:** Bexar County (15 members in the comparison cohort)')
+    expect(md.indexOf('Selected page-wide comparison')).toBeLessThan(md.indexOf('Official website'))
+  })
+
+  it('exports only the currently visible precomputed comparison group', () => {
+    mount(`<section><h2>Comparison evidence</h2>
+      <div data-comparison-cohort="peer"><p>Visible peer evidence</p></div>
+      <div data-comparison-cohort="county" hidden><p>Stale county evidence</p></div>
+    </section>`)
+    const md = pageMarkdown()
+    expect(md).toContain('Visible peer evidence')
+    expect(md).not.toContain('Stale county evidence')
+  })
+
+  it('does not resurrect hidden table columns or rows', () => {
+    mount(`<section><h2>Trajectory</h2><table>
+      <thead><tr><th>Year</th><th>Selected county</th><th hidden>Redundant Texas</th></tr></thead>
+      <tbody>
+        <tr><th>2025-26</th><td>81</td><td hidden>84</td></tr>
+        <tr hidden><th>Hidden year</th><td>70</td><td>71</td></tr>
+      </tbody>
+    </table></section>`)
+    const md = pageMarkdown()
+    expect(md).toContain('| Year | Selected county |')
+    expect(md).toContain('| 2025-26 | 81 |')
+    expect(md).not.toContain('Redundant Texas')
+    expect(md).not.toContain('Hidden year')
+  })
+
+  it('exports only the visible cohort rows inside the hero fact list', () => {
+    const county = {
+      key: 'county', label: 'Dallas County', short: 'county', n: 15,
+      metrics: { score: 84 }, metricN: { score: 14 },
+      placements: { score: { metric: 'score', cohort: 'county', rank: 3, of: 14, tied: 0 } },
+    }
+    mount(verdict(vm({ cohorts: [...COHORTS, county] })))
+
+    let md = pageMarkdown()
+    expect(md).toContain('**Score vs region:**')
+    expect(md).toContain('**Region 10 placement:**')
+    expect(md).not.toContain('**Score vs county:**')
+    expect(md).not.toContain('**Dallas County placement:**')
+
+    document.querySelectorAll('[data-comparison-cohort]').forEach((group) => {
+      group.hidden = group.dataset.comparisonCohort !== 'county'
+    })
+    md = pageMarkdown()
+    expect(md).toContain('**Score vs county:**')
+    expect(md).toContain('**Dallas County placement:**')
+    expect(md).not.toContain('**Score vs region:**')
+    expect(md).not.toContain('**Region 10 placement:**')
+  })
+
+  it('does not resurrect a hidden stale comparison chip as a stat annotation', () => {
+    mount(`<section><h2>Attendance</h2><dl class="stats"><div>
+      <dt>Attendance rate</dt>
+      <dd>93.0% <span class="cmp" hidden>+2.0 pts vs the old comparison</span></dd>
+    </div></dl></section>`)
+    const md = pageMarkdown()
+    expect(md).toContain('- **Attendance rate:** 93.0%')
+    expect(md).not.toContain('old comparison')
   })
 
   it('produces nothing but the header when there is no main', () => {

@@ -11,7 +11,7 @@ import { cohortMetrics, metricSpecs } from './render/metrics.js'
  * reporter JSON already carries both the metric map and the spending history
  * the pinner needs. These bundles close only the campus gap.
  */
-export function pinMetricPayloads({ entities = [], bundles = new Map(), subjects = [] } = {}) {
+export function pinMetricPayloads({ entities = [], bundles = new Map(), publicBundles = new Map(), subjects = [] } = {}) {
   const districts = entities.filter((entity) => entity.level === 'district')
   const payloads = new Map(
     districts.map((district) => [
@@ -30,11 +30,14 @@ export function pinMetricPayloads({ entities = [], bundles = new Map(), subjects
     if (!payload) {
       throw new Error(`cannot publish pin metrics for ${entity.id}: district ${districtId ?? 'missing'} is not published`)
     }
-    payload.entities[entity.id] = cohortMetrics(
-      entity.isAlt ? specs.alternative : specs.standard,
-      bundles,
-      [entity.id]
-    )
+    payload.entities[entity.id] = {
+      ...cohortMetrics(
+        entity.isAlt ? specs.alternative : specs.standard,
+        bundles,
+        [entity.id]
+      ),
+      ...(publicBundles.get(String(entity.id)) ?? {}),
+    }
   }
 
   return payloads

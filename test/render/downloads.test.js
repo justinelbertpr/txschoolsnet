@@ -63,6 +63,33 @@ const vm = {
   stateByYear: { '2025-26': 80.4, '2024-25': 78.2 },
   peerByYear: { '2025-26': 76.1, '2024-25': null },
   peerN: 294,
+  comparisons: [
+    {
+      key: 'state', label: 'Texas average', n: 1207,
+      byYear: { '2025-26': 80.4, '2024-25': 78.2 },
+      reportingNByYear: { '2025-26': 1207, '2024-25': 1189 },
+    },
+    {
+      key: 'peer', label: 'Similar economic-disadvantage rate', n: 294,
+      byYear: { '2025-26': 76.1, '2024-25': null },
+      reportingNByYear: { '2025-26': 281 },
+    },
+    {
+      key: 'region', label: 'Region 07: Kilgore', n: 62,
+      byYear: { '2025-26': 79.8, '2024-25': 77.5 },
+      reportingNByYear: { '2025-26': 57, '2024-25': 55 },
+    },
+    {
+      key: 'county', label: 'Cherokee County', n: 7,
+      byYear: { '2025-26': 80.1, '2024-25': 76.4 },
+      reportingNByYear: { '2025-26': 6, '2024-25': 5 },
+    },
+    {
+      key: 'size', label: 'Similar size', n: 23,
+      byYear: { '2025-26': 78.7, '2024-25': 75.9 },
+      reportingNByYear: { '2025-26': 21, '2024-25': 19 },
+    },
+  ],
   rank: 214,
   rankOf: 1207,
   regionRank: 9,
@@ -234,6 +261,14 @@ describe('entityCsv nulls', () => {
     expect(r.cohort_value).toBe('')
   })
 
+  it('exports every page-wide trajectory cohort with its year-specific reporting n', () => {
+    const history = rows.filter((x) => x.section === 'rating_history' && x.year === '2025-26' && x.metric === 'score')
+    expect(history.map((row) => row.cohort).sort()).toEqual(['county', 'peer', 'region', 'size', 'state'])
+    expect(history.find((row) => row.cohort === 'county')).toMatchObject({
+      cohort_n: '7', cohort_reporting_n: '6', cohort_value: '80.1',
+    })
+  })
+
   it('leaves an absent rank empty rather than ranking the entity last', () => {
     const r = rows.find((x) => x.metric === 'domain:achievement' && x.cohort === 'state')
     expect(r.rank).toBe('')
@@ -390,6 +425,19 @@ describe('supplemental per-entity downloads', () => {
     expect(csv).toMatch(/categories overlap/i)
   })
 
+  it('puts interpretation limits and static comparison semantics in the CSV header', () => {
+    const csv = entityCsv(supplementalVm)
+    expect(csv).toMatch(/caveat \(enrollmentHistory\).*not a measure of school quality/i)
+    expect(csv).toMatch(/caveat \(transfers\).*does not identify why/i)
+    expect(csv).toMatch(/caveat \(transfers\).*not measures of school quality/i)
+    expect(csv).toMatch(/caveat \(educators\).*not a campus-level measure/i)
+    expect(csv).toMatch(/caveat \(discipline\).*must not be added together/i)
+    expect(csv).toMatch(/caveat \(discipline\).*2020.21 cautiously/i)
+    expect(csv).toMatch(/comparison scope:.*every available peer, similar-size, region, county, and state cohort/i)
+    expect(csv).toMatch(/cohort_reporting_n.*subset reporting.*denominator behind cohort_value/i)
+    expect(csv).toMatch(/does not inherit a transient comparison selection or pinned entity/i)
+  })
+
   it('keeps the typed source objects and source list in JSON', () => {
     const doc = JSON.parse(entityJson(supplementalVm))
     expect(doc.transfers.current.transfersOut).toBe(25)
@@ -407,6 +455,15 @@ describe('supplemental per-entity downloads', () => {
     expect(doc._meta.sources.at(-1)).toMatchObject({
       url: 'https://tea.example/discipline', fetched: '24 August 2026',
     })
+    expect(Object.keys(doc._meta.dataNotes)).toEqual([
+      'enrollmentHistory', 'transfers', 'educators', 'discipline',
+    ])
+    expect(doc._meta.dataNotes.transfers.join(' ')).toMatch(/does not identify why/i)
+    expect(doc._meta.dataNotes.discipline.join(' ')).toMatch(/overlapping categories must not be added/i)
+    expect(doc._meta.comparisonNote).toMatch(/every available peer, similar-size, region, county, and state cohort/i)
+    expect(doc._meta.comparisonNote).toMatch(/current cohort averages use metricN/i)
+    expect(doc._meta.comparisonNote).toMatch(/history.*uses reportingN/i)
+    expect(doc._meta.comparisonNote).toMatch(/transient comparison selection or pinned entity/i)
   })
 })
 
@@ -428,6 +485,42 @@ describe('entityRows', () => {
       expect(r.rank_of).toBeGreaterThan(0)
       expect(r.cohort_label ?? r.cohort).toBeTruthy()
     }
+  })
+
+  it('exports supplemental cohort averages with membership and reporting denominators kept separate', () => {
+    const metric = 'public:enrollment:2025-26'
+    const compared = {
+      ...vm,
+      own: { ...vm.own, [metric]: 1_204 },
+      cohorts: vm.cohorts.map((cohort) => {
+        if (cohort.key === 'peer') {
+          return {
+            ...cohort,
+            metrics: { ...cohort.metrics, [metric]: 1_318.4 },
+            metricN: { ...cohort.metricN, [metric]: 281 },
+          }
+        }
+        if (cohort.key === 'region') {
+          return {
+            ...cohort,
+            metrics: { ...cohort.metrics, [metric]: 1_506.2 },
+            metricN: { ...cohort.metricN, [metric]: 57 },
+          }
+        }
+        return cohort
+      }),
+    }
+    const rows = entityRows(compared).filter((row) => row.metric === metric)
+
+    expect(rows).toHaveLength(2)
+    expect(rows.find((row) => row.cohort === 'peer')).toMatchObject({
+      section: 'enrollment_history', year: '2025-26', value: 1_204,
+      unit: 'students', cohort_n: 294, cohort_reporting_n: 281, cohort_value: 1_318.4,
+    })
+    expect(rows.find((row) => row.cohort === 'region')).toMatchObject({
+      cohort_n: 62, cohort_reporting_n: 57, cohort_value: 1_506.2,
+    })
+    expect(rows.some((row) => row.cohort === 'county')).toBe(false)
   })
 
   it('records the statewide rank with its n', () => {
@@ -499,6 +592,9 @@ describe('entityRows', () => {
       expect.objectContaining({ metric: 'class_size:grade4', value: null, unit: 'students_per_class', status: 'not-reported' }),
     ])
     expect(JSON.parse(entityJson(campusVm)).classSize.categories).toHaveLength(2)
+    expect(JSON.parse(entityJson(campusVm))._meta.dataNotes.educators.join(' ')).toMatch(
+      /not student-to-teacher ratios.*not combined/i
+    )
   })
 
   it('keeps discipline students, actions, status and masks separate, including a genuine zero', () => {
@@ -516,6 +612,27 @@ describe('entityRows', () => {
       value: 0, unit: 'disciplinary_actions', status: 'reported',
     })
     expect(rows.filter((row) => row.metric === 'allDiscipline:students' && row.year === '2025-26')).toHaveLength(1)
+  })
+
+  it('exports campus notice flags as percentages, including a genuine 100', () => {
+    const key = 'public:notices:improvement'
+    const campusVm = {
+      ...vm,
+      id: '057905001', level: 'campus', actionNotices: [],
+      own: { ...vm.own, [key]: 100 },
+      cohorts: vm.cohorts.map((cohort) => cohort.key === 'county'
+        ? { ...cohort, metrics: { ...cohort.metrics, [key]: 20 }, metricN: { ...cohort.metricN, [key]: 5 } }
+        : cohort),
+      publicDataMeta: {
+        actionFlags: { sources: { landing: 'https://tea.example/notices' }, fetchedAt: '24 August 2026' },
+      },
+    }
+    const row = entityRows(campusVm).find((item) => item.metric === key && item.cohort === 'county')
+    expect(row).toMatchObject({ year: '2026', value: 100, unit: 'percent', cohort_value: 20, cohort_reporting_n: 5 })
+    expect(entityCsv(campusVm)).toMatch(/caveat \(officialNotices\)/)
+    expect(JSON.parse(entityJson(campusVm))._meta.sources.map((source) => source.name)).toContain(
+      'TEA Schools Identified for Improvement and Public Education Grant lists'
+    )
   })
 })
 
@@ -637,6 +754,16 @@ describe('entityJson', () => {
     expect(json.postsecondary.enrolledPublic).toBe(20)
     expect(json._meta.postsecondaryNote).toContain('non-standard identifier')
     expect(json._meta.sources).toHaveLength(5)
+    expect(json._meta.dataNotes).toMatchObject({
+      enrollmentHistory: expect.any(Array),
+      officialNotices: expect.any(Array),
+      community: expect.any(Array),
+      postsecondary: expect.any(Array),
+    })
+    expect(json._meta.dataNotes.officialNotices.join(' ')).toMatch(/does not guarantee acceptance/i)
+    expect(json._meta.dataNotes.community.join(' ')).toMatch(/not students enrolled by the district/i)
+    expect(json._meta.dataNotes.postsecondary.join(' ')).toMatch(/private or out-of-state college/i)
+    expect(json._meta.dataNotes.postsecondary.join(' ')).toMatch(/not an outcome/i)
 
     const rows = entityRows(enriched)
     expect(rows.find((row) => row.metric === 'improvement:057905001')).toMatchObject({ value: 'TSI', unit: 'official_status' })
@@ -652,6 +779,9 @@ describe('entityJson', () => {
     expect(csv).toContain('https://census.example/saipe')
     expect(csv).toContain('https://thecb.example/outcomes')
     expect(csv).toContain('non-standard identifier')
+    expect(csv).toMatch(/caveat \(officialNotices\).*does not guarantee acceptance/i)
+    expect(csv).toMatch(/caveat \(community\).*not students enrolled by the district/i)
+    expect(csv).toMatch(/caveat \(postsecondary\).*private or out-of-state college/i)
   })
 
   it('states in the file that the site is unofficial', () => {
@@ -668,6 +798,16 @@ describe('entityJson', () => {
     expect(doc.spending.teaPeerGroup[0]).toBe(null)
     expect(doc.history[1].peerAverage).toBe(null)
     expect(doc.domains[1].score).toBe(null)
+  })
+
+  it('exports every trajectory comparison and reporting denominator in JSON', () => {
+    const point = doc.history.find((row) => row.year === '2025-26')
+    expect(point.comparisons.map((comparison) => comparison.key).sort()).toEqual([
+      'county', 'peer', 'region', 'size', 'state',
+    ])
+    expect(point.comparisons.find((comparison) => comparison.key === 'county')).toEqual({
+      key: 'county', label: 'Cherokee County', cohortN: 7, reportingN: 6, average: 80.1,
+    })
   })
 
   it('keeps numbers as numbers, never formatted strings', () => {
@@ -688,6 +828,26 @@ describe('entityJson', () => {
 
   it('gives every cohort a stated n', () => {
     for (const c of doc.cohorts) expect(c.n).toBeGreaterThan(0)
+  })
+
+  it('exports each cohort metric reporting denominator separately from membership', () => {
+    const metric = 'public:spending:2023-24'
+    const compared = JSON.parse(entityJson({
+      ...vm,
+      own: { ...vm.own, [metric]: 11_482 },
+      cohorts: vm.cohorts.map((cohort) => cohort.key === 'peer'
+        ? {
+            ...cohort,
+            metrics: { ...cohort.metrics, [metric]: 11_210.6 },
+            metricN: { ...cohort.metricN, [metric]: 276 },
+          }
+        : cohort),
+    }))
+    const peer = compared.cohorts.find((cohort) => cohort.key === 'peer')
+
+    expect(peer.n).toBe(294)
+    expect(peer.averages[metric]).toBe(11_210.6)
+    expect(peer.metricN[metric]).toBe(276)
   })
 
   it('exports positive signals as typed evidence rather than unsupported prose', () => {

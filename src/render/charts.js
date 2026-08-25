@@ -181,7 +181,16 @@ const hbarRow = ({ key, label, value, unit = '', grade = null, fill = null, mark
  * render at 10-14 CSS px throughout, and taller rows give those larger labels
  * somewhere to sit.
  */
-export function trajectoryChart({ years, series, w = 640, h = 320 }) {
+export const trajectoryDomain = (values) => {
+  const all = values.filter((v) => typeof v === 'number' && Number.isFinite(v))
+  if (!all.length) return { lo: 0, hi: 100 }
+  return {
+    lo: Math.max(0, Math.floor((Math.min(...all) - 4) / 10) * 10),
+    hi: Math.min(100, Math.ceil((Math.max(...all) + 4) / 10) * 10),
+  }
+}
+
+export function trajectoryChart({ years, series, domain = null, w = 640, h = 320 }) {
   const pad = { t: 22, r: 22, b: 28, l: 36 }
   const iw = w - pad.l - pad.r
   const ih = h - pad.t - pad.b
@@ -190,9 +199,9 @@ export function trajectoryChart({ years, series, w = 640, h = 320 }) {
   // headroom. A fixed 40-100 scale is comparable across pages but leaves most
   // charts two-thirds empty; snapping to bands keeps every gridline a real
   // letter-grade threshold while the data actually fills the frame.
-  const all = series.flatMap((s) => s.values).filter((v) => v !== null && v !== undefined)
-  const lo = Math.max(0, Math.floor((Math.min(...all) - 4) / 10) * 10)
-  const hi = Math.min(100, Math.ceil((Math.max(...all) + 4) / 10) * 10)
+  const derived = trajectoryDomain(series.flatMap((s) => s.values))
+  const lo = Number.isFinite(domain?.lo) ? domain.lo : derived.lo
+  const hi = Number.isFinite(domain?.hi) && domain.hi > lo ? domain.hi : derived.hi
 
   const x = (i) => pad.l + (years.length === 1 ? iw / 2 : (i * iw) / (years.length - 1))
   const y = (v) => pad.t + ih - ((v - lo) / (hi - lo)) * ih
@@ -377,11 +386,13 @@ export const cmpDomain = (values) => {
   return all.length ? { lo: Math.min(...all) * 0.9, hi: Math.max(...all) * 1.05 } : { lo: 0, hi: 1 }
 }
 
-export function comparisonChart({ years, series, w = CMP_GEOM.w, h = CMP_GEOM.h, fmt = (v) => v }) {
+export function comparisonChart({ years, series, domain = null, w = CMP_GEOM.w, h = CMP_GEOM.h, fmt = (v) => v }) {
   const pad = CMP_GEOM.pad
   const iw = w - pad.l - pad.r
   const ih = h - pad.t - pad.b
-  const { lo, hi } = cmpDomain(series.flatMap((s) => s.values))
+  const derived = cmpDomain(series.flatMap((s) => s.values))
+  const lo = Number.isFinite(domain?.lo) ? domain.lo : derived.lo
+  const hi = Number.isFinite(domain?.hi) && domain.hi > lo ? domain.hi : derived.hi
   const x = (i) => pad.l + (i * iw) / Math.max(1, years.length - 1)
   const y = (v) => pad.t + ih - ((v - lo) / (hi - lo || 1)) * ih
 
