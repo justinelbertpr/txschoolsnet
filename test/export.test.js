@@ -40,6 +40,13 @@ describe('buildPayload', () => {
   it('exposes the original 2021-22 methodology separately', () => {
     expect(buildPayload(entities, ratings, profile).original['2021-22'][0]).toBe(94)
   })
+
+  it('can carry self-describing source metadata without changing the column contract', () => {
+    const meta = { sources: [{ name: 'TEA', fetchedAt: '2026-08-15' }] }
+    const payload = buildPayload(entities, ratings, profile, meta)
+    expect(payload._meta).toEqual(meta)
+    expect(payload.entities.id).toEqual(['001902'])
+  })
 })
 
 describe('contentHash', () => {

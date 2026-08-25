@@ -247,10 +247,12 @@ const sourceSection = (snapshotDate) =>
   section(
     'source',
     'Where this comes from',
-    `<p>Every figure on this page comes from data the Texas Education Agency publishes at
+    `<p>Ratings and scores come from data the Texas Education Agency publishes at
      <a href="https://txschools.gov" rel="nofollow">txschools.gov</a>${
        snapshotDate ? `, fetched ${esc(snapshotDate)}` : ''
-     } and archived with a checksum so each number stays traceable to the bytes TEA served.
+     }. Enrollment figures come from TEA's separate
+     <a href="https://rptsvr1.tea.texas.gov/adhocrpt/adspr.html" rel="nofollow">PEIMS Student Program reports</a>.
+     Both archives carry checksums so each number stays traceable to the bytes TEA served.
      This site is unofficial and is not affiliated with TEA.</p>
   <p class="downloads"><a href="/download">Download the whole dataset</a> &middot;
      <a href="/about">how this site works</a></p>`
@@ -799,10 +801,13 @@ export function renderHomePage({
       hubSection(
         'data',
         'Data and methodology',
-        `<div class="home-data-copy"><p>Every page is built from files the Texas Education Agency publishes at
+        `<div class="home-data-copy"><p>Every page is built from public Texas Education Agency files. Ratings,
+         outcomes, demographics, staffing and finance come from
          <a href="https://txschools.gov" rel="nofollow">txschools.gov</a>${
            snapshotDate ? `, fetched ${esc(snapshotDate)}` : ''
-         } and archived with a checksum, so any number here can be traced back to the bytes TEA served.</p>
+         }; enrollment history comes from TEA's
+         <a href="https://rptsvr1.tea.texas.gov/adhocrpt/adspr.html" rel="nofollow">PEIMS Student Program reports</a>.
+         Both archives carry checksums, so any number here can be traced back to the bytes TEA served.</p>
       <p class="downloads"><a href="/download">Download the whole dataset</a> &middot;
          <a href="/about">how this site works and what it adds</a></p></div>`,
         'For reporting, research and anyone who wants to verify a figure.',

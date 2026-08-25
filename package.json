@@ -21,7 +21,14 @@
     "deploy": "wrangler deploy",
     "preview": "node scripts/serve.mjs",
     "fetch:boundaries": "node src/boundaries.js",
-    "fetch:addresses": "node src/addresses.js"
+    "fetch:addresses": "node src/addresses.js",
+    "fetch:enrollment": "node src/enrollment.js",
+    "fetch:transfers": "node src/transfers.js",
+    "fetch:educators": "node src/educators.js",
+    "fetch:discipline": "node src/discipline.js",
+    "fetch:community": "node src/community.js",
+    "fetch:postsecondary": "node src/postsecondary.js",
+    "fetch:automated": "npm run fetch:enrollment && npm run fetch:transfers && npm run fetch:educators && npm run fetch:discipline && npm run fetch:community && npm run fetch:postsecondary"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

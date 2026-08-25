@@ -1,0 +1,3166 @@
+{
+  "schemaVersion": 1,
+  "fetchedAt": "2026-08-24T19:07:45.677Z",
+  "source": "https://rptsvr1.tea.texas.gov/adhocrpt/Standard_Reports/Transfer_Reports/transfer_reports.html",
+  "definitions": "https://rptsvr1.tea.texas.gov/adhocrpt/Standard_Reports/About/about_transfer_reports.html",
+  "caveats": {
+    "meaning": "A transfer is a mismatch between the public district or campus of residence and attendance; it does not identify why the student attends elsewhere.",
+    "masks": "TEA values suppressed under FERPA are null; they are never converted to zero or estimated.",
+    "district": "District reports include TEA-published total rows and pair-level flows.",
+    "campus": "Campus reports contain pair-level flows but no totals; exact totals cannot be derived when detail cells are masked.",
+    "charters": "A charter cannot be a district or campus of residence, so TEA does not publish Transfers Out To listings for charters.",
+    "coverage": "Public districts and charter schools are included; private schools are not included."
+  },
+  "files": {
+    "2021-22-campus": {
+      "file": "2021-22-campus.csv.gz",
+      "sha256": "9b17649a37e25559d52bfc470a837071a366533655a2afaa8f35ef862c185d66",
+      "bytes": 37283509,
+      "rows": 244734,
+      "entities": 8789,
+      "detailRows": 244734,
+      "totalRows": 0,
+      "maskedRows": 221954,
+      "year": "2021-22",
+      "level": "campus",
+      "region": null,
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Campus",
+          "agg_level": "campus",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "RptClass": "transfer",
+          "Campus_Transfer_Report": "Get a Campus Transfer Report"
+        }
+      },
+      "etag": "\"238e6b5-5d915abb72380\"",
+      "lastModified": "Mon, 28 Feb 2022 15:26:22 GMT"
+    },
+    "2021-22-district-region-01": {
+      "file": "2021-22-district-region-01.csv.gz",
+      "sha256": "e5dd696be0cc22d75fadb5cfd96bc1433b85c2b4dba23afd3b84e7adb597b229",
+      "bytes": 214321,
+      "rows": 1310,
+      "entities": 44,
+      "detailRows": 1230,
+      "totalRows": 80,
+      "maskedRows": 659,
+      "year": "2021-22",
+      "level": "district",
+      "region": "01",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "01",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"34531-5d94373a85080\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:30 GMT"
+    },
+    "2021-22-district-region-02": {
+      "file": "2021-22-district-region-02.csv.gz",
+      "sha256": "b70cbe936b486baea0b1972f6b9dff40005493498602d0660e3e920934a4efa5",
+      "bytes": 166730,
+      "rows": 947,
+      "entities": 45,
+      "detailRows": 862,
+      "totalRows": 85,
+      "maskedRows": 641,
+      "year": "2021-22",
+      "level": "district",
+      "region": "02",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "02",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"28b4a-5d94373b792c0\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:31 GMT"
+    },
+    "2021-22-district-region-03": {
+      "file": "2021-22-district-region-03.csv.gz",
+      "sha256": "edc40c6d6a9fa6335d396cd244f4cf4cd7706f3277847bca8a014fb09744e9f8",
+      "bytes": 123835,
+      "rows": 735,
+      "entities": 38,
+      "detailRows": 659,
+      "totalRows": 76,
+      "maskedRows": 535,
+      "year": "2021-22",
+      "level": "district",
+      "region": "03",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "03",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1e3bb-5d94373c6d500\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:32 GMT"
+    },
+    "2021-22-district-region-04": {
+      "file": "2021-22-district-region-04.csv.gz",
+      "sha256": "a8fcff5c563139a7f958d83853c2648d8d69b1ac522fadc412c82db695d896fc",
+      "bytes": 466468,
+      "rows": 2926,
+      "entities": 87,
+      "detailRows": 2793,
+      "totalRows": 133,
+      "maskedRows": 1754,
+      "year": "2021-22",
+      "level": "district",
+      "region": "04",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "04",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"71e24-5d94373e55980\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:34 GMT"
+    },
+    "2021-22-district-region-05": {
+      "file": "2021-22-district-region-05.csv.gz",
+      "sha256": "6ac8b74264a2cce79b72e07155dfbe5f9cbec4e63304bb481c761553e7e5e283",
+      "bytes": 133737,
+      "rows": 791,
+      "entities": 37,
+      "detailRows": 720,
+      "totalRows": 71,
+      "maskedRows": 549,
+      "year": "2021-22",
+      "level": "district",
+      "region": "05",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "05",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"20a69-5d94373e55980\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:34 GMT"
+    },
+    "2021-22-district-region-06": {
+      "file": "2021-22-district-region-06.csv.gz",
+      "sha256": "018e14f59268c87c8969ae4559060fa484b72188d0f11105333735388f14a55b",
+      "bytes": 240470,
+      "rows": 1447,
+      "entities": 60,
+      "detailRows": 1333,
+      "totalRows": 114,
+      "maskedRows": 992,
+      "year": "2021-22",
+      "level": "district",
+      "region": "06",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "06",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"3ab56-5d9437403de00\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:36 GMT"
+    },
+    "2021-22-district-region-07": {
+      "file": "2021-22-district-region-07.csv.gz",
+      "sha256": "860052128a177b3531153faacd24e10e25f749737de2c0d6c06ad82093aa2fb2",
+      "bytes": 533243,
+      "rows": 3366,
+      "entities": 102,
+      "detailRows": 3169,
+      "totalRows": 197,
+      "maskedRows": 2262,
+      "year": "2021-22",
+      "level": "district",
+      "region": "07",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "07",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"822fb-5d94374226280\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:38 GMT"
+    },
+    "2021-22-district-region-08": {
+      "file": "2021-22-district-region-08.csv.gz",
+      "sha256": "7eff89c44dba31121319e1f3bad97df0e981ec194f682007ee0fa211f0d6f28f",
+      "bytes": 206706,
+      "rows": 1224,
+      "entities": 46,
+      "detailRows": 1132,
+      "totalRows": 92,
+      "maskedRows": 869,
+      "year": "2021-22",
+      "level": "district",
+      "region": "08",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "08",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"32772-5d9437431a4c0\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:39 GMT"
+    },
+    "2021-22-district-region-09": {
+      "file": "2021-22-district-region-09.csv.gz",
+      "sha256": "8f9a26ab0a4263227932cb9e42c97ab784e80612610153620b63cd7233efa584",
+      "bytes": 106626,
+      "rows": 592,
+      "entities": 37,
+      "detailRows": 518,
+      "totalRows": 74,
+      "maskedRows": 402,
+      "year": "2021-22",
+      "level": "district",
+      "region": "09",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "09",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1a082-5d9437440e700\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:40 GMT"
+    },
+    "2021-22-district-region-10": {
+      "file": "2021-22-district-region-10.csv.gz",
+      "sha256": "3a4b4e84aab766756e98f71feb5953f9eac62a7f25c3d1d32b10e30642d40c21",
+      "bytes": 773679,
+      "rows": 4881,
+      "entities": 116,
+      "detailRows": 4685,
+      "totalRows": 196,
+      "maskedRows": 3200,
+      "year": "2021-22",
+      "level": "district",
+      "region": "10",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "10",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"bce2f-5d943745f6b80\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:42 GMT"
+    },
+    "2021-22-district-region-11": {
+      "file": "2021-22-district-region-11.csv.gz",
+      "sha256": "84d486208b1f61c2007188325be70b7027694f2e3ff848b255c490d6321d329f",
+      "bytes": 676255,
+      "rows": 4211,
+      "entities": 92,
+      "detailRows": 4043,
+      "totalRows": 168,
+      "maskedRows": 2895,
+      "year": "2021-22",
+      "level": "district",
+      "region": "11",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "11",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"a519f-5d943748d3240\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:45 GMT"
+    },
+    "2021-22-district-region-12": {
+      "file": "2021-22-district-region-12.csv.gz",
+      "sha256": "ff302c6b68acac71b89e555619695ecf1b0c19e3b32a1bb35a5dfbebde6de60a",
+      "bytes": 350258,
+      "rows": 2231,
+      "entities": 82,
+      "detailRows": 2072,
+      "totalRows": 159,
+      "maskedRows": 1567,
+      "year": "2021-22",
+      "level": "district",
+      "region": "12",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "12",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"55832-5d943749c7480\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:46 GMT"
+    },
+    "2021-22-district-region-13": {
+      "file": "2021-22-district-region-13.csv.gz",
+      "sha256": "6c89a5a35ba730302f5dedfad66dfe7d278e4cb9d9af813234e19aec5f1e8d54",
+      "bytes": 377787,
+      "rows": 2323,
+      "entities": 72,
+      "detailRows": 2199,
+      "totalRows": 124,
+      "maskedRows": 1520,
+      "year": "2021-22",
+      "level": "district",
+      "region": "13",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "13",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"5c3bb-5d94374baf900\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:48 GMT"
+    },
+    "2021-22-district-region-14": {
+      "file": "2021-22-district-region-14.csv.gz",
+      "sha256": "e4524ceb12aba0358fc5ee45486e2d90dd95a587229c33745bc6da1c237eefcd",
+      "bytes": 230152,
+      "rows": 1382,
+      "entities": 43,
+      "detailRows": 1298,
+      "totalRows": 84,
+      "maskedRows": 981,
+      "year": "2021-22",
+      "level": "district",
+      "region": "14",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "14",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"38308-5d94374ca3b40\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:49 GMT"
+    },
+    "2021-22-district-region-15": {
+      "file": "2021-22-district-region-15.csv.gz",
+      "sha256": "5118b3e495ec0346fc184c9d9551145c34a0e6a6f710f7b0da12d40e201aa0c2",
+      "bytes": 110014,
+      "rows": 609,
+      "entities": 44,
+      "detailRows": 526,
+      "totalRows": 83,
+      "maskedRows": 420,
+      "year": "2021-22",
+      "level": "district",
+      "region": "15",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "15",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1adbe-5d94374ca3b40\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:49 GMT"
+    },
+    "2021-22-district-region-16": {
+      "file": "2021-22-district-region-16.csv.gz",
+      "sha256": "9168d832e931ea278280525a2426ed9b501f4951671643fe8ef18c194398dd7f",
+      "bytes": 143747,
+      "rows": 795,
+      "entities": 61,
+      "detailRows": 673,
+      "totalRows": 122,
+      "maskedRows": 552,
+      "year": "2021-22",
+      "level": "district",
+      "region": "16",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "16",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"23183-5d94374d97d80\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:50 GMT"
+    },
+    "2021-22-district-region-17": {
+      "file": "2021-22-district-region-17.csv.gz",
+      "sha256": "dcb7a479c1e766fbc776cd8826ecf298cd224b8410e3558a79651eddb92647fc",
+      "bytes": 217966,
+      "rows": 1283,
+      "entities": 61,
+      "detailRows": 1167,
+      "totalRows": 116,
+      "maskedRows": 940,
+      "year": "2021-22",
+      "level": "district",
+      "region": "17",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "17",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"3536e-5d94374e8bfc0\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:51 GMT"
+    },
+    "2021-22-district-region-18": {
+      "file": "2021-22-district-region-18.csv.gz",
+      "sha256": "d3ba05169f2632cb8185cf0719bbdc78ab0ac9105e549909c1d49d8cb6a55179",
+      "bytes": 61023,
+      "rows": 312,
+      "entities": 35,
+      "detailRows": 256,
+      "totalRows": 56,
+      "maskedRows": 207,
+      "year": "2021-22",
+      "level": "district",
+      "region": "18",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "18",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"ee5f-5d94374f80200\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:52 GMT"
+    },
+    "2021-22-district-region-19": {
+      "file": "2021-22-district-region-19.csv.gz",
+      "sha256": "164079258c882f0ad710b390762f1a18b5c8908dfc9a5d8b43af3ba6a1bc2430",
+      "bytes": 57791,
+      "rows": 335,
+      "entities": 19,
+      "detailRows": 305,
+      "totalRows": 30,
+      "maskedRows": 164,
+      "year": "2021-22",
+      "level": "district",
+      "region": "19",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "19",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"e1bf-5d94375074440\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:53 GMT"
+    },
+    "2021-22-district-region-20": {
+      "file": "2021-22-district-region-20.csv.gz",
+      "sha256": "1c6c1b10f52bba1cb93318a64fadbe60cb4eb20f9b9cbeef8c5b06dbf0754d62",
+      "bytes": 449473,
+      "rows": 2686,
+      "entities": 86,
+      "detailRows": 2546,
+      "totalRows": 140,
+      "maskedRows": 1666,
+      "year": "2021-22",
+      "level": "district",
+      "region": "20",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2022",
+          "report_format": "csv",
+          "selected_id": "20",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"6dbc1-5d94375168680\"",
+      "lastModified": "Wed, 02 Mar 2022 22:03:54 GMT"
+    },
+    "2022-23-campus": {
+      "file": "2022-23-campus.csv.gz",
+      "sha256": "bd736577ead791adc9c84d4e6f785d9dd2b06926aa895bafa8b1b8dfd8e946e5",
+      "bytes": 43701037,
+      "rows": 263570,
+      "entities": 8877,
+      "detailRows": 263570,
+      "totalRows": 0,
+      "maskedRows": 239598,
+      "year": "2022-23",
+      "level": "campus",
+      "region": null,
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Campus",
+          "agg_level": "campus",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "RptClass": "transfer",
+          "Campus_Transfer_Report": "Get a Campus Transfer Report"
+        }
+      },
+      "etag": "\"29ad32d-5f54e98f4fd80\"",
+      "lastModified": "Wed, 22 Feb 2023 19:06:46 GMT"
+    },
+    "2022-23-district-region-01": {
+      "file": "2022-23-district-region-01.csv.gz",
+      "sha256": "dacc4659d6a859faafd7c2ab1c04da6d379e3fc0254eb5ffdedace833c6f2381",
+      "bytes": 218332,
+      "rows": 1337,
+      "entities": 44,
+      "detailRows": 1256,
+      "totalRows": 81,
+      "maskedRows": 680,
+      "year": "2022-23",
+      "level": "district",
+      "region": "01",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "01",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"354dc-5f6919e796540\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:33 GMT"
+    },
+    "2022-23-district-region-02": {
+      "file": "2022-23-district-region-02.csv.gz",
+      "sha256": "dbc340f6cbb768b75bc436224485ae5378064f3d2596d2c95de61f3b8fd51101",
+      "bytes": 174155,
+      "rows": 993,
+      "entities": 45,
+      "detailRows": 908,
+      "totalRows": 85,
+      "maskedRows": 673,
+      "year": "2022-23",
+      "level": "district",
+      "region": "02",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "02",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"2a84b-5f6919e88a780\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:34 GMT"
+    },
+    "2022-23-district-region-03": {
+      "file": "2022-23-district-region-03.csv.gz",
+      "sha256": "9e8719aae55cd2a788f3a41388f1cb43d245ee22ea5488019e6b3e26cca277e1",
+      "bytes": 123942,
+      "rows": 739,
+      "entities": 37,
+      "detailRows": 665,
+      "totalRows": 74,
+      "maskedRows": 539,
+      "year": "2022-23",
+      "level": "district",
+      "region": "03",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "03",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1e426-5f6919e97e9c0\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:35 GMT"
+    },
+    "2022-23-district-region-04": {
+      "file": "2022-23-district-region-04.csv.gz",
+      "sha256": "9c100cf47bfd8a932456f9655b062d6fac2215c3aaa058544e33888caf3623d2",
+      "bytes": 494878,
+      "rows": 3097,
+      "entities": 89,
+      "detailRows": 2961,
+      "totalRows": 136,
+      "maskedRows": 1837,
+      "year": "2022-23",
+      "level": "district",
+      "region": "04",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "04",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"78d1e-5f6919eb66e40\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:37 GMT"
+    },
+    "2022-23-district-region-05": {
+      "file": "2022-23-district-region-05.csv.gz",
+      "sha256": "ecf7125030b29720a392222009b0515dd612e6821ebe27e83058deec0b72269b",
+      "bytes": 136067,
+      "rows": 805,
+      "entities": 37,
+      "detailRows": 734,
+      "totalRows": 71,
+      "maskedRows": 549,
+      "year": "2022-23",
+      "level": "district",
+      "region": "05",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "05",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"21383-5f6919ec5b080\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:38 GMT"
+    },
+    "2022-23-district-region-06": {
+      "file": "2022-23-district-region-06.csv.gz",
+      "sha256": "10d4139ceec6380b4f8ff522ae722e0b95bab84a14eb25f49c37552d07fa9e90",
+      "bytes": 252143,
+      "rows": 1521,
+      "entities": 60,
+      "detailRows": 1407,
+      "totalRows": 114,
+      "maskedRows": 1043,
+      "year": "2022-23",
+      "level": "district",
+      "region": "06",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "06",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"3d8ef-5f6919ed4f2c0\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:39 GMT"
+    },
+    "2022-23-district-region-07": {
+      "file": "2022-23-district-region-07.csv.gz",
+      "sha256": "f23f5f72b94c41a6e68707e5d82642823ddeee92df37f29537e336fd32fbdd7b",
+      "bytes": 551554,
+      "rows": 3495,
+      "entities": 101,
+      "detailRows": 3300,
+      "totalRows": 195,
+      "maskedRows": 2360,
+      "year": "2022-23",
+      "level": "district",
+      "region": "07",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "07",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"86a82-5f6919f02b980\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:42 GMT"
+    },
+    "2022-23-district-region-08": {
+      "file": "2022-23-district-region-08.csv.gz",
+      "sha256": "cafac5238da9ac901bb466a4b744906fc50dacbf128944625d8c3d7340c58e3d",
+      "bytes": 202500,
+      "rows": 1193,
+      "entities": 46,
+      "detailRows": 1101,
+      "totalRows": 92,
+      "maskedRows": 828,
+      "year": "2022-23",
+      "level": "district",
+      "region": "08",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "08",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"31704-5f6919f11fbc0\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:43 GMT"
+    },
+    "2022-23-district-region-09": {
+      "file": "2022-23-district-region-09.csv.gz",
+      "sha256": "37b58f455c327765fc81fd45258f305e39e6642c4a1efc14866e7806a59159b9",
+      "bytes": 109450,
+      "rows": 609,
+      "entities": 37,
+      "detailRows": 535,
+      "totalRows": 74,
+      "maskedRows": 413,
+      "year": "2022-23",
+      "level": "district",
+      "region": "09",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "09",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1ab8a-5f6919f213e00\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:44 GMT"
+    },
+    "2022-23-district-region-10": {
+      "file": "2022-23-district-region-10.csv.gz",
+      "sha256": "105ab6926abcc2b6864ff2ab2d31bee174cdb40826e6295cefb671f1d03dc25d",
+      "bytes": 780311,
+      "rows": 4912,
+      "entities": 116,
+      "detailRows": 4716,
+      "totalRows": 196,
+      "maskedRows": 3207,
+      "year": "2022-23",
+      "level": "district",
+      "region": "10",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "10",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"be817-5f6919f4f04c0\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:47 GMT"
+    },
+    "2022-23-district-region-11": {
+      "file": "2022-23-district-region-11.csv.gz",
+      "sha256": "05cc91d67d9e2a54f6bc0774caefc2564aec6a73c4ae8312641a52654012f0cc",
+      "bytes": 694801,
+      "rows": 4329,
+      "entities": 93,
+      "detailRows": 4160,
+      "totalRows": 169,
+      "maskedRows": 2991,
+      "year": "2022-23",
+      "level": "district",
+      "region": "11",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "11",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"a9a11-5f6919f6d8940\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:49 GMT"
+    },
+    "2022-23-district-region-12": {
+      "file": "2022-23-district-region-12.csv.gz",
+      "sha256": "61058ab2c30a12cd2d334e6bfc56c9b616c81ac01d90a0f802752db6daac6cca",
+      "bytes": 358624,
+      "rows": 2289,
+      "entities": 82,
+      "detailRows": 2130,
+      "totalRows": 159,
+      "maskedRows": 1617,
+      "year": "2022-23",
+      "level": "district",
+      "region": "12",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "12",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"578e0-5f6919f8c0dc0\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:51 GMT"
+    },
+    "2022-23-district-region-13": {
+      "file": "2022-23-district-region-13.csv.gz",
+      "sha256": "6570a4fe6e931fbf5aa0a406a6b367ad7da758b1c0728a780ef58052b0ad05ae",
+      "bytes": 388210,
+      "rows": 2381,
+      "entities": 71,
+      "detailRows": 2259,
+      "totalRows": 122,
+      "maskedRows": 1569,
+      "year": "2022-23",
+      "level": "district",
+      "region": "13",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "13",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"5ec72-5f6919f9b5000\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:52 GMT"
+    },
+    "2022-23-district-region-14": {
+      "file": "2022-23-district-region-14.csv.gz",
+      "sha256": "f7b2925df1b6d7863a537765cd5d028e53c312f4f5d920d1c61542e3fa946fd0",
+      "bytes": 270178,
+      "rows": 1643,
+      "entities": 43,
+      "detailRows": 1559,
+      "totalRows": 84,
+      "maskedRows": 1156,
+      "year": "2022-23",
+      "level": "district",
+      "region": "14",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "14",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"41f62-5f6919fb9d480\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:54 GMT"
+    },
+    "2022-23-district-region-15": {
+      "file": "2022-23-district-region-15.csv.gz",
+      "sha256": "1e99f9b9002b48a745aa40c53cd03b29a71f82bec793d56ed73efb905fd1019c",
+      "bytes": 118016,
+      "rows": 658,
+      "entities": 45,
+      "detailRows": 572,
+      "totalRows": 86,
+      "maskedRows": 448,
+      "year": "2022-23",
+      "level": "district",
+      "region": "15",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "15",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1cd00-5f6919fb9d480\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:54 GMT"
+    },
+    "2022-23-district-region-16": {
+      "file": "2022-23-district-region-16.csv.gz",
+      "sha256": "7ce855858e34e1a16492ee64a38f3ebc1045b1b28b075b85a42d2b9c2d99c469",
+      "bytes": 146320,
+      "rows": 815,
+      "entities": 61,
+      "detailRows": 694,
+      "totalRows": 121,
+      "maskedRows": 561,
+      "year": "2022-23",
+      "level": "district",
+      "region": "16",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "16",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"23b90-5f6919fc916c0\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:55 GMT"
+    },
+    "2022-23-district-region-17": {
+      "file": "2022-23-district-region-17.csv.gz",
+      "sha256": "e0502a3ae0a4b6bb9c98ac32dfc57428797894d0bfcc409eb356ad42a5737dbe",
+      "bytes": 222459,
+      "rows": 1311,
+      "entities": 61,
+      "detailRows": 1192,
+      "totalRows": 119,
+      "maskedRows": 940,
+      "year": "2022-23",
+      "level": "district",
+      "region": "17",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "17",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"364fb-5f6919fe79b40\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:57 GMT"
+    },
+    "2022-23-district-region-18": {
+      "file": "2022-23-district-region-18.csv.gz",
+      "sha256": "022a0992a538f68bdb023750cc77efe768d501a47f495d782792aaa183acfee3",
+      "bytes": 64662,
+      "rows": 332,
+      "entities": 34,
+      "detailRows": 274,
+      "totalRows": 58,
+      "maskedRows": 212,
+      "year": "2022-23",
+      "level": "district",
+      "region": "18",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "18",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"fc96-5f6919fe79b40\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:57 GMT"
+    },
+    "2022-23-district-region-19": {
+      "file": "2022-23-district-region-19.csv.gz",
+      "sha256": "c0dd3619bd775b6174a3cc2c1d71e54770529922eeb730b8f75972c5536ace0b",
+      "bytes": 61579,
+      "rows": 361,
+      "entities": 19,
+      "detailRows": 331,
+      "totalRows": 30,
+      "maskedRows": 186,
+      "year": "2022-23",
+      "level": "district",
+      "region": "19",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "19",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"f08b-5f6919ff6dd80\"",
+      "lastModified": "Fri, 10 Mar 2023 20:29:58 GMT"
+    },
+    "2022-23-district-region-20": {
+      "file": "2022-23-district-region-20.csv.gz",
+      "sha256": "02f115a2cf20d0ca4ed3ed78fec43003313ef850441755366f2997f0a4fee39b",
+      "bytes": 569468,
+      "rows": 3465,
+      "entities": 88,
+      "detailRows": 3322,
+      "totalRows": 143,
+      "maskedRows": 2270,
+      "year": "2022-23",
+      "level": "district",
+      "region": "20",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2023",
+          "report_format": "csv",
+          "selected_id": "20",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"8b07c-5f691a0156200\"",
+      "lastModified": "Fri, 10 Mar 2023 20:30:00 GMT"
+    },
+    "2023-24-campus": {
+      "file": "2023-24-campus.csv.gz",
+      "sha256": "40df05470d7a2cf117ec793ab24a85c5e70b62338b6ca1785a6a8643c354ef34",
+      "bytes": 46747433,
+      "rows": 281950,
+      "entities": 8879,
+      "detailRows": 281950,
+      "totalRows": 0,
+      "maskedRows": 255504,
+      "year": "2023-24",
+      "level": "campus",
+      "region": null,
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Campus",
+          "agg_level": "campus",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "RptClass": "transfer",
+          "Campus_Transfer_Report": "Get a Campus Transfer Report"
+        }
+      },
+      "etag": "\"2c94f29-611e96b173880\"",
+      "lastModified": "Wed, 21 Feb 2024 19:34:42 GMT"
+    },
+    "2023-24-district-region-01": {
+      "file": "2023-24-district-region-01.csv.gz",
+      "sha256": "c98c5f5b7637b819e2454b0a513e9c7599f9259f12ae4f872eb4bcb9d303732d",
+      "bytes": 228548,
+      "rows": 1408,
+      "entities": 45,
+      "detailRows": 1327,
+      "totalRows": 81,
+      "maskedRows": 733,
+      "year": "2023-24",
+      "level": "district",
+      "region": "01",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "01",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"37cc4-611e8f5baaa40\"",
+      "lastModified": "Wed, 21 Feb 2024 19:01:53 GMT"
+    },
+    "2023-24-district-region-02": {
+      "file": "2023-24-district-region-02.csv.gz",
+      "sha256": "35e0a0b3d649388fd01b94c195af50100300e252801d4382e1c09061d1f6edfb",
+      "bytes": 181045,
+      "rows": 1038,
+      "entities": 45,
+      "detailRows": 953,
+      "totalRows": 85,
+      "maskedRows": 723,
+      "year": "2023-24",
+      "level": "district",
+      "region": "02",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "02",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"2c335-611e8f5c9ec80\"",
+      "lastModified": "Wed, 21 Feb 2024 19:01:54 GMT"
+    },
+    "2023-24-district-region-03": {
+      "file": "2023-24-district-region-03.csv.gz",
+      "sha256": "69a389e1120a63354b29d84a2932e8a38023898c6cfe30db9045dbedfff5ca76",
+      "bytes": 127196,
+      "rows": 761,
+      "entities": 37,
+      "detailRows": 687,
+      "totalRows": 74,
+      "maskedRows": 556,
+      "year": "2023-24",
+      "level": "district",
+      "region": "03",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "03",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1f0dc-611e8f5c9ec80\"",
+      "lastModified": "Wed, 21 Feb 2024 19:01:54 GMT"
+    },
+    "2023-24-district-region-04": {
+      "file": "2023-24-district-region-04.csv.gz",
+      "sha256": "d9abe3fb9d46bfbcf9d6557eff8a6d41e5c332e9d2758fd784f7aae4020341a0",
+      "bytes": 513853,
+      "rows": 3221,
+      "entities": 88,
+      "detailRows": 3086,
+      "totalRows": 135,
+      "maskedRows": 1937,
+      "year": "2023-24",
+      "level": "district",
+      "region": "04",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "04",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"7d73d-611e8f5e87100\"",
+      "lastModified": "Wed, 21 Feb 2024 19:01:56 GMT"
+    },
+    "2023-24-district-region-05": {
+      "file": "2023-24-district-region-05.csv.gz",
+      "sha256": "a144cc6237eb38e9928c6255f6405d9d4321631b0352dcbb1548a8a50e9803f5",
+      "bytes": 143542,
+      "rows": 859,
+      "entities": 37,
+      "detailRows": 788,
+      "totalRows": 71,
+      "maskedRows": 582,
+      "year": "2023-24",
+      "level": "district",
+      "region": "05",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "05",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"230b6-611e8f5f7b340\"",
+      "lastModified": "Wed, 21 Feb 2024 19:01:57 GMT"
+    },
+    "2023-24-district-region-06": {
+      "file": "2023-24-district-region-06.csv.gz",
+      "sha256": "6dfb5e59a3cbe855b3da10a09a4389e667bd0a18c5e290aef57041f1ee5713cb",
+      "bytes": 250787,
+      "rows": 1511,
+      "entities": 60,
+      "detailRows": 1397,
+      "totalRows": 114,
+      "maskedRows": 1003,
+      "year": "2023-24",
+      "level": "district",
+      "region": "06",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "06",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"3d3a3-611e8f61637c0\"",
+      "lastModified": "Wed, 21 Feb 2024 19:01:59 GMT"
+    },
+    "2023-24-district-region-07": {
+      "file": "2023-24-district-region-07.csv.gz",
+      "sha256": "318daa34ba8df78c8378b137771a9cbdcd4410010702268c54d6205b3a1c9b81",
+      "bytes": 559229,
+      "rows": 3548,
+      "entities": 101,
+      "detailRows": 3353,
+      "totalRows": 195,
+      "maskedRows": 2372,
+      "year": "2023-24",
+      "level": "district",
+      "region": "07",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "07",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"8887d-611e8f634bc40\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:01 GMT"
+    },
+    "2023-24-district-region-08": {
+      "file": "2023-24-district-region-08.csv.gz",
+      "sha256": "88f133e6609796bcacf7b4c65cc81a0121eca8d71637076e3be0955f8f2ced15",
+      "bytes": 216164,
+      "rows": 1283,
+      "entities": 46,
+      "detailRows": 1191,
+      "totalRows": 92,
+      "maskedRows": 905,
+      "year": "2023-24",
+      "level": "district",
+      "region": "08",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "08",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"34c64-611e8f643fe80\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:02 GMT"
+    },
+    "2023-24-district-region-09": {
+      "file": "2023-24-district-region-09.csv.gz",
+      "sha256": "a67dcfecc40e81d543ed17875cb5195186f13e9475b1533bc00c34bfc031b8cb",
+      "bytes": 108022,
+      "rows": 600,
+      "entities": 37,
+      "detailRows": 526,
+      "totalRows": 74,
+      "maskedRows": 403,
+      "year": "2023-24",
+      "level": "district",
+      "region": "09",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "09",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1a5f6-611e8f65340c0\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:03 GMT"
+    },
+    "2023-24-district-region-10": {
+      "file": "2023-24-district-region-10.csv.gz",
+      "sha256": "eef5de12be814d1135ed73089ffc8aaedf6814b2a330c62d31c2ea91d1c19809",
+      "bytes": 789966,
+      "rows": 4990,
+      "entities": 115,
+      "detailRows": 4795,
+      "totalRows": 195,
+      "maskedRows": 3234,
+      "year": "2023-24",
+      "level": "district",
+      "region": "10",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "10",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"c0dce-611e8f671c540\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:05 GMT"
+    },
+    "2023-24-district-region-11": {
+      "file": "2023-24-district-region-11.csv.gz",
+      "sha256": "5b13dfc160bd6ebbd58f1743cd00e3a2e9bf95ad23761228409b523297881fc8",
+      "bytes": 700320,
+      "rows": 4361,
+      "entities": 93,
+      "detailRows": 4192,
+      "totalRows": 169,
+      "maskedRows": 2962,
+      "year": "2023-24",
+      "level": "district",
+      "region": "11",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "11",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"aafa0-611e8f69f8c00\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:08 GMT"
+    },
+    "2023-24-district-region-12": {
+      "file": "2023-24-district-region-12.csv.gz",
+      "sha256": "fc40c5e618d51245e3bf08a3585b613fc4a65cdd166b7030dd589e86334fbd09",
+      "bytes": 363598,
+      "rows": 2326,
+      "entities": 81,
+      "detailRows": 2168,
+      "totalRows": 158,
+      "maskedRows": 1648,
+      "year": "2023-24",
+      "level": "district",
+      "region": "12",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "12",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"58c4e-611e8f6be1080\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:10 GMT"
+    },
+    "2023-24-district-region-13": {
+      "file": "2023-24-district-region-13.csv.gz",
+      "sha256": "4b03f09dd8f74f354e32bfc6255957d47ce97888e02d65147ad11b697429c150",
+      "bytes": 392277,
+      "rows": 2417,
+      "entities": 70,
+      "detailRows": 2298,
+      "totalRows": 119,
+      "maskedRows": 1591,
+      "year": "2023-24",
+      "level": "district",
+      "region": "13",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "13",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"5fc55-611e8f6cd52c0\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:11 GMT"
+    },
+    "2023-24-district-region-14": {
+      "file": "2023-24-district-region-14.csv.gz",
+      "sha256": "bb65220121e263c225f1cb3154710e66c6bd3b6b3efe0ddaf8cdc4f44d1e7f1f",
+      "bytes": 285512,
+      "rows": 1747,
+      "entities": 43,
+      "detailRows": 1662,
+      "totalRows": 85,
+      "maskedRows": 1210,
+      "year": "2023-24",
+      "level": "district",
+      "region": "14",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "14",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"45b48-611e8f6dc9500\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:12 GMT"
+    },
+    "2023-24-district-region-15": {
+      "file": "2023-24-district-region-15.csv.gz",
+      "sha256": "380a04a9ecfd3ae50229b5c87a7b81f053e846dd45537a95a63a0bce3e00d1da",
+      "bytes": 124894,
+      "rows": 705,
+      "entities": 46,
+      "detailRows": 618,
+      "totalRows": 87,
+      "maskedRows": 482,
+      "year": "2023-24",
+      "level": "district",
+      "region": "15",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "15",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1e7de-611e8f6ebd740\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:13 GMT"
+    },
+    "2023-24-district-region-16": {
+      "file": "2023-24-district-region-16.csv.gz",
+      "sha256": "a40ef125b6604fad570c932dd882a1ee29da09c3bc39968c88aefacd6c333841",
+      "bytes": 149239,
+      "rows": 834,
+      "entities": 61,
+      "detailRows": 713,
+      "totalRows": 121,
+      "maskedRows": 576,
+      "year": "2023-24",
+      "level": "district",
+      "region": "16",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "16",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"246f7-611e8f6fb1980\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:14 GMT"
+    },
+    "2023-24-district-region-17": {
+      "file": "2023-24-district-region-17.csv.gz",
+      "sha256": "acd1cb3180ef9e05b980f60fe6f798484d99ebffc35602edcb9ceae5e3a8e749",
+      "bytes": 226772,
+      "rows": 1341,
+      "entities": 61,
+      "detailRows": 1223,
+      "totalRows": 118,
+      "maskedRows": 980,
+      "year": "2023-24",
+      "level": "district",
+      "region": "17",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "17",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"375d4-611e8f70a5bc0\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:15 GMT"
+    },
+    "2023-24-district-region-18": {
+      "file": "2023-24-district-region-18.csv.gz",
+      "sha256": "88606bfb14349ba8b2e155c846a9d466fed4f21b4a7bf52bb5350a62d89e6cfe",
+      "bytes": 159871,
+      "rows": 967,
+      "entities": 33,
+      "detailRows": 910,
+      "totalRows": 57,
+      "maskedRows": 703,
+      "year": "2023-24",
+      "level": "district",
+      "region": "18",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "18",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"2707f-611e8f7199e00\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:16 GMT"
+    },
+    "2023-24-district-region-19": {
+      "file": "2023-24-district-region-19.csv.gz",
+      "sha256": "7ed3b09631fe1f9842e8f65c53fe1288662ca4f385f14858d83f52beacfac6c2",
+      "bytes": 63099,
+      "rows": 370,
+      "entities": 19,
+      "detailRows": 340,
+      "totalRows": 30,
+      "maskedRows": 175,
+      "year": "2023-24",
+      "level": "district",
+      "region": "19",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "19",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"f67b-611e8f728e040\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:17 GMT"
+    },
+    "2023-24-district-region-20": {
+      "file": "2023-24-district-region-20.csv.gz",
+      "sha256": "f7cc1f01860abfa3fdcad7f15c2c36eec6cd62f45bf41b82c01d0a7e9d103f6c",
+      "bytes": 517605,
+      "rows": 3108,
+      "entities": 88,
+      "detailRows": 2965,
+      "totalRows": 143,
+      "maskedRows": 1918,
+      "year": "2023-24",
+      "level": "district",
+      "region": "20",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2024",
+          "report_format": "csv",
+          "selected_id": "20",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"7e5e5-611e8f74764c0\"",
+      "lastModified": "Wed, 21 Feb 2024 19:02:19 GMT"
+    },
+    "2024-25-campus": {
+      "file": "2024-25-campus.csv.gz",
+      "sha256": "ea11eaf275f6c5abb79ead6213ded0223b17b70511798a4dc81f8abe03936372",
+      "bytes": 49746731,
+      "rows": 300730,
+      "entities": 8878,
+      "detailRows": 300730,
+      "totalRows": 0,
+      "maskedRows": 272300,
+      "year": "2024-25",
+      "level": "campus",
+      "region": null,
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Campus",
+          "agg_level": "campus",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "RptClass": "transfer",
+          "Campus_Transfer_Report": "Get a Campus Transfer Report"
+        }
+      },
+      "etag": "\"2f7132b-62f8c5ccb05c0\"",
+      "lastModified": "Tue, 04 Mar 2025 23:09:19 GMT"
+    },
+    "2024-25-district-region-01": {
+      "file": "2024-25-district-region-01.csv.gz",
+      "sha256": "91e38866e9989ee3a27731c9b489b43896b52888b4fcbd9dd2b82d00333efb32",
+      "bytes": 235964,
+      "rows": 1459,
+      "entities": 45,
+      "detailRows": 1378,
+      "totalRows": 81,
+      "maskedRows": 757,
+      "year": "2024-25",
+      "level": "district",
+      "region": "01",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "01",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"399bc-62f78fd72bcc0\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:35 GMT"
+    },
+    "2024-25-district-region-02": {
+      "file": "2024-25-district-region-02.csv.gz",
+      "sha256": "604e2c30c531312376e560024dd0baa92edd02cf979967cee494a90e08ae5e8f",
+      "bytes": 185983,
+      "rows": 1070,
+      "entities": 45,
+      "detailRows": 985,
+      "totalRows": 85,
+      "maskedRows": 731,
+      "year": "2024-25",
+      "level": "district",
+      "region": "02",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "02",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"2d67f-62f78fd81ff00\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:36 GMT"
+    },
+    "2024-25-district-region-03": {
+      "file": "2024-25-district-region-03.csv.gz",
+      "sha256": "c0ce99603d0d4e85ea54663dbe2691511f5eaa86155b57284e25687b79a7b6f1",
+      "bytes": 128162,
+      "rows": 768,
+      "entities": 37,
+      "detailRows": 694,
+      "totalRows": 74,
+      "maskedRows": 563,
+      "year": "2024-25",
+      "level": "district",
+      "region": "03",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "03",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1f4a2-62f78fd914140\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:37 GMT"
+    },
+    "2024-25-district-region-04": {
+      "file": "2024-25-district-region-04.csv.gz",
+      "sha256": "e1d7132b6fc6250a825f1c34672f4e2a70b6aacb2390f77c3c2febc77fd65d46",
+      "bytes": 520634,
+      "rows": 3266,
+      "entities": 89,
+      "detailRows": 3130,
+      "totalRows": 136,
+      "maskedRows": 1940,
+      "year": "2024-25",
+      "level": "district",
+      "region": "04",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "04",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"7f1ba-62f78fda08380\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:38 GMT"
+    },
+    "2024-25-district-region-05": {
+      "file": "2024-25-district-region-05.csv.gz",
+      "sha256": "1a298c3c05411b67953def951b0404602086d3997efc204f8903d3d616976cb3",
+      "bytes": 140806,
+      "rows": 838,
+      "entities": 37,
+      "detailRows": 767,
+      "totalRows": 71,
+      "maskedRows": 544,
+      "year": "2024-25",
+      "level": "district",
+      "region": "05",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "05",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"22606-62f78fdafc5c0\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:39 GMT"
+    },
+    "2024-25-district-region-06": {
+      "file": "2024-25-district-region-06.csv.gz",
+      "sha256": "524e86edf24081e9e1edc2aef731bf11978e589714cab0563db8c3450dbe495f",
+      "bytes": 259999,
+      "rows": 1572,
+      "entities": 60,
+      "detailRows": 1458,
+      "totalRows": 114,
+      "maskedRows": 1061,
+      "year": "2024-25",
+      "level": "district",
+      "region": "06",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "06",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"3f79f-62f78fdbf0800\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:40 GMT"
+    },
+    "2024-25-district-region-07": {
+      "file": "2024-25-district-region-07.csv.gz",
+      "sha256": "d9adc667cc1c4dbb90a3a34cd60da7d2d603b7bf6827d04171ce6f37a53c9ed1",
+      "bytes": 577286,
+      "rows": 3672,
+      "entities": 101,
+      "detailRows": 3477,
+      "totalRows": 195,
+      "maskedRows": 2434,
+      "year": "2024-25",
+      "level": "district",
+      "region": "07",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "07",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"8cf06-62f78fddd8c80\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:42 GMT"
+    },
+    "2024-25-district-region-08": {
+      "file": "2024-25-district-region-08.csv.gz",
+      "sha256": "a1ebe64c25ba08da17af44e4e299a9c09ea18ab581a91f0dd5ffafe96b84d6e4",
+      "bytes": 225140,
+      "rows": 1342,
+      "entities": 46,
+      "detailRows": 1250,
+      "totalRows": 92,
+      "maskedRows": 951,
+      "year": "2024-25",
+      "level": "district",
+      "region": "08",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "08",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"36f74-62f78fddd8c80\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:42 GMT"
+    },
+    "2024-25-district-region-09": {
+      "file": "2024-25-district-region-09.csv.gz",
+      "sha256": "a63534c8760a276076692f62657586d550effb71b182e89875c69d454d885c15",
+      "bytes": 115187,
+      "rows": 648,
+      "entities": 37,
+      "detailRows": 574,
+      "totalRows": 74,
+      "maskedRows": 454,
+      "year": "2024-25",
+      "level": "district",
+      "region": "09",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "09",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1c1f3-62f78fdeccec0\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:43 GMT"
+    },
+    "2024-25-district-region-10": {
+      "file": "2024-25-district-region-10.csv.gz",
+      "sha256": "5c9dd76f7b5226ea0ad680741bf9589a12735d91e97b4cc42cb71e108effd16b",
+      "bytes": 805502,
+      "rows": 5093,
+      "entities": 114,
+      "detailRows": 4899,
+      "totalRows": 194,
+      "maskedRows": 3335,
+      "year": "2024-25",
+      "level": "district",
+      "region": "10",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "10",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"c4a7e-62f78fe0b5340\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:45 GMT"
+    },
+    "2024-25-district-region-11": {
+      "file": "2024-25-district-region-11.csv.gz",
+      "sha256": "e5639f3b836caa1ae50335925fcf8b42f3e6d9992c10fda99125906ac5a5af4e",
+      "bytes": 736932,
+      "rows": 4614,
+      "entities": 94,
+      "detailRows": 4444,
+      "totalRows": 170,
+      "maskedRows": 3118,
+      "year": "2024-25",
+      "level": "district",
+      "region": "11",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "11",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"b3ea4-62f78fe29d7c0\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:47 GMT"
+    },
+    "2024-25-district-region-12": {
+      "file": "2024-25-district-region-12.csv.gz",
+      "sha256": "e691b6b90f51252937c044085aa093c9271ff815478599f85e2fb3bc8df47a0f",
+      "bytes": 372687,
+      "rows": 2390,
+      "entities": 81,
+      "detailRows": 2232,
+      "totalRows": 158,
+      "maskedRows": 1691,
+      "year": "2024-25",
+      "level": "district",
+      "region": "12",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "12",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"5afcf-62f78fe391a00\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:48 GMT"
+    },
+    "2024-25-district-region-13": {
+      "file": "2024-25-district-region-13.csv.gz",
+      "sha256": "55788ae180feae2691d9271658d570f658fa1882ed73e8190e4d80281977518d",
+      "bytes": 400378,
+      "rows": 2473,
+      "entities": 70,
+      "detailRows": 2354,
+      "totalRows": 119,
+      "maskedRows": 1617,
+      "year": "2024-25",
+      "level": "district",
+      "region": "13",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "13",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"61bfa-62f78fe579e80\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:50 GMT"
+    },
+    "2024-25-district-region-14": {
+      "file": "2024-25-district-region-14.csv.gz",
+      "sha256": "b2de14e1970dc2e32a40a917a74e8b40210678c6684cfe3f84e5e1564a4ec9af",
+      "bytes": 301203,
+      "rows": 1856,
+      "entities": 43,
+      "detailRows": 1771,
+      "totalRows": 85,
+      "maskedRows": 1267,
+      "year": "2024-25",
+      "level": "district",
+      "region": "14",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "14",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"49893-62f78fe66e0c0\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:51 GMT"
+    },
+    "2024-25-district-region-15": {
+      "file": "2024-25-district-region-15.csv.gz",
+      "sha256": "5ac0fa5b24231c12e076cfc0b5f341baa43b14c516794ca38c93218d4e01062b",
+      "bytes": 133077,
+      "rows": 760,
+      "entities": 46,
+      "detailRows": 672,
+      "totalRows": 88,
+      "maskedRows": 531,
+      "year": "2024-25",
+      "level": "district",
+      "region": "15",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "15",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"207d5-62f78fe66e0c0\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:51 GMT"
+    },
+    "2024-25-district-region-16": {
+      "file": "2024-25-district-region-16.csv.gz",
+      "sha256": "29b70481e93debd8e6f700c3c6ec5eacdfa5963a43beedda4f7b098e758d7278",
+      "bytes": 147277,
+      "rows": 828,
+      "entities": 60,
+      "detailRows": 711,
+      "totalRows": 117,
+      "maskedRows": 565,
+      "year": "2024-25",
+      "level": "district",
+      "region": "16",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "16",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"23f4d-62f78fe762300\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:52 GMT"
+    },
+    "2024-25-district-region-17": {
+      "file": "2024-25-district-region-17.csv.gz",
+      "sha256": "bab9624b710441fe974f00153c320a284541fbcdb2f821c5d3293d987ff118e2",
+      "bytes": 238166,
+      "rows": 1420,
+      "entities": 61,
+      "detailRows": 1302,
+      "totalRows": 118,
+      "maskedRows": 1054,
+      "year": "2024-25",
+      "level": "district",
+      "region": "17",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "17",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"3a256-62f78fe856540\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:53 GMT"
+    },
+    "2024-25-district-region-18": {
+      "file": "2024-25-district-region-18.csv.gz",
+      "sha256": "3d4f71133acc503c2e586ed27c7401115c94f18308a14cb9a4c7a9697d18ae1c",
+      "bytes": 181038,
+      "rows": 1105,
+      "entities": 34,
+      "detailRows": 1046,
+      "totalRows": 59,
+      "maskedRows": 781,
+      "year": "2024-25",
+      "level": "district",
+      "region": "18",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "18",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"2c32e-62f78fe94a780\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:54 GMT"
+    },
+    "2024-25-district-region-19": {
+      "file": "2024-25-district-region-19.csv.gz",
+      "sha256": "1a9e2df9d7f48fecd0e823d15797230ef25b53fa563fcec48a5fad2da47ef2d3",
+      "bytes": 64233,
+      "rows": 377,
+      "entities": 19,
+      "detailRows": 347,
+      "totalRows": 30,
+      "maskedRows": 185,
+      "year": "2024-25",
+      "level": "district",
+      "region": "19",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "19",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"fae9-62f78fe94a780\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:54 GMT"
+    },
+    "2024-25-district-region-20": {
+      "file": "2024-25-district-region-20.csv.gz",
+      "sha256": "a779000aff3bb1cc707fa3b89251479c65e8f78caf99bf596a18439690860f35",
+      "bytes": 534928,
+      "rows": 3218,
+      "entities": 89,
+      "detailRows": 3073,
+      "totalRows": 145,
+      "maskedRows": 1980,
+      "year": "2024-25",
+      "level": "district",
+      "region": "20",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2025",
+          "report_format": "csv",
+          "selected_id": "20",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"82990-62f78feb32c00\"",
+      "lastModified": "Tue, 04 Mar 2025 00:02:56 GMT"
+    },
+    "2025-26-campus": {
+      "file": "2025-26-campus.csv.gz",
+      "sha256": "40726ad2d508f383cddc09861e3efbbeabf9e40f1fbd0687a46bf59ea1a7a3f0",
+      "bytes": 50543313,
+      "rows": 305562,
+      "entities": 8850,
+      "detailRows": 305562,
+      "totalRows": 0,
+      "maskedRows": 275834,
+      "year": "2025-26",
+      "level": "campus",
+      "region": null,
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Campus",
+          "agg_level": "campus",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "RptClass": "transfer",
+          "Campus_Transfer_Report": "Get a Campus Transfer Report"
+        }
+      },
+      "etag": "\"3033ad1-64bbe91e77b00\"",
+      "lastModified": "Thu, 26 Feb 2026 18:48:44 GMT"
+    },
+    "2025-26-district-region-01": {
+      "file": "2025-26-district-region-01.csv.gz",
+      "sha256": "9865612673ab87ad3f59312d09f4f7556ae7aedbca78ac1104f49640ad8e579a",
+      "bytes": 238053,
+      "rows": 1472,
+      "entities": 45,
+      "detailRows": 1392,
+      "totalRows": 80,
+      "maskedRows": 756,
+      "year": "2025-26",
+      "level": "district",
+      "region": "01",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "01",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"3a1e5-64bbe0bcb3480\"",
+      "lastModified": "Thu, 26 Feb 2026 18:11:14 GMT"
+    },
+    "2025-26-district-region-02": {
+      "file": "2025-26-district-region-02.csv.gz",
+      "sha256": "bc4a290b6364179334eb1c11e03a963e56a3ee40d58b2de537b598be676a7591",
+      "bytes": 197872,
+      "rows": 1141,
+      "entities": 46,
+      "detailRows": 1053,
+      "totalRows": 88,
+      "maskedRows": 787,
+      "year": "2025-26",
+      "level": "district",
+      "region": "02",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "02",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"304f0-64bbe0c083d80\"",
+      "lastModified": "Thu, 26 Feb 2026 18:11:18 GMT"
+    },
+    "2025-26-district-region-03": {
+      "file": "2025-26-district-region-03.csv.gz",
+      "sha256": "b6267d996545b253267c517e20db7720e93e497498ad92ea1951adc0186647fb",
+      "bytes": 130953,
+      "rows": 787,
+      "entities": 37,
+      "detailRows": 713,
+      "totalRows": 74,
+      "maskedRows": 567,
+      "year": "2025-26",
+      "level": "district",
+      "region": "03",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "03",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1ff89-64bbe0c360440\"",
+      "lastModified": "Thu, 26 Feb 2026 18:11:21 GMT"
+    },
+    "2025-26-district-region-04": {
+      "file": "2025-26-district-region-04.csv.gz",
+      "sha256": "f5420dd4e6e30104994cdd9fbee07a336b4b714cedc2ef210e780a9999c0e745",
+      "bytes": 561323,
+      "rows": 3521,
+      "entities": 88,
+      "detailRows": 3388,
+      "totalRows": 133,
+      "maskedRows": 2122,
+      "year": "2025-26",
+      "level": "district",
+      "region": "04",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "04",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"890ab-64bbe0ced1f40\"",
+      "lastModified": "Thu, 26 Feb 2026 18:11:33 GMT"
+    },
+    "2025-26-district-region-05": {
+      "file": "2025-26-district-region-05.csv.gz",
+      "sha256": "d467de0357c89066460519a3f063dbd5262aa10daab2743e71659c491df49f3a",
+      "bytes": 153593,
+      "rows": 923,
+      "entities": 38,
+      "detailRows": 849,
+      "totalRows": 74,
+      "maskedRows": 617,
+      "year": "2025-26",
+      "level": "district",
+      "region": "05",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "05",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"257f9-64bbe0d1ae600\"",
+      "lastModified": "Thu, 26 Feb 2026 18:11:36 GMT"
+    },
+    "2025-26-district-region-06": {
+      "file": "2025-26-district-region-06.csv.gz",
+      "sha256": "e9abf22beb53e08174c1021e5e1787084feacd1d6475f8743ff56fe6d0064c94",
+      "bytes": 265339,
+      "rows": 1608,
+      "entities": 60,
+      "detailRows": 1494,
+      "totalRows": 114,
+      "maskedRows": 1065,
+      "year": "2025-26",
+      "level": "district",
+      "region": "06",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "06",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"40c7b-64bbe0d767380\"",
+      "lastModified": "Thu, 26 Feb 2026 18:11:42 GMT"
+    },
+    "2025-26-district-region-07": {
+      "file": "2025-26-district-region-07.csv.gz",
+      "sha256": "d934a04f8a5998dc703ef0a5c3ef410552082f6aafd0db05c451f26ec6052c24",
+      "bytes": 587003,
+      "rows": 3741,
+      "entities": 101,
+      "detailRows": 3546,
+      "totalRows": 195,
+      "maskedRows": 2453,
+      "year": "2025-26",
+      "level": "district",
+      "region": "07",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "07",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"8f4fb-64bbe0e2d8e80\"",
+      "lastModified": "Thu, 26 Feb 2026 18:11:54 GMT"
+    },
+    "2025-26-district-region-08": {
+      "file": "2025-26-district-region-08.csv.gz",
+      "sha256": "d48e8b3977149c99dfb80a8410ed3146aa788d24e1e778137aae33a50cc9a600",
+      "bytes": 236316,
+      "rows": 1416,
+      "entities": 46,
+      "detailRows": 1324,
+      "totalRows": 92,
+      "maskedRows": 1012,
+      "year": "2025-26",
+      "level": "district",
+      "region": "08",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "08",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"39b1c-64bbe0e79d9c0\"",
+      "lastModified": "Thu, 26 Feb 2026 18:11:59 GMT"
+    },
+    "2025-26-district-region-09": {
+      "file": "2025-26-district-region-09.csv.gz",
+      "sha256": "8a44ef209d9dfa59035e2b1f7a9cc8176f410a8e1208b12a763dde09582d3547",
+      "bytes": 120501,
+      "rows": 685,
+      "entities": 37,
+      "detailRows": 611,
+      "totalRows": 74,
+      "maskedRows": 472,
+      "year": "2025-26",
+      "level": "district",
+      "region": "09",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "09",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"1d6b5-64bbe0ea7a080\"",
+      "lastModified": "Thu, 26 Feb 2026 18:12:02 GMT"
+    },
+    "2025-26-district-region-10": {
+      "file": "2025-26-district-region-10.csv.gz",
+      "sha256": "1721ed2efb3103ace5ec1f4f63a35a4db031ff39a8db7d4e9fd4404020bfbea8",
+      "bytes": 818327,
+      "rows": 5171,
+      "entities": 112,
+      "detailRows": 4979,
+      "totalRows": 192,
+      "maskedRows": 3402,
+      "year": "2025-26",
+      "level": "district",
+      "region": "10",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "10",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"c7c97-64bbe0fab06c0\"",
+      "lastModified": "Thu, 26 Feb 2026 18:12:19 GMT"
+    },
+    "2025-26-district-region-11": {
+      "file": "2025-26-district-region-11.csv.gz",
+      "sha256": "1cf86412159fd3e2c654498741c16ecfbf246e59640997275449c2da1841226d",
+      "bytes": 755194,
+      "rows": 4735,
+      "entities": 92,
+      "detailRows": 4567,
+      "totalRows": 168,
+      "maskedRows": 3195,
+      "year": "2025-26",
+      "level": "district",
+      "region": "11",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "11",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"b85fa-64bbe108fe880\"",
+      "lastModified": "Thu, 26 Feb 2026 18:12:34 GMT"
+    },
+    "2025-26-district-region-12": {
+      "file": "2025-26-district-region-12.csv.gz",
+      "sha256": "24b8af114fc966da82454358775e95dfda7bd8d56886d053134ce90f37b0a750",
+      "bytes": 378264,
+      "rows": 2425,
+      "entities": 81,
+      "detailRows": 2267,
+      "totalRows": 158,
+      "maskedRows": 1732,
+      "year": "2025-26",
+      "level": "district",
+      "region": "12",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "12",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"5c598-64bbe1109fa80\"",
+      "lastModified": "Thu, 26 Feb 2026 18:12:42 GMT"
+    },
+    "2025-26-district-region-13": {
+      "file": "2025-26-district-region-13.csv.gz",
+      "sha256": "f190da42b3694eb27b920a539cc698145a67504c12925d64437bb9291812b977",
+      "bytes": 416722,
+      "rows": 2571,
+      "entities": 70,
+      "detailRows": 2452,
+      "totalRows": 119,
+      "maskedRows": 1696,
+      "year": "2025-26",
+      "level": "district",
+      "region": "13",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "13",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"65bd2-64bbe11934ec0\"",
+      "lastModified": "Thu, 26 Feb 2026 18:12:51 GMT"
+    },
+    "2025-26-district-region-14": {
+      "file": "2025-26-district-region-14.csv.gz",
+      "sha256": "2b6b2d159ce935ee2d1b05e6dac09b4ad574210618ecb8d4ebe0693518c666a1",
+      "bytes": 294131,
+      "rows": 1813,
+      "entities": 43,
+      "detailRows": 1728,
+      "totalRows": 85,
+      "maskedRows": 1207,
+      "year": "2025-26",
+      "level": "district",
+      "region": "14",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "14",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"47cf3-64bbe11eedc40\"",
+      "lastModified": "Thu, 26 Feb 2026 18:12:57 GMT"
+    },
+    "2025-26-district-region-15": {
+      "file": "2025-26-district-region-15.csv.gz",
+      "sha256": "730109ade607039b5b801e1a0402e960b12f9d69abf699a5a84f02d05c3032c7",
+      "bytes": 137750,
+      "rows": 792,
+      "entities": 46,
+      "detailRows": 705,
+      "totalRows": 87,
+      "maskedRows": 563,
+      "year": "2025-26",
+      "level": "district",
+      "region": "15",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "15",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"21a16-64bbe121ca300\"",
+      "lastModified": "Thu, 26 Feb 2026 18:13:00 GMT"
+    },
+    "2025-26-district-region-16": {
+      "file": "2025-26-district-region-16.csv.gz",
+      "sha256": "f518e4af7882318638914f55f8927812a47234ae1bf32150104d66be3a24d2f4",
+      "bytes": 150814,
+      "rows": 849,
+      "entities": 60,
+      "detailRows": 731,
+      "totalRows": 118,
+      "maskedRows": 592,
+      "year": "2025-26",
+      "level": "district",
+      "region": "16",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "16",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"24d1e-64bbe1259ac00\"",
+      "lastModified": "Thu, 26 Feb 2026 18:13:04 GMT"
+    },
+    "2025-26-district-region-17": {
+      "file": "2025-26-district-region-17.csv.gz",
+      "sha256": "5ed63a936adfe396aa04aceac1028732aa0419c0abc521834ab59c2e3f0bba66",
+      "bytes": 239735,
+      "rows": 1427,
+      "entities": 61,
+      "detailRows": 1309,
+      "totalRows": 118,
+      "maskedRows": 1064,
+      "year": "2025-26",
+      "level": "district",
+      "region": "17",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "17",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"3a877-64bbe12a5f740\"",
+      "lastModified": "Thu, 26 Feb 2026 18:13:09 GMT"
+    },
+    "2025-26-district-region-18": {
+      "file": "2025-26-district-region-18.csv.gz",
+      "sha256": "36f2322a517c8c58b5788693aa7b71a992452da64b36c4741ab95f0349d0fa73",
+      "bytes": 180926,
+      "rows": 1102,
+      "entities": 35,
+      "detailRows": 1043,
+      "totalRows": 59,
+      "maskedRows": 776,
+      "year": "2025-26",
+      "level": "district",
+      "region": "18",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "18",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"2c2be-64bbe12e30040\"",
+      "lastModified": "Thu, 26 Feb 2026 18:13:13 GMT"
+    },
+    "2025-26-district-region-19": {
+      "file": "2025-26-district-region-19.csv.gz",
+      "sha256": "bfd3adc8e8b9baa74a61fed58b7449f9802988f86ac0c2ccb803d798d4f4969a",
+      "bytes": 69057,
+      "rows": 410,
+      "entities": 18,
+      "detailRows": 382,
+      "totalRows": 28,
+      "maskedRows": 206,
+      "year": "2025-26",
+      "level": "district",
+      "region": "19",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "19",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"10dc1-64bbe130184c0\"",
+      "lastModified": "Thu, 26 Feb 2026 18:13:15 GMT"
+    },
+    "2025-26-district-region-20": {
+      "file": "2025-26-district-region-20.csv.gz",
+      "sha256": "30fa7acd7f7552c8de6e215df312ac91e60bf8bde0c52608e437a33b13ae5c03",
+      "bytes": 553045,
+      "rows": 3344,
+      "entities": 85,
+      "detailRows": 3203,
+      "totalRows": 141,
+      "maskedRows": 2077,
+      "year": "2025-26",
+      "level": "district",
+      "region": "20",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_transfer_report.sas",
+          "scope": "Region",
+          "agg_level": "region",
+          "_debug": "0",
+          "school_year": "2026",
+          "report_format": "csv",
+          "selected_id": "20",
+          "Region_District_Xfr_Report": "Get a Region District Transfer Report"
+        }
+      },
+      "etag": "\"87055-64bbe13b89fc0\"",
+      "lastModified": "Thu, 26 Feb 2026 18:13:27 GMT"
+    }
+  }
+}

@@ -5,7 +5,13 @@
 // Fixtures are hand-built: no snapshot reads, no I/O.
 
 import { describe, it, expect } from 'vitest'
-import { buildViewModel, peerBand, entitySlug, slugify } from '../../src/render/view-model.js'
+import {
+  CLASS_SIZE_CATEGORIES,
+  buildViewModel,
+  peerBand,
+  entitySlug,
+  slugify,
+} from '../../src/render/view-model.js'
 
 /* ---------------------------------------------------------------- slugify -- */
 
@@ -223,6 +229,77 @@ describe('buildViewModel', () => {
     expect(vm.history.map((h) => h.year)).toEqual([LATEST, '2024-25', '2023-24'])
   })
 
+  it('filters enrollment history to this entity and orders valid school years oldest first', () => {
+    const vm = build({
+      enrollmentHistory: [
+        { id: '100', level: 'district', year: '2025-26', enrollment: 1_120 },
+        { id: '101', level: 'district', year: '2024-25', enrollment: 99_999 },
+        { id: '100', level: 'campus', year: '2024-25', enrollment: 88_888 },
+        { id: '100', level: 'district', year: '2023-24', enrollment: 1_000 },
+        { id: '100', level: 'district', year: '2024-25', enrollment: 1_100 },
+        { id: '100', level: 'district', year: 'not-a-year', enrollment: 7 },
+        { id: '100', level: 'district', year: '2022-23', enrollment: null },
+      ],
+    })
+    expect(vm.enrollmentHistory.map(({ year, enrollment }) => ({ year, enrollment }))).toEqual([
+      { year: '2023-24', enrollment: 1_000 },
+      { year: '2024-25', enrollment: 1_100 },
+      { year: '2025-26', enrollment: 1_120 },
+    ])
+    expect(vm.enrollmentReported).toEqual([
+      { year: '2022-23', enrollment: null },
+      { year: '2023-24', enrollment: 1_000 },
+      { year: '2024-25', enrollment: 1_100 },
+      { year: '2025-26', enrollment: 1_120 },
+    ])
+  })
+
+  it('calculates adjacent-year and full contiguous enrollment changes without judging them', () => {
+    const vm = build({
+      enrollmentHistory: [
+        { id: '100', level: 'district', year: '2023-24', enrollment: 1_000 },
+        { id: '100', level: 'district', year: '2024-25', enrollment: 1_200 },
+        { id: '100', level: 'district', year: '2025-26', enrollment: 1_100 },
+      ],
+    })
+    expect(vm.enrollmentTrend.latest).toMatchObject({ year: '2025-26', enrollment: 1_100 })
+    expect(vm.enrollmentTrend.yoy).toMatchObject({
+      fromYear: '2024-25', toYear: '2025-26', from: 1_200, to: 1_100, delta: -100,
+    })
+    expect(vm.enrollmentTrend.yoy.pct).toBeCloseTo(-8.333, 3)
+    expect(vm.enrollmentTrend.sinceFirst).toMatchObject({ fromYear: '2023-24', delta: 100, pct: 10 })
+    expect(vm.enrollmentTrend.contiguous).toBe(true)
+  })
+
+  it('keeps a missing school year as a gap rather than comparing non-adjacent counts', () => {
+    const vm = build({
+      enrollmentHistory: [
+        { id: '100', level: 'district', year: '2023-24', enrollment: 1_000 },
+        { id: '100', level: 'district', year: '2025-26', enrollment: 1_500 },
+      ],
+    })
+    expect(vm.enrollmentTrend.yoy).toBeNull()
+    expect(vm.enrollmentTrend.sinceFirst).toBeNull()
+    expect(vm.enrollmentTrend.contiguous).toBe(false)
+    expect(vm.enrollmentHistory[1].change).toBeNull()
+  })
+
+  it('does not create a trend section from a lone enrollment count', () => {
+    const vm = build({ enrollmentHistory: [{ id: '100', level: 'district', year: '2025-26', enrollment: 1_100 }] })
+    expect(vm.enrollmentHistory).toHaveLength(1)
+    expect(vm.enrollmentTrend).toBeNull()
+  })
+
+  it('keeps the absolute change but omits a percentage when the prior count is zero', () => {
+    const vm = build({
+      enrollmentHistory: [
+        { id: '100', level: 'district', year: '2024-25', enrollment: 0 },
+        { id: '100', level: 'district', year: '2025-26', enrollment: 25 },
+      ],
+    })
+    expect(vm.enrollmentTrend.yoy).toMatchObject({ delta: 25, pct: null })
+  })
+
   it('selects only fixed latest-year gains for the early evidence summary', () => {
     const vm = build()
     expect(vm.highlights.map((card) => card.id).slice(0, 2)).toEqual([
@@ -400,5 +477,231 @@ describe('buildViewModel', () => {
     expect(vm.graduation.map((g) => g.value)).toEqual([100, 0])
     expect(vm.ccmr.map((c) => c.value)).toEqual(['50%', '0%'])
     expect(vm.ccmr.map((c) => c.compare)).toEqual(['40%', '0%'])
+  })
+
+  it('publishes district teacher-turnover history without inventing campus class size', () => {
+    const vm = build({
+      educatorLatestYear: '2024-25',
+      educatorHistory: [
+        { id: '100', level: 'district', year: '2024-25', teacherTurnoverRate: 16.2 },
+        { id: '100', level: 'district', year: '2022-23', teacherTurnoverRate: null },
+        { id: '100', level: 'district', year: '2023-24', teacherTurnoverRate: 14.7 },
+        { id: '101', level: 'district', year: '2024-25', teacherTurnoverRate: 99 },
+      ],
+    })
+    expect(vm.teacherTurnover).toEqual({
+      unit: 'percent',
+      history: [
+        { year: '2022-23', ratePct: null },
+        { year: '2023-24', ratePct: 14.7 },
+        { year: '2024-25', ratePct: 16.2 },
+      ],
+      latest: { year: '2024-25', ratePct: 16.2 },
+    })
+    expect(vm.classSize).toBeNull()
+  })
+
+  it('publishes the latest twelve campus class-size categories with no synthetic average', () => {
+    const u = makeUniverse()
+    const campus = {
+      ...u.entities[0],
+      id: '100001',
+      level: 'campus',
+      districtId: '100',
+      districtName: 'District 0 ISD',
+      name: 'A Campus',
+    }
+    const peers = Array.from({ length: 11 }, (_, i) => ({
+      ...campus,
+      id: `10000${i + 2}`,
+      name: `Peer ${i}`,
+    }))
+    const currentValues = Object.fromEntries(
+      CLASS_SIZE_CATEGORIES.map(({ key }, index) => [key, index === 4 ? null : 15 + index / 10])
+    )
+    const vm = build({
+      entity: campus,
+      entities: [...u.entities, campus, ...peers],
+      educatorLatestYear: '2024-25',
+      educatorHistory: [
+        {
+          id: campus.id,
+          level: 'campus',
+          year: '2023-24',
+          classSize: Object.fromEntries(CLASS_SIZE_CATEGORIES.map(({ key }) => [key, 99])),
+        },
+        { id: campus.id, level: 'campus', year: '2024-25', classSize: currentValues },
+      ],
+    })
+    expect(vm.teacherTurnover).toBeNull()
+    expect(vm.classSize.year).toBe('2024-25')
+    expect(vm.classSize.categories).toHaveLength(12)
+    expect(vm.classSize.categories[0]).toEqual({
+      key: 'kindergarten',
+      label: 'Kindergarten',
+      studentsPerClass: 15,
+    })
+    expect(vm.classSize.categories.find((item) => item.key === 'grade4').studentsPerClass).toBeNull()
+    expect(vm.classSize.reported).toBe(11)
+    expect(vm.classSize).not.toHaveProperty('average')
+    expect(vm.classSize).not.toHaveProperty('averageClassSize')
+  })
+
+  it('does not present an older campus class-size row as current', () => {
+    const u = makeUniverse()
+    const campus = {
+      ...u.entities[0],
+      id: '100001',
+      level: 'campus',
+      districtId: '100',
+      districtName: 'District 0 ISD',
+      name: 'A Campus',
+    }
+    expect(
+      build({
+        entity: campus,
+        entities: [...u.entities, campus],
+        educatorLatestYear: '2024-25',
+        educatorHistory: [
+          { id: campus.id, level: 'campus', year: '2023-24', classSize: { kindergarten: 18 } },
+        ],
+      }).classSize
+    ).toBeNull()
+  })
+
+  it('keeps discipline students, actions, rates, and caveats explicitly separate', () => {
+    const reported = (count, rateName, rate) => ({
+      count,
+      status: 'reported',
+      mask: null,
+      [rateName]: rate,
+    })
+    const unavailableStudent = { count: null, status: 'not-reported', mask: null, ratePct: null }
+    const unavailableAction = { count: null, status: 'not-reported', mask: null, ratePer100: null }
+    const vm = build({
+      disciplineSummary: {
+        id: '100',
+        level: 'district',
+        history: [{
+          year: '2023-24',
+          cumulativeEnrollment: { count: 1_000, status: 'reported', mask: null },
+          students: reported(50, 'ratePct', 5),
+          actions: reported(80, 'ratePer100', 8),
+        }],
+        latest: {
+          year: '2024-25',
+          cumulativeEnrollment: { count: 1_100, status: 'reported', mask: null },
+          categories: {
+            allDiscipline: {
+              students: reported(55, 'ratePct', 5),
+              actions: reported(99, 'ratePer100', 9),
+            },
+          },
+        },
+      },
+      publicDataMeta: {
+        discipline: {
+          overlapCaveat: 'Do not add overlapping categories.',
+          pandemicCaveat: 'Use 2020-21 cautiously.',
+          sourceCaveat: 'Stable headings only.',
+        },
+      },
+    })
+    expect(vm.discipline.history[0]).toEqual({
+      year: '2023-24',
+      cumulativeEnrollment: { count: 1_000, status: 'reported', mask: null },
+      students: reported(50, 'ratePct', 5),
+      actions: reported(80, 'ratePer100', 8),
+    })
+    expect(vm.discipline.current.categories).toHaveLength(12)
+    expect(vm.discipline.current.categories[0]).toMatchObject({
+      key: 'allDiscipline',
+      heading: 'ALL DISCIPLINE',
+      label: 'All discipline',
+      students: reported(55, 'ratePct', 5),
+      actions: reported(99, 'ratePer100', 9),
+    })
+    expect(vm.discipline.current.categories[1].students).toEqual(unavailableStudent)
+    expect(vm.discipline.current.categories[1].actions).toEqual(unavailableAction)
+    expect(vm.discipline.caveats).toEqual({
+      overlap: 'Do not add overlapping categories.',
+      pandemic2020_21: 'Use 2020-21 cautiously.',
+      source: 'Stable headings only.',
+    })
+  })
+
+  it('keeps discipline absent when the entity has no official summary row', () => {
+    expect(build().discipline).toBeNull()
+  })
+
+  it('passes official district transfer totals and neutral context through unchanged', () => {
+    const history = [
+      { year: '2024-25', transfersIn: 120, transfersOut: 300, net: -180 },
+      { year: '2025-26', transfersIn: 106, transfersOut: 350, net: -244 },
+    ]
+    const current = {
+      ...history[1],
+      coverage: {
+        officialTotals: { in: 'reported', out: 'reported' },
+        origins: { published: 4, reported: 3, masked: 1 },
+        destinations: { published: 5, reported: 3, masked: 2 },
+      },
+      topOrigins: [{ id: '101', name: 'District 1 ISD', transfers: 27 }],
+      topDestinations: [{ id: '102', name: 'District 2 ISD', transfers: 40 }],
+    }
+    const changeSinceFirst = {
+      fromYear: '2024-25',
+      toYear: '2025-26',
+      transfersInChange: -14,
+      transfersOutChange: 50,
+      netChange: -64,
+    }
+    const vm = build({
+      transferSummary: {
+        id: '100',
+        level: 'district',
+        netLabel: 'Transfers in minus transfers out (arithmetic context only; not a quality measure)',
+        history,
+        current,
+        changeSinceFirst,
+      },
+      publicDataMeta: {
+        transfers: {
+          caveats: { meaning: 'A transfer does not identify why a student attends elsewhere.' },
+          scope: 'District only.',
+        },
+      },
+    })
+    expect(vm.transferContext).toEqual({
+      netLabel: 'Transfers in minus transfers out (arithmetic context only; not a quality measure)',
+      history,
+      current,
+      changeSinceFirst,
+      caveats: { meaning: 'A transfer does not identify why a student attends elsewhere.' },
+      scope: 'District only.',
+    })
+  })
+
+  it('never exposes a district transfer summary as a campus total', () => {
+    const u = makeUniverse()
+    const campus = {
+      ...u.entities[0],
+      id: '100001',
+      level: 'campus',
+      districtId: '100',
+      districtName: 'District 0 ISD',
+      name: 'A Campus',
+    }
+    const vm = build({
+      entity: campus,
+      entities: [...u.entities, campus],
+      transferSummary: {
+        id: campus.id,
+        level: 'district',
+        history: [{ year: '2025-26', transfersIn: 10, transfersOut: 5, net: 5 }],
+        current: { year: '2025-26', transfersIn: 10, transfersOut: 5, net: 5 },
+      },
+    })
+    expect(vm.transferContext).toBeNull()
   })
 })

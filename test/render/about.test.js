@@ -176,7 +176,40 @@ describe('page shape', () => {
   it('lists every source file with its row count', () => {
     for (const s of SOURCES) expect(page).toContain(s.name)
     expect(page).toContain('58,984')
-    expect(page).toMatch(/the 4 files below/)
+    expect(page).toMatch(/the 4 txschools\.gov files below/)
+  })
+
+  it('separately identifies the PEIMS enrollment archive when it is present', () => {
+    const withEnrollment = renderAboutPage({
+      snapshotDate: '15 August 2026',
+      sources: SOURCES,
+      enrollmentSource: {
+        fetched: '24 August 2026',
+        reports: 10,
+        rows: 44_249,
+        url: 'https://rptsvr1.tea.texas.gov/adhocrpt/adspr.html',
+      },
+    })
+    expect(withEnrollment).toContain('PEIMS Student Program and Special Populations reports')
+    expect(withEnrollment).toContain('24 August 2026')
+    expect(withEnrollment).toContain('44,249')
+    expect(withEnrollment).toContain('10 district and campus reports')
+  })
+
+  it('lists separate official sources without implying they came from txschools.gov', () => {
+    const withPublic = renderAboutPage({
+      snapshotDate: '15 August 2026',
+      sources: SOURCES,
+      publicSources: [
+        { name: 'Small Area Income and Poverty Estimates', agency: 'U.S. Census Bureau', year: '2024', rows: 1_017, url: 'https://census.example/saipe' },
+        { name: 'Following-fall higher-education enrollment', agency: 'Texas Higher Education Coordinating Board', year: 'Fall 2024', rows: 2_123, url: 'https://thecb.example/outcomes' },
+      ],
+    })
+    expect(withPublic).toContain('Additional official public sources used by this site')
+    expect(withPublic).toContain('U.S. Census Bureau')
+    expect(withPublic).toContain('Texas Higher Education Coordinating Board')
+    expect(withPublic).toContain('href="https://census.example/saipe"')
+    expect(withPublic).toContain('Each section keeps its own year, denominator and limitations')
   })
 
   it('shows the pass-through counts', () => {

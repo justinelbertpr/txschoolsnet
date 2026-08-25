@@ -1,0 +1,28 @@
+{
+  "fetchedAt": "2026-08-24T19:03:50.611Z",
+  "landing": "https://www.txhighereddata.org/high-school-graduates/hsgradsenrolled/",
+  "graduateYear": "2023-24",
+  "fallTerm": "Fall 2024",
+  "rows": 2476,
+  "sources": {
+    "district": "https://reportcenter.highered.texas.gov/hsgradsenrolled-district-2024-xls",
+    "campus": "https://reportcenter.highered.texas.gov/hsgradsenrolled-campus-2024-xls"
+  },
+  "files": {
+    "district-2024.xlsx": {
+      "bytes": 251010,
+      "sha256": "e4bd67231e39109f9f19cf0c25979f481addf44b80f9e65ec2cfac469d586d4b",
+      "rows": 847
+    },
+    "campus-2024.xlsx": {
+      "bytes": 468251,
+      "sha256": "beaf3caf1450db5eb04c418309c265a686b88f935a7c3bf3bb01b1649a569413",
+      "rows": 1629
+    },
+    "postsecondary.json.gz": {
+      "bytes": 66277,
+      "sha256": "9f4f50fe486f9841f0df90c03f4ef30ff5923dd901734083e3cf43a0f1ca2197",
+      "rows": 2476
+    }
+  }
+}

@@ -34,10 +34,10 @@
 //     per-district reporter CSV + JSON     2,040   two files x 1,020 districts
 //     pin metric bundles                   1,020   one district bundle, campuses inside
 //     ranking board pages + CSVs             391
-//     bulk CSVs                                3
+//     bulk CSVs                               10
 //     shell/map/search/address/data assets     62   includes street shards
 //     ------------------------------------------
-//     expected 2026-08 build              12,927
+//     expected 2026-08 build              12,934
 //
 // That leaves 5,109 slots under the CI guard and 7,109 under the hard cap. One
 // extra file per entity would add 9,086 and exceed both; CSV + JSON for all
@@ -123,7 +123,7 @@ import { renderRegionPage, renderCountyPage, renderLetterPage, renderHomePage, r
 import { searchIndexJson, searchClientJs, renderSearchPage, SEARCH_LETTERS } from './render/search.js'
 import { addressClientJs, districtLocatorJson } from './render/address.js'
 import { publishAddressStreetShards } from './addresses.js'
-import { APPLE_TOUCH_ICON, BRAND, MARK_BARS, OG_IMAGE, faviconSvg, shell } from './render/shell.js'
+import { APPLE_TOUCH_ICON, BRAND, MARK_BARS, OG_IMAGE, faviconSvg, num, shell } from './render/shell.js'
 import { renderAboutPage } from './render/about.js'
 import { renderDownloadPage, datasetCsv, entityCsv, entityJson } from './render/downloads.js'
 import { pinMetricPayloads } from './pin-metrics.js'
@@ -151,8 +151,9 @@ import {
 // lets the write loop below degrade to "skip the CSV for this build" rather than
 // "fail every page render". See the loop for how the presence check is made.
 import * as rankingsPageModule from './render/rankings-page.js'
-import { MAP_FILE, MAP_HREF, buildLayer, buildRatingLayer, hiFiPaths, mappableDistricts, renderMapPage } from './render/map.js'
+import { MAP_FILE, MAP_HREF, buildDivergingLayer, buildLayer, buildRatingLayer, hiFiPaths, mappableDistricts, renderMapPage } from './render/map.js'
 import { BOUNDARY_FILE, BOUNDARY_FILE_LO } from './boundaries.js'
+import { transferMapData } from './transfers.js'
 
 /**
  * The archived district geometry, or null when it has never been fetched.
@@ -241,6 +242,15 @@ export function loadTables(dir) {
   const entities = ndjson('entities')
   const allRatings = ndjson('ratings')
   const profile = ndjson('profile')
+  const enrollment = ndjson('enrollment')
+  const enrollmentMeta = JSON.parse(readFileSync('build/enrollment-meta.json', 'utf8'))
+  const actionFlags = ndjson('actionFlags')
+  const community = ndjson('community')
+  const postsecondary = ndjson('postsecondary')
+  const transfers = ndjson('transfers')
+  const educators = ndjson('educators')
+  const discipline = ndjson('discipline')
+  const publicDataMeta = JSON.parse(readFileSync('build/public-data-meta.json', 'utf8'))
 
   const raw = new Map()
   for (const r of rawDistricts) raw.set(r.id, r)
@@ -248,12 +258,43 @@ export function loadTables(dir) {
   for (const p of rawProfile) raw.set(p.id, { ...raw.get(p.id), ...p })
 
   const latestYear = allRatings.reduce((y, r) => (r.year > y ? r.year : y), '')
+  const entityById = new Map(entities.map((entity) => [entity.id, entity]))
+  const actionByDistrict = new Map()
+  for (const row of actionFlags) {
+    const districtId = row.improvement?.districtId ?? row.id.slice(0, 6)
+    const list = actionByDistrict.get(districtId) ?? []
+    list.push(row)
+    actionByDistrict.set(districtId, list)
+  }
+  const educatorById = new Map()
+  for (const row of educators) {
+    const list = educatorById.get(row.id) ?? []
+    list.push(row)
+    educatorById.set(row.id, list)
+  }
 
   return {
     entities,
     allRatings,
     ratings: preferredRatings(allRatings),
     profile,
+    enrollment,
+    enrollmentMeta,
+    actionFlags,
+    community,
+    postsecondary,
+    transfers,
+    educators,
+    discipline,
+    actionById: new Map(actionFlags.map((row) => [row.id, row])),
+    actionByDistrict,
+    entityById,
+    communityById: new Map(community.map((row) => [row.id, row])),
+    postsecondaryById: new Map(postsecondary.map((row) => [row.id, row])),
+    transferById: new Map(transfers.map((row) => [row.id, row])),
+    educatorById,
+    disciplineById: new Map(discipline.map((row) => [row.id, row])),
+    publicDataMeta,
     domains: toDomains(gz(dir, 'overview')),
     finance: [...toFinance(gz(dir, 'finance_district')), ...toFinance(gz(dir, 'finance_school'))],
     achievement: cleanAchievement(gz(dir, 'student_achievement_tab')),
@@ -277,6 +318,66 @@ const viewModelFor = (t, entity, snapshotDate, { previousYear = null, recentChan
     latestYear: t.latestYear,
     previousYear,
     recentChangeRanks,
+    enrollmentHistory: t.enrollment,
+    enrollmentSnapshotDate: t.enrollmentMeta?.fetchedAt ? humanDate(t.enrollmentMeta.fetchedAt) : null,
+    enrollmentSourceUrl: t.enrollmentMeta?.source ?? null,
+    actionNotices: (entity.level === 'district'
+      ? t.actionByDistrict.get(entity.id) ?? []
+      : t.actionById.has(entity.id)
+        ? [t.actionById.get(entity.id)]
+        : []
+    ).map((row) => {
+      const campus = t.entityById.get(row.id)
+      return {
+        ...row,
+        name: campus?.name ?? row.id,
+        href: campus ? `/campus/${entitySlug(campus)}` : null,
+      }
+    }),
+    communityContext: t.communityById.get(entity.id) ?? null,
+    postsecondaryOutcome: t.postsecondaryById.get(entity.id) ?? null,
+    educatorHistory: t.educatorById.get(entity.id) ?? [],
+    educatorLatestYear: t.publicDataMeta?.educators?.latestYear ?? null,
+    disciplineSummary: t.disciplineById.get(entity.id) ?? null,
+    transferSummary: t.transferById.get(entity.id) ?? null,
+    publicDataMeta: {
+      actionFlags: {
+        ...t.publicDataMeta?.actionFlags,
+        fetchedAt: t.publicDataMeta?.actionFlags?.fetchedAt
+          ? humanDate(t.publicDataMeta.actionFlags.fetchedAt)
+          : null,
+      },
+      community: {
+        ...t.publicDataMeta?.community,
+        fetchedAt: t.publicDataMeta?.community?.fetchedAt
+          ? humanDate(t.publicDataMeta.community.fetchedAt)
+          : null,
+      },
+      postsecondary: {
+        ...t.publicDataMeta?.postsecondary,
+        fetchedAt: t.publicDataMeta?.postsecondary?.fetchedAt
+          ? humanDate(t.publicDataMeta.postsecondary.fetchedAt)
+          : null,
+      },
+      transfers: {
+        ...t.publicDataMeta?.transfers,
+        fetchedAt: t.publicDataMeta?.transfers?.fetchedAt
+          ? humanDate(t.publicDataMeta.transfers.fetchedAt)
+          : null,
+      },
+      educators: {
+        ...t.publicDataMeta?.educators,
+        fetchedAt: t.publicDataMeta?.educators?.fetchedAt
+          ? humanDate(t.publicDataMeta.educators.fetchedAt)
+          : null,
+      },
+      discipline: {
+        ...t.publicDataMeta?.discipline,
+        fetchedAt: t.publicDataMeta?.discipline?.fetchedAt
+          ? humanDate(t.publicDataMeta.discipline.fetchedAt)
+          : null,
+      },
+    },
   })
 
 /* ----------------------------------------------------------- brand assets -- */
@@ -1139,6 +1240,34 @@ const DATASETS = {
   ratings: ['id', 'level', 'name', 'year', 'method', 'rating', 'score'],
   profile: ['id', 'level', 'name', 'school_year', 'students', 'eco_dis_pct', 'sped_pct', 'eng_lrn_pct',
             'attendance_pct', 'chronically_absent_pct', 'avg_teacher_salary'],
+  enrollment: ['id', 'level', 'name', 'school_year', 'students'],
+  action_notices: ['campus_id', 'campus_name', 'district_id', 'district_name', 'improvement_year',
+                   'improvement_kind', 'support_label', 'identification_reason', 'track_year', 'title_i',
+                   'peg_school_year', 'peg_final'],
+  community: ['district_id', 'district_name', 'census_school_district_geoid', 'estimate_year',
+              'total_population', 'resident_children_5_17', 'resident_children_5_17_in_poverty',
+              'resident_children_5_17_poverty_rate'],
+  postsecondary: ['id', 'level', 'name', 'graduate_year', 'fall_term', 'graduates',
+                  'enrolled_texas_public_following_fall', 'enrolled_texas_public_following_fall_rate',
+                  'not_found', 'not_trackable', 'top_destination_1', 'top_destination_1_students',
+                  'top_destination_2', 'top_destination_2_students', 'top_destination_3',
+                  'top_destination_3_students'],
+  transfers: ['district_id', 'district_name', 'school_year', 'transfers_in', 'transfers_in_status',
+              'transfers_out', 'transfers_out_status', 'transfers_in_minus_out',
+              'origin_rows_published', 'origin_rows_reported', 'origin_rows_masked',
+              'destination_rows_published', 'destination_rows_reported', 'destination_rows_masked'],
+  educators: ['id', 'level', 'name', 'district_id', 'school_year', 'teacher_turnover_rate',
+              'class_size_kindergarten', 'class_size_grade_1', 'class_size_grade_2', 'class_size_grade_3',
+              'class_size_grade_4', 'class_size_grade_5', 'class_size_grade_6',
+              'class_size_secondary_english', 'class_size_secondary_languages_other_than_english',
+              'class_size_secondary_math', 'class_size_secondary_science',
+              'class_size_secondary_social_studies'],
+  discipline: ['id', 'level', 'name', 'school_year', 'category_key', 'category_label',
+               'cumulative_enrollment', 'cumulative_enrollment_status', 'cumulative_enrollment_mask',
+               'students', 'students_status', 'students_mask',
+               'students_pct_of_cumulative_year_end_enrollment',
+               'actions', 'actions_status', 'actions_mask',
+               'actions_per_100_cumulative_year_end_students'],
 }
 
 export async function prerender({ concurrency } = {}) {
@@ -1167,6 +1296,16 @@ export async function prerender({ concurrency } = {}) {
   const entities = ndjson('entities')
   const allRatings = ndjson('ratings')
   const profile = ndjson('profile')
+  const enrollment = ndjson('enrollment')
+  const enrollmentMeta = JSON.parse(readFileSync('build/enrollment-meta.json', 'utf8'))
+  const enrollmentSnapshotDate = enrollmentMeta.fetchedAt ? humanDate(enrollmentMeta.fetchedAt) : null
+  const actionFlags = ndjson('actionFlags')
+  const community = ndjson('community')
+  const postsecondary = ndjson('postsecondary')
+  const transfers = ndjson('transfers')
+  const educators = ndjson('educators')
+  const discipline = ndjson('discipline')
+  const publicDataMeta = JSON.parse(readFileSync('build/public-data-meta.json', 'utf8'))
   const rawDistricts = gz(dir, 'districts')
   const subjects = [...new Set(cleanAchievement(gz(dir, 'student_achievement_tab')).flatMap((a) => a.subject ?? []))]
 
@@ -1626,15 +1765,253 @@ export async function prerender({ concurrency } = {}) {
     avg_teacher_salary: p.avgSalary,
   }))
 
+  const enrollmentRows = enrollment.map((row) => ({
+    id: row.id,
+    level: row.level,
+    name: byId.get(row.id)?.name ?? null,
+    school_year: row.year,
+    students: row.enrollment,
+  }))
+
+  const actionNoticeRows = actionFlags.map((row) => {
+    const campus = byId.get(row.id)
+    const districtId = row.improvement?.districtId ?? row.id.slice(0, 6)
+    return {
+      campus_id: row.id,
+      campus_name: campus?.name ?? null,
+      district_id: districtId,
+      district_name: byId.get(districtId)?.name ?? campus?.districtName ?? null,
+      improvement_year: row.improvement?.year ?? null,
+      improvement_kind: row.improvement?.kind ?? null,
+      support_label: row.improvement?.supportLabel ?? null,
+      identification_reason: row.improvement?.reason ?? null,
+      track_year: row.improvement?.trackYear ?? null,
+      title_i: row.improvement?.titleI ?? null,
+      peg_school_year: row.peg?.schoolYear ?? null,
+      peg_final: row.peg?.final ?? null,
+    }
+  })
+
+  const communityRows = community.map((row) => ({
+    district_id: row.id,
+    district_name: byId.get(row.id)?.name ?? row.name ?? null,
+    census_school_district_geoid: row.geoid,
+    estimate_year: row.year,
+    total_population: row.totalPopulation,
+    resident_children_5_17: row.schoolAgePopulation,
+    resident_children_5_17_in_poverty: row.schoolAgePoverty,
+    resident_children_5_17_poverty_rate: row.schoolAgePovertyRate,
+  }))
+
+  const postsecondaryRows = postsecondary.map((row) => {
+    const destinations = Array.isArray(row.destinations) ? row.destinations.slice(0, 3) : []
+    return {
+      id: row.id,
+      level: row.level,
+      name: byId.get(row.id)?.name ?? null,
+      graduate_year: row.graduateYear,
+      fall_term: row.fallTerm,
+      graduates: row.graduates,
+      enrolled_texas_public_following_fall: row.enrolledPublic,
+      enrolled_texas_public_following_fall_rate: row.rate,
+      not_found: row.notFound,
+      not_trackable: row.notTrackable,
+      top_destination_1: destinations[0]?.institution ?? null,
+      top_destination_1_students: destinations[0]?.students ?? null,
+      top_destination_2: destinations[1]?.institution ?? null,
+      top_destination_2_students: destinations[1]?.students ?? null,
+      top_destination_3: destinations[2]?.institution ?? null,
+      top_destination_3_students: destinations[2]?.students ?? null,
+    }
+  })
+
+  const transferRows = transfers.flatMap((summary) =>
+    (summary.history ?? []).map((point) => ({
+      district_id: summary.id,
+      district_name: byId.get(summary.id)?.name ?? summary.name ?? null,
+      school_year: point.year,
+      transfers_in: point.transfersIn,
+      transfers_in_status: point.coverage?.officialTotals?.in ?? null,
+      transfers_out: point.transfersOut,
+      transfers_out_status: point.coverage?.officialTotals?.out ?? null,
+      transfers_in_minus_out: point.net,
+      origin_rows_published: point.coverage?.origins?.published ?? null,
+      origin_rows_reported: point.coverage?.origins?.reported ?? null,
+      origin_rows_masked: point.coverage?.origins?.masked ?? null,
+      destination_rows_published: point.coverage?.destinations?.published ?? null,
+      destination_rows_reported: point.coverage?.destinations?.reported ?? null,
+      destination_rows_masked: point.coverage?.destinations?.masked ?? null,
+    }))
+  )
+
+  const educatorRows = educators.map((row) => ({
+    id: row.id,
+    level: row.level,
+    name: byId.get(row.id)?.name ?? null,
+    district_id: row.level === 'district' ? row.id : row.districtId,
+    school_year: row.year,
+    teacher_turnover_rate: row.teacherTurnoverRate ?? null,
+    class_size_kindergarten: row.classSize?.kindergarten ?? null,
+    class_size_grade_1: row.classSize?.grade1 ?? null,
+    class_size_grade_2: row.classSize?.grade2 ?? null,
+    class_size_grade_3: row.classSize?.grade3 ?? null,
+    class_size_grade_4: row.classSize?.grade4 ?? null,
+    class_size_grade_5: row.classSize?.grade5 ?? null,
+    class_size_grade_6: row.classSize?.grade6 ?? null,
+    class_size_secondary_english: row.classSize?.secondaryEnglish ?? null,
+    class_size_secondary_languages_other_than_english: row.classSize?.secondaryLanguagesOtherThanEnglish ?? null,
+    class_size_secondary_math: row.classSize?.secondaryMath ?? null,
+    class_size_secondary_science: row.classSize?.secondaryScience ?? null,
+    class_size_secondary_social_studies: row.classSize?.secondarySocialStudies ?? null,
+  }))
+
+  const disciplineLabels = new Map(
+    (publicDataMeta.discipline?.headlineCategories ?? []).map((category) => [category.key, category.label])
+  )
+  const disciplineRow = (summary, point, key, students, actions, cumulativeEnrollment) => ({
+    id: summary.id,
+    level: summary.level,
+    name: byId.get(summary.id)?.name ?? null,
+    school_year: point.year,
+    category_key: key,
+    category_label: disciplineLabels.get(key) ?? key,
+    cumulative_enrollment: cumulativeEnrollment?.count ?? null,
+    cumulative_enrollment_status: cumulativeEnrollment?.status ?? null,
+    cumulative_enrollment_mask: cumulativeEnrollment?.mask ?? null,
+    students: students?.count ?? null,
+    students_status: students?.status ?? null,
+    students_mask: students?.mask ?? null,
+    students_pct_of_cumulative_year_end_enrollment: students?.ratePct ?? null,
+    actions: actions?.count ?? null,
+    actions_status: actions?.status ?? null,
+    actions_mask: actions?.mask ?? null,
+    actions_per_100_cumulative_year_end_students: actions?.ratePer100 ?? null,
+  })
+  const disciplineRows = discipline.flatMap((summary) => [
+    ...(summary.history ?? []).map((point) =>
+      disciplineRow(summary, point, 'allDiscipline', point.students, point.actions, point.cumulativeEnrollment)
+    ),
+    ...Object.entries(summary.latest?.categories ?? {})
+      .filter(([key]) => key !== 'allDiscipline')
+      .map(([key, category]) =>
+        disciplineRow(summary, summary.latest, key, category.students, category.actions, summary.latest.cumulativeEnrollment)
+      ),
+  ])
+
+  const publicSnapshot = (key) => publicDataMeta[key]?.fetchedAt
+    ? humanDate(publicDataMeta[key].fetchedAt)
+    : null
+  const enrollmentReconciliationNote =
+    `additional source: current enrollment fields were reconciled against TEA PEIMS Student Program reports at ${enrollmentMeta.source}, fetched ${enrollmentSnapshotDate ?? 'on the supplemental snapshot date'}. Where TEA suppressed the current PEIMS count, the txschools.gov current total is retained rather than replaced with zero.`
+
   const bulk = [
-    ['entities', entityRows, 'One row per district and campus: identity, current rating, score, enrollment and economically disadvantaged share.'],
+    [
+      'entities',
+      entityRows,
+      'One row per district and campus: identity, current rating, score, enrollment and economically disadvantaged share.',
+      { notes: [enrollmentReconciliationNote] },
+    ],
     ['ratings', ratingRows, `One row per entity, year and scoring method — ${years.length} years, including the pre-2023 original scoring of 2021-22 where TEA published it.`],
-    ['profile', profileRows, 'One row per entity: student demographics, attendance and average teacher salary.'],
+    [
+      'profile',
+      profileRows,
+      'One row per entity: student demographics, attendance and average teacher salary.',
+      { notes: [enrollmentReconciliationNote] },
+    ],
+    [
+      'enrollment',
+      enrollmentRows,
+      'One row per district or campus and school year: five years of October PEIMS student enrollment. Suppressed counts are empty, never zero.',
+      {
+        snapshotDate: enrollmentSnapshotDate,
+        sourceUrl: enrollmentMeta.source,
+        notes: ['counts are from TEA fall enrollment reports. Suppressed counts remain empty and are never estimated or converted to zero.'],
+      },
+    ],
+    [
+      'action_notices',
+      actionNoticeRows,
+      'One row per campus on either the 2026 federal-improvement list or the final 2026–27 Public Education Grant list. Absence is not a claim that no other notice applies.',
+      {
+        snapshotDate: publicSnapshot('actionFlags'),
+        sourceUrl: publicDataMeta.actionFlags?.sources?.landing,
+        notes: ['absence from this table means only that the campus was not in either archived list; it is not a claim that no other official notice applies. PEG listing makes a student eligible to request a transfer, not guaranteed acceptance or transportation.'],
+      },
+    ],
+    [
+      'community',
+      communityRows,
+      'One row per matched traditional district: 2024 Census SAIPE estimates for residents inside the district boundary, not students enrolled by the district.',
+      {
+        snapshotDate: publicSnapshot('community'),
+        sourceUrl: publicDataMeta.community?.landing,
+        sourceName: 'U.S. Census Bureau',
+        notes: ['figures are modeled estimates for residents inside the geographic district boundary, not students enrolled by the district.'],
+      },
+    ],
+    [
+      'postsecondary',
+      postsecondaryRows,
+      'One row per reported district or high-school campus: where graduates appeared in Texas public higher-education records the following fall. Not found is not the same as no college; not trackable means a non-standard identifier could not be matched.',
+      {
+        snapshotDate: publicSnapshot('postsecondary'),
+        sourceUrl: publicDataMeta.postsecondary?.landing,
+        sourceName: 'Texas Higher Education Coordinating Board',
+        notes: ['the report observes Texas public higher education the following fall only. “not found” can include private or out-of-state college and later enrollment. “not trackable” means a non-standard identifier could not be matched; it is not an outcome.'],
+      },
+    ],
+    [
+      'transfers',
+      transferRows,
+      'Official district transfer totals by school year. Detail-row coverage is included because masked origin and destination cells are not zero; no campus totals are inferred.',
+      {
+        snapshotDate: publicSnapshot('transfers'),
+        sourceUrl: publicDataMeta.transfers?.source,
+        notes: ['transfers_in and transfers_out are TEA official district total rows. Pair-level detail is never summed to replace a masked total, and no campus totals are inferred. The net column is arithmetic context, not a quality or satisfaction measure.'],
+      },
+    ],
+    [
+      'educators',
+      educatorRows,
+      'Five years of district teacher-turnover rates and campus grade/subject class-size averages. TEA does not publish campus turnover, and no campus-wide class-size average is invented.',
+      {
+        snapshotDate: publicSnapshot('educators'),
+        sourceUrl: publicDataMeta.educators?.source,
+        notes: ['teacher_turnover_rate is district-only. Class-size columns are separate campus grade/subject averages; they are not combined into a campus-wide average or confused with student-to-teacher ratio.'],
+      },
+    ],
+    [
+      'discipline',
+      disciplineRows,
+      'Five years of TEA all-discipline counts plus the latest stable headline categories. Students and actions remain separate, masks remain empty with a status, and categories must not be added.',
+      {
+        snapshotDate: publicSnapshot('discipline'),
+        sourceUrl: publicDataMeta.discipline?.source,
+        notes: [
+          'students and actions are different units: one student can receive multiple actions. Categories overlap and must not be added together.',
+          'both rate columns use the cumulative_year_end_enrollment on the same entity/year row, not October enrollment. Suppressed values remain empty with status and mask preserved.',
+          'use 2020-21 cautiously because remote instruction changed exposure to in-person discipline; the trend uses only TEA’s stable “All discipline” heading.',
+        ],
+      },
+    ],
   ]
 
   const files = []
-  for (const [name, rows, description] of bulk) {
-    const body = await write(`data/${name}.csv`, datasetCsv(rows, { columns: DATASETS[name], dataset: name, snapshotDate }))
+  for (const [name, rows, description, sourceMeta = {}] of bulk) {
+    const body = await write(
+      `data/${name}.csv`,
+      datasetCsv(rows, {
+        columns: DATASETS[name],
+        dataset: name,
+        snapshotDate: sourceMeta.snapshotDate ?? snapshotDate,
+        meta: {
+          ...(sourceMeta.sourceUrl
+            ? { sourceUrl: sourceMeta.sourceUrl, sourceName: sourceMeta.sourceName ?? 'Texas Education Agency' }
+            : {}),
+          ...(sourceMeta.notes?.length ? { notes: sourceMeta.notes } : {}),
+        },
+      })
+    )
     files.push({
       href: `/data/${name}.csv`,
       label: `${name}.csv`,
@@ -1676,6 +2053,7 @@ export async function prerender({ concurrency } = {}) {
     renderDownloadPage({
       files,
       snapshotDate,
+      enrollmentSnapshotDate,
       counts: {
         districts: districts.length,
         campuses: campuses.length,
@@ -1684,6 +2062,13 @@ export async function prerender({ concurrency } = {}) {
         // Key names are humanised for display (`ratingYears` -> `Rating years`),
         // so an acronym in one would come out as `Tea source files`.
         sourceFiles: Object.keys(manifest.files ?? {}).length,
+        enrollmentReports: enrollmentMeta.reports ?? null,
+        officialNoticeCampuses: actionFlags.length,
+        communityDistricts: community.length,
+        postsecondaryEntities: postsecondary.length,
+        transferDistrictYears: transferRows.length,
+        educatorRows: educators.length,
+        disciplineRows: disciplineRows.length,
       },
     })
   )
@@ -1699,6 +2084,62 @@ export async function prerender({ concurrency } = {}) {
         metrics: metricSpecs({ subjects }).length,
       },
       sources: Object.entries(manifest.files ?? {}).map(([name, f]) => ({ name, rows: f.rows })),
+      enrollmentSource: {
+        fetched: enrollmentSnapshotDate,
+        reports: enrollmentMeta.reports ?? 0,
+        rows: enrollmentMeta.rows ?? enrollment.length,
+        url: enrollmentMeta.source,
+      },
+      publicSources: [
+        {
+          name: 'Schools Identified for Improvement and Public Education Grant lists',
+          agency: 'Texas Education Agency',
+          year: '2026 / 2026–27',
+          rows: actionFlags.length,
+          url: publicDataMeta.actionFlags?.sources?.landing,
+        },
+        {
+          name: 'Student Transfer Reports',
+          agency: 'Texas Education Agency',
+          year: publicDataMeta.transfers?.years?.length
+            ? `${publicDataMeta.transfers.years[0]}–${publicDataMeta.transfers.years.at(-1)}`
+            : null,
+          rows: transferRows.length,
+          url: publicDataMeta.transfers?.source,
+        },
+        {
+          name: 'Texas Academic Performance Reports educator data',
+          agency: 'Texas Education Agency',
+          year: publicDataMeta.educators?.years?.length
+            ? `${publicDataMeta.educators.years[0]}–${publicDataMeta.educators.years.at(-1)}`
+            : null,
+          rows: educators.length,
+          url: publicDataMeta.educators?.source,
+        },
+        {
+          name: 'Discipline Reports',
+          agency: 'Texas Education Agency',
+          year: publicDataMeta.discipline?.years?.length
+            ? `${publicDataMeta.discipline.years[0]}–${publicDataMeta.discipline.years.at(-1)}`
+            : null,
+          rows: disciplineRows.length,
+          url: publicDataMeta.discipline?.source,
+        },
+        {
+          name: 'Small Area Income and Poverty Estimates for school districts',
+          agency: 'U.S. Census Bureau',
+          year: publicDataMeta.community?.estimateYear,
+          rows: community.length,
+          url: publicDataMeta.community?.landing,
+        },
+        {
+          name: 'High-school graduates enrolled in higher education the following fall',
+          agency: 'Texas Higher Education Coordinating Board',
+          year: `${publicDataMeta.postsecondary?.graduateYear ?? 'Graduates'} → ${publicDataMeta.postsecondary?.fallTerm ?? 'following fall'}`,
+          rows: postsecondary.length,
+          url: publicDataMeta.postsecondary?.landing,
+        },
+      ].filter((source) => source.url),
     })
   )
 
@@ -1748,6 +2189,96 @@ export async function prerender({ concurrency } = {}) {
     const rating = buildRatingLayer({ ratings, order })
 
     const mapLayers = []
+
+    // Transfers are a signed arithmetic balance, not a ranking metric. Keep
+    // them out of rankingMetrics() so a positive value can never inherit the
+    // green "higher is better" palette. The dedicated builder anchors the
+    // middle at zero and the exact readout preserves TEA's two official totals.
+    const transferMap = transferMapData(transfers)
+    if (transferMap.year && transferMap.coverage.reported >= MIN_POPULATION) {
+      const valueLabels = new Map()
+      let reported = 0
+      let masked = 0
+      let notReported = 0
+      for (const id of order) {
+        const detail = transferMap.details.get(id)
+        if (detail?.status === 'reported') {
+          reported += 1
+          const balance = detail.net === 0
+            ? 'transfers in and out are even'
+            : `${num(Math.abs(detail.net))} more transfers ${detail.net > 0 ? 'in' : 'out'}`
+          valueLabels.set(
+            id,
+            `${balance}; ${num(detail.transfersIn)} in and ${num(detail.transfersOut)} out`
+          )
+        } else if (detail?.status === 'masked') {
+          masked += 1
+          const unavailable = ['in', 'out'].map((direction) => {
+            const status = detail.officialTotals?.[direction]
+            if (status === 'masked') return `transfers-${direction} total is suppressed by TEA`
+            if (status === 'not_reported') return `transfers-${direction} total is not reported`
+            return null
+          }).filter(Boolean)
+          valueLabels.set(
+            id,
+            `net unavailable — ${unavailable.join(' and ')}`
+          )
+        } else {
+          notReported += 1
+          valueLabels.set(id, 'net unavailable — one or both official totals are not reported')
+        }
+      }
+      const missingParts = [
+        masked ? `${num(masked)} ${masked === 1 ? 'has' : 'have'} at least one suppressed total` : null,
+        notReported ? `${num(notReported)} ${notReported === 1 ? 'does' : 'do'} not report both totals` : null,
+      ].filter(Boolean)
+      const coverage = `${num(reported)} of ${num(order.length)} districts ${reported === 1 ? 'has' : 'have'} both official totals available${missingParts.length ? `; ${missingParts.join('; ')}` : ''}.`
+      const drawableById = new Map(drawable.map((district) => [district.teaId, district]))
+      const reportedDetails = order
+        .map((id) => transferMap.details.get(id))
+        .filter((detail) => detail?.status === 'reported')
+      const leaderRow = (detail, side) => ({
+        name: drawableById.get(detail.id)?.name ?? detail.name ?? detail.id,
+        href: drawableById.get(detail.id)?.href ?? null,
+        value: `${num(Math.abs(detail.net))} more ${side}`,
+        detail: `${num(detail.transfersIn)} in · ${num(detail.transfersOut)} out`,
+      })
+      const leaders = {
+        title: `Largest reported transfer balances, ${transferMap.year}`,
+        groups: [
+          {
+            label: 'More transfers in than out',
+            rows: reportedDetails
+              .filter((detail) => detail.net > 0)
+              .sort((a, b) => b.net - a.net || String(a.name).localeCompare(String(b.name)))
+              .slice(0, 5)
+              .map((detail) => leaderRow(detail, 'in')),
+          },
+          {
+            label: 'More transfers out than in',
+            rows: reportedDetails
+              .filter((detail) => detail.net < 0)
+              .sort((a, b) => a.net - b.net || String(a.name).localeCompare(String(b.name)))
+              .slice(0, 5)
+              .map((detail) => leaderRow(detail, 'out')),
+          },
+        ],
+        note: 'Transfers in are students who live elsewhere and attend here; transfers out are students who live here and attend another public district or charter. Charter districts appear in TEA flows but are not drawn because they have no attendance boundary. A transfer does not say why a student attends elsewhere.',
+      }
+      mapLayers.push(
+        buildDivergingLayer({
+          key: transferMap.key,
+          label: `${transferMap.label}, ${transferMap.year}`,
+          values: transferMap.values,
+          order,
+          valueLabels,
+          missingLabel: 'Suppressed or not reported',
+          coverage,
+          leaders,
+        })
+      )
+    }
+
     for (const m of rankingMetrics().filter((x) => x.kind !== 'change')) {
       const result = rankBy({
         entities, bundles, metric: m, scope: 'state', level: 'district', latestYear: tables.latestYear,
@@ -1897,7 +2428,7 @@ function report({ entityStats, regions, counties, entities, elapsed, total, larg
     ['per-district CSV + JSON', entityStats.dataFiles],
     ['pin metric bundles', pinPayloadStats?.files ?? 0],
     ['address street shards', addressStreetStats?.files ?? 0],
-    ['bulk CSVs', 3],
+    ['bulk CSVs', Object.keys(DATASETS).length],
     ['favicon + share images', brand.length],
   ]
 

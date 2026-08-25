@@ -894,6 +894,387 @@ export function students(vm) {
   )
 }
 
+/* ------------------------------------------------------- enrollment time -- */
+
+const schoolYear = (year) => String(year ?? '').replace('-', '–')
+
+const enrollmentPct = (value, { signed = false } = {}) => {
+  if (!finite(value)) return null
+  const absolute = Math.abs(value)
+  if (absolute > 0 && absolute < 0.05) return 'less than 0.1%'
+  const sign = !signed || value === 0 ? '' : value > 0 ? '+' : '−'
+  return `${sign}${absolute.toFixed(1)}%`
+}
+
+const signedEnrollment = (value) =>
+  value > 0 ? `+${num(value)}` : value < 0 ? `−${num(Math.abs(value))}` : '0'
+
+const enrollmentDirection = (change, { sentence = false } = {}) => {
+  if (!change) return null
+  if (change.delta === 0) return sentence ? 'no change' : 'No change'
+  const word = change.delta > 0 ? 'increase' : 'decrease'
+  const percent = enrollmentPct(change.pct)
+  return `${sentence ? `a${word === 'increase' ? 'n' : ''} ${word}` : word[0].toUpperCase() + word.slice(1)} of ${num(Math.abs(change.delta))}${
+    percent ? ` (${percent})` : ''
+  }`
+}
+
+const enrollmentStat = (label, change) => [
+  label,
+  signedEnrollment(change.delta),
+  change.pct == null
+    ? change.from === 0
+      ? 'Percentage not calculated from a zero base'
+      : null
+    : change.delta === 0
+      ? 'No change'
+      : `${change.delta > 0 ? 'Increase' : 'Decrease'} · ${enrollmentPct(change.pct, { signed: true })}`,
+]
+
+/**
+ * A count trend is context, not a performance signal. Bars share one zero
+ * baseline and one neutral treatment; the exact count and signed prose remain
+ * visible, so neither colour nor bar length has to carry the claim.
+ */
+export function enrollment(vm) {
+  const trend = vm.enrollmentTrend
+  if (!trend?.points?.length || trend.points.length < 2 || !trend.latest) return null
+
+  const reported = vm.enrollmentReported?.length ? vm.enrollmentReported : trend.points
+  const currentReport = reported.at(-1) ?? null
+  const latestYear = schoolYear(trend.latest.year)
+  const currentSuppressed = currentReport?.enrollment == null
+  const takeaway = currentSuppressed
+    ? `TEA did not publish an enrollment count for <strong>${esc(schoolYear(currentReport.year))}</strong> in this PEIMS report, so no current year-over-year change is calculated. The latest available PEIMS count is <strong>${num(trend.latest.enrollment)} students</strong> in <strong>${esc(latestYear)}</strong>.`
+    : trend.yoy
+      ? `TEA reported <strong>${num(trend.latest.enrollment)} students</strong> in <strong>${esc(latestYear)}</strong>, ${enrollmentDirection(
+          trend.yoy,
+          { sentence: true }
+        )} from ${esc(schoolYear(trend.yoy.fromYear))}.`
+      : `TEA reported <strong>${num(trend.latest.enrollment)} students</strong> in <strong>${esc(latestYear)}</strong>. The previous available count is not from the immediately preceding school year, so no year-over-year change is calculated.`
+
+  const stats = [
+    [currentSuppressed ? 'Latest available PEIMS enrollment' : 'Latest enrollment', num(trend.latest.enrollment), latestYear],
+    !currentSuppressed && trend.yoy ? enrollmentStat(`Change from ${schoolYear(trend.yoy.fromYear)}`, trend.yoy) : null,
+    trend.sinceFirst
+      ? enrollmentStat(`Change since ${schoolYear(trend.sinceFirst.fromYear)}`, trend.sinceFirst)
+      : null,
+  ]
+
+  const max = Math.max(...trend.points.map((point) => point.enrollment), 0)
+  const validByYear = new Map(trend.points.map((point) => [point.year, point]))
+  const rows = reported.map((report, i) => {
+    const point = validByYear.get(report.year)
+    if (!point) {
+      return `<tr>
+      <th scope="row">${esc(schoolYear(report.year))}</th>
+      <td class="num enrollment-count-cell"><span class="enrollment-measure enrollment-measure-na"><span class="enrollment-na">Not reported</span></span></td>
+      <td class="enrollment-change"><span class="enrollment-na">Not available</span></td>
+    </tr>`
+    }
+    const width = max > 0 ? (point.enrollment / max) * 100 : 0
+    const change = point.change
+      ? enrollmentDirection(point.change)
+      : i === 0
+        ? '<span class="enrollment-na">First available year</span>'
+        : '<span class="enrollment-na">No adjacent prior year</span>'
+    return `<tr>
+      <th scope="row">${esc(schoolYear(point.year))}</th>
+      <td class="num enrollment-count-cell"><span class="enrollment-measure" style="--enrollment-width:${width.toFixed(2)}%"><span class="enrollment-bar" aria-hidden="true"${point.enrollment === 0 ? ' hidden' : ''}></span><span class="enrollment-value">${num(point.enrollment)}</span></span></td>
+      <td class="enrollment-change">${change}</td>
+    </tr>`
+  })
+
+  return section(
+    'enrollment',
+    'Enrollment over time',
+    `<p class="enrollment-takeaway">${takeaway}</p>
+  ${statGrid(stats)}
+  ${table({
+      caption: `Student enrollment by school year for ${vm.name}`,
+      className: 'data scroll enrollment-table',
+      head: ['School year', { label: 'Students enrolled', num: true }, 'Change from previous school year'],
+      rows,
+    })}
+  <p class="note">Source: <a href="${esc(vm.enrollmentSourceUrl ?? 'https://rptsvr1.tea.texas.gov/adhocrpt/adspr.html')}" rel="nofollow">TEA PEIMS Student Program and Special Populations Reports</a>${vm.enrollmentSnapshotDate ? `, fetched ${esc(vm.enrollmentSnapshotDate)}` : ''}. TEA reports these counts from its fall student snapshot; changes compare adjacent reported school years.</p>
+  <p class="note">These counts show how enrollment changed, not why. Attendance-zone changes, school openings or closures, grade reconfigurations, transfers and population shifts can affect the total.</p>`,
+    'TEA-reported student enrollment for each available school year. Enrollment growth or decline is not a measure of school quality.'
+  )
+}
+
+/* --------------------------------------------------------- student flows -- */
+
+const reportedCount = (value, status = null) => Number.isSafeInteger(value) && value >= 0
+  ? num(value)
+  : status === 'masked' || status === 'suppressed'
+    ? '<span class="na">Suppressed</span>'
+    : '<span class="na">Not reported</span>'
+
+const flowList = (title, rows, coverage) => {
+  if (!Array.isArray(rows) || !rows.length) return ''
+  return `<div class="transfer-flow">
+    <h3>${esc(title)}</h3>
+    <ol class="destination-list">${rows.map((row) => `<li><span>${esc(row.name ?? `District ${row.id}`)} <small>${esc(row.id)}</small></span><strong>${num(row.transfers)}</strong></li>`).join('')}</ol>
+    <p class="note">Top reported flows only. TEA published ${num(coverage?.reported ?? rows.length)} of ${num(coverage?.published ?? rows.length)} counterpart counts${coverage?.masked ? ` and masked ${num(coverage.masked)}` : ''}.</p>
+  </div>`
+}
+
+export function transfers(vm) {
+  const t = vm.transferContext
+  if (vm.level !== 'district' || !t?.current || !Array.isArray(t.history)) return null
+  const current = t.current
+  const hasOfficialTotal = t.history.some((point) =>
+    [point.transfersIn, point.transfersOut].some((value) => Number.isSafeInteger(value)) ||
+    [point.coverage?.officialTotals?.in, point.coverage?.officialTotals?.out]
+      .some((status) => status === 'reported' || status === 'masked')
+  )
+  if (!hasOfficialTotal) return null
+  const meta = vm.publicDataMeta?.transfers ?? {}
+  const historyRows = t.history.map((point) => `<tr>
+    <th scope="row">${esc(schoolYear(point.year))}</th>
+    <td class="num">${reportedCount(point.transfersIn, point.coverage?.officialTotals?.in)}</td>
+    <td class="num">${reportedCount(point.transfersOut, point.coverage?.officialTotals?.out)}</td>
+    <td class="num">${point.net == null ? '<span class="na">Not available</span>' : signedEnrollment(point.net)}</td>
+  </tr>`)
+  const net = current.net == null ? '<span class="na">Not available</span>' : signedEnrollment(current.net)
+
+  return section(
+    'transfers',
+    'Students crossing district lines',
+    `${statGrid([
+      ['Transfers in', reportedCount(current.transfersIn, current.coverage?.officialTotals?.in), `Live in another district; attend here · ${schoolYear(current.year)}`],
+      ['Transfers out', reportedCount(current.transfersOut, current.coverage?.officialTotals?.out), `Live here; attend in another public district or charter · ${schoolYear(current.year)}`],
+      ['Transfers in minus transfers out', net, 'Arithmetic context only'],
+    ])}
+    ${table({
+      caption: `Official transfer totals by school year for ${vm.name}`,
+      className: 'data scroll transfer-history',
+      head: ['School year', { label: 'Transfers in', num: true }, { label: 'Transfers out', num: true }, { label: 'In minus out', num: true }],
+      rows: historyRows,
+    })}
+    <div class="transfer-flow-grid">
+      ${flowList('Largest reported origins for transfers in', current.topOrigins, current.coverage?.origins)}
+      ${flowList('Largest reported destinations for transfers out', current.topDestinations, current.coverage?.destinations)}
+    </div>
+    <p class="note">Source: TEA <a href="${esc(meta.source ?? 'https://rptsvr1.tea.texas.gov/adhocrpt/Standard_Reports/Transfer_Reports/transfer_reports.html')}" rel="nofollow">Student Transfer Reports</a>${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}. The totals are TEA's official district rows; this site does not add masked detail cells. A transfer records a mismatch between district of residence and public district or charter of attendance. It does not say why a family transferred, whether the move was optional, or whether either school is better.</p>`,
+    'How many students live in one public-school district and attend in another. These are movement counts, not a measure of family satisfaction or school quality.'
+  )
+}
+
+/* ------------------------------------------------------------- discipline -- */
+
+const disciplineCount = (datum) => datum?.count != null
+  ? num(datum.count)
+  : datum?.status === 'suppressed'
+    ? `<span class="na"${datum.mask ? ` title="TEA suppression code ${esc(datum.mask)}"` : ''}>Suppressed</span>`
+    : '<span class="na">Not reported</span>'
+
+const disciplineRate = (datum, key) => datum?.[key] == null
+  ? '<span class="na">—</span>'
+  : pct(datum[key])
+
+export function discipline(vm) {
+  const d = vm.discipline
+  if (!d || (!d.current && !d.history?.length)) return null
+  const current = d.current
+  const all = current?.categories?.find((category) => category.key === 'allDiscipline') ?? null
+  const meta = vm.publicDataMeta?.discipline ?? {}
+  const stats = current && all
+    ? statGrid([
+        ['Students in TEA’s all-discipline count', disciplineCount(all.students), all.students?.ratePct == null ? 'Rate not available' : `${pct(all.students.ratePct)} of cumulative year-end enrollment`],
+        ['Disciplinary actions', disciplineCount(all.actions), all.actions?.ratePer100 == null ? 'Rate not available' : `${all.actions.ratePer100.toFixed(2)} per 100 students`],
+        ['Cumulative year-end enrollment', disciplineCount(current.cumulativeEnrollment), schoolYear(current.year)],
+      ])
+    : ''
+  const historyRows = (d.history ?? []).map((point) => `<tr>
+    <th scope="row">${esc(schoolYear(point.year))}</th>
+    <td class="num">${disciplineCount(point.cumulativeEnrollment)}</td>
+    <td class="num">${disciplineCount(point.students)}</td>
+    <td class="num">${disciplineRate(point.students, 'ratePct')}</td>
+    <td class="num">${disciplineCount(point.actions)}</td>
+    <td class="num">${point.actions?.ratePer100 == null ? '<span class="na">—</span>' : point.actions.ratePer100.toFixed(2)}</td>
+  </tr>`)
+  const categoryRows = (current?.categories ?? []).map((category) => `<tr>
+    <th scope="row" class="wrap">${esc(category.label)}</th>
+    <td class="num">${disciplineCount(category.students)}</td>
+    <td class="num">${disciplineRate(category.students, 'ratePct')}</td>
+    <td class="num">${disciplineCount(category.actions)}</td>
+    <td class="num">${category.actions?.ratePer100 == null ? '<span class="na">—</span>' : category.actions.ratePer100.toFixed(2)}</td>
+  </tr>`)
+
+  return section(
+    'discipline',
+    'Discipline and removal from class',
+    `${stats}
+    ${historyRows.length ? table({
+      caption: `TEA all-discipline student and action counts by school year for ${vm.name}`,
+      className: 'data scroll discipline-history',
+      head: [
+        'School year',
+        { label: 'Cumulative enrollment', num: true },
+        { label: 'Students', sub: 'all discipline', num: true },
+        { label: 'Students', sub: '% of enrollment', num: true },
+        { label: 'Actions', sub: 'all discipline', num: true },
+        { label: 'Actions', sub: 'per 100 students', num: true },
+      ],
+      rows: historyRows,
+    }) : ''}
+    ${categoryRows.length ? `<details class="data-details"><summary>See ${esc(schoolYear(current.year))} discipline categories</summary>${table({
+      caption: `TEA discipline categories for ${vm.name} in ${schoolYear(current.year)}`,
+      className: 'data scroll discipline-categories',
+      head: [
+        'Category',
+        { label: 'Students', num: true },
+        { label: 'Students', sub: '% of enrollment', num: true },
+        { label: 'Actions', num: true },
+        { label: 'Actions', sub: 'per 100 students', num: true },
+      ],
+      rows: categoryRows,
+    })}</details>` : ''}
+    <p class="note"><strong>Students, actions and incidents are different units.</strong> One student can receive multiple actions. The categories overlap, so they must not be added together. Rates use TEA's matching cumulative year-end enrollment, not the October enrollment shown elsewhere on this page.</p>
+    <p class="note">Source: TEA <a href="${esc(meta.source ?? 'https://tea.texas.gov/data-reports/student-data/discipline-data-products/discipline-reports')}" rel="nofollow">Discipline Reports</a>${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}. Suppressed values stay unavailable rather than being estimated. Use 2020–21 cautiously because remote instruction during the pandemic changed students' exposure to in-person discipline. TEA consolidated its separate action-group reports into this product in 2024–25; this trend uses only the stable “All discipline” heading.</p>`,
+    'TEA’s annual student and action counts, kept separate and divided only by the matching full-year enrollment. These figures describe removals from instruction, not a simple safe-or-unsafe score.'
+  )
+}
+
+/* ------------------------------------------------------ official notices -- */
+
+const improvementName = (kind) => ({
+  CSI: 'Comprehensive Support and Improvement',
+  TSI: 'Targeted Support and Improvement',
+  ATS: 'Additional Targeted Support',
+}[kind] ?? kind)
+
+const noticeLabel = (notice) => {
+  const parts = []
+  if (notice.improvement) parts.push(esc(notice.improvement.kind))
+  if (notice.peg) parts.push('PEG transfer list')
+  return parts.join(' + ')
+}
+
+/**
+ * These are dated government statuses, not another score. A missing section
+ * means the campus is not in either source list; it does not become a badge
+ * claiming the school is free of every state or federal intervention.
+ */
+export function actionNotices(vm) {
+  const notices = Array.isArray(vm.actionNotices) ? vm.actionNotices : []
+  if (!notices.length) return null
+
+  const improvement = notices.filter((notice) => notice.improvement)
+  const peg = notices.filter((notice) => notice.peg)
+  const meta = vm.publicDataMeta?.actionFlags ?? {}
+  const improvementUrl = meta.sources?.improvement ?? 'https://tea2.tea.texas.gov/school-and-district-leaders/reporting-and-accountability'
+  const pegUrl = meta.sources?.pegProgram ?? 'https://tea.texas.gov/school-and-district-leaders/accountability/academic-accountability/performance-reporting/public-education-grant'
+
+  if (vm.level === 'district') {
+    const rows = notices.map((notice) => {
+      const details = [
+        notice.improvement
+          ? `${improvementName(notice.improvement.kind)}${notice.improvement.reason ? ` · ${esc(notice.improvement.reason)}` : ''}`
+          : null,
+        notice.peg ? `Final ${esc(notice.peg.schoolYear)} PEG list` : null,
+      ].filter(Boolean).join('<br>')
+      const name = notice.href ? `<a href="${esc(notice.href)}">${esc(notice.name)}</a>` : esc(notice.name)
+      return `<tr><th scope="row" class="wrap">${name}</th><td><span class="notice-tag">${noticeLabel(notice)}</span></td><td class="wrap">${details}</td></tr>`
+    })
+    return section(
+      'official-notices',
+      'Official improvement and transfer notices',
+      `${statGrid([
+        ['Campuses identified for federal improvement support', num(improvement.length), '2026 TEA list'],
+        ['Campuses on the final PEG transfer list', num(peg.length), '2026–27 school year'],
+      ])}
+      <details class="notice-disclosure"><summary>See the campuses and official reasons</summary>
+      ${table({
+        caption: `Official improvement and Public Education Grant notices for campuses in ${vm.name}`,
+        className: 'data scroll notice-table',
+        head: ['Campus', 'Notice', 'Official status or reason'],
+        rows,
+      })}</details>
+      <p class="note">Sources: TEA's <a href="${esc(improvementUrl)}" rel="nofollow">2026 Schools Identified for Improvement</a> and <a href="${esc(pegUrl)}" rel="nofollow">Public Education Grant program</a>${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}. A PEG listing makes a student assigned to that campus eligible to <em>request</em> a transfer; it does not guarantee acceptance, available space or transportation.</p>`,
+      'Dated TEA notices for campuses in this district. They are shown separately from the district rating because they describe specific campuses, support programs and transfer eligibility.'
+    )
+  }
+
+  const cards = notices.flatMap((notice) => [
+    notice.improvement
+      ? `<article class="notice-card">
+          <p class="eyebrow">2026 federal improvement status</p>
+          <h3>${esc(improvementName(notice.improvement.kind))}</h3>
+          <p><strong>Official support label:</strong> ${esc(notice.improvement.supportLabel || notice.improvement.kind)}</p>
+          ${notice.improvement.reason ? `<p><strong>Identification reason:</strong> ${esc(notice.improvement.reason)}</p>` : ''}
+          ${finite(notice.improvement.trackYear) ? `<p class="note">TEA track year ${num(notice.improvement.trackYear)}${notice.improvement.titleI ? ' · Title I campus' : ''}</p>` : ''}
+          <p><a href="${esc(improvementUrl)}" rel="nofollow">Open the official TEA list and methodology</a></p>
+        </article>`
+      : null,
+    notice.peg
+      ? `<article class="notice-card notice-card-action">
+          <p class="eyebrow">${esc(notice.peg.schoolYear)} school year</p>
+          <h3>Public Education Grant transfer eligibility</h3>
+          <p>Students assigned to this campus may request a transfer under the state's PEG program.</p>
+          <p><strong>A request is not guaranteed.</strong> A receiving district may apply its enrollment rules, and transportation is not automatically provided.</p>
+          <p><a href="${esc(pegUrl)}" rel="nofollow">Read the official PEG rules and list</a></p>
+        </article>`
+      : null,
+  ]).filter(Boolean).join('')
+
+  return section(
+    'official-notices',
+    'Official improvement and transfer notices',
+    `<div class="notice-cards">${cards}</div>
+     <p class="note">These are dated TEA statuses${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}; they are not added to or subtracted from this site's rating.</p>`,
+    'Official state and federal designations can carry support, reporting requirements or a family transfer option that a single A–F rating does not explain.'
+  )
+}
+
+/* ----------------------------------------------------- community context -- */
+
+export function community(vm) {
+  const c = vm.communityContext
+  if (vm.level !== 'district' || !c) return null
+  const meta = vm.publicDataMeta?.community ?? {}
+  return section(
+    'community',
+    'Community around the district',
+    `${statGrid([
+      ['People living inside the district boundary', num(c.totalPopulation), `2024 Census estimate`],
+      ['Children ages 5–17', num(c.schoolAgePopulation), 'Living inside the boundary'],
+      ['Children ages 5–17 in families in poverty', num(c.schoolAgePoverty), pct(c.schoolAgePovertyRate)],
+      ['School-age child poverty rate', pct(c.schoolAgePovertyRate), `${num(c.schoolAgePoverty)} of ${num(c.schoolAgePopulation)}`],
+    ])}
+    <p class="note">Source: U.S. Census Bureau <a href="${esc(meta.landing ?? 'https://www.census.gov/data/datasets/2024/demo/saipe/2024-school-districts.html')}" rel="nofollow">2024 Small Area Income and Poverty Estimates</a>${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}. These are modeled estimates for residents inside the geographic district, not the students enrolled by the district. A family's poverty status is context, never a school-quality measure.</p>`,
+    'A district serves a place as well as a roster. These Census estimates describe the resident community without treating its circumstances as an explanation or a verdict on students.'
+  )
+}
+
+/* ------------------------------------------------- after high school data -- */
+
+export function postsecondary(vm) {
+  const p = vm.postsecondaryOutcome
+  if (!p) return null
+  const meta = vm.publicDataMeta?.postsecondary ?? {}
+  const destinations = Array.isArray(p.destinations) && p.destinations.length
+    ? `<h3>Most common named Texas public destinations</h3>
+       <ol class="destination-list">${p.destinations.map((d) => `<li><span>${esc(d.institution)}</span><strong>${num(d.students)}</strong></li>`).join('')}</ol>`
+    : ''
+  return section(
+    'postsecondary',
+    'After high school: the following fall',
+    `${statGrid([
+      ['Graduates in the report', num(p.graduates), `Class of ${esc(schoolYear(p.graduateYear))}`],
+      ['Enrolled in Texas public higher education', num(p.enrolledPublic), `${pct(p.rate)} of graduates`],
+      ['Not found in Texas public higher-ed records', num(p.notFound), `${p.graduates ? pct((p.notFound / p.graduates) * 100) : '—'} of graduates`],
+      ['Not trackable', num(p.notTrackable), p.fallTerm],
+    ])}
+    ${destinations}
+    <p class="note">Source: Texas Higher Education Coordinating Board, <a href="${esc(meta.landing ?? 'https://www.txhighereddata.org/high-school-graduates/hsgradsenrolled/')}" rel="nofollow">high-school graduates enrolled in higher education</a>${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}. The report covers graduates who enrolled in a Texas public college or university the following fall and includes only districts or campuses with more than 25 graduates.</p>
+    <p class="note"><strong>“Not found” does not mean a graduate did not continue their education.</strong> It can include private or out-of-state college, work, military service, enrollment after the fall term, or another path the Texas public system does not observe.</p>
+    <p class="note"><strong>“Not trackable” is not an outcome.</strong> THECB uses it for graduates with a non-standard identifier that could not be matched to higher-education records.</p>`,
+    `Where ${vm.level === 'district' ? 'district' : 'school'} graduates appeared in Texas public higher-education records the fall after graduation. This is a limited next-step measure, not an eventual college-going or completion rate.`
+  )
+}
+
 /* ------------------------------------------------------------------ money -- */
 
 export function spending(vm) {
@@ -980,17 +1361,44 @@ export function spending(vm) {
 /* --------------------------------------------------------------- teachers -- */
 
 export function teachers(vm) {
-  if (!vm.profile?.avgSalary) return null
+  const turnover = vm.teacherTurnover
+  const classSize = vm.classSize
+  const profileStats = [
+    vm.profile?.avgSalary ? ['Average salary', usd(vm.profile.avgSalary) + cmp(vm, 'avgSalary', { fmt: 'usd' })] : null,
+    vm.profile?.teachers ? ['Teachers', num(vm.profile.teachers)] : null,
+    vm.profile?.stuPerStaff ? ['Students per staff member', num(vm.profile.stuPerStaff, 1)] : null,
+  ]
   const exp = (vm.staffYears ?? []).map((v, i) => ({ label: EXPERIENCE[i], value: v })).filter((x) => x.value > 0)
+  const turnoverHistory = turnover?.history ?? []
+  const turnoverRows = turnoverHistory.map((point) => `<tr><th scope="row">${esc(schoolYear(point.year))}</th><td class="num">${point.ratePct == null ? '<span class="na">Not reported</span>' : pct(point.ratePct)}</td></tr>`)
+  const classRows = (classSize?.categories ?? [])
+    .filter((category) => category.studentsPerClass != null)
+    .map((category) => `<tr><th scope="row" class="wrap">${esc(category.label)}</th><td class="num">${num(category.studentsPerClass, 1)}</td></tr>`)
+  if (!profileStats.some(Boolean) && !exp.length && !turnoverRows.length && !classRows.length) return null
+  const meta = vm.publicDataMeta?.educators ?? {}
   return section(
     'teachers',
-    'Teachers',
-    `${statGrid([
-      ['Average salary', usd(vm.profile.avgSalary) + cmp(vm, 'avgSalary', { fmt: 'usd' })],
-      vm.profile.teachers ? ['Teachers', num(vm.profile.teachers)] : null,
-      vm.profile.stuPerStaff ? ['Students per staff member', num(vm.profile.stuPerStaff, 1)] : null,
-    ])}
-  ${exp.length ? `<h3>Teaching experience</h3>${stackedShare(exp)}${legend(exp.map((x, i) => ({ key: String(i % 7), label: `${x.label} ${x.value}%` })))}` : ''}`
+    vm.level === 'campus' && classRows.length ? 'Teachers and actual class size' : 'Teachers',
+    `${profileStats.some(Boolean) ? statGrid(profileStats) : ''}
+  ${exp.length ? `<h3>Teaching experience</h3>${stackedShare(exp)}${legend(exp.map((x, i) => ({ key: String(i % 7), label: `${x.label} ${x.value}%` })))}` : ''}
+  ${turnoverRows.length ? `<h3>Teacher turnover over time</h3>
+    ${turnover?.latest?.ratePct != null ? `<p class="callout">TEA reported a <strong>${pct(turnover.latest.ratePct)} teacher turnover rate</strong> in ${esc(schoolYear(turnover.latest.year))}.</p>` : ''}
+    ${table({
+      caption: `District teacher turnover rate by school year for ${vm.name}`,
+      className: 'data educator-table',
+      head: ['School year', { label: 'Teacher turnover rate', num: true }],
+      rows: turnoverRows,
+    })}
+    <p class="note">TEA defines this district rate as the share of teacher full-time equivalents from the prior fall who are not employed as teachers in the district in the current fall. That can include leaving the district or remaining in a different role; it is not a campus-level measure.</p>` : ''}
+  ${classRows.length ? `<h3>Average students in a class</h3>
+    ${table({
+      caption: `TEA average class size by grade or subject for ${vm.name} in ${schoolYear(classSize.year)}`,
+      className: 'data educator-table',
+      head: ['Grade or subject', { label: 'Average students per class', sub: schoolYear(classSize.year), num: true }],
+      rows: classRows,
+    })}
+    <p class="note">These are TEA's actual class-size averages for the grade or subject shown, not the student-to-teacher ratio. TEA reported ${num(classSize.reported)} of 12 categories for this campus; the categories are not combined into a made-up campus-wide average.</p>` : ''}
+  ${(turnoverRows.length || classRows.length) ? `<p class="note">Source: TEA <a href="${esc(meta.source ?? 'https://tea.texas.gov/texas-schools/accountability/academic-accountability/performance-reporting/texas-academic-performance-reports')}" rel="nofollow">Texas Academic Performance Reports</a>${meta.fetchedAt ? `, fetched ${esc(meta.fetchedAt)}` : ''}.</p>` : ''}`
   )
 }
 
@@ -1126,9 +1534,11 @@ export function source(vm) {
   return section(
     'source',
     'Where this comes from',
-    `<p>Every figure on this page comes from data the Texas Education Agency publishes at
+    `<p>Ratings, outcomes, demographics, staffing and finance come from data the Texas Education Agency publishes at
      <a href="https://txschools.gov/?view=${vm.level}&amp;id=${esc(vm.id)}&amp;lng=en" rel="nofollow">txschools.gov</a>,
-     fetched ${esc(vm.snapshotDate)} and archived with a checksum so each number stays traceable to the bytes TEA served.</p>
+     fetched ${esc(vm.snapshotDate)}. Enrollment history comes from TEA's
+     <a href="${esc(vm.enrollmentSourceUrl ?? 'https://rptsvr1.tea.texas.gov/adhocrpt/adspr.html')}" rel="nofollow">PEIMS Student Program and Special Populations reports</a>${vm.enrollmentSnapshotDate ? `, fetched ${esc(vm.enrollmentSnapshotDate)}` : ''}.
+     The dated notice, staffing, discipline, transfer, community and postsecondary sections cite their separate TEA, Census or THECB publication in place. Every archived source carries checksums so each number stays traceable to the bytes the public agency served.</p>
   ${downloadLinks(vm)}`
   )
 }
@@ -1157,4 +1567,21 @@ const downloadLinks = (vm) =>
      in the bulk files on the download page, keyed by its TEA id <code>${esc(vm.id)}</code>.</p>`
 
 /** Page order. */
-export const SECTIONS = [verdict, trajectory, domains, outcomes, students, campuses, spending, teachers, standouts, source]
+export const SECTIONS = [
+  verdict,
+  actionNotices,
+  trajectory,
+  domains,
+  outcomes,
+  postsecondary,
+  students,
+  enrollment,
+  transfers,
+  discipline,
+  community,
+  campuses,
+  spending,
+  teachers,
+  standouts,
+  source,
+]

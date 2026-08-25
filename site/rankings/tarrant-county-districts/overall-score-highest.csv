@@ -1,29 +1,29 @@
 # txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
 # source: Texas Education Agency, published publicly at https://txschools.gov
-# snapshot: 15 August 2026 — the date this site fetched TEA's data. TEA may have revised it since.
+# snapshot: 15 August 2026 — the date this site fetched the source data. The publisher may have revised it since.
 # dataset: ranking board
 # page: https://txschools.net/rankings/tarrant-county-districts/overall-score-highest
 # rows: 16 (excluding this header and the column row)
 # ranking: Tarrant County school districts with the highest overall score in 2025-26
 # population: 16 districts of 16 districts are ranked here.
 # rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
-# empty cell = TEA did not publish that figure. It does not mean zero.
+# empty cell = the source did not publish that figure, suppressed it, or did not report it. It does not mean zero.
 # numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
 # lines starting with # are comments — pandas: read_csv(path, comment='#')
 rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
-1,16,0,220919,Carroll ISD,Tarrant,A,93,7866,https://txschools.net/district/carroll-isd-220919
-2,16,0,220906,Grapevine-Colleyville ISD,Tarrant,A,91,13343,https://txschools.net/district/grapevine-colleyville-isd-220906
-3,16,0,220917,Castleberry ISD,Tarrant,B,88,3755,https://txschools.net/district/castleberry-isd-220917
-4,16,1,220916,Hurst-Euless-Bedford ISD,Tarrant,B,87,23159,https://txschools.net/district/hurst-euless-bedford-isd-220916
-4,16,1,220908,Mansfield ISD,Tarrant,B,87,34654,https://txschools.net/district/mansfield-isd-220908
-6,16,0,220907,Keller ISD,Tarrant,B,84,30440,https://txschools.net/district/keller-isd-220907
-7,16,0,220914,Kennedale ISD,Tarrant,B,81,2659,https://txschools.net/district/kennedale-isd-220914
-8,16,0,220912,Crowley ISD,Tarrant,B,80,17052,https://txschools.net/district/crowley-isd-220912
-9,16,0,220902,Birdville ISD,Tarrant,C,79,22044,https://txschools.net/district/birdville-isd-220902
-10,16,1,220901,Arlington ISD,Tarrant,C,78,51102,https://txschools.net/district/arlington-isd-220901
-10,16,1,220915,Azle ISD,Tarrant,C,78,7166,https://txschools.net/district/azle-isd-220915
-12,16,1,220918,Eagle Mt-Saginaw ISD,Tarrant,C,77,24147,https://txschools.net/district/eagle-mt-saginaw-isd-220918
-12,16,1,220905,Fort Worth ISD,Tarrant,C,77,67315,https://txschools.net/district/fort-worth-isd-220905
-14,16,1,220904,Everman ISD,Tarrant,C,75,4704,https://txschools.net/district/everman-isd-220904
-14,16,1,220920,White Settlement ISD,Tarrant,C,75,6684,https://txschools.net/district/white-settlement-isd-220920
-16,16,0,220910,Lake Worth ISD,Tarrant,D,69,3165,https://txschools.net/district/lake-worth-isd-220910
+1,16,0,220919,Carroll ISD,Tarrant,A,93,7877,https://txschools.net/district/carroll-isd-220919
+2,16,0,220906,Grapevine-Colleyville ISD,Tarrant,A,91,13380,https://txschools.net/district/grapevine-colleyville-isd-220906
+3,16,0,220917,Castleberry ISD,Tarrant,B,88,3758,https://txschools.net/district/castleberry-isd-220917
+4,16,1,220916,Hurst-Euless-Bedford ISD,Tarrant,B,87,23215,https://txschools.net/district/hurst-euless-bedford-isd-220916
+4,16,1,220908,Mansfield ISD,Tarrant,B,87,34733,https://txschools.net/district/mansfield-isd-220908
+6,16,0,220907,Keller ISD,Tarrant,B,84,30486,https://txschools.net/district/keller-isd-220907
+7,16,0,220914,Kennedale ISD,Tarrant,B,81,2663,https://txschools.net/district/kennedale-isd-220914
+8,16,0,220912,Crowley ISD,Tarrant,B,80,17084,https://txschools.net/district/crowley-isd-220912
+9,16,0,220902,Birdville ISD,Tarrant,C,79,22123,https://txschools.net/district/birdville-isd-220902
+10,16,1,220901,Arlington ISD,Tarrant,C,78,51139,https://txschools.net/district/arlington-isd-220901
+10,16,1,220915,Azle ISD,Tarrant,C,78,7203,https://txschools.net/district/azle-isd-220915
+12,16,1,220918,Eagle Mt-Saginaw ISD,Tarrant,C,77,24231,https://txschools.net/district/eagle-mt-saginaw-isd-220918
+12,16,1,220905,Fort Worth ISD,Tarrant,C,77,67491,https://txschools.net/district/fort-worth-isd-220905
+14,16,1,220904,Everman ISD,Tarrant,C,75,4734,https://txschools.net/district/everman-isd-220904
+14,16,1,220920,White Settlement ISD,Tarrant,C,75,6712,https://txschools.net/district/white-settlement-isd-220920
+16,16,0,220910,Lake Worth ISD,Tarrant,D,69,3169,https://txschools.net/district/lake-worth-isd-220910

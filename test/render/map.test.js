@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   BUCKETS,
+  DIVERGING_RAMP,
   GRADES,
   MAP_PALETTES,
   NEUTRAL_RAMP,
@@ -8,6 +9,7 @@ import {
   RAMP,
   bucketOf,
   bucketRanges,
+  buildDivergingLayer,
   buildLayer,
   buildRatingLayer,
   decodeArcs,
@@ -211,6 +213,44 @@ describe('layers', () => {
     expect(l.direction).toMatch(/not a judgment of quality/)
   })
 
+  it('centres signed balances on zero with outflow red and inflow green', () => {
+    const order = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+    const values = new Map([
+      ['a', -100], ['b', -30], ['c', -5], ['d', 0],
+      ['e', 5], ['f', 30], ['g', 100], ['h', null],
+    ])
+    const layer = buildDivergingLayer({
+      key: 'balance', label: 'Transfer balance', values, order,
+      valueLabels: new Map([['a', '100 more transfers out; 2 in and 102 out']]),
+      direction: 'Net is transfers in minus transfers out.',
+    })
+
+    expect(layer.palette).toBe(MAP_PALETTES.DIVERGING)
+    expect(layer.buckets).toEqual([0, 0, 1, 2, 3, 4, 4, null])
+    expect(layer.ranges).toEqual([
+      '30–100 more out', '5 more out', 'No net difference', '5 more in', '30–100 more in',
+    ])
+    expect(layer.counted).toBe(7)
+    expect(layer.valueLabels[0]).toBe('100 more transfers out; 2 in and 102 out')
+    expect(layer.valueLabels.at(-1)).toBe('suppressed or not reported')
+    expect(layer.direction).toMatch(/net outflow as the weaker transfer balance/)
+    expect(layer.direction).toMatch(/do not explain why students transfer/)
+    expect(layer.direction).not.toMatch(/better|worse/i)
+  })
+
+  it('keeps a heavily one-sided balance distribution semantically signed', () => {
+    const order = ['a', 'b', 'c', 'd', 'e', 'f']
+    const layer = buildDivergingLayer({
+      key: 'balance', label: 'Transfer balance', order,
+      values: new Map([['a', -500], ['b', -100], ['c', -20], ['d', -5], ['e', 0], ['f', 4]]),
+    })
+    // Negative values remain red-side classes. They never become a green
+    // "inflow" merely because most of the statewide distribution is low.
+    expect(layer.buckets.slice(0, 4).every((b) => b < 2)).toBe(true)
+    expect(layer.buckets[4]).toBe(2)
+    expect(layer.buckets[5]).toBe(4)
+  })
+
   it('keeps the rating layer categorical, one shade per letter', () => {
     const l = ratingFor([['000001', 'A'], ['000002', 'F']])
     expect(l.buckets).toEqual([0, GRADES.length - 1])
@@ -311,6 +351,7 @@ describe('renderMapPage', () => {
     expect(RAMP).toBe(PERFORMANCE_RAMP)
     expect(PERFORMANCE_RAMP).toEqual(['#0f5132', '#7cb342', '#ffe9a8', '#e8590c', '#7a0b16'])
     expect(NEUTRAL_RAMP).toEqual(['#dbebea', '#8ac4c9', '#3d95a2', '#155f70', '#082f39'])
+    expect(DIVERGING_RAMP).toEqual(['#7a0b16', '#e8590c', '#ffe9a8', '#7cb342', '#0f5132'])
     for (const classic of ['#1a9641', '#a6d96a', '#ffffbf', '#fdae61', '#d7191c']) {
       expect(RAMP).not.toContain(classic)
     }
@@ -322,11 +363,14 @@ describe('renderMapPage', () => {
     const client = readFileSync(new URL('../../site/map.js', import.meta.url), 'utf8')
     PERFORMANCE_RAMP.forEach((stop, i) => expect(css).toContain(`--map-b${i}: ${stop};`))
     NEUTRAL_RAMP.forEach((stop, i) => expect(css).toContain(`--map-b${i}: ${stop};`))
+    DIVERGING_RAMP.forEach((stop, i) => expect(css).toContain(`--map-b${i}: ${stop};`))
     expect(css).toMatch(/\.map-svg :where\(\[data-map-shapes\]\) path\s*\{[^}]*fill:\s*var\(--line-2\)/)
     expect(css).toMatch(/\.map-svg :where\(\[data-map-shapes\]\) path:not\(\[data-b\]\)\s*\{\s*fill:\s*url\(#map-missing-pattern\)/)
     expect(css).toMatch(/\.map-no-data-key\[hidden\]\s*\{\s*display:\s*none/)
     expect(client).toMatch(/figure\.setAttribute\('data-map-palette', layer\.palette\)/)
     expect(client).toMatch(/missingKey\.hidden\s*=\s*missing === 0/)
+    expect(client).toMatch(/layer\.missingLabel \|\| 'Not reported'/)
+    expect(client).toMatch(/Array\.isArray\(valueLabels\)/)
   })
 
   it('inlines the low-fidelity geometry but projects from the high-fidelity bounds', () => {
@@ -375,6 +419,58 @@ describe('renderMapPage', () => {
     for (const l of json.layers) expect(l.buckets).toHaveLength(json.order.length)
     expect(json.layers[0].key).toBe('rating')
     expect(json.layers[0].palette).toBe(MAP_PALETTES.RATING)
+  })
+
+  it('carries exact diverging readouts and missing-state copy to the browser', () => {
+    const transfer = buildDivergingLayer({
+      key: 'transfer-balance',
+      label: 'Student transfer balance, 2025-26',
+      values: new Map([['000001', 28], ['000002', null]]),
+      order: districts.map((d) => d.teaId),
+      valueLabels: new Map([
+        ['000001', '28 more transfers in; 41 in and 13 out'],
+        ['000002', 'net unavailable — transfers in total is suppressed by TEA'],
+      ]),
+      missingLabel: 'Suppressed or not reported',
+      coverage: '1 of 2 districts has both official totals available; 1 has a suppressed total.',
+      leaders: {
+        title: 'Largest reported transfer balances, 2025-26',
+        groups: [{
+          label: 'More transfers in than out',
+          rows: [{
+            name: 'Alpha ISD', href: '/district/alpha-isd-000001',
+            value: '28 more in', detail: '41 in · 13 out',
+          }],
+        }],
+        note: 'A transfer does not say why a student attends elsewhere.',
+      },
+    })
+    const html = page({ layers: [transfer] })
+    const json = JSON.parse(html.match(/data-map-payload>(.*?)<\/script>/s)[1].replace(/\\u003c/g, '<'))
+    const layer = json.layers[1]
+    expect(layer).toMatchObject({
+      key: 'transfer-balance',
+      palette: MAP_PALETTES.DIVERGING,
+      counted: 1,
+      missingLabel: 'Suppressed or not reported',
+      coverage: '1 of 2 districts has both official totals available; 1 has a suppressed total.',
+    })
+    expect(layer.valueLabels).toEqual([
+      '28 more transfers in; 41 in and 13 out',
+      'net unavailable — transfers in total is suppressed by TEA',
+    ])
+    expect(html).toContain('data-map-missing-label')
+    expect(html).toContain('data-map-layer-detail="transfer-balance" hidden')
+    expect(html).toContain('Largest reported transfer balances, 2025-26')
+    expect(html).toContain('href="/district/alpha-isd-000001"')
+  })
+
+  it('rejects an exact-readout array that does not align with the map order', () => {
+    const wrong = {
+      ...layerFor([['000001', 10], ['000002', 90]]),
+      valueLabels: ['only one'],
+    }
+    expect(() => page({ layers: [wrong] })).toThrow(/1 exact labels for 2 drawn districts/)
   })
 
   it('labels missing values instead of leaving an unlabelled gray shape', () => {

@@ -1,0 +1,20 @@
+{
+  "fetchedAt": "2026-08-24T19:01:52.758Z",
+  "source": "https://www2.census.gov/programs-surveys/saipe/datasets/2024/2024-school-districts/sd24-tx.txt",
+  "landing": "https://www.census.gov/data/datasets/2024/demo/saipe/2024-school-districts.html",
+  "layout": "https://www2.census.gov/programs-surveys/saipe/technical-documentation/file-layouts/school-district/2024-district-layout.txt",
+  "estimateYear": 2024,
+  "rows": 1017,
+  "files": {
+    "sd24-tx.txt.gz": {
+      "bytes": 20064,
+      "sha256": "b1d2da8c116196969e09b43c018d48c3e6d7ec2252edf369d1a589c4f8b1f4e1",
+      "sourceBytes": 134244,
+      "sourceSha256": "57cd34c73851c7f784bd4c34c898fd99bf2e2d1d096f3a41f7ce899aa9064bf7"
+    },
+    "community.json.gz": {
+      "bytes": 22634,
+      "sha256": "26e1733f93b740532cdeba6c5005699dffb650cb2783f7d0ff36aacaad0ea8b9"
+    }
+  }
+}

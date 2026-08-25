@@ -1,0 +1,515 @@
+{
+  "schemaVersion": 1,
+  "fetchedAt": "2026-08-24T19:01:29.152Z",
+  "source": "https://tea.texas.gov/data-reports/student-data/discipline-data-products/discipline-reports",
+  "download": "https://rptsvr1.tea.texas.gov/adhocrpt/Disciplinary_Data_Products/Discipline_Summary_Download.html",
+  "definitions": "https://tea.texas.gov/data-reports/student-data/discipline-data-products/discipline-action-group-summary-reports-0",
+  "caveat": "TEA consolidated Discipline Action Group reports into Discipline Reports in 2024-25; compare stable section/heading/measure keys and do not infer absent rows as zero.",
+  "files": {
+    "2020-21-district": {
+      "file": "2020-21-district.csv.gz",
+      "sha256": "9078705cfbc705f434ec0edf321a0bc42497b4a9d4b0d10a28f691e87039519c",
+      "bytes": 20115951,
+      "rows": 146772,
+      "entities": 1204,
+      "measures": {
+        "students": 77720,
+        "actions": 63544,
+        "incidents": 5508
+      },
+      "statuses": {
+        "reported": 58819,
+        "suppressed": 87953,
+        "not-reported": 0
+      },
+      "dimensions": 722,
+      "dimensionsSha256": "665d1fd7ec3929f34242d578981e2ec358876509b6f72e0a5d6e10a2da8f0c14",
+      "header": [
+        "AGGREGATION LEVEL",
+        "REGION",
+        "DISTNAME",
+        "DISTRICT",
+        "CHARTER_STATUS",
+        "SECTION",
+        "HEADING NAME",
+        "INDICATOR",
+        "VALUE"
+      ],
+      "year": "2020-21",
+      "level": "district",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_static_summary.sas",
+          "district": "",
+          "agg_level": "allDISTRICT",
+          "referrer": "Download_All_Districts.html",
+          "test_flag": "",
+          "_debug": "0",
+          "school_yr": "21",
+          "report_type": "csv",
+          "Download_All_Districts_Summaries": "Next"
+        }
+      },
+      "etag": "\"132f1ef-63f788cbbb080\"",
+      "lastModified": "Tue, 23 Sep 2025 14:14:10 GMT"
+    },
+    "2020-21-campus": {
+      "file": "2020-21-campus.csv.gz",
+      "sha256": "d1ddd4c9af3a142fff750e4c74f46bd48c9262e8525b71d4a896b23ced327efd",
+      "bytes": 102088038,
+      "rows": 591346,
+      "entities": 8803,
+      "measures": {
+        "students": 336967,
+        "actions": 237610,
+        "incidents": 16769
+      },
+      "statuses": {
+        "reported": 192200,
+        "suppressed": 399146,
+        "not-reported": 0
+      },
+      "dimensions": 722,
+      "dimensionsSha256": "6599cc55b0dfadcd5c252ac35db1ec24df8e9839664146835771a6dad4bbd85e",
+      "header": [
+        "AGGREGATION LEVEL",
+        "CAMPUS",
+        "REGION",
+        "DISTRICT NAME AND NUMBER",
+        "CHARTER_STATUS",
+        "CAMPUS NAME AND NUMBER",
+        "SECTION",
+        "HEADING NAME",
+        "INDICATOR",
+        "VALUE"
+      ],
+      "year": "2020-21",
+      "level": "campus",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_static_summary.sas",
+          "district": "",
+          "agg_level": "CAMPUS",
+          "referrer": "Download_All_Campuses.html",
+          "test_flag": "",
+          "_debug": "0",
+          "school_yr": "21",
+          "report_type": "csv",
+          "Download_All_Campuses_Summaries": "Next"
+        }
+      },
+      "etag": "\"615bd66-63f064ce9ac40\"",
+      "lastModified": "Wed, 17 Sep 2025 21:55:53 GMT"
+    },
+    "2021-22-district": {
+      "file": "2021-22-district.csv.gz",
+      "sha256": "cdf7bd4382f06ec291d0546e15517666d56f3c596fae69aa0229e57382556ca4",
+      "bytes": 23857143,
+      "rows": 173042,
+      "entities": 1207,
+      "measures": {
+        "students": 89982,
+        "actions": 75755,
+        "incidents": 7305
+      },
+      "statuses": {
+        "reported": 76642,
+        "suppressed": 96400,
+        "not-reported": 0
+      },
+      "dimensions": 757,
+      "dimensionsSha256": "239edbaa6139ed495ca199bad48466b6ae71d46900d237a2ef2a611ebde6cfef",
+      "header": [
+        "AGGREGATION LEVEL",
+        "REGION",
+        "DISTNAME",
+        "DISTRICT",
+        "CHARTER_STATUS",
+        "SECTION",
+        "HEADING NAME",
+        "INDICATOR",
+        "VALUE"
+      ],
+      "year": "2021-22",
+      "level": "district",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_static_summary.sas",
+          "district": "",
+          "agg_level": "allDISTRICT",
+          "referrer": "Download_All_Districts.html",
+          "test_flag": "",
+          "_debug": "0",
+          "school_yr": "22",
+          "report_type": "csv",
+          "Download_All_Districts_Summaries": "Next"
+        }
+      },
+      "etag": "\"16c07f7-63f787fcc8840\"",
+      "lastModified": "Tue, 23 Sep 2025 14:10:33 GMT"
+    },
+    "2021-22-campus": {
+      "file": "2021-22-campus.csv.gz",
+      "sha256": "5917455e5ff9636ab939165dedde66eb50e4b3a5ae869b680bf3a273fdfc4a2c",
+      "bytes": 138672491,
+      "rows": 799427,
+      "entities": 8901,
+      "measures": {
+        "students": 436818,
+        "actions": 336453,
+        "incidents": 26156
+      },
+      "statuses": {
+        "reported": 291285,
+        "suppressed": 508142,
+        "not-reported": 0
+      },
+      "dimensions": 757,
+      "dimensionsSha256": "89d37c0636d80c704763085151813719e66bc5a9c62dc12a1e2ce88a8a061856",
+      "header": [
+        "AGGREGATION LEVEL",
+        "CAMPUS",
+        "REGION",
+        "DISTRICT NAME AND NUMBER",
+        "CHARTER_STATUS",
+        "CAMPUS NAME AND NUMBER",
+        "SECTION",
+        "HEADING NAME",
+        "INDICATOR",
+        "VALUE"
+      ],
+      "year": "2021-22",
+      "level": "campus",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_static_summary.sas",
+          "district": "",
+          "agg_level": "CAMPUS",
+          "referrer": "Download_All_Campuses.html",
+          "test_flag": "",
+          "_debug": "0",
+          "school_yr": "22",
+          "report_type": "csv",
+          "Download_All_Campuses_Summaries": "Next"
+        }
+      },
+      "etag": "\"843f96b-63f0638966d00\"",
+      "lastModified": "Wed, 17 Sep 2025 21:50:12 GMT"
+    },
+    "2022-23-district": {
+      "file": "2022-23-district.csv.gz",
+      "sha256": "13b2ae4d974bdd0762fbd4bd5c001968878938d3a1c0bce69cfaa4bf50b8813a",
+      "bytes": 24870632,
+      "rows": 180185,
+      "entities": 1209,
+      "measures": {
+        "students": 93416,
+        "actions": 79126,
+        "incidents": 7643
+      },
+      "statuses": {
+        "reported": 80798,
+        "suppressed": 99387,
+        "not-reported": 0
+      },
+      "dimensions": 759,
+      "dimensionsSha256": "8099fe4620244a9cce7ac807553c083af47ea0de25b9fb9ae1fb81fb0e31e6d3",
+      "header": [
+        "AGGREGATION LEVEL",
+        "REGION",
+        "DISTNAME",
+        "DISTRICT",
+        "CHARTER_STATUS",
+        "SECTION",
+        "HEADING NAME",
+        "INDICATOR",
+        "VALUE"
+      ],
+      "year": "2022-23",
+      "level": "district",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_static_summary.sas",
+          "district": "",
+          "agg_level": "allDISTRICT",
+          "referrer": "Download_All_Districts.html",
+          "test_flag": "",
+          "_debug": "0",
+          "school_yr": "23",
+          "report_type": "csv",
+          "Download_All_Districts_Summaries": "Next"
+        }
+      },
+      "etag": "\"17b7ee8-63f786e743980\"",
+      "lastModified": "Tue, 23 Sep 2025 14:05:42 GMT"
+    },
+    "2022-23-campus": {
+      "file": "2022-23-campus.csv.gz",
+      "sha256": "7b12f80cfa16dc0e26a02ab3f0f0e0d4542dde61cd72aea944b4b6c1a28c968c",
+      "bytes": 147806050,
+      "rows": 851474,
+      "entities": 8975,
+      "measures": {
+        "students": 462194,
+        "actions": 360976,
+        "incidents": 28304
+      },
+      "statuses": {
+        "reported": 314433,
+        "suppressed": 537041,
+        "not-reported": 0
+      },
+      "dimensions": 759,
+      "dimensionsSha256": "1e73f14866c780415309cd784df3b09c164eca3cbf52c46b92d7a1486d52b882",
+      "header": [
+        "AGGREGATION LEVEL",
+        "CAMPUS",
+        "REGION",
+        "DISTRICT NAME AND NUMBER",
+        "CHARTER_STATUS",
+        "CAMPUS NAME AND NUMBER",
+        "SECTION",
+        "HEADING NAME",
+        "INDICATOR",
+        "VALUE"
+      ],
+      "year": "2022-23",
+      "level": "campus",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_static_summary.sas",
+          "district": "",
+          "agg_level": "CAMPUS",
+          "referrer": "Download_All_Campuses.html",
+          "test_flag": "",
+          "_debug": "0",
+          "school_yr": "23",
+          "report_type": "csv",
+          "Download_All_Campuses_Summaries": "Next"
+        }
+      },
+      "etag": "\"8cf5762-63f06193c4d80\"",
+      "lastModified": "Wed, 17 Sep 2025 21:41:26 GMT"
+    },
+    "2023-24-district": {
+      "file": "2023-24-district.csv.gz",
+      "sha256": "56dc0ba57e000c32fbd2696b289ac1ff46c2fe4b0b2ab9a31390f80684a96a46",
+      "bytes": 26395148,
+      "rows": 191114,
+      "entities": 1207,
+      "measures": {
+        "students": 98104,
+        "actions": 83850,
+        "incidents": 9160
+      },
+      "statuses": {
+        "reported": 85781,
+        "suppressed": 105333,
+        "not-reported": 0
+      },
+      "dimensions": 802,
+      "dimensionsSha256": "0cd4e56f79b97c4ec35035fb3da47d0a485fd82afb728366e387ce8cb401fc59",
+      "header": [
+        "AGGREGATION LEVEL",
+        "REGION",
+        "DISTNAME",
+        "DISTRICT",
+        "CHARTER_STATUS",
+        "SECTION",
+        "HEADING NAME",
+        "INDICATOR",
+        "VALUE"
+      ],
+      "year": "2023-24",
+      "level": "district",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_static_summary.sas",
+          "district": "",
+          "agg_level": "allDISTRICT",
+          "referrer": "Download_All_Districts.html",
+          "test_flag": "",
+          "_debug": "0",
+          "school_yr": "24",
+          "report_type": "csv",
+          "Download_All_Districts_Summaries": "Next"
+        }
+      },
+      "etag": "\"192c20c-63f785da53f00\"",
+      "lastModified": "Tue, 23 Sep 2025 14:01:00 GMT"
+    },
+    "2023-24-campus": {
+      "file": "2023-24-campus.csv.gz",
+      "sha256": "24b3f9c0456788e8deb78c7f03fd6e0eb742f54259958d588e23bc5a38e7c077",
+      "bytes": 154983744,
+      "rows": 892089,
+      "entities": 9006,
+      "measures": {
+        "students": 480049,
+        "actions": 378486,
+        "incidents": 33554
+      },
+      "statuses": {
+        "reported": 326607,
+        "suppressed": 565482,
+        "not-reported": 0
+      },
+      "dimensions": 802,
+      "dimensionsSha256": "17bb66b8463fb8bf625e23c2d2988d103712386f89e6e62c2e7327b8d6359ca2",
+      "header": [
+        "AGGREGATION LEVEL",
+        "CAMPUS",
+        "REGION",
+        "DISTRICT NAME AND NUMBER",
+        "CHARTER_STATUS",
+        "CAMPUS NAME AND NUMBER",
+        "SECTION",
+        "HEADING NAME",
+        "INDICATOR",
+        "VALUE"
+      ],
+      "year": "2023-24",
+      "level": "campus",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_static_summary.sas",
+          "district": "",
+          "agg_level": "CAMPUS",
+          "referrer": "Download_All_Campuses.html",
+          "test_flag": "",
+          "_debug": "0",
+          "school_yr": "24",
+          "report_type": "csv",
+          "Download_All_Campuses_Summaries": "Next"
+        }
+      },
+      "etag": "\"93cdd40-63f05f8927c80\"",
+      "lastModified": "Wed, 17 Sep 2025 21:32:18 GMT"
+    },
+    "2024-25-district": {
+      "file": "2024-25-district.csv.gz",
+      "sha256": "95f22f1c98e15564bca0bd7be971aecd4e78482ad11242736cacd31a5e3742c8",
+      "bytes": 25464683,
+      "rows": 184667,
+      "entities": 1208,
+      "measures": {
+        "students": 95149,
+        "actions": 80869,
+        "incidents": 8649
+      },
+      "statuses": {
+        "reported": 82694,
+        "suppressed": 101973,
+        "not-reported": 0
+      },
+      "dimensions": 773,
+      "dimensionsSha256": "101fa9df1445e4f6d854e625cdf1f83eddb36cc613044fc2d096093c92578e5d",
+      "header": [
+        "AGGREGATION LEVEL",
+        "REGION",
+        "DISTNAME",
+        "DISTRICT",
+        "CHARTER_STATUS",
+        "SECTION",
+        "HEADING NAME",
+        "INDICATOR",
+        "VALUE"
+      ],
+      "year": "2024-25",
+      "level": "district",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_static_summary.sas",
+          "district": "",
+          "agg_level": "allDISTRICT",
+          "referrer": "Download_All_Districts.html",
+          "test_flag": "",
+          "_debug": "0",
+          "school_yr": "25",
+          "report_type": "csv",
+          "Download_All_Districts_Summaries": "Next"
+        }
+      },
+      "etag": "\"1848f6b-63f79828aef80\"",
+      "lastModified": "Tue, 23 Sep 2025 15:22:54 GMT"
+    },
+    "2024-25-campus": {
+      "file": "2024-25-campus.csv.gz",
+      "sha256": "4ed06a8ce2ebf19c14a99f6f9367a114ef36d9a3da9763615b737f44fb77594a",
+      "bytes": 150898880,
+      "rows": 869254,
+      "entities": 8984,
+      "measures": {
+        "students": 469546,
+        "actions": 367577,
+        "incidents": 32131
+      },
+      "statuses": {
+        "reported": 318671,
+        "suppressed": 550583,
+        "not-reported": 0
+      },
+      "dimensions": 773,
+      "dimensionsSha256": "9262b3729cf5bc9192ccb13c92257946dba788b83b521eaf32b7bf771bc246d7",
+      "header": [
+        "AGGREGATION LEVEL",
+        "CAMPUS",
+        "REGION",
+        "DISTRICT NAME AND NUMBER",
+        "CHARTER_STATUS",
+        "CAMPUS NAME AND NUMBER",
+        "SECTION",
+        "HEADING NAME",
+        "INDICATOR",
+        "VALUE"
+      ],
+      "year": "2024-25",
+      "level": "campus",
+      "request": {
+        "method": "GET",
+        "url": "https://rptsvr1.tea.texas.gov/cgi/sas/broker",
+        "query": {
+          "_service": "marykay",
+          "_program": "adhoc.download_static_summary.sas",
+          "district": "",
+          "agg_level": "CAMPUS",
+          "referrer": "Download_All_Campuses.html",
+          "test_flag": "",
+          "_debug": "0",
+          "school_yr": "25",
+          "report_type": "csv",
+          "Download_All_Campuses_Summaries": "Next"
+        }
+      },
+      "etag": "\"8fe88c0-63f68add79780\"",
+      "lastModified": "Mon, 22 Sep 2025 19:18:06 GMT"
+    }
+  }
+}

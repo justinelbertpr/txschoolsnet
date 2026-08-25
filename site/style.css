@@ -1216,6 +1216,118 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 .downloads { font-size: var(--t-meta); }
 
 /* ==========================================================================
+   ENROLLMENT HISTORY
+
+   One neutral zero-baseline bar per year. It is deliberately not a line chart:
+   missing years must remain visible gaps, and enrolment going up or down is not
+   an academic result. Exact counts and plain-language changes remain the
+   primary encoding; the bars only make relative scale quicker to scan.
+   ========================================================================== */
+
+.enrollment-takeaway {
+  max-width: var(--measure); margin: 1.15rem 0 0; padding: .85rem 1rem;
+  color: var(--ink); font-size: var(--t-lead); line-height: 1.5;
+  background: var(--brand-mint);
+  background: color-mix(in srgb, var(--brand-mint) 72%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--brand-teal) 20%, var(--line));
+  border-left: 4px solid var(--brand-gold); border-radius: .65rem;
+}
+.enrollment-table th:first-child { width: 7.5rem; }
+.enrollment-count-cell { width: 38%; }
+.enrollment-measure {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; align-items: center; justify-content: flex-end;
+  width: 100%; min-width: 9rem; min-height: 2rem; padding: .3rem .55rem;
+  background: var(--ground); border: 1px solid var(--line-2); border-radius: .4rem;
+}
+.enrollment-bar {
+  position: absolute; z-index: -1; inset: 0 auto 0 0;
+  width: var(--enrollment-width, 0%);
+  background: var(--brand-mint);
+  background: color-mix(in srgb, var(--brand-teal) 17%, var(--ground));
+  border-right: 2px solid var(--brand-teal-text);
+}
+.enrollment-value { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.enrollment-measure-na { justify-content: flex-start; background: var(--ground); }
+.enrollment-change { color: var(--ink-2); line-height: 1.4; font-variant-numeric: tabular-nums; }
+.enrollment-na { color: var(--ink-3); font-style: italic; }
+@media (max-width: 34rem) {
+  /* The shared narrow-table rule keeps most cells on one line. A change is a
+     sentence, so let this column wrap while the year and exact count stay easy
+     to track as the table scrolls. */
+  .enrollment-table .enrollment-change { min-width: 11rem; white-space: normal; }
+  .enrollment-table .enrollment-count-cell { width: 10rem; min-width: 10rem; }
+  .enrollment-measure { min-width: 8.5rem; }
+}
+
+/* ==========================================================================
+   OFFICIAL NOTICES, COMMUNITY + POSTSECONDARY
+
+   These use the site's civic brand surfaces rather than chart-series colours:
+   a notice is not a grade, poverty is not an outcome, and college visibility
+   is incomplete. Exact labels and counts do the semantic work.
+   ========================================================================== */
+
+.notice-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  gap: .85rem;
+}
+.notice-card {
+  padding: 1rem 1.1rem;
+  background: color-mix(in srgb, var(--brand-mint) 60%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--brand-teal) 22%, var(--line));
+  border-top: 4px solid var(--brand-teal);
+  border-radius: var(--radius);
+}
+.notice-card-action {
+  background: color-mix(in srgb, var(--brand-gold) 15%, var(--surface));
+  border-color: color-mix(in srgb, var(--brand-gold) 45%, var(--line));
+  border-top-color: var(--brand-gold);
+}
+.notice-card h3 { margin: .2rem 0 .65rem; }
+.notice-card p { margin: .45rem 0; }
+.notice-card .eyebrow { color: var(--brand-teal-text); }
+.notice-disclosure { margin-top: 1rem; }
+.notice-disclosure > summary {
+  display: flex; align-items: center; min-height: 2.75rem; padding: .7rem .85rem;
+  color: var(--ink); font-weight: 750; cursor: pointer;
+  background: var(--ground); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.notice-disclosure[open] > summary { border-radius: var(--radius) var(--radius) 0 0; }
+.notice-table { margin-top: 0; }
+.notice-tag {
+  display: inline-flex; align-items: center; min-height: 1.8rem; padding: .2rem .55rem;
+  color: var(--brand-navy); font-size: var(--t-meta); font-weight: 750;
+  background: var(--brand-gold); border-radius: 999px;
+}
+.destination-list {
+  max-width: var(--measure); margin: .75rem 0 1rem; padding: 0;
+  list-style: none; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+}
+.destination-list li {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  padding: .65rem .8rem; background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.destination-list li:last-child { border-bottom: 0; }
+.destination-list strong { flex: none; font-variant-numeric: tabular-nums; }
+.transfer-history { margin-top: 1rem; }
+.transfer-flow-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1rem; margin-top: 1.1rem;
+}
+.transfer-flow { min-width: 0; }
+.transfer-flow h3 { margin-top: 0; }
+.transfer-flow .destination-list { margin-bottom: .45rem; }
+.transfer-flow small { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+@media (max-width: 34rem) {
+  .notice-table { min-width: 42rem; }
+  .transfer-history { min-width: 36rem; }
+  .destination-list li { align-items: flex-start; }
+}
+
+/* ==========================================================================
    HORIZONTAL BAR LIST  (.hbars)
 
    An HTML replacement for the two SVG bar charts, offered because they are
@@ -1790,8 +1902,10 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
    src/render/map.js draws 1,016 district polygons as one inline SVG.
    Performance layers run strongest green to weakest red; the renderer reverses
    higher-is-better numeric buckets before they reach these semantic palette
-   positions. Pay and spending use a neutral teal sequence instead. map.js's
-   header carries the accessibility measurements behind the performance ramp.
+   positions. Pay and spending use a neutral teal sequence instead. Signed
+   transfer balance uses the same measured stops from net outflow/red through
+   zero to net inflow/green. map.js's header carries the accessibility
+   measurements behind the performance ramp.
 
    @layer IS LOad-BEARING HERE, not tidiness. The filter has to beat the ramp
    fills but must NOT beat the focus ring: win by raw specificity and
@@ -1821,6 +1935,16 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
   --map-b2: #3d95a2;
   --map-b3: #155f70;
   --map-b4: #082f39;
+}
+/* Transfer balance is directional by editorial policy: net outflow is the
+   weaker/red side and net inflow the stronger/green side. These are the same
+   measured performance stops, ordered from negative to positive. */
+.map-figure[data-map-palette="diverging"] {
+  --map-b0: #7a0b16;
+  --map-b1: #e8590c;
+  --map-b2: #ffe9a8;
+  --map-b3: #7cb342;
+  --map-b4: #0f5132;
 }
 /* The light-scheme darkest teal nearly disappears into the dark map plane.
    Keep the same light-to-dark order while lifting the whole sequence enough
@@ -1966,6 +2090,30 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 }
 .map-tip b { display: block; font-weight: 650; }
 .map-tip span { color: var(--ink-2); }
+
+/* Exact leaders accompany the transfer layer because several statewide
+   extremes occupy tiny polygons that a choropleth alone cannot surface. */
+.map-layer-detail {
+  margin: 1rem 0 0; padding: 1rem;
+  background: var(--ground); border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+}
+.map-layer-detail[hidden] { display: none; }
+.map-layer-detail h3 { margin: 0 0 .8rem; font-size: var(--t-subhead); }
+.map-leader-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; }
+.map-leader-group h4 { margin: 0 0 .35rem; font-size: var(--t-meta); }
+.map-leader-group ol { margin: 0; padding-left: 1.5rem; }
+.map-leader-group li {
+  padding: .35rem 0;
+  border-bottom: 1px solid var(--line-2);
+}
+.map-leader-group li::marker { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.map-leader-group strong { display: block; font-size: var(--t-small); font-variant-numeric: tabular-nums; }
+.map-leader-group small { display: block; color: var(--ink-2); }
+.map-layer-detail > .note { max-width: 90ch; margin: .8rem 0 0; }
+@media (max-width: 44rem) {
+  .map-leader-grid { grid-template-columns: 1fr; }
+}
 
 /* ---------- pager ----------
    The page-to-page navigation under a long ranked list

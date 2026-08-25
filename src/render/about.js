@@ -68,9 +68,9 @@ const adds = (counts = {}) => {
   TEA rewrote the rules mid-window, so making the years comparable takes work.</p>
 
   <h3>The underlying data, downloadable</h3>
-  <p class="callout">Every district and campus page offers its own figures as CSV and JSON, and the
-  whole normalised dataset is at <a href="/download">the download page</a>. Nothing here is meant
-  to be taken on trust.</p>
+  <p class="callout">Every district page offers its own figures as CSV and JSON; campuses are rows
+  in the bulk files. The whole normalised dataset is at <a href="/download">the download page</a>.
+  Nothing here is meant to be taken on trust.</p>
 
   ${tally.length ? statGrid(tally) : ''}`,
     'TEA publishes what a school scored. This site adds the context that makes the score mean something.'
@@ -79,9 +79,15 @@ const adds = (counts = {}) => {
 
 /* ------------------------------------------------------------- provenance -- */
 
-const provenance = (snapshotDate, sources = []) => {
-  const rows = sources.map(
+const provenance = (snapshotDate, sources = [], enrollmentSource = null, publicSources = []) => {
+  const allSources = enrollmentSource
+    ? [...sources, { name: `PEIMS enrollment history (${num(enrollmentSource.reports)} reports)`, rows: enrollmentSource.rows }]
+    : sources
+  const rows = allSources.map(
     (s) => `<tr><th scope="row">${esc(s.name)}</th><td class="num">${num(s.rows)}</td></tr>`
+  )
+  const addedRows = publicSources.map(
+    (s) => `<tr><th scope="row"><a href="${esc(s.url)}" rel="nofollow">${esc(s.name)}</a></th><td>${esc(s.agency)}</td><td>${esc(s.year ?? 'See source')}</td><td class="num">${num(s.rows)}</td></tr>`
   )
 
   return section(
@@ -94,8 +100,15 @@ const provenance = (snapshotDate, sources = []) => {
   shows up as a changed checksum rather than as a silently different number.</p>
   <p class="callout">This site was built from the snapshot taken
   <strong>${esc(snapshotDate ?? 'on the date shown on each page')}</strong>${
-    sources.length ? `, comprising the ${num(sources.length)} files below.` : '.'
+    sources.length ? `, comprising the ${num(sources.length)} txschools.gov files below.` : '.'
   }</p>
+  ${
+    enrollmentSource
+      ? `<p class="callout">Enrollment history comes from TEA's separate
+  <a href="${esc(enrollmentSource.url)}" rel="nofollow">PEIMS Student Program and Special Populations reports</a>,
+  fetched <strong>${esc(enrollmentSource.fetched ?? 'on the date shown on each page')}</strong>. Those ${num(enrollmentSource.reports)} district and campus reports cover five school years and are archived with the same checksum safeguards.</p>`
+      : ''
+  }
   ${
     rows.length
       ? table({
@@ -105,8 +118,18 @@ const provenance = (snapshotDate, sources = []) => {
         })
       : ''
   }
-  <p class="note">Row counts are what the build measured after normalising the published JSON. They
-  count table rows, not distinct schools, since most files carry several years per entity.</p>
+  ${
+    addedRows.length
+      ? `<p class="callout">Separate official publications add the history, family-action notices and context that txschools.gov does not expose on these pages. Each section keeps its own year, denominator and limitations.</p>
+  ${table({
+        caption: 'Additional official public sources used by this site',
+        head: ['Public dataset', 'Agency', 'Year or period', { label: 'Rows', num: true }],
+        rows: addedRows,
+      })}`
+      : ''
+  }
+  <p class="note">Row counts are what the build measured after normalising the published files. They
+  count table rows, not distinct schools; historical tables carry several years per entity.</p>
   <p class="downloads"><a href="/download">Download the dataset</a> and check any of this against
   TEA's own publication.</p>`,
     'Each fetch is archived and checksummed, so every published figure traces back to the bytes TEA served.'
@@ -210,7 +233,7 @@ const corrections = () =>
  * @param {object}   opts.counts        { districts, campuses, years, metrics }
  * @param {Array}    opts.sources       [{ name, rows }] — the TEA files in the snapshot
  */
-export function renderAboutPage({ snapshotDate, counts = {}, sources = [] } = {}) {
+export function renderAboutPage({ snapshotDate, counts = {}, sources = [], enrollmentSource = null, publicSources = [] } = {}) {
   return shell({
     title: 'About txschools.net — an unofficial view of Texas school ratings',
     description:
@@ -222,7 +245,7 @@ export function renderAboutPage({ snapshotDate, counts = {}, sources = [] } = {}
     sections: [
       intro(),
       adds(counts),
-      provenance(snapshotDate, sources),
+      provenance(snapshotDate, sources, enrollmentSource, publicSources),
       refresh(),
       peers(),
       calls(),

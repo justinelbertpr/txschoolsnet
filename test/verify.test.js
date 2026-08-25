@@ -14,7 +14,14 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { gzipSync } from 'node:zlib'
 import { buildManifest } from '../src/fetch.js'
-import { verifyFile, verifySnapshot, verifyAll, hashText } from '../src/verify.js'
+import {
+  verifyFile,
+  verifySnapshot,
+  verifyAll,
+  verifyArchive,
+  verifyAllEnrollment,
+  hashText,
+} from '../src/verify.js'
 import { SOURCES } from '../src/sources.js'
 
 const rows = (n, seed = 0) => Array.from({ length: n }, (_, i) => ({ id: String(seed + i).padStart(6, '0') }))
@@ -164,6 +171,58 @@ describe('verifyAll', () => {
   })
 })
 
+/* --------------------------------------------------------- verifyArchive -- */
+
+describe('verifyArchive', () => {
+  it('checks every dated supplemental snapshot in sorted order', async () => {
+    const root = await scratch()
+    await mkdir(join(root, '2026-08-24'))
+    await mkdir(join(root, '2025-08-24'))
+    const seen = []
+    const { results, problems } = await verifyArchive(root, {
+      label: 'fixture',
+      refresh: 'run the fixture refresh',
+      verifySnapshot: async (dir) => {
+        seen.push(dir)
+        return { dir, checked: 2, problems: [], fetchedAt: '2026-08-24T00:00:00.000Z' }
+      },
+    })
+    expect(seen.map((dir) => dir.split('/').at(-1))).toEqual(['2025-08-24', '2026-08-24'])
+    expect(results).toHaveLength(2)
+    expect(problems).toEqual([])
+  })
+
+  it('gives the source-specific refresh guidance when an archive is absent', async () => {
+    const root = join(await scratch(), 'missing')
+    const { results, problems } = await verifyArchive(root, {
+      label: 'action-flags',
+      refresh: 'follow the reviewed procedure',
+      verifySnapshot: async () => ({ checked: 0, problems: [] }),
+    })
+    expect(results).toEqual([])
+    expect(problems).toEqual([
+      `no action-flags snapshot found under ${root} — follow the reviewed procedure`,
+    ])
+  })
+
+  it('reports a thrown source verifier and continues with the remaining snapshots', async () => {
+    const root = await scratch()
+    await mkdir(join(root, '2025-08-24'))
+    await mkdir(join(root, '2026-08-24'))
+    const { results, problems } = await verifyArchive(root, {
+      label: 'fixture',
+      refresh: 'refresh it',
+      verifySnapshot: async (dir) => {
+        if (dir.endsWith('2025-08-24')) throw new Error('broken parser input')
+        return { dir, checked: 1, problems: [] }
+      },
+    })
+    expect(results).toHaveLength(2)
+    expect(problems).toHaveLength(1)
+    expect(problems[0]).toMatch(/2025-08-24: verification failed \(broken parser input\)/)
+  })
+})
+
 /* ------------------------------------------------- the committed snapshot -- */
 
 describe('the snapshot committed to this repository', () => {
@@ -172,6 +231,13 @@ describe('the snapshot committed to this repository', () => {
     // tree's data/raw no longer matches the bytes TEA served, and nothing built
     // from it can be traced — restore from git or re-fetch before shipping.
     const { problems } = await verifyAll()
+    expect(problems).toEqual([])
+  })
+
+  it('also verifies every committed PEIMS enrollment report', async () => {
+    const { results, problems } = await verifyAllEnrollment()
+    expect(results).toHaveLength(1)
+    expect(results[0].checked).toBe(10)
     expect(problems).toEqual([])
   })
 })

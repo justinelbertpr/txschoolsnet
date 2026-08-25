@@ -12,7 +12,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   SECTIONS, HERO_ID, HERO_LABEL, claimSentence, verdict, trajectory, changeRankings, domains, outcomes,
-  students, spending, teachers, campuses, highlights, standouts, source, rankingHref, rankingPositions, boardPageOf,
+  students, enrollment, transfers, discipline, actionNotices, community, postsecondary, spending, teachers, campuses, highlights, standouts, source, rankingHref, rankingPositions, boardPageOf,
   rankedBoard, officialWebsiteHref,
 } from '../../src/render/sections.js'
 import { PAGE_ROWS } from '../../src/render/rankings-page.js'
@@ -33,6 +33,8 @@ const empty = (over = {}) => ({
   multYear: 0,
   notRated: false,
   history: [],
+  enrollmentHistory: [],
+  enrollmentTrend: null,
   stateByYear: {},
   stateAvg: null,
   peerByYear: null,
@@ -73,6 +75,12 @@ const OPTIONAL = [
   ['domains', domains],
   ['outcomes', outcomes],
   ['students', students],
+  ['enrollment', enrollment],
+  ['transfers', transfers],
+  ['discipline', discipline],
+  ['actionNotices', actionNotices],
+  ['community', community],
+  ['postsecondary', postsecondary],
   ['spending', spending],
   ['teachers', teachers],
   ['campuses', campuses],
@@ -102,6 +110,12 @@ describe('a section with no data', () => {
     expect(domains(empty({ domains: null }))).toBeNull()
     expect(outcomes(empty({ staar: { subjects: [] }, graduation: [], ccmr: [] }))).toBeNull()
     expect(students(empty({ profile: null }))).toBeNull()
+    expect(enrollment(empty({ enrollmentTrend: { points: [{ year: '2025-26', enrollment: 100 }] } }))).toBeNull()
+    expect(transfers(empty({ transferContext: null }))).toBeNull()
+    expect(discipline(empty({ discipline: null }))).toBeNull()
+    expect(actionNotices(empty({ actionNotices: [] }))).toBeNull()
+    expect(community(empty({ communityContext: null }))).toBeNull()
+    expect(postsecondary(empty({ postsecondaryOutcome: null }))).toBeNull()
     expect(spending(empty({ finance: { years: [] } }))).toBeNull()
     expect(teachers(empty({ profile: { avgSalary: null } }))).toBeNull()
     expect(campuses(empty({ campuses: [] }))).toBeNull()
@@ -114,6 +128,12 @@ describe('a section with no data', () => {
     expect(one({ history: [{ year: '2025-26', rating: 'B', score: 88 }] })).toEqual(['trajectory'])
     expect(one({ domains: [{ domain: 'achievement', label: 'Student Achievement', score: 88, grade: 'B', toNextGrade: 2 }] })).toEqual(['domains'])
     expect(one({ profile: { total: 1000, ecoDisPct: 60, engLrnPct: 20, specEdPct: 10, attendance: 94, absenteeism: 15, avgSalary: null } })).toEqual(['students'])
+    expect(one({ enrollmentTrend: {
+      points: [{ year: '2024-25', enrollment: 900 }, { year: '2025-26', enrollment: 1_000 }],
+      latest: { year: '2025-26', enrollment: 1_000 },
+      yoy: { fromYear: '2024-25', toYear: '2025-26', from: 900, to: 1_000, delta: 100, pct: 11.111 },
+      sinceFirst: null,
+    } })).toEqual(['enrollment'])
     expect(one({ campuses: [{ slug: 'a-1', name: 'A', rating: 'B', score: 80, enrollment: 100, campusType: 'High School' }] })).toEqual(['campuses'])
   })
 })
@@ -572,6 +592,376 @@ describe('students', () => {
   })
 })
 
+/* ------------------------------------------------------------ enrollment */
+
+describe('enrollment over time', () => {
+  const points = [
+    { year: '2023-24', enrollment: 30_000, change: null },
+    {
+      year: '2024-25', enrollment: 31_000,
+      change: { fromYear: '2023-24', toYear: '2024-25', from: 30_000, to: 31_000, delta: 1_000, pct: 3.333 },
+    },
+    {
+      year: '2025-26', enrollment: 30_500,
+      change: { fromYear: '2024-25', toYear: '2025-26', from: 31_000, to: 30_500, delta: -500, pct: -1.6129 },
+    },
+  ]
+  const trend = {
+    points,
+    latest: points[2],
+    previous: points[1],
+    yoy: points[2].change,
+    contiguous: true,
+    sinceFirst: { fromYear: '2023-24', toYear: '2025-26', from: 30_000, to: 30_500, delta: 500, pct: 1.6667 },
+  }
+
+  it('sits immediately after student context and before the campus list', () => {
+    expect(SECTIONS.indexOf(enrollment)).toBe(SECTIONS.indexOf(students) + 1)
+    expect(SECTIONS.indexOf(enrollment)).toBeLessThan(SECTIONS.indexOf(campuses))
+  })
+
+  it('states the latest adjacent-year change and longer contiguous change exactly', () => {
+    const html = enrollment(empty({ enrollmentTrend: trend }))
+    expect(html).toContain('Enrollment over time')
+    expect(html).toContain('<strong>30,500 students</strong>')
+    expect(html).toContain('a decrease of 500 (1.6%) from 2024–25')
+    expect(html).toContain('Change from 2024–25')
+    expect(html).toContain('−500')
+    expect(html).toContain('Change since 2023–24')
+    expect(html).toContain('+500')
+  })
+
+  it('keeps the exact five-year-style figures visible in an accessible table with supplementary bars', () => {
+    const html = enrollment(empty({ enrollmentTrend: trend }))
+    expect(html).toContain('aria-label="Student enrollment by school year for Dallas ISD"')
+    expect(html).toContain('class="data scroll enrollment-table"')
+    expect(html).toContain('2023–24')
+    expect(html).toContain('30,000')
+    expect(html).toContain('style="--enrollment-width:98.39%"')
+    expect(html).toContain('class="enrollment-bar" aria-hidden="true"')
+    expect(html).not.toContain('<details')
+  })
+
+  it('uses neutral language and never turns growth or decline into a performance verdict', () => {
+    const html = enrollment(empty({ enrollmentTrend: trend }))
+    expect(html).toContain('Enrollment growth or decline is not a measure of school quality')
+    expect(html).not.toMatch(/cmp-(up|down)/)
+    expect(html).not.toMatch(/ranks?|best|worst/i)
+  })
+
+  it('leaves a missing school year visible and declines to compare across it', () => {
+    const sparse = {
+      points: [
+        { year: '2023-24', enrollment: 1_000, change: null },
+        { year: '2025-26', enrollment: 1_200, change: null },
+      ],
+      latest: { year: '2025-26', enrollment: 1_200 },
+      previous: null,
+      yoy: null,
+      contiguous: false,
+      sinceFirst: null,
+    }
+    const html = enrollment(empty({
+      enrollmentTrend: sparse,
+      enrollmentReported: [
+        { year: '2023-24', enrollment: 1_000 },
+        { year: '2024-25', enrollment: null },
+        { year: '2025-26', enrollment: 1_200 },
+      ],
+    }))
+    expect(html).toContain('no year-over-year change is calculated')
+    expect(html).toContain('2024–25')
+    expect(html).toContain('Not reported')
+    expect(html).toContain('Not available')
+    expect(html).toContain('No adjacent prior year')
+    expect(html).not.toContain('+200')
+  })
+
+  it('labels a suppressed current report instead of presenting an older count as current', () => {
+    const sparse = {
+      points: [
+        { year: '2022-23', enrollment: 10, change: null },
+        { year: '2024-25', enrollment: 12, change: null },
+      ],
+      latest: { year: '2024-25', enrollment: 12 },
+      previous: null,
+      yoy: null,
+      contiguous: false,
+      sinceFirst: null,
+    }
+    const html = enrollment(empty({
+      enrollmentTrend: sparse,
+      enrollmentReported: [
+        { year: '2022-23', enrollment: 10 },
+        { year: '2023-24', enrollment: null },
+        { year: '2024-25', enrollment: 12 },
+        { year: '2025-26', enrollment: null },
+      ],
+    }))
+    expect(html).toContain('did not publish an enrollment count for <strong>2025–26</strong>')
+    expect(html).toContain('latest available PEIMS count is <strong>12 students</strong>')
+    expect(html).toContain('Latest available PEIMS enrollment')
+    expect(html).not.toContain('Change from 2024–25')
+  })
+
+  it('shows an absolute increase from zero without inventing an infinite percentage', () => {
+    const zero = {
+      points: [
+        { year: '2024-25', enrollment: 0, change: null },
+        {
+          year: '2025-26', enrollment: 25,
+          change: { fromYear: '2024-25', toYear: '2025-26', from: 0, to: 25, delta: 25, pct: null },
+        },
+      ],
+      latest: { year: '2025-26', enrollment: 25 },
+      yoy: { fromYear: '2024-25', toYear: '2025-26', from: 0, to: 25, delta: 25, pct: null },
+      sinceFirst: null,
+    }
+    const html = enrollment(empty({ enrollmentTrend: zero }))
+    expect(html).toContain('an increase of 25 from 2024–25')
+    expect(html).toContain('Percentage not calculated from a zero base')
+    expect(html).not.toMatch(/Infinity|NaN/)
+  })
+
+  it('names the official source and cautions against guessing at causes', () => {
+    const html = enrollment(empty({ enrollmentTrend: trend }))
+    expect(html).toContain('TEA PEIMS Student Program and Special Populations Reports')
+    expect(html).toContain('Attendance-zone changes')
+    expect(html).toContain('not why')
+  })
+})
+
+/* ----------------------------------------------- public context modules */
+
+describe('district transfer flows', () => {
+  const transferContext = {
+    netLabel: 'Transfers in minus transfers out (arithmetic context only; not a quality measure)',
+    history: [
+      { year: '2024-25', transfersIn: 120, transfersOut: 300, net: -180 },
+      { year: '2025-26', transfersIn: 106, transfersOut: 350, net: -244 },
+    ],
+    current: {
+      year: '2025-26', transfersIn: 106, transfersOut: 350, net: -244,
+      coverage: {
+        origins: { published: 4, reported: 3, masked: 1 },
+        destinations: { published: 5, reported: 3, masked: 2 },
+      },
+      topOrigins: [{ id: '101902', name: 'Aldine ISD', transfers: 27 }],
+      topDestinations: [{ id: '101915', name: 'Klein ISD', transfers: 40 }],
+    },
+  }
+
+  it('uses official totals and labels the net as arithmetic rather than quality', () => {
+    const html = transfers(empty({ transferContext }))
+    expect(html).toContain('Students crossing district lines')
+    expect(html).toContain('>106<')
+    expect(html).toContain('>350<')
+    expect(html).toContain('−244')
+    expect(html).toContain('Arithmetic context only')
+    expect(html).toContain('not a measure of family satisfaction or school quality')
+  })
+
+  it('names reported flows while disclosing masked counterpart counts', () => {
+    const html = transfers(empty({ transferContext }))
+    expect(html).toContain('Aldine ISD')
+    expect(html).toContain('Klein ISD')
+    expect(html).toContain('published 3 of 4 counterpart counts and masked 1')
+    expect(html).toContain('does not add masked detail cells')
+  })
+
+  it('does not invent campus totals from heavily masked detail rows', () => {
+    expect(transfers(empty({ level: 'campus', transferContext }))).toBeNull()
+  })
+
+  it('distinguishes an official masked total from a total TEA did not report', () => {
+    const masked = {
+      ...transferContext,
+      history: [
+        {
+          year: '2024-25', transfersIn: null, transfersOut: 10, net: null,
+          coverage: { officialTotals: { in: 'not_reported', out: 'reported' } },
+        },
+        {
+          year: '2025-26', transfersIn: null, transfersOut: 12, net: null,
+          coverage: { officialTotals: { in: 'masked', out: 'reported' } },
+        },
+      ],
+      current: {
+        year: '2025-26', transfersIn: null, transfersOut: 12, net: null,
+        coverage: {
+          officialTotals: { in: 'masked', out: 'reported' },
+          origins: { published: 0, reported: 0, masked: 0 },
+          destinations: { published: 0, reported: 0, masked: 0 },
+        },
+        topOrigins: [], topDestinations: [],
+      },
+    }
+    const html = transfers(empty({ transferContext: masked }))
+    expect(html).toContain('Suppressed')
+    expect(html).toContain('Not reported')
+  })
+
+  it('keeps the history visible when both latest totals are masked', () => {
+    const maskedLatest = {
+      ...transferContext,
+      history: [
+        {
+          year: '2024-25', transfersIn: 20, transfersOut: 30, net: -10,
+          coverage: { officialTotals: { in: 'reported', out: 'reported' } },
+        },
+        {
+          year: '2025-26', transfersIn: null, transfersOut: null, net: null,
+          coverage: { officialTotals: { in: 'masked', out: 'masked' } },
+        },
+      ],
+      current: {
+        year: '2025-26', transfersIn: null, transfersOut: null, net: null,
+        coverage: {
+          officialTotals: { in: 'masked', out: 'masked' },
+          origins: { published: 0, reported: 0, masked: 0 },
+          destinations: { published: 0, reported: 0, masked: 0 },
+        },
+        topOrigins: [], topDestinations: [],
+      },
+    }
+    const html = transfers(empty({ transferContext: maskedLatest }))
+    expect(html).toContain('2024–25')
+    expect(html).toContain('>20<')
+    expect(html).toContain('Suppressed')
+  })
+})
+
+describe('discipline and removals from class', () => {
+  const datum = (count, rateKey, rate) => ({
+    count,
+    status: count == null ? 'suppressed' : 'reported',
+    mask: count == null ? '-999' : null,
+    [rateKey]: rate,
+  })
+  const context = {
+    history: [
+      {
+        year: '2020-21', cumulativeEnrollment: datum(1_000),
+        students: datum(50, 'ratePct', 5), actions: datum(70, 'ratePer100', 7),
+      },
+      {
+        year: '2024-25', cumulativeEnrollment: datum(1_200),
+        students: datum(72, 'ratePct', 6), actions: datum(100, 'ratePer100', 8.33),
+      },
+    ],
+    current: {
+      year: '2024-25', cumulativeEnrollment: datum(1_200),
+      categories: [
+        { key: 'allDiscipline', label: 'All discipline', students: datum(72, 'ratePct', 6), actions: datum(100, 'ratePer100', 8.33) },
+        { key: 'expulsions', label: 'Expulsions', students: datum(null, 'ratePct', null), actions: datum(null, 'ratePer100', null) },
+      ],
+    },
+  }
+
+  it('keeps students and actions separate and uses cumulative year-end enrollment', () => {
+    const html = discipline(empty({ discipline: context }))
+    expect(html).toContain('Students in TEA’s all-discipline count')
+    expect(html).toContain('6.0% of cumulative year-end enrollment')
+    expect(html).toContain('8.33 per 100 students')
+    expect(html).toContain('Students, actions and incidents are different units')
+    expect(html).toContain('must not be added together')
+    expect(html).toContain('not the October enrollment')
+  })
+
+  it('preserves suppressed categories and the pandemic comparison warning', () => {
+    const html = discipline(empty({ discipline: context }))
+    expect(html).toContain('Expulsions')
+    expect(html).toContain('Suppressed')
+    expect(html).toContain('TEA suppression code -999')
+    expect(html).toContain('Use 2020–21 cautiously')
+    expect(html).not.toContain('NaN')
+  })
+})
+
+describe('official improvement and transfer notices', () => {
+  const improvement = {
+    id: '101919001', name: 'Spring High School', href: '/campus/spring-h-s-101919001',
+    improvement: {
+      kind: 'TSI', supportLabel: 'TSI', reason: 'Special Education', trackYear: 1, titleI: true,
+    },
+    peg: null,
+  }
+
+  it('prints the exact official support label and reason on a campus page', () => {
+    const html = actionNotices(empty({ level: 'campus', actionNotices: [improvement] }))
+    expect(html).toContain('Targeted Support and Improvement')
+    expect(html).toContain('<strong>Official support label:</strong> TSI')
+    expect(html).toContain('<strong>Identification reason:</strong> Special Education')
+    expect(html).toContain('TEA track year 1')
+    expect(html).not.toContain('Public Education Grant transfer eligibility')
+  })
+
+  it('describes PEG as a request right, never guaranteed admission', () => {
+    const html = actionNotices(empty({
+      level: 'campus',
+      actionNotices: [{ ...improvement, improvement: null, peg: { schoolYear: '2026-27', final: true } }],
+    }))
+    expect(html).toContain('may request a transfer')
+    expect(html).toContain('A request is not guaranteed')
+    expect(html).toContain('transportation is not automatically provided')
+  })
+
+  it('aggregates campus notices on a district page without assigning them to the district rating', () => {
+    const html = actionNotices(empty({
+      actionNotices: [improvement, { ...improvement, id: '101919002', name: 'Westfield High School', href: '/campus/westfield-h-s-101919002', improvement: null, peg: { schoolYear: '2026-27' } }],
+    }))
+    expect(html).toContain('Campuses identified for federal improvement support')
+    expect(html).toContain('<dd>1<p class="stat-note">2026 TEA list')
+    expect(html).toContain('Spring High School')
+    expect(html).toContain('Westfield High School')
+    expect(html).toContain('specific campuses')
+  })
+})
+
+describe('community context', () => {
+  const context = {
+    year: 2024, totalPopulation: 50_000, schoolAgePopulation: 8_000,
+    schoolAgePoverty: 1_600, schoolAgePovertyRate: 20,
+  }
+
+  it('separates resident Census estimates from enrolled students', () => {
+    const html = community(empty({ communityContext: context }))
+    expect(html).toContain('50,000')
+    expect(html).toContain('1,600 of 8,000')
+    expect(html).toContain('residents inside the geographic district, not the students enrolled')
+    expect(html).toContain('never a school-quality measure')
+  })
+
+  it('never puts district-boundary estimates on a campus page', () => {
+    expect(community(empty({ level: 'campus', communityContext: context }))).toBeNull()
+  })
+})
+
+describe('following-fall postsecondary outcomes', () => {
+  const outcome = {
+    graduateYear: '2023-24', fallTerm: 'Fall 2024', graduates: 100,
+    enrolledPublic: 42, rate: 42, notFound: 55, notTrackable: 3,
+    destinations: [{ institution: 'Texas State University', students: 10 }],
+  }
+
+  it('shows the denominator and the limited Texas-public scope', () => {
+    const html = postsecondary(empty({ postsecondaryOutcome: outcome }))
+    expect(html).toContain('Graduates in the report')
+    expect(html).toContain('Class of 2023–24')
+    expect(html).toContain('42.0% of graduates')
+    expect(html).toContain('Texas State University')
+    expect(html).toContain('includes only districts or campuses with more than 25 graduates')
+  })
+
+  it('does not turn not-found records into a claim that graduates skipped college', () => {
+    const html = postsecondary(empty({ postsecondaryOutcome: outcome }))
+    expect(html).toContain('“Not found” does not mean a graduate did not continue their education')
+    expect(html).toContain('private or out-of-state college')
+    expect(html).toContain('“Not trackable” is not an outcome')
+    expect(html).toContain('non-standard identifier')
+  })
+})
+
 /* ------------------------------------------------------------------ spending */
 
 describe('spending', () => {
@@ -629,6 +1019,39 @@ describe('teachers', () => {
     const html = teachers(empty({ profile: { avgSalary: 61_500 }, staffYears: [5, 30, 25, 20, 15, 5] }))
     expect(html).toContain('Teaching experience')
     expect(html).toContain('Beginning 5%')
+  })
+
+  it('shows five years of district turnover without pretending it is a campus measure', () => {
+    const html = teachers(empty({
+      teacherTurnover: {
+        history: [{ year: '2023-24', ratePct: 18.2 }, { year: '2024-25', ratePct: 16.4 }],
+        latest: { year: '2024-25', ratePct: 16.4 },
+      },
+    }))
+    expect(html).toContain('Teacher turnover over time')
+    expect(html).toContain('16.4% teacher turnover rate')
+    expect(html).toContain('prior fall')
+    expect(html).toContain('not a campus-level measure')
+  })
+
+  it('shows actual campus class-size categories without inventing one campus average', () => {
+    const html = teachers(empty({
+      level: 'campus', profile: null,
+      classSize: {
+        year: '2024-25', reported: 2,
+        categories: [
+          { key: 'kindergarten', label: 'Kindergarten', studentsPerClass: 18.4 },
+          { key: 'secondaryMath', label: 'Secondary math', studentsPerClass: 22.1 },
+          { key: 'grade6', label: 'Grade 6', studentsPerClass: null },
+        ],
+      },
+    }))
+    expect(html).toContain('Teachers and actual class size')
+    expect(html).toContain('Kindergarten')
+    expect(html).toContain('18.4')
+    expect(html).toContain('not the student-to-teacher ratio')
+    expect(html).toContain('not combined into a made-up campus-wide average')
+    expect(html).not.toContain('Grade 6')
   })
 })
 
