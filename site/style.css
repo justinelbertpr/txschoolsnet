@@ -878,10 +878,6 @@ td .grade-letter { font-size: 1.05rem; }
   margin-top: 1rem;
 }
 .comparison-readout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: .2rem .75rem;
   margin: 1rem 0 0;
   padding: .8rem .9rem;
   color: var(--ink-2);
@@ -893,19 +889,41 @@ td .grade-letter { font-size: 1.05rem; }
 }
 .comparison-readout-grid .comparison-readout { margin: 0; }
 .comparison-readout-label {
+  margin: 0 0 .65rem;
   color: var(--ink-3);
   font-size: var(--t-label);
   font-weight: 700;
   letter-spacing: .035em;
   text-transform: uppercase;
 }
-.comparison-readout > strong {
+.comparison-readout-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .55rem .85rem;
+  margin: 0;
+}
+.comparison-readout-values > div { min-width: 0; }
+.comparison-readout-values dt {
+  color: var(--ink-3);
+  font-size: .78rem;
+  line-height: 1.25;
+}
+.comparison-readout-values dd {
+  margin: .16rem 0 0;
   color: var(--ink);
   font-size: 1.2rem;
+  line-height: 1.2;
+}
+.comparison-readout-values strong {
+  white-space: nowrap;
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
-.comparison-readout > span:not(.comparison-readout-label) { grid-column: 1 / -1; }
-.comparison-readout .cmp { grid-column: 1 / -1; margin-top: .15rem; }
+.comparison-readout-meta {
+  margin: .6rem 0 0;
+  line-height: 1.35;
+}
+.comparison-readout .cmp { margin-top: .25rem; }
 .comparison-cell { background: color-mix(in srgb, var(--accent-brass) 5%, transparent); }
 
 .comparison-composition-groups { margin-top: .8rem; }

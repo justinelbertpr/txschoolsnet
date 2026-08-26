@@ -73,6 +73,7 @@ describe('generic selected-comparison hooks', () => {
       </div>
       <p data-comparison-readout data-metric="public:enrollment:2025" data-format="count">
         <span class="comparison-readout-label">Average enrollment</span>
+        <strong data-entity-value>123</strong>
         <strong data-compare-value>100</strong>
         <span><span data-compare-kind>average for</span> <span data-compare-label>Peers</span> · <span data-compare-n>8</span> reporting</span>
       </p>
@@ -98,6 +99,7 @@ describe('generic selected-comparison hooks', () => {
     window.document.querySelector('[data-cohort="county"]').click()
     const readout = window.document.querySelector('[data-comparison-readout]')
     const cell = window.document.querySelector('[data-comparison-cell]')
+    expect(readout.querySelector('[data-entity-value]').textContent).toBe('123')
     expect(readout.querySelector('[data-compare-value]').textContent).toBe('220.5')
     expect(readout.querySelector('[data-compare-kind]').textContent).toBe('average for')
     expect(readout.querySelector('[data-compare-label]').textContent).toBe('Bexar County')
@@ -110,6 +112,7 @@ describe('generic selected-comparison hooks', () => {
     expect(window.document.querySelector('[data-comparison-cohort="county"]').hidden).toBe(false)
 
     window.document.querySelector('[data-cohort="pin:2"]').click()
+    expect(readout.querySelector('[data-entity-value]').textContent).toBe('123')
     expect(readout.querySelector('[data-compare-value]').textContent).toBe('321')
     expect(readout.querySelector('[data-compare-kind]').textContent).toBe('figure for')
     expect(readout.querySelector('[data-compare-label]').textContent).toBe('Other ISD')
@@ -118,6 +121,7 @@ describe('generic selected-comparison hooks', () => {
     expect(window.document.querySelector('[data-comparison-cohort="county"]').hidden).toBe(true)
 
     window.document.querySelector('[data-cohort="state"]').click()
+    expect(readout.querySelector('[data-entity-value]').textContent).toBe('123')
     expect(readout.hidden).toBe(true)
     expect(readout.style.display).toBe('none')
     expect(cell.textContent).toBe('—')
@@ -132,7 +136,7 @@ describe('generic selected-comparison hooks', () => {
         <button class="chip-cohort" data-cohort="state" aria-pressed="false">State</button>
       </div>
       <p data-comparison-readout data-metric="public:enrollment:2025" data-format="count">
-        <span>Average enrollment</span><strong data-compare-value>100</strong>
+        <span>Average enrollment</span><strong data-entity-value>123</strong><strong data-compare-value>100</strong>
         <span><span data-compare-kind>average for</span> <span data-compare-label>Peers</span> · <span data-compare-n>8</span> reporting</span>
       </p>
       <section id="outcomes">
@@ -185,6 +189,7 @@ describe('generic selected-comparison hooks', () => {
     window.document.querySelector('[data-cohort="state"]').click()
 
     const readout = window.document.querySelector('[data-comparison-readout]')
+    expect(readout.querySelector('[data-entity-value]').textContent).toBe('123')
     expect(readout.querySelector('[data-compare-kind]').textContent).toBe('statewide cohort average across')
     expect(readout.querySelector('[data-compare-label]').textContent).toBe('Texas')
     expect(readout.querySelector('[data-compare-n]').textContent).toBe('981')

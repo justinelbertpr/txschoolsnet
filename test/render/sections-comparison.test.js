@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { JSDOM } from 'jsdom'
 import {
   actionNotices,
   campuses,
@@ -32,6 +33,21 @@ const page = ({ metrics = {}, metricN = {}, own = {}, ...over } = {}) => ({
 
 const hook = (key) => `data-metric="${key}"`
 
+const readoutValues = (html, key) => {
+  const dom = new JSDOM(html)
+  const card = dom.window.document.querySelector(`[data-comparison-readout][data-metric="${key}"]`)
+  const values = card
+    ? {
+        entity: card.querySelector('[data-entity-value]')?.textContent,
+        comparison: card.querySelector('[data-compare-value]')?.textContent,
+        label: card.querySelector('.comparison-readout-label')?.textContent,
+        hidden: card.hidden,
+      }
+    : null
+  dom.window.close()
+  return values
+}
+
 describe('supplemental sections use the page-wide selected comparison', () => {
   it('adds selected-group averages to enrollment and transfer histories without replacing entity facts', () => {
     const enrollmentKeys = {
@@ -56,9 +72,12 @@ describe('supplemental sections use the page-wide selected comparison', () => {
       },
     }))
     expect(enrollmentHtml).toContain(hook(publicMetric.enrollment('2025-26')))
-    expect(enrollmentHtml).toContain('Average enrollment')
+    expect(enrollmentHtml).toContain('Enrollment in')
     expect(enrollmentHtml).toContain('Bexar County')
     expect(enrollmentHtml).toContain("this district's own counts do not")
+    expect(readoutValues(enrollmentHtml, publicMetric.enrollment('2025-26'))).toMatchObject({
+      entity: '5,000', comparison: '4,950', hidden: false,
+    })
 
     const transferMetrics = {
       [publicMetric.transfersIn('2025-26')]: 80,
@@ -91,6 +110,15 @@ describe('supplemental sections use the page-wide selected comparison', () => {
     expect(transferHtml).toContain(hook(publicMetric.transferBalance('2025-26')))
     expect(transferHtml).toContain('average reported counts, not rates')
     expect(transferHtml).toContain('−244')
+    expect(readoutValues(transferHtml, publicMetric.transfersIn('2025-26'))).toMatchObject({
+      entity: '106', comparison: '80',
+    })
+    expect(readoutValues(transferHtml, publicMetric.transfersOut('2025-26'))).toMatchObject({
+      entity: '350', comparison: '110',
+    })
+    expect(readoutValues(transferHtml, publicMetric.transferBalance('2025-26'))).toMatchObject({
+      entity: '−244', comparison: '−30',
+    })
   })
 
   it('compares discipline on rates while keeping student and action counts separate', () => {
@@ -127,6 +155,8 @@ describe('supplemental sections use the page-wide selected comparison', () => {
     expect(html).toContain(hook(categoryStudentKey))
     expect(html).toContain('Selected comparisons use rates, not raw counts')
     expect(html).toContain('Students, actions and incidents are different units')
+    expect(readoutValues(html, studentKey)).toMatchObject({ entity: '6.0%', comparison: '5.2%' })
+    expect(readoutValues(html, actionKey)).toMatchObject({ entity: '8.33', comparison: '7.4' })
   })
 
   it('adds neutral Census context and limited-scope postsecondary rates', () => {
@@ -411,6 +441,9 @@ describe('supplemental sections use the page-wide selected comparison', () => {
     expect(html).toContain(`data-comparison-readout data-metric="${key2025}"`)
     expect(html).toContain('hidden style="display:none"')
     expect(html).toContain('reporting count is year-specific and can vary')
+    expect(readoutValues(html, key2025)).toMatchObject({
+      entity: '$12,500', comparison: '—', hidden: true,
+    })
   })
 
   it('labels the no-JS statewide spending line with its latest reporting n, not full membership', () => {
@@ -428,6 +461,9 @@ describe('supplemental sections use the page-wide selected comparison', () => {
     }))
     expect(html).toContain('981 rated Texas districts reporting for 2025')
     expect(html).not.toContain('1,019 rated Texas districts')
+    expect(readoutValues(html, key)).toMatchObject({
+      entity: '$12,000', comparison: '$11,700', hidden: false,
+    })
   })
 
   it('uses percentage-point campus notice flags and explains precomputed pin gaps', () => {
@@ -445,6 +481,12 @@ describe('supplemental sections use the page-wide selected comparison', () => {
     expect(campusHtml).toContain(hook(publicMetric.campusImprovement))
     expect(campusHtml).toContain('share of reporting schools')
     expect(campusHtml).not.toContain('0.1%')
+    expect(readoutValues(campusHtml, publicMetric.campusImprovement)).toMatchObject({
+      entity: 'Listed', comparison: '12.5%',
+    })
+    expect(readoutValues(campusHtml, publicMetric.campusPeg)).toMatchObject({
+      entity: 'Not listed', comparison: '4.2%',
+    })
 
     const card = {
       id: 'rank:attendance', kind: 'rank', metric: 'attendance', metrics: ['attendance'],
