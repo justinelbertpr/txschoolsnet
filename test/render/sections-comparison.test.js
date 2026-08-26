@@ -503,8 +503,9 @@ describe('supplemental sections use the page-wide selected comparison', () => {
       metric: 'attendance', label: 'Attendance', cohort: 'county', cohortLabel: 'Bexar County',
       rank: 1, of: 15, tied: 0, value: 98, lowerIsBetter: false,
     }
-    expect(standouts(page({
-      standoutsByCohort: { county: [placement] }, ranks: [placement],
-    }))).toContain('data-comparison-pin-unavailable')
+    const standoutHtml = standouts(page({ standouts: [placement], ranks: [placement] }))
+    expect(standoutHtml).toContain('Attendance')
+    expect(standoutHtml).not.toContain('data-comparison-cohort')
+    expect(standoutHtml).not.toContain('data-comparison-pin-unavailable')
   })
 })

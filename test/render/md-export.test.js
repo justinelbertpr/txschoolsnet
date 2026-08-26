@@ -233,6 +233,28 @@ describe('the Markdown export', () => {
     expect(md).not.toMatch(/^- \d+of /m) // the welded fragments it replaced
   })
 
+  it('exports every stable ranking bucket instead of only one selected cohort', () => {
+    mount(standouts(vm({
+      standouts: [
+        {
+          metric: 'ccmr:0', label: 'College ready', rank: 1, of: 19, tied: 0,
+          cohort: 'county', cohortLabel: 'Dallas County', lowerIsBetter: false,
+        },
+        {
+          metric: 'score', label: 'Overall score', rank: 7, of: 1_019, tied: 0,
+          cohort: 'state', cohortLabel: 'Texas average', lowerIsBetter: false,
+        },
+      ],
+      ranks: [],
+    })))
+    const claims = [...document.querySelectorAll('.standout .copy')].map((button) => button.dataset.claim)
+    const md = pageMarkdown()
+    expect(claims).toHaveLength(2)
+    for (const claim of claims) expect(md).toContain(claim)
+    expect(md).toContain('### #1 rankings')
+    expect(md).toContain('### #4–10 rankings')
+  })
+
   it('keeps chart values that live only in SVG titles, and drops series names', () => {
     mount(students(vm({
       profile: { total: 140000, ecoDisPct: 55.3, engLrnPct: 22.2, specEdPct: 17.2, attendance: 93.3, absenteeism: 20 },

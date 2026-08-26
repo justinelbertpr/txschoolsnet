@@ -397,14 +397,22 @@ describe('buildViewModel', () => {
     }
   })
 
-  it('publishes cohort-specific placements and editorial selections for synchronous switching', () => {
+  it('publishes cohort-specific placements and strengths for synchronous switching', () => {
     const vm = build()
     expect(Object.keys(vm.highlightsByCohort)).toEqual(vm.cohorts.map((c) => c.key))
-    expect(Object.keys(vm.standoutsByCohort)).toEqual(vm.cohorts.map((c) => c.key))
+    expect(vm).not.toHaveProperty('standoutsByCohort')
     for (const cohort of vm.cohorts) {
       expect(cohort.placements.score).toMatchObject({ cohort: cohort.key, metric: 'score' })
       expect(Array.isArray(vm.highlightsByCohort[cohort.key])).toBe(true)
-      expect(Array.isArray(vm.standoutsByCohort[cohort.key])).toBe(true)
+    }
+  })
+
+  it('publishes one stable best placement per qualifying metric across all cohorts', () => {
+    const vm = build()
+    expect(new Set(vm.standouts.map((row) => row.metric)).size).toBe(vm.standouts.length)
+    for (const row of vm.standouts) {
+      expect(vm.ranks).toContainEqual(row)
+      expect(row.rank <= 10 || row.pctile >= 95).toBe(true)
     }
   })
 

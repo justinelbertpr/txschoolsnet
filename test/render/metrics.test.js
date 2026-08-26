@@ -707,6 +707,12 @@ describe('standouts', () => {
     expect(standouts(many, { limit: 3 })).toHaveLength(3)
   })
 
+  it('can retain every qualifying first place for the stable rankings résumé', () => {
+    const many = Array.from({ length: 30 }, (_, i) => rank({ metric: `first${i}`, rank: 1, of: 100 + i }))
+    expect(standouts(many, { limit: Infinity })).toHaveLength(30)
+    expect(standouts(many, { limit: Infinity }).every((row) => row.rank === 1)).toBe(true)
+  })
+
   it('returns nothing when there is nothing to boast about', () => {
     expect(standouts([])).toEqual([])
     expect(standouts([rank({ rank: 500, of: 1000, pctile: 50 })])).toEqual([])

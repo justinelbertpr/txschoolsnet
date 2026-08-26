@@ -1929,14 +1929,8 @@ export function standouts(vm) {
   // with no good direction cannot appear in it. metrics.js drops these before a
   // rank row exists at all; this is the presentation-side lock, so a view model
   // assembled elsewhere still cannot put a poverty rate under this heading.
-  const precomputedByCohort = Boolean(vm.standoutsByCohort && vm.cohorts?.length)
-  const cohortSets = precomputedByCohort
-    ? vm.cohorts.map((cohort) => ({
-        cohort,
-        placements: (vm.standoutsByCohort[cohort.key] ?? []).filter((r) => !isContextMetric(r.metric)),
-      }))
-    : [{ cohort: null, placements: (vm.standouts ?? []).filter((r) => !isContextMetric(r.metric)) }]
-  if (!cohortSets.some((set) => set.placements.length)) return null
+  const placements = (vm.standouts ?? []).filter((r) => !isContextMetric(r.metric))
+  if (!placements.length) return null
 
   const rowsFor = (placements) => placements
     .map((r) => {
@@ -1973,14 +1967,46 @@ export function standouts(vm) {
     </li>`
     })
     .join('\n    ')
-  const groups = cohortSets.map(({ cohort, placements }, i) => {
-    const attrs = cohort ? ` data-comparison-cohort="${esc(cohort.key)}"${i ? ' hidden' : ''}` : ''
-    const rows = rowsFor(placements)
-    return `<div${attrs}>${rows
-      ? `<ul class="standouts">${rows}</ul>`
-      : `<p class="note na">No distinctive top placement met this site&rsquo;s threshold within ${cohort?.key === 'size' ? `similarly sized ${vm.level === 'district' ? 'districts' : 'schools'}` : esc(cohort?.label ?? 'the selected comparison')}.</p>`
-    }</div>`
-  }).join('\n  ')
+  const bucketSpecs = [
+    {
+      key: 'first',
+      title: '#1 rankings',
+      description: 'First-place results',
+      includes: (r) => r.rank === 1,
+    },
+    {
+      key: 'top-three',
+      title: '#2–3 rankings',
+      description: 'Second- and third-place results',
+      includes: (r) => r.rank >= 2 && r.rank <= 3,
+    },
+    {
+      key: 'top-ten',
+      title: '#4–10 rankings',
+      description: 'Fourth- through tenth-place results',
+      includes: (r) => r.rank >= 4 && r.rank <= 10,
+    },
+    {
+      key: 'top-five-percent',
+      title: 'Other top-5% rankings',
+      description: 'High placements in larger reporting groups',
+      includes: (r) => r.rank > 10,
+    },
+  ]
+  const buckets = bucketSpecs
+    .map((bucket) => ({ ...bucket, placements: placements.filter(bucket.includes) }))
+    .filter((bucket) => bucket.placements.length)
+    .map((bucket) => `<section class="standout-bucket" aria-labelledby="standout-bucket-${bucket.key}">
+      <div class="standout-bucket-heading">
+        <div>
+          <h3 id="standout-bucket-${bucket.key}">${bucket.title}</h3>
+          <p>${bucket.description}</p>
+        </div>
+        <p class="standout-bucket-count">${plural(bucket.placements.length, 'measure')}</p>
+      </div>
+      <ul class="standouts">${rowsFor(bucket.placements)}</ul>
+    </section>`)
+    .join('\n  ')
 
   // The section's own escape hatch out of the selection. "These are selected
   // high placements" is only an honest disclosure if the unselected ones are
@@ -1994,13 +2020,12 @@ export function standouts(vm) {
   return section(
     'standouts',
     'Where this ' + (vm.level === 'district' ? 'district' : 'school') + ' ranks best',
-    `${groups}
-  ${precomputedByCohort ? '<p class="note na" data-comparison-pin-unavailable hidden style="display:none">A precomputed standout ranking set is not available for <span data-comparison-pin-label>this pinned entity</span>. Direct metric comparisons elsewhere on the page still update to that pin.</p>' : ''}
+    `<div class="standout-buckets">${buckets}</div>
   <p class="note"><strong>These are selected high placements, not a summary.</strong> Every figure above
   this section is the full picture, including where this ${vm.level} ranks poorly. Each measure appears
-  at most once here. Very large ties are left out because they do not distinguish this ${vm.level}; any
+  once here, using its strongest qualifying placement across all available comparison groups. Very large ties are left out because they do not distinguish this ${vm.level}; any
   tie that does appear is labeled.${allRankings}</p>`,
-    `The list follows the page-wide comparison choice. Out of ${num(vm.ranks.length)} rankings computed across every published metric and every comparison group, it shows the strongest distinctive placements in the selected group, with each measure shown once. Press Copy for a citable sentence.`
+    `Out of ${num(vm.ranks.length)} rankings computed across every published metric and every available comparison group, these are all the measures that meet this site&rsquo;s distinctive-placement threshold. The list does not change when you change Compare against. Each measure appears once, using its strongest placement. Press Copy for a citable sentence.`
   )
 }
 

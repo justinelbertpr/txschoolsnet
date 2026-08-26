@@ -80,6 +80,7 @@ describe('generic selected-comparison hooks', () => {
       <table><tbody><tr><td data-comparison-cell data-metric="public:enrollment:2025" data-format="count">100</td></tr></tbody></table>
       <section data-comparison-cohort="peer">Peer editorial claims</section>
       <section data-comparison-cohort="county" hidden>County editorial claims</section>
+      <section id="standouts"><div class="standout-buckets"><p>Stable all-cohort rankings</p></div></section>
       <script type="application/json" data-cohorts>${JSON.stringify([
         { key: 'peer', short: 'peers', label: 'Peers', n: 10, metrics: { 'public:enrollment:2025': 100 }, metricN: { 'public:enrollment:2025': 8 } },
         { key: 'county', short: 'county', label: 'Bexar County', n: 15, metrics: { 'public:enrollment:2025': 220.5 }, metricN: { 'public:enrollment:2025': 12 } },
@@ -95,6 +96,7 @@ describe('generic selected-comparison hooks', () => {
     const { window } = dom
     window.matchMedia = vi.fn(() => ({ matches: true, addEventListener() {}, removeEventListener() {} }))
     window.eval(app)
+    const stableStandouts = window.document.querySelector('#standouts').innerHTML
 
     window.document.querySelector('[data-cohort="county"]').click()
     const readout = window.document.querySelector('[data-comparison-readout]')
@@ -110,6 +112,8 @@ describe('generic selected-comparison hooks', () => {
     expect(cell.textContent).toBe('220.5')
     expect(window.document.querySelector('[data-comparison-cohort="peer"]').hidden).toBe(true)
     expect(window.document.querySelector('[data-comparison-cohort="county"]').hidden).toBe(false)
+    expect(window.document.querySelector('#standouts').innerHTML).toBe(stableStandouts)
+    expect(window.document.querySelector('#standouts').hidden).toBe(false)
 
     window.document.querySelector('[data-cohort="pin:2"]').click()
     expect(readout.querySelector('[data-entity-value]').textContent).toBe('123')
@@ -119,6 +123,8 @@ describe('generic selected-comparison hooks', () => {
     expect(readout.querySelector('[data-compare-n]')).toBeNull()
     expect(window.document.querySelector('[data-comparison-cohort="peer"]').hidden).toBe(true)
     expect(window.document.querySelector('[data-comparison-cohort="county"]').hidden).toBe(true)
+    expect(window.document.querySelector('#standouts').innerHTML).toBe(stableStandouts)
+    expect(window.document.querySelector('#standouts').hidden).toBe(false)
 
     window.document.querySelector('[data-cohort="state"]').click()
     expect(readout.querySelector('[data-entity-value]').textContent).toBe('123')
@@ -126,6 +132,8 @@ describe('generic selected-comparison hooks', () => {
     expect(readout.style.display).toBe('none')
     expect(cell.textContent).toBe('—')
     expect(cell.classList.contains('na')).toBe(true)
+    expect(window.document.querySelector('#standouts').innerHTML).toBe(stableStandouts)
+    expect(window.document.querySelector('#standouts').hidden).toBe(false)
     dom.window.close()
   })
 

@@ -1210,14 +1210,41 @@ describe('standouts', () => {
   it('states how many rankings the selection was drawn from', () => {
     const html = standouts(vm)
     expect(html).toContain('Out of 87 rankings')
-    expect(html).toContain('with each measure shown once')
+    expect(html).toContain('Each measure appears once')
+  })
+
+  it('shows every strength bucket at once and never follows the comparison control', () => {
+    const html = standouts(empty({
+      ranks: Array.from({ length: 200 }, () => rank()),
+      standouts: [
+        rank({ metric: 'first', label: 'First place', rank: 1 }),
+        rank({ metric: 'third', label: 'Third place', rank: 3 }),
+        rank({ metric: 'seventh', label: 'Seventh place', rank: 7 }),
+        rank({ metric: 'percentile', label: 'Top five percent', rank: 24, of: 1_000, pctile: 97 }),
+      ],
+    }))
+    expect(html).toContain('#1 rankings')
+    expect(html).toContain('#2–3 rankings')
+    expect(html).toContain('#4–10 rankings')
+    expect(html).toContain('Other top-5% rankings')
+    expect(html).toContain('does not change when you change Compare against')
+    expect(html).not.toContain('data-comparison-cohort')
+    expect(html).not.toContain('data-comparison-pin-unavailable')
+    expect(html.match(/class="standout-metric"/g)).toHaveLength(4)
+  })
+
+  it('omits empty buckets instead of printing comparison-specific empty states', () => {
+    const html = standouts(empty({ standouts: [rank({ rank: 1 })], ranks: [rank({ rank: 1 })] }))
+    expect(html).toContain('#1 rankings')
+    expect(html).not.toContain('#2–3 rankings')
+    expect(html).not.toContain('No distinctive top placement')
   })
 
   it('offers a copyable claim that carries its own cohort and denominator', () => {
     const html = standouts(vm)
-    const claim = html.match(/data-claim="([^"]+)"/)[1]
-    expect(claim).toContain('among the 1207')
-    expect(claim).toContain('Source: txschools.net')
+    const claims = [...html.matchAll(/data-claim="([^"]+)"/g)].map((match) => match[1])
+    expect(claims.some((claim) => claim.includes('among the 1207'))).toBe(true)
+    expect(claims.every((claim) => claim.includes('Source: txschools.net'))).toBe(true)
     expect(html).toContain('aria-label="Copy this statement"')
   })
 
