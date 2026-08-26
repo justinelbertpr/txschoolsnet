@@ -256,9 +256,17 @@ const comparisonAverageTarget = (vm, cohort) => {
 const comparisonReadout = (
   vm,
   key,
-  { format = 'decimal', label = 'Selected comparison', neutral = true, invert = false, showDelta = true } = {}
+  {
+    format = 'decimal',
+    label = 'Selected comparison',
+    neutral = true,
+    invert = false,
+    showDelta = true,
+    entityDisplay = null,
+  } = {}
 ) => {
   const active = vm.cohorts?.[0]
+  const entityValue = vm.own?.[key]
   const value = active?.metrics?.[key]
   const reporting = active?.metricN?.[key]
   if (!active || !vm.cohorts.some((cohort) => finite(cohort?.metrics?.[key]))) return ''
@@ -274,12 +282,22 @@ const comparisonReadout = (
   const statewide = active.key === 'state'
   const averageTarget = comparisonAverageTarget(vm, active)
   const reportingUnits = vm.level === 'district' ? 'districts' : 'schools'
-  return `<p class="comparison-readout" data-comparison-readout data-metric="${esc(key)}" data-format="${esc(format)}"${available ? '' : ' hidden style="display:none"'}>
-    <span class="comparison-readout-label">${esc(label)}</span>
-    <strong data-compare-value>${available ? comparisonValue(value, format) : '—'}</strong>
-    <span><span data-compare-kind>${statewide ? 'statewide cohort average across' : 'average for'}</span> <span data-compare-label>${statewide ? 'Texas' : esc(averageTarget)}</span>${finite(reporting) ? ` &middot; <span data-compare-n>${num(reporting)}</span> rated ${reportingUnits} reporting` : ''}</span>
+  const renderedEntityValue = entityDisplay ?? (finite(entityValue) ? comparisonValue(entityValue, format) : 'Not reported')
+  return `<article class="comparison-readout" data-comparison-readout data-metric="${esc(key)}" data-format="${esc(format)}"${available ? '' : ' hidden style="display:none"'}>
+    <h3 class="comparison-readout-label">${esc(label)}</h3>
+    <dl class="comparison-readout-values">
+      <div>
+        <dt>This ${unit(vm)}</dt>
+        <dd><strong data-entity-value>${esc(renderedEntityValue)}</strong></dd>
+      </div>
+      <div>
+        <dt>Selected comparison</dt>
+        <dd><strong data-compare-value>${available ? comparisonValue(value, format) : '—'}</strong></dd>
+      </div>
+    </dl>
+    <p class="comparison-readout-meta"><span data-compare-kind>${statewide ? 'statewide cohort average across' : 'average for'}</span> <span data-compare-label>${statewide ? 'Texas' : esc(averageTarget)}</span>${finite(reporting) ? ` &middot; <span data-compare-n>${num(reporting)}</span> rated ${reportingUnits} reporting` : ''}</p>
     ${delta}
-  </p>`
+  </article>`
 }
 
 /**
@@ -1262,7 +1280,7 @@ export function enrollment(vm) {
     `<p class="enrollment-takeaway">${takeaway}</p>
   ${statGrid(stats)}
   ${comparisonReadout(vm, publicMetric.enrollment(trend.latest.year), {
-    format: 'count', label: `Average enrollment in ${latestYear}`, showDelta: false,
+    format: 'count', label: `Enrollment in ${latestYear}`, showDelta: false,
   })}
   ${table({
       caption: `Student enrollment by school year for ${vm.name}`,
@@ -1331,13 +1349,13 @@ export function transfers(vm) {
     ])}
     <div class="comparison-readout-grid" aria-label="Selected comparison transfer averages">
       ${comparisonReadout(vm, publicMetric.transfersIn(current.year), {
-        format: 'count', label: `Average transfers in · ${schoolYear(current.year)}`, showDelta: false,
+        format: 'count', label: `Transfers in · ${schoolYear(current.year)}`, showDelta: false,
       })}
       ${comparisonReadout(vm, publicMetric.transfersOut(current.year), {
-        format: 'count', label: `Average transfers out · ${schoolYear(current.year)}`, showDelta: false,
+        format: 'count', label: `Transfers out · ${schoolYear(current.year)}`, showDelta: false,
       })}
       ${comparisonReadout(vm, publicMetric.transferBalance(current.year), {
-        format: 'signed-count', label: `Average in minus out · ${schoolYear(current.year)}`, showDelta: false,
+        format: 'signed-count', label: `Transfers in minus out · ${schoolYear(current.year)}`, showDelta: false,
       })}
     </div>
     ${table({
@@ -1415,10 +1433,10 @@ export function discipline(vm) {
     `${stats}
     ${current && all ? `<div class="comparison-readout-grid" aria-label="Selected comparison discipline rates">
       ${comparisonReadout(vm, publicMetric.disciplineStudents(current.year), {
-        format: 'pct', label: `Average share of students · ${schoolYear(current.year)}`,
+        format: 'pct', label: `Share of students · ${schoolYear(current.year)}`,
       })}
       ${comparisonReadout(vm, publicMetric.disciplineActions(current.year), {
-        format: 'rate', label: `Average actions per 100 students · ${schoolYear(current.year)}`,
+        format: 'rate', label: `Actions per 100 students · ${schoolYear(current.year)}`,
       })}
     </div>` : ''}
     ${historyRows.length ? table({
@@ -1507,10 +1525,10 @@ export function actionNotices(vm) {
       ])}
       <div class="comparison-readout-grid" aria-label="Selected comparison notice prevalence">
         ${comparisonReadout(vm, publicMetric.districtImprovementShare, {
-          format: 'pct', label: 'Average share of campuses identified for improvement',
+          format: 'pct', label: 'Share of campuses identified for improvement',
         })}
         ${comparisonReadout(vm, publicMetric.districtPegShare, {
-          format: 'pct', label: 'Average share of campuses on the PEG list',
+          format: 'pct', label: 'Share of campuses on the PEG list',
         })}
       </div>
       <details class="notice-disclosure"><summary>See the campuses and official reasons</summary>
@@ -1554,10 +1572,12 @@ export function actionNotices(vm) {
     `<div class="notice-cards">${cards}</div>
      <div class="comparison-readout-grid" aria-label="Selected comparison notice prevalence">
        ${comparisonReadout(vm, publicMetric.campusImprovement, {
-         format: 'pct', label: 'Share of schools identified for improvement', showDelta: false,
+         format: 'pct', label: 'Schools identified for improvement', showDelta: false,
+         entityDisplay: vm.own?.[publicMetric.campusImprovement] > 0 ? 'Listed' : 'Not listed',
        })}
        ${comparisonReadout(vm, publicMetric.campusPeg, {
-         format: 'pct', label: 'Share of schools on the PEG list', showDelta: false,
+         format: 'pct', label: 'Schools on the PEG list', showDelta: false,
+         entityDisplay: vm.own?.[publicMetric.campusPeg] > 0 ? 'Listed' : 'Not listed',
        })}
      </div>
      <p class="note">Selected comparison percentages are the share of reporting schools in that group found on each dated list. They are neutral prevalence context; changing the comparison never changes this school's official status.</p>
@@ -1583,16 +1603,16 @@ export function community(vm) {
     ])}
     <div class="comparison-readout-grid" aria-label="Selected comparison community averages">
       ${comparisonReadout(vm, publicMetric.communityPopulation, {
-        format: 'count', label: 'Average boundary population', showDelta: false,
+        format: 'count', label: 'Boundary population', showDelta: false,
       })}
       ${comparisonReadout(vm, publicMetric.communitySchoolAge, {
-        format: 'count', label: 'Average school-age population', showDelta: false,
+        format: 'count', label: 'School-age population', showDelta: false,
       })}
       ${comparisonReadout(vm, publicMetric.communitySchoolAgePoverty, {
-        format: 'count', label: 'Average school-age population in poverty', showDelta: false,
+        format: 'count', label: 'School-age population in poverty', showDelta: false,
       })}
       ${comparisonReadout(vm, publicMetric.communitySchoolAgePovertyRate, {
-        format: 'pct', label: 'Average school-age child poverty rate',
+        format: 'pct', label: 'School-age child poverty rate',
       })}
     </div>
     <p class="note">Population averages provide neutral scale context and can differ sharply across a region, county or the state. The poverty-rate comparison is the like-for-like percentage; none of these Census measures is treated as school performance.</p>
@@ -1622,19 +1642,19 @@ export function postsecondary(vm) {
     ])}
     <div class="comparison-readout-grid" aria-label="Selected comparison postsecondary averages">
       ${comparisonReadout(vm, publicMetric.postsecondaryGraduates, {
-        format: 'count', label: 'Average graduates in the report', showDelta: false,
+        format: 'count', label: 'Graduates in the report', showDelta: false,
       })}
       ${comparisonReadout(vm, publicMetric.postsecondaryEnrolled, {
-        format: 'count', label: 'Average enrolled in Texas public higher education', showDelta: false,
+        format: 'count', label: 'Enrolled in Texas public higher education', showDelta: false,
       })}
       ${comparisonReadout(vm, publicMetric.postsecondaryRate, {
-        format: 'pct', label: 'Average Texas-public enrollment rate',
+        format: 'pct', label: 'Texas-public enrollment rate',
       })}
       ${comparisonReadout(vm, publicMetric.postsecondaryNotFoundRate, {
-        format: 'pct', label: 'Average not-found rate',
+        format: 'pct', label: 'Not-found rate',
       })}
       ${comparisonReadout(vm, publicMetric.postsecondaryNotTrackableRate, {
-        format: 'pct', label: 'Average not-trackable rate',
+        format: 'pct', label: 'Not-trackable rate',
       })}
     </div>
     ${destinations}
@@ -1768,7 +1788,7 @@ export function spending(vm) {
   }
   ${latestComparisonIndex >= 0 ? comparisonReadout(vm, cohortMetricKeys[latestComparisonIndex], {
     format: 'usd',
-    label: `Selected comparison for ${esc(f.years[latestComparisonIndex])}`,
+    label: `Spending per student · ${esc(f.years[latestComparisonIndex])}`,
   }) : ''}
   ${comparisonNote}
   ${
@@ -1811,7 +1831,7 @@ export function teachers(vm) {
   ${turnoverRows.length ? `<h3>Teacher turnover over time</h3>
     ${turnover?.latest?.ratePct != null ? `<p class="callout">TEA reported a <strong>${pct(turnover.latest.ratePct)} teacher turnover rate</strong> in ${esc(schoolYear(turnover.latest.year))}.</p>` : ''}
     ${turnover?.latest?.ratePct != null ? comparisonReadout(vm, publicMetric.turnover(turnover.latest.year), {
-      format: 'pct', label: `Average teacher turnover rate · ${schoolYear(turnover.latest.year)}`,
+      format: 'pct', label: `Teacher turnover rate · ${schoolYear(turnover.latest.year)}`,
     }) : ''}
     ${table({
       caption: `District teacher turnover rate by school year for ${vm.name}`,
@@ -1858,7 +1878,7 @@ export function campuses(vm) {
     'campuses',
     `${num(vm.campuses.length)} schools in this district`,
     `${comparisonReadout(vm, publicMetric.districtCampusCount, {
-      format: 'count', label: 'Average number of schools in a district', showDelta: false,
+      format: 'count', label: 'Number of schools in the district', showDelta: false,
     })}
     <p class="note">The selected comparison is a neutral average district size. This district's school count and school-type mix remain its own facts.</p>
     <dl class="campus-mix" aria-label="Schools by type">${typeCounts
