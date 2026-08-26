@@ -1635,11 +1635,53 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
    STANDOUTS
    ========================================================================== */
 
+.standout-buckets {
+  display: grid;
+  gap: 1.15rem;
+  margin-top: 1.25rem;
+}
+.standout-bucket {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.standout-bucket-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: .75rem 1.5rem;
+  padding: .85rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--accent-brass) 8%, var(--ground));
+}
+.standout-bucket-heading h3 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1.1;
+}
+.standout-bucket-heading p {
+  margin: .2rem 0 0;
+  color: var(--ink-3);
+  font-size: var(--t-small);
+}
+.standout-bucket-heading .standout-bucket-count {
+  margin: 0;
+  white-space: nowrap;
+  color: var(--ink-2);
+  font-size: var(--t-label);
+  font-weight: 700;
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
 .standouts {
   list-style: none; margin: 1.25rem 0 0; padding: 0; display: grid; gap: 1px;
   background: var(--line); border: 1px solid var(--line);
   border-radius: var(--radius); overflow: hidden;
 }
+.standout-bucket .standouts { margin: 0; border: 0; border-radius: 0; }
 .standout { display: flex; align-items: center; gap: 1rem; padding: .85rem 1rem; background: var(--surface); position: relative; z-index: 0; }
 @media (prefers-reduced-motion: no-preference) {
   /* translate, not transform: the scroll-reveal entrance animation further
@@ -1727,9 +1769,8 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
        marks it as a moment rather than more content. Same keyframe, same
        transform-only rule, so it degrades exactly like the section-level
        version above: reduced motion or an unsupported engine leaves every
-       row simply in place and fully readable. Twelve explicit steps rather
-       than :nth-child(n) math — standouts() in src/render/metrics.js caps
-       this list at 12 rows, so twelve is the most this ever needs to cover. */
+       row simply in place and fully readable. The first twelve rows receive a
+       small stagger; any longer bucket uses the base range below. */
     .standout {
       animation: rise linear both;
       animation-timeline: view();
@@ -2486,8 +2527,17 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
   .data .col-scope { max-width: 5rem; font-size: var(--t-micro); color: var(--ink-3); }
 
   .legend li > a { min-width: 2.75rem; min-height: 2.75rem; }
-  .standout { gap: .7rem; padding: .75rem .8rem; }
+  .standout-bucket-heading { align-items: start; }
+  .standout-bucket-heading .standout-bucket-count { white-space: normal; text-align: right; }
+  .standout {
+    display: grid;
+    grid-template-columns: 2.8rem minmax(0, 1fr);
+    align-items: start;
+    gap: .5rem .7rem;
+    padding: .75rem .8rem;
+  }
   .standout-rank { min-width: 2.8rem; }
+  .standout .copy { grid-column: 2; justify-self: start; }
   header.site { padding-inline: 1rem; }
   footer.site { padding-inline: 1rem; }
   nav[aria-label='Breadcrumb'] { padding-inline: 1rem; }

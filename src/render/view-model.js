@@ -587,9 +587,12 @@ export function buildViewModel({
       }),
     ])
   )
-  const standoutsByCohort = Object.fromEntries(
-    cohorts.map((cohort) => [cohort.key, standouts(ranks.filter((row) => row.cohort === cohort.key))])
-  )
+  // The best-rankings section is a stable all-cohort résumé, not another view
+  // of the page-wide comparison control. Keep every qualifying metric (the
+  // selector still deduplicates repeated placements for the same measure) so a
+  // first-place county or region result can never disappear behind a 12-row
+  // presentation cap.
+  const selectedStandouts = standouts(ranks, { limit: Infinity })
   const enrollmentTrend = buildEnrollmentTrend({ entity, rows: enrollmentHistory })
   const educatorContext = buildEducatorContext({
     entity,
@@ -663,8 +666,7 @@ export function buildViewModel({
     cohorts,
     own,
     ranks,
-    standouts: standouts(ranks),
-    standoutsByCohort,
+    standouts: selectedStandouts,
     highlights,
     highlightsByCohort,
 
