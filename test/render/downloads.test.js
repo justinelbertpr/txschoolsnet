@@ -1020,6 +1020,16 @@ describe('renderDownloadPage', () => {
     expect(html).toMatch(/not a zero/i)
   })
 
+  it('renders explanatory notes as prose lists rather than flex chart legends', () => {
+    const perEntity = html.match(/<section id="per-entity"[\s\S]*?<\/section>/)?.[0] ?? ''
+    const reading = html.match(/<section id="reading"[\s\S]*?<\/section>/)?.[0] ?? ''
+
+    expect(perEntity).toContain('<ul class="prose-list">')
+    expect(reading).toContain('<ul class="prose-list">')
+    expect(perEntity).not.toContain('class="legend"')
+    expect(reading).not.toContain('class="legend"')
+  })
+
   it('states the snapshot date and offers a citation', () => {
     expect(html).toContain('15 August 2026')
     expect(html).toMatch(/citation|Citing/i)
