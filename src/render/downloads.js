@@ -1086,7 +1086,7 @@ export function renderDownloadPage({ files = [], snapshotDate = null, enrollment
         'One district at a time',
         `<p>Per-entity files are built for ${districtCount ? `the ${num(districtCount)} ` : ''}districts only.
   Every district page links its own record in both formats:</p>
-  <ul class="legend">
+  <ul class="prose-list">
     <li><code>/data/entity/&lt;district id&gt;.csv</code> — long format, one row per metric and comparison
       group. Each <code>(section, metric, year, cohort)</code> appears once.</li>
     <li><code>/data/entity/&lt;district id&gt;.json</code> — the same record nested, with a
@@ -1110,7 +1110,7 @@ export function renderDownloadPage({ files = [], snapshotDate = null, enrollment
       section(
         'reading',
         'How to read these files',
-        `<ul class="legend">
+        `<ul class="prose-list">
     <li><strong>An empty cell is not a zero.</strong> Source publishers mask, suppress or omit figures
       that are unavailable or do not apply. Empty in CSV and <code>null</code> in JSON both mean “not
       published”; a <code>status</code> or <code>mask</code> column preserves the reason where the source

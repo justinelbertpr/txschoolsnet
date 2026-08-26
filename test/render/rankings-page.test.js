@@ -1,6 +1,7 @@
 // test/render/rankings-page.test.js
 import { describe, it, expect } from 'vitest'
 import vm from 'node:vm'
+import { readFileSync } from 'node:fs'
 import {
   renderRankingPage,
   renderRankingsIndexPage,
@@ -1244,6 +1245,15 @@ describe('the interactive tool boots from the /rankings index', () => {
     expect(html).toContain('<div data-rankings-output>')
     expect(html).toContain('<script type="application/json" data-rankings-lookups>')
     expect(html).toContain('<script type="module" src="/rankings.js"></script>')
+  })
+
+  it('keeps the upgraded table header in flow inside its horizontal scroller', () => {
+    const css = readFileSync(new URL('../../site/style.css', import.meta.url), 'utf8')
+    const scroller = css.match(/\.rk-scroll\s*\{[^}]+\}/)?.[0] ?? ''
+    const rule = css.match(/\.rk-scroll \.data thead th\s*\{[^}]+\}/)?.[0] ?? ''
+
+    expect(scroller).toMatch(/position:\s*relative/)
+    expect(rule).toMatch(/position:\s*static/)
   })
 
   it('puts the status line outside the output div, exactly as documented', () => {

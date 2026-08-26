@@ -1289,6 +1289,18 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 
 .downloads { font-size: var(--t-meta); }
 
+/* Explanatory lists on /download are prose, not chart legends. Keeping them
+   in normal list flow lets inline paths and column names share the full line
+   instead of becoming separate flex items that collapse to one character. */
+.prose-list {
+  max-width: var(--measure);
+  margin: .75rem 0 0;
+  padding-left: 1.25rem;
+  color: var(--ink-2);
+}
+.prose-list li + li { margin-top: .4rem; }
+.prose-list strong { color: var(--ink); }
+
 /* ==========================================================================
    ENROLLMENT HISTORY
 
@@ -2667,7 +2679,13 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 /* A wide table on a narrow screen scrolls inside its own box; the page body
    never scrolls sideways. tabindex="0" on this element is what makes that
    scroll reachable from a keyboard, and is why it has a focus ring. */
-.rk-scroll { overflow-x: auto; margin-top: .25rem; }
+/* A local containing block keeps off-screen accessibility text in wide
+   column headers inside this scroller instead of widening the whole page. */
+.rk-scroll {
+  position: relative;
+  overflow-x: auto;
+  margin-top: .25rem;
+}
 .rk-table { margin-top: .75rem; }
 .rk-table td, .rk-table th { white-space: nowrap; }
 .rk-table .rk-name { white-space: normal; min-width: 12rem; }
@@ -2675,6 +2693,13 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 .rk-table .rk-grade { font-weight: 650; }   /* letter only — never colour-coded */
 .rk-table .rk-value { font-weight: 650; }
 .rk-table .rk-context { color: var(--ink-2); }
+
+/* overflow-x:auto also computes overflow-y to auto, so .rk-scroll becomes
+   the sticky containing box. Applying the page-wide --header-h offset inside
+   that box pushes the header row down over the first two results. A header
+   inside a horizontal scroller cannot follow the page anyway; keep it in
+   normal table flow, as the narrow .data.scroll tables already do. */
+.rk-scroll .data thead th { position: static; }
 
 /* The single most important row on a "highest score" page — 1st place —
    used to carry the same visual weight as 4th. Weight and a rule, never a
