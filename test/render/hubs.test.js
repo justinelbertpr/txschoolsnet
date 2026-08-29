@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest'
 import {
   renderRegionPage,
   renderCountyPage,
+  renderDistrictsPage,
   renderChartersPage,
   renderLetterPage,
   renderHomePage,
@@ -67,8 +68,9 @@ describe('every hub renderer', () => {
   const pages = [
     ['region', () => renderRegionPage(region()), 'Region 10: Richardson', 'https://txschools.net/region/10'],
     ['county', () => renderCountyPage(county()), 'Dallas County', 'https://txschools.net/county/dallas'],
+    ['districts', () => renderDistrictsPage({ districts: [district()] }), 'Texas public school districts', 'https://txschools.net/districts'],
     ['charters', () => renderChartersPage({ charters: [charterSystem()] }), 'Texas charter school systems', 'https://txschools.net/charters'],
-    ['letter', () => renderLetterPage({ letter: 'd', districts: [district()] }), 'Districts and charter systems starting with D', 'https://txschools.net/districts/d'],
+    ['letter', () => renderLetterPage({ letter: 'd', districts: [district()] }), 'Public school districts starting with D', 'https://txschools.net/districts/d'],
     ['home', () => renderHomePage({ regions: [{ id: '10', name: 'Region 10: Richardson' }] }), 'Texas school ratings', 'https://txschools.net/'],
   ]
 
@@ -121,7 +123,7 @@ describe('empty lists', () => {
 
   it('letter: states the emptiness instead of rendering an empty table', () => {
     const html = renderLetterPage({ letter: 'q', districts: [] })
-    expect(html).toContain('No district or charter school system in this snapshot has a name beginning with Q.')
+    expect(html).toContain('No geographic public school district in this snapshot has a name beginning with Q.')
     expect(html).not.toContain('<table')
   })
 
@@ -162,7 +164,9 @@ describe('breadcrumbs', () => {
   })
 
   it('letter: sits under the site root', () => {
-    expect(renderLetterPage({ letter: 'd', districts: [] })).toContain('<li aria-current="page">Districts: D</li>')
+    const html = renderLetterPage({ letter: 'd', districts: [] })
+    expect(html).toContain('<li><a href="/districts">Districts</a></li>')
+    expect(html).toContain('<li aria-current="page">D</li>')
   })
 })
 
@@ -227,14 +231,19 @@ describe('counties', () => {
 })
 
 describe('letter pages', () => {
-  it('keeps only district-level systems whose name begins with the letter', () => {
+  it('keeps only geographic districts whose name begins with the letter', () => {
     const html = renderLetterPage({
       letter: 'd',
-      districts: [district(), district({ id: '109901', name: 'Abbott ISD', slug: 'abbott-isd-109901' })],
+      districts: [
+        district(),
+        district({ id: '109901', name: 'Abbott ISD', slug: 'abbott-isd-109901' }),
+        charterSystem(),
+      ],
     })
     expect(html).toContain('Dallas ISD')
     expect(html).not.toContain('Abbott ISD')
-    expect(html).toContain('1 school system beginning with D')
+    expect(html).not.toContain('Draw Academy')
+    expect(html).toContain('1 geographic district beginning with D')
   })
 
   it('carries an A-Z nav and marks the current letter', () => {
@@ -247,19 +256,40 @@ describe('letter pages', () => {
   it('accepts an uppercase letter', () => {
     const html = renderLetterPage({ letter: 'D', districts: [district()] })
     expect(html).toContain('https://txschools.net/districts/d')
-    expect(html).toContain('<h1>Districts and charter systems starting with D</h1>')
+    expect(html).toContain('<h1>Public school districts starting with D</h1>')
   })
 
-  it('labels geographic districts and charter school systems on every A-Z row', () => {
+  it('never places a charter system under the Districts tab', () => {
     const html = renderLetterPage({ letter: 'd', districts: [district(), charterSystem()] })
-    expect(html).toContain('<th>Type</th>')
-    expect(html).toContain('Geographic district')
-    expect(html).toContain('Charter school system')
-    expect(html).toContain('2 school systems beginning with D')
-    // A charter's administrative county is context, not a link into the
-    // geographic county cohort.
-    expect(html).toContain('<td>Harris</td>')
-    expect(html).not.toContain('href="/county/harris"')
+    expect(html).toContain('Dallas ISD')
+    expect(html).not.toContain('Draw Academy')
+    expect(html).not.toContain('<th>Type</th>')
+    expect(html).toContain('href="/charters"')
+    expect(html).toContain('separate statewide index')
+  })
+})
+
+describe('district and charter browse separation', () => {
+  const mixed = [district(), charterSystem()]
+
+  it('gives geographic districts their own landing page and counts only that sector', () => {
+    const html = renderDistrictsPage({ districts: mixed })
+    expect(html).toContain('<h1>Texas public school districts</h1>')
+    expect(html).toContain('1 geographic district')
+    expect(html).toContain('href="/districts/d"')
+    expect(html).toContain('href="/charters"')
+    expect(html).not.toContain('Draw Academy')
+    expect(html).not.toContain('2 geographic districts')
+  })
+
+  it('keeps each browse index linked to the other without mixing their rows', () => {
+    const districts = renderDistrictsPage({ districts: mixed })
+    const charters = renderChartersPage({ districts: mixed })
+    expect(districts).toContain('Browse charter school systems')
+    expect(districts).not.toContain('Draw Academy')
+    expect(charters).toContain('Draw Academy')
+    expect(charters).not.toContain('Dallas ISD')
+    expect(charters).toContain('href="/districts"')
   })
 })
 
@@ -288,14 +318,14 @@ describe('charter school systems hub', () => {
     expect(html).toMatch(/not presented here as a geographic attendance boundary/i)
   })
 
-  it('states the score denominator and links the all-system A-Z and search', () => {
+  it('states the score denominator and links the separate district index and search', () => {
     const html = renderChartersPage({
       charters: [charterSystem(), charterSystem({ id: '101811', name: 'Evolve Academy', slug: 'evolve-academy-101811', score: 82 })],
     })
     expect(html).toContain('87.0')
     expect(html).toContain('The Texas charter-school sector averages')
     expect(html).toContain('across the 2 charter school systems with a published overall score')
-    expect(html).toContain('href="/districts/a"')
+    expect(html).toContain('href="/districts"')
     expect(html).toContain('href="/search"')
   })
 })
@@ -450,6 +480,17 @@ describe('home page', () => {
     // dt/dd inside the wrapping div — a <dl> group's div may contain only
     // dt/dd (plus script/template), so a stray <p> there is invalid markup.
     expect(html).toContain('<dt>Rated A</dt><dd>214<p class="stat-note">of 1,199 districts</p></dd>')
+  })
+
+  it('resets statistic descriptions to readable body typography', () => {
+    const css = readFileSync(new URL('../../site/style.css', import.meta.url), 'utf8')
+    const rule = css.match(/#statewide \.stat-note\s*\{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toMatch(/font-family:\s*var\(--font-sans\)/)
+    expect(rule).toMatch(/font-size:\s*var\(--t-small\)/)
+    expect(rule).toMatch(/color:\s*var\(--ink-2\)/)
+    expect(rule).toMatch(/letter-spacing:\s*normal/)
+    expect(rule).toMatch(/line-height:\s*1\.45/)
+    expect(rule).toMatch(/overflow-wrap:\s*anywhere/)
   })
 
   it('drops the stats section entirely when given no stats', () => {

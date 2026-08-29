@@ -241,7 +241,7 @@ export const navList = (items, { label = null, className = null } = {}) =>
  */
 const PRIMARY_NAV = [
   { href: '/search', label: 'Find schools', match: (p) => p === '/search' || p.startsWith('/search/') },
-  { href: '/districts/a', label: 'Districts', match: (p) => p.startsWith('/districts/') },
+  { href: '/districts', label: 'Districts', match: (p) => p === '/districts' || p.startsWith('/districts/') },
   { href: '/charters', label: 'Charters', match: (p) => p === '/charters' },
   // /rankings was reachable only from region/county hubs and a few entity-page
   // links, never from the persistent nav itself — added here so it is one
@@ -390,7 +390,7 @@ ${main}`
   // adding another autocomplete form to every page. The mobile menu already
   // carries the full search experience where it is useful, so this link lives
   // inside `.desktop-nav` and disappears with that desktop-only wrapper.
-  const desktopSearch = `<a class="desktop-search" href="/search" aria-label="Search schools and districts" title="Search"${
+  const desktopSearch = `<a class="desktop-search" href="/search" aria-label="Search schools, districts and charter systems" title="Search"${
     currentPath === '/search' || currentPath.startsWith('/search/') ? ' aria-current="page"' : ''
   }>
     <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.25" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m12.4 12.4 4.1 4.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
@@ -486,7 +486,7 @@ ${frame}
     <nav aria-label="Explore">
       <h2>Explore</h2>
       <a href="/search">Find a school</a>
-      <a href="/districts/a">Browse districts</a>
+      <a href="/districts">Browse districts</a>
       <a href="/charters">Browse charter systems</a>
       <a href="/rankings">Rankings</a>
     </nav>

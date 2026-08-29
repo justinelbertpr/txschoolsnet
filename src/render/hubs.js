@@ -191,14 +191,15 @@ const rankingsSection = ({
 
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('')
 
-const azNav = (current = null) =>
+const azNav = (current = null, counts = null) =>
   linkList(
     ALPHABET.map((l) => ({
       href: `/districts/${l}`,
       label: l.toUpperCase(),
       current: current === l,
+      n: counts?.get(l) ?? null,
     })),
-    'District index by first letter',
+    'Geographic district index by first letter',
     // 26 single-character links: a run of underlined text turns each one into
     // a ~9px-wide tap target — style.css's .navlist-letters gives them the
     // real button-sized targets a letter-only link needs.
@@ -545,6 +546,52 @@ export function renderCountyPage({
   })
 }
 
+/* -------------------------------------------------------------- districts -- */
+
+/**
+ * The persistent Districts tab is only for geographic public school districts.
+ * Open-enrollment charter systems have their own statewide index because their
+ * TEA county is administrative context, not a resident attendance boundary.
+ */
+export function renderDistrictsPage({ districts = [], snapshotDate = null } = {}) {
+  const { districts: systems } = split(geographicOnly(districts))
+  const counts = new Map(ALPHABET.map((letter) => [letter, 0]))
+  for (const district of systems) {
+    const letter = String(district.name ?? '').trim().slice(0, 1).toLowerCase()
+    if (counts.has(letter)) counts.set(letter, counts.get(letter) + 1)
+  }
+
+  return shell({
+    title: 'Texas public school districts — A–Z index',
+    description: `Browse ${num(systems.length)} Texas geographic public school districts by name. Open-enrollment charter school systems are kept in a separate statewide index.`,
+    canonical: `${SITE_ORIGIN}/districts`,
+    crumbs: [{ href: '/', label: 'Texas schools', current: 'Districts' }],
+    sections: [
+      hero({
+        eyebrow: 'Geographic district index',
+        title: 'Texas public school districts',
+        place: plural(systems.length, 'geographic district'),
+        lede: `These are public school districts with geographic resident boundaries. Open-enrollment
+               charter school systems are listed separately so their administrative county is never mistaken for an attendance area.`,
+      }),
+      section(
+        'index',
+        'Browse districts A–Z',
+        `${azNav(null, counts)}
+      <p class="note"><a href="/charters">Browse charter school systems</a> in their separate statewide index.</p>`,
+        'Choose the first letter of a district name. Each letter page contains geographic districts only.'
+      ),
+      section(
+        'find',
+        'Search every school system and campus',
+        `<p><a href="${SEARCH_PATH}">Search geographic districts, charter systems and campuses</a>.</p>`,
+        'Search remains the combined discovery tool; the Districts and Charters browse indexes stay separate.'
+      ),
+      sourceSection(snapshotDate),
+    ],
+  })
+}
+
 /* --------------------------------------------------------------- charters -- */
 
 /**
@@ -643,7 +690,7 @@ export function renderChartersPage({
       section(
         'browse',
         'Browse another way',
-        `<p><a href="/districts/a">District and charter-system A&ndash;Z</a> &middot;
+        `<p><a href="/districts">Geographic district A&ndash;Z</a> &middot;
            <a href="${SEARCH_PATH}">search districts, charter systems and campuses</a></p>`
       ),
       sourceSection(snapshotDate),
@@ -662,37 +709,43 @@ export function renderChartersPage({
 export function renderLetterPage({ letter, districts = [], snapshotDate = null }) {
   const l = String(letter ?? '').slice(0, 1).toLowerCase()
   const L = l.toUpperCase()
-  const { districts: ds } = split(districts)
+  const { districts: ds } = split(geographicOnly(districts))
   const mine = ds.filter((d) => String(d.name ?? '').trim().slice(0, 1).toLowerCase() === l).sort(byName)
+  const counts = new Map(ALPHABET.map((letter) => [letter, 0]))
+  for (const district of ds) {
+    const first = String(district.name ?? '').trim().slice(0, 1).toLowerCase()
+    if (counts.has(first)) counts.set(first, counts.get(first) + 1)
+  }
 
   return shell({
-    title: `Texas school districts and charter systems starting with ${L}`,
-    description: `An index of the ${num(mine.length)} Texas public school districts and open-enrollment charter school systems whose name begins with ${L}, each with its accountability rating, score and enrollment.`,
+    title: `Texas public school districts starting with ${L}`,
+    description: `An index of the ${num(mine.length)} Texas geographic public school districts whose name begins with ${L}, each with its accountability rating, score and enrollment.`,
     canonical: `${SITE_ORIGIN}/districts/${l}`,
-    crumbs: [{ href: '/', label: 'Texas schools', current: `Districts: ${L}` }],
+    crumbs: [
+      { href: '/', label: 'Texas schools' },
+      { href: '/districts', label: 'Districts', current: L },
+    ],
     sections: [
       hero({
-        eyebrow: 'District and charter-system index',
-        title: `Districts and charter systems starting with ${L}`,
-        place: `${plural(mine.length, 'school system')} in this snapshot ${mine.length === 1 ? 'begins' : 'begin'} with ${L}`,
-        lede: 'Names are not unique in Texas, so every row states whether it is a geographic district or charter school system and links the TEA number assigned to it.',
+        eyebrow: 'Geographic district index',
+        title: `Public school districts starting with ${L}`,
+        place: `${plural(mine.length, 'geographic district')} in this snapshot ${mine.length === 1 ? 'begins' : 'begin'} with ${L}`,
+        lede: `This page contains geographic public school districts only. Open-enrollment charter school
+               systems have a <a href="/charters">separate statewide index</a>.`,
       }),
       section(
         'index',
         'Jump to another letter',
-        `${azNav(l)}
-      <p class="note">This index lists district-level systems only.
-         <a href="${SEARCH_PATH}/${esc(l)}">Districts, charter systems <em>and</em> campuses starting with ${esc(L)}</a>.</p>`
+        `${azNav(l, counts)}
+      <p class="note"><a href="${SEARCH_PATH}/${esc(l)}">All districts, charter systems and campuses starting with ${esc(L)}</a> in the combined search index.</p>`
       ),
       section(
         'districts',
-        `${plural(mine.length, 'school system')} beginning with ${L}`,
+        `${plural(mine.length, 'geographic district')} beginning with ${L}`,
         districtTable(mine, {
-          caption: `Texas districts and charter school systems beginning with ${L}`,
+          caption: `Texas geographic public school districts beginning with ${L}`,
           showCounty: true,
-          showType: true,
-          countyHeading: 'County on TEA record',
-          emptyMessage: `No district or charter school system in this snapshot has a name beginning with ${L}.`,
+          emptyMessage: `No geographic public school district in this snapshot has a name beginning with ${L}.`,
         }),
         'Ordered alphabetically.'
       ),
@@ -963,17 +1016,17 @@ export function renderHomePage({
       ),
       hubSection(
         'index',
-        'Find a district or charter system A–Z',
+        'Find a geographic district A–Z',
         ls.length
           ? `<div class="home-az-grid">${linkList(
               ls.map((x) => ({ href: `/districts/${x.letter}`, label: x.letter.toUpperCase(), n: x.n })),
-              'District index by first letter',
+              'Geographic district index by first letter',
               { className: 'home-az-list' }
             )}</div>
       <p class="note"><a href="${SEARCH_PATH}">The full index of districts, charter systems <em>and</em> campuses</a> —
          every included name, with its system and relevant location context. <a href="/charters">Browse charter school systems statewide</a>.</p>`
           : '<p class="note na">No district index is available in this snapshot.</p>',
-        'The alphabetical index of every geographic district and open-enrollment charter school system included here, with the governance type stated on every row.',
+        'The alphabetical district index contains geographic public school districts only. Open-enrollment charter systems have their own statewide index.',
         'home-section home-index'
       ),
       hubSection(

@@ -123,6 +123,7 @@ import { renderEntity } from './render/page.js'
 import {
   renderRegionPage,
   renderCountyPage,
+  renderDistrictsPage,
   renderLetterPage,
   renderChartersPage,
   renderHomePage,
@@ -1661,12 +1662,16 @@ export async function prerender({ concurrency } = {}) {
   }
 
   const letterCounts = new Map(ALPHABET.map((l) => [l, 0]))
-  for (const d of districts) {
+  for (const d of traditionalDistricts) {
     const l = String(d.name ?? '').trim().slice(0, 1).toLowerCase()
     if (letterCounts.has(l)) letterCounts.set(l, letterCounts.get(l) + 1)
   }
+  await write(
+    'districts.html',
+    renderDistrictsPage({ districts: traditionalDistricts, snapshotDate })
+  )
   for (const letter of ALPHABET) {
-    await write(`districts/${letter}.html`, renderLetterPage({ letter, districts, snapshotDate }))
+    await write(`districts/${letter}.html`, renderLetterPage({ letter, districts: traditionalDistricts, snapshotDate }))
   }
 
   const enrolled = districts.map((d) => d.enrollment).filter(finite)
@@ -2530,7 +2535,8 @@ export async function prerender({ concurrency } = {}) {
   <p class="lede">That district or school is not in this snapshot, or the address has changed.
   Every page here is named for the entity plus its TEA id, so a link that drops the id will not resolve.</p>
   <p class="downloads"><a href="/">Start from the state</a> &middot;
-     <a href="/districts/a">Browse districts A&ndash;Z</a> &middot;${
+     <a href="/districts">Browse districts A&ndash;Z</a> &middot;
+     <a href="/charters">Browse charter systems</a> &middot;${
        rankingsIndexHref ? `\n     <a href="${rankingsIndexHref}">Ranked lists</a> &middot;` : ''
      }
      <a href="/about">What this site is</a> &middot;
@@ -2558,6 +2564,7 @@ export async function prerender({ concurrency } = {}) {
     'download.html',
     'search.html',
     'rankings.html',
+    'districts.html',
     'charters.html',
     // Written only when the boundary archive is present; a sitemap entry for a
     // file this build did not write would be a 404 advertised to every crawler.
