@@ -29,6 +29,8 @@ const district = (over = {}) => ({
   county: 'Dallas',
   countyId: '057',
   regionId: '10',
+  city: 'Dallas',
+  isCharter: false,
   ...over,
 })
 
@@ -87,6 +89,24 @@ describe('buildSearchIndex', () => {
     expect(index.districts.county).toEqual([0, 0, 1])
   })
 
+  it('round-trips sector and physical city for charter results', () => {
+    const charter = district({
+      id: '101851', districtId: '101851', districtName: 'KIPP Texas Public Schools',
+      name: 'KIPP Texas Public Schools', county: 'Travis', city: 'Houston', isCharter: true,
+    })
+    const row = readSearchIndex(buildSearchIndex([...entities, charter])).find((r) => r.id === charter.id)
+    expect(row).toMatchObject({ city: 'Houston', county: 'Travis', isCharter: true })
+  })
+
+  it('round-trips the online-school flag without treating the mailing city as a campus location', () => {
+    const online = campus({
+      id: '101851001', districtId: '101851', districtName: 'KIPP Texas Public Schools',
+      name: 'KIPP Texas Online', county: 'Travis', city: 'Houston', isCharter: true, isOnline: true,
+    })
+    const row = readSearchIndex(buildSearchIndex([...entities, online])).find((r) => r.id === online.id)
+    expect(row).toMatchObject({ city: 'Houston', isCharter: true, isOnline: true })
+  })
+
   it('stores no slug — the client derives it, which is what halves the file', () => {
     expect(index.districts.slug).toBeUndefined()
     expect(index.campuses.slug).toBeUndefined()
@@ -115,7 +135,9 @@ describe('readSearchIndex — the decoder the browser mirrors', () => {
 
   it('returns id, name, level, district, county and slug for every entity', () => {
     for (const r of rows) {
-      expect(Object.keys(r).sort()).toEqual(['county', 'district', 'href', 'id', 'level', 'name', 'slug'])
+      expect(Object.keys(r).sort()).toEqual([
+        'city', 'county', 'district', 'href', 'id', 'isCharter', 'isOnline', 'level', 'name', 'slug',
+      ])
       expect(typeof r.slug).toBe('string')
     }
     expect(rows).toHaveLength(entities.length)
@@ -202,7 +224,7 @@ describe('renderSearch', () => {
 
   it('is a labelled search landmark, because more than one appears per page', () => {
     expect(html).toContain('role="search"')
-    expect(html).toMatch(/aria-label="Find a school or district"/)
+    expect(html).toMatch(/aria-label="Find a school, district or charter system"/)
   })
 
   it('defaults to a stable id, so a build is byte-identical across worker threads', () => {
@@ -342,6 +364,11 @@ describe('the client script', () => {
     expect(js).toContain("' County'")
   })
 
+  it('labels online schools and suppresses their mailing city as a physical location', () => {
+    expect(js).toContain("if (r.isOnline) bits.push('Online school')")
+    expect(js).toContain('r.isCharter && !r.isOnline && r.city')
+  })
+
   it('builds rows as text nodes, so a school name can never be markup', () => {
     expect(js).toContain('name.textContent = r.name')
     expect(js).not.toContain('innerHTML')
@@ -378,7 +405,7 @@ describe('renderSearchPage — the no-JavaScript destination', () => {
   const hub = renderSearchPage(pageArgs)
 
   it('is a whole page with a title, a description and a canonical URL', () => {
-    expect(hub).toContain('<h1>Find a school or district</h1>')
+    expect(hub).toContain('<h1>Find a school, district or charter system</h1>')
     expect(hub).toMatch(/<title>[^<]{10,}<\/title>/)
     expect(hub).toMatch(/<meta name="description" content="[^"]{40,}">/)
     expect(hub).toContain(`<link rel="canonical" href="https://txschools.net${SEARCH_PATH}">`)
@@ -429,27 +456,37 @@ describe('renderSearchPage — the no-JavaScript destination', () => {
     const rows = [...letterPage.matchAll(/<li><a href="\/campus\/bradfield-el-(\d+)">Bradfield El<\/a><span class="findlist-in">([^<]+)<\/span>/g)]
     expect(rows).toHaveLength(2)
     expect(rows.map((r) => r[2])).toEqual([
-      'Highland Park ISD &middot; Dallas County',
-      'Highland Park ISD &middot; Potter County',
+      'Traditional public school campus &middot; Highland Park ISD &middot; Dallas County',
+      'Traditional public school campus &middot; Highland Park ISD &middot; Potter County',
     ])
+  })
+
+  it('labels an online charter campus without presenting its mailing city as a campus location', () => {
+    const online = campus({
+      id: '101851001', districtId: '101851', districtName: 'KIPP Texas Public Schools',
+      name: 'Online Academy', county: 'Travis', city: 'Houston', isCharter: true, isOnline: true,
+    })
+    const html = renderSearchPage({ districts: [], campuses: [online], letter: 'o' })
+    expect(html).toContain('Open-enrollment charter campus &middot; Online school &middot; KIPP Texas Public Schools')
+    expect(html).not.toContain('KIPP Texas Public Schools &middot; Houston')
   })
 
   it('a letter page with nothing in it says so, rather than showing an empty list', () => {
     const empty = renderSearchPage({ ...pageArgs, letter: 'z' })
-    expect(empty).toContain('No district in this snapshot has a name beginning with Z.')
+    expect(empty).toContain('No district or charter system in this snapshot has a name beginning with Z.')
     expect(empty).toContain('No campus in this snapshot has a name beginning with Z.')
   })
 
   it('filters the lists itself, so its heading is true whatever it is handed', () => {
     const page = renderSearchPage({ districts: pageArgs.districts, campuses: pageArgs.campuses, letter: 'd' })
-    expect(page).toContain('1 districts starting with D')
+    expect(page).toContain('1 districts and charter systems starting with D')
     expect(page).toContain('0 campuses starting with D')
   })
 
   it('survives being handed nothing at all', () => {
     const bare = renderSearchPage()
-    expect(bare).toContain('<h1>Find a school or district</h1>')
-    expect(bare).toContain('No districts appear in this snapshot.')
+    expect(bare).toContain('<h1>Find a school, district or charter system</h1>')
+    expect(bare).toContain('No district-level systems appear in this snapshot.')
   })
 
   it('offers a search box that is itself a working form', () => {

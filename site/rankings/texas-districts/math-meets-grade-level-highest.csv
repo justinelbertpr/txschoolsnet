@@ -1,15 +1,18 @@
 # txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
 # source: Texas Education Agency, published publicly at https://txschools.gov
 # snapshot: 15 August 2026 — the date this site fetched the source data. The publisher may have revised it since.
+# official accountability landing page: Texas Education Agency Reports and Data Portal at https://tea.texas.gov/school-and-district-leaders/accountability/academic-accountability/performance-reporting/texas-education-agency-reports-and-data-portal
 # dataset: ranking board
 # page: https://txschools.net/rankings/texas-districts/math-meets-grade-level-highest
 # rows: 1019 (excluding this header and the column row)
 # ranking: Texas school districts with the highest Math — Meets in 2025-26
+# sector: traditional (open-enrollment charters excluded)
 # population: 1,019 districts of 1,020 districts are ranked here.
 # population: 1 was not rated by TEA for 2025-26 and is not ranked.
 # rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
 # empty cell = the source did not publish that figure, suppressed it, or did not report it. It does not mean zero.
 # numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# rights: txschools.net does not grant permission to reuse third-party source material; consult the publisher's terms and policies, including TEA's at https://tea.texas.gov/about-tea/welcome-and-overview/site-policies.
 # lines starting with # are comments — pandas: read_csv(path, comment='#')
 rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
 1,1019,0,035903,Nazareth ISD,Castro,A,90,239,https://txschools.net/district/nazareth-isd-035903

@@ -118,7 +118,7 @@ describe('the page frame', () => {
 
   it('carries the shell non-affiliation line and never claims to be TEA', () => {
     const html = page()
-    expect(html).toContain('not operated by, endorsed by, or connected to TEA')
+    expect(html).toContain('not operated by, endorsed by, or affiliated with the Texas Education Agency')
     expect(html).toContain('TEA publishes the ratings; it does not publish this ordering.')
   })
 
@@ -466,6 +466,18 @@ describe('rows', () => {
 
   it('links a county when the rows carry one', () => {
     expect(page()).toContain('href="/county/dallas"')
+  })
+
+  it('labels a charter system county as administrative context without linking a geographic hub', () => {
+    const html = renderRankingPage({
+      metric: SCORE,
+      scope: { ...TEXAS, sector: 'charter' },
+      rows: rows(12),
+      meta: { eligible: 12 },
+    })
+    expect(html).toContain('<th>Administrative county</th>')
+    expect(html).toContain('<td>Dallas</td>')
+    expect(html).not.toContain('href="/county/dallas"')
   })
 
   it('formats a change with its sign and shows the endpoints only when both are labelled', () => {
@@ -947,6 +959,31 @@ describe('the catalogue and the file budget', () => {
       scopes: [...scopes, { kind: 'county', id: 'dallas', level: 'district', label: 'Dallas County' }],
     })
     expect(cat.some((e) => e.scope.kind === 'county')).toBe(false)
+  })
+
+  it('keeps traditional paths stable and gives charter boards a separate namespace', () => {
+    const charterTexas = { ...TEXAS, sector: 'charter' }
+    expect(rankingPath({ scope: TEXAS, metric: SCORE })).toBe('rankings/texas-districts/score-highest')
+    expect(rankingPath({ scope: charterTexas, metric: SCORE })).toBe('rankings/charters/texas-districts/score-highest')
+    expect(populationLabel(charterTexas)).toBe('Texas open-enrollment charter school districts')
+    const csv = rankingCsv({ metric: SCORE, scope: charterTexas, rows: rows(12), meta: { eligible: 12 } })
+    expect(csv).toContain('sector: charter (open-enrollment charters only)')
+  })
+
+  it('does not offer county or region charter boards and keeps related links in-sector', () => {
+    const charterState = { ...TEXAS, sector: 'charter' }
+    const charterRegion = { ...REGION10, sector: 'charter' }
+    const charterCounty = { kind: 'county', id: 'dallas', level: 'district', label: 'Dallas County', sector: 'charter' }
+    const plan = [
+      { kind: 'state', level: 'district', select: () => true },
+      { kind: 'region', level: 'district', select: () => true },
+      { kind: 'county', level: 'district', select: () => true },
+    ]
+    const cat = rankingCatalogue({ metrics: [SCORE, CHANGE], scopes: [TEXAS, charterState, charterRegion, charterCounty], plan })
+    expect(cat.some((entry) => entry.scope === charterRegion || entry.scope === charterCounty)).toBe(false)
+    const charterEntry = cat.find((entry) => entry.scope === charterState && entry.metric.key === 'score')
+    const related = relatedFor(cat, charterEntry)
+    expect([...related.metrics, ...related.scopes].every((link) => link.href.startsWith('/rankings/charters/'))).toBe(true)
   })
 
   it('caps how many metrics a repeated scope takes, because 20 regions multiply', () => {

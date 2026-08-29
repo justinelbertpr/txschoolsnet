@@ -431,6 +431,75 @@ describe('buildCohorts', () => {
     expect(ids.region).not.toContain('c1')
   })
 
+  it('never compares traditional and charter entities, even when a supplied peer band mixes them', () => {
+    const charter = {
+      id: 'charter',
+      level: 'district',
+      regionId: '10',
+      countyId: '057',
+      isCharter: true,
+    }
+    const mixedBundles = bundleMap([
+      ...entities.map((e, i) => ({ id: e.id, score: 70 + i })),
+      { id: charter.id, score: 100 },
+    ])
+    const baseline = buildCohorts(args)
+    const mixed = buildCohorts({
+      ...args,
+      entities: [...entities, charter],
+      bundles: mixedBundles,
+      band: { n: 4, ids: new Set(['d0', 'd1', 'd2', charter.id]) },
+    })
+
+    for (const cohortIds of Object.values(mixed.ids)) expect(cohortIds).not.toContain(charter.id)
+    expect(mixed.ids.state).toEqual(baseline.ids.state)
+    expect(mixed.cohorts.find((c) => c.key === 'state').metrics.score).toBe(
+      baseline.cohorts.find((c) => c.key === 'state').metrics.score
+    )
+  })
+
+  it('gives charters peer, size and statewide charter cohorts but no county or region cohort', () => {
+    const charters = Array.from({ length: 3 }, (_, i) => ({
+      id: `ch${i}`,
+      level: 'district',
+      regionId: '10',
+      countyId: '057',
+      enrollment: 1000 + i * 100,
+      isCharter: true,
+    }))
+    const traditional = {
+      id: 'traditional',
+      level: 'district',
+      regionId: '10',
+      countyId: '057',
+      enrollment: 1050,
+      isCharter: false,
+    }
+    const bundles = bundleMap([
+      ...charters.map((e, i) => ({ id: e.id, score: 80 + i })),
+      { id: traditional.id, score: 10 },
+    ])
+    const { cohorts, ids } = buildCohorts({
+      ...args,
+      entity: charters[0],
+      entities: [...charters, traditional],
+      bundles,
+      band: { n: 4, ids: new Set([...charters.map((e) => e.id), traditional.id]) },
+    })
+
+    expect(cohorts.map((c) => c.key)).toEqual(['peer', 'size', 'state'])
+    expect(cohorts.find((c) => c.key === 'state')).toMatchObject({
+      label: 'Texas charter average',
+      n: 3,
+      metrics: { score: 81 },
+    })
+    expect(ids.peer).toEqual(charters.map((e) => e.id))
+    expect(ids.size).toEqual(charters.map((e) => e.id))
+    expect(ids.state).toEqual(charters.map((e) => e.id))
+    expect(ids).not.toHaveProperty('region')
+    expect(ids).not.toHaveProperty('county')
+  })
+
   it('returns cohort ids separately and keeps them off the published cohort objects', () => {
     const { cohorts, ids } = buildCohorts(args)
     expect(ids.peer).toEqual(['d0', 'd1', 'd2'])

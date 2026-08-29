@@ -11,10 +11,10 @@
 // Enter lands on /search — a page that actually lists things:
 //
 //     /search            the search box, an A-Z jump nav with counts, and the
-//                        full alphabetical list of all 1,199 districts, each
-//                        with its county.
+//                        full alphabetical list of all district-level systems,
+//                        each with its governance type and relevant context.
 //     /search/<letter>   every district AND campus whose name begins with that
-//                        letter, each with its district and county.
+//                        letter, each with its system and relevant context.
 //
 // The `q` in the URL is not honoured without JavaScript — a static file cannot
 // read a query string, and pretending otherwise would be a lie. What the reader
@@ -51,9 +51,10 @@
 //
 // Texas has 11 duplicate district names and 464 duplicate campus names. A row
 // reading "Lincoln El" alone is not an answer, so every row — in the live
-// results and on the static pages alike — carries its district and its county.
-// The same rule the rest of the site follows: a name without its denominator is
-// not a claim, it is a guess.
+// results and on the static pages alike — carries its governance sector and
+// system. Geographic schools name their county; charter campuses use physical
+// city only when TEA does not mark them online. The same rule the rest of the
+// site follows: context must be true, not merely present.
 
 import { esc, navList, num, section, shell, SITE_ORIGIN } from './shell.js'
 import { entitySlug, slugify } from './view-model.js'
@@ -87,6 +88,10 @@ const byName = (a, b) => String(a.name ?? '').localeCompare(String(b.name ?? '')
  * Slugs are absent by design — see the note at the top of this file. Anything
  * reading this file should go through readSearchIndex() rather than unpacking
  * the columns by hand, so there is one decoder and the client matches it.
+ * Sector and physical city travel with every row. A charter campus's TEA
+ * county can describe its operator rather than the campus location, so search
+ * results use the retained city instead of presenting that county as local
+ * geography.
  */
 export function buildSearchIndex(entities = []) {
   // Ordered by TEA id, not by name, and that is a size decision rather than a
@@ -101,19 +106,26 @@ export function buildSearchIndex(entities = []) {
   const campuses = list.filter((e) => e.level === 'campus').sort(byId)
 
   const counties = [...new Set(list.map((e) => e.county).filter(Boolean))].sort()
+  const cities = [...new Set(list.map((e) => e.city).filter(Boolean))].sort()
   const countyIx = new Map(counties.map((c, i) => [c, i]))
+  const cityIx = new Map(cities.map((c, i) => [c, i]))
   const districtIx = new Map(districts.map((d, i) => [d.id, i]))
 
   const county = (e) => (e.county != null && countyIx.has(e.county) ? countyIx.get(e.county) : -1)
+  const city = (e) => (e.city != null && cityIx.has(e.city) ? cityIx.get(e.city) : -1)
 
   return {
-    v: 1,
+    v: 3,
     count: list.length,
     counties,
+    cities,
     districts: {
       name: districts.map((d) => d.name),
       id: districts.map((d) => String(d.id)),
       county: districts.map(county),
+      city: districts.map(city),
+      charter: districts.map((d) => (d.isCharter ? 1 : 0)),
+      online: districts.map((d) => (d.isOnline ? 1 : 0)),
     },
     campuses: {
       name: campuses.map((c) => c.name),
@@ -122,6 +134,9 @@ export function buildSearchIndex(entities = []) {
       // appears, it simply names no district rather than naming the wrong one.
       district: campuses.map((c) => (districtIx.has(c.districtId) ? districtIx.get(c.districtId) : -1)),
       county: campuses.map(county),
+      city: campuses.map(city),
+      charter: campuses.map((c) => (c.isCharter ? 1 : 0)),
+      online: campuses.map((c) => (c.isOnline ? 1 : 0)),
     },
   }
 }
@@ -137,10 +152,11 @@ export const searchIndexJson = (entities) => JSON.stringify(buildSearchIndex(ent
  */
 export function readSearchIndex(index) {
   const counties = index?.counties ?? []
+  const cities = index?.cities ?? []
   const d = index?.districts ?? { name: [], id: [], county: [] }
   const c = index?.campuses ?? { name: [], id: [], district: [], county: [] }
 
-  const row = (name, id, level, district, countyIx) => {
+  const row = (name, id, level, district, countyIx, cityIx, isCharter, isOnline) => {
     const slug = `${slugify(name)}-${id}`
     return {
       id,
@@ -148,14 +164,19 @@ export function readSearchIndex(index) {
       level,
       district,
       county: counties[countyIx] ?? null,
+      city: cities[cityIx] ?? null,
+      isCharter: !!isCharter,
+      isOnline: !!isOnline,
       slug,
       href: `/${level}/${slug}`,
     }
   }
 
   return [
-    ...(d.name ?? []).map((n, i) => row(n, d.id[i], 'district', null, d.county[i])),
-    ...(c.name ?? []).map((n, i) => row(n, c.id[i], 'campus', d.name?.[c.district[i]] ?? null, c.county[i])),
+    ...(d.name ?? []).map((n, i) => row(n, d.id[i], 'district', null, d.county[i], d.city?.[i], d.charter?.[i], d.online?.[i])),
+    ...(c.name ?? []).map((n, i) =>
+      row(n, c.id[i], 'campus', d.name?.[c.district[i]] ?? null, c.county[i], c.city?.[i], c.charter?.[i], c.online?.[i])
+    ),
   ]
 }
 
@@ -165,11 +186,11 @@ const hintFor = (counts) => {
   const d = finite(counts?.districts) ? counts.districts : null
   const c = finite(counts?.campuses) ? counts.campuses : null
   if (d == null || c == null) {
-    return 'Type at least two letters. Every result names its district and county, because school names repeat across Texas.'
+    return 'Type at least two letters. Every result identifies its geographic district or charter system, because school names repeat across Texas.'
   }
-  return `Type at least two letters. Searches all ${num(d + c)} — ${num(d)} districts and ${num(
+  return `Type at least two letters. Searches all ${num(d + c)} — ${num(d)} districts and charter systems and ${num(
     c
-  )} campuses — and names the district and county of each, because Texas school names repeat.`
+  )} campuses — and identifies the system and sector of each result.`
 }
 
 /**
@@ -189,14 +210,14 @@ const hintFor = (counts) => {
  * external file across all 10,230 pages.
  */
 export function renderSearch({
-  placeholder = 'School or district name',
+  placeholder = 'School, district or charter name',
   autofocus = false,
   counts = null,
   variant = 'header',
   id = null,
   indexUrl = SEARCH_INDEX_PATH,
   action = SEARCH_PATH,
-  label = 'Find a school or district',
+  label = 'Find a school, district or charter system',
   hint = null,
   assets = true,
   scriptSrc = null,
@@ -253,12 +274,22 @@ const heroBlock = ({ eyebrow, title, place = '', lede = '', extra = '' }) => `<s
   ${lede ? `<p class="lede">${lede}</p>` : ''}
 </section>`
 
-/** One row of the static index. Never a bare name — district and county always. */
+/** One row of the static index. Never a bare name or invented local geography. */
 const findRow = (e) => {
   const slug = e.slug || entitySlug(e)
+  const type = e.isCharter
+    ? e.level === 'campus'
+      ? 'Open-enrollment charter campus'
+      : 'Charter school system'
+    : e.level === 'campus'
+      ? 'Traditional public school campus'
+      : 'Geographic public school district'
   const where = [
+    type,
+    e.isOnline ? 'Online school' : null,
     e.level === 'campus' && e.districtName ? esc(e.districtName) : null,
-    e.county ? `${esc(String(e.county).replace(/ County$/i, ''))} County` : null,
+    e.isCharter && !e.isOnline && e.city ? esc(e.city) : null,
+    !e.isCharter && e.county ? `${esc(String(e.county).replace(/ County$/i, ''))} County` : null,
   ].filter(Boolean)
   return `<li><a href="/${esc(e.level === 'campus' ? 'campus' : 'district')}/${esc(slug)}">${esc(
     e.name
@@ -333,8 +364,8 @@ export function renderSearchPage({ districts = [], campuses = [], letter = null,
       counts,
       autofocus,
       id: 'search-page-box',
-      label: 'Find a school or district',
-      placeholder: 'School or district name',
+      label: 'Find a school, district or charter system',
+      placeholder: 'School, district or charter name',
       // shell() now emits the header instance's assets once per page (below
       // the footer), so a second copy here would just be extra bytes.
       assets: false,
@@ -344,32 +375,33 @@ export function renderSearchPage({ districts = [], campuses = [], letter = null,
   if (!l) {
     const stray = [...ds, ...cs].filter((e) => searchLetter(e.name) == null).sort(byName)
     return shell({
-      title: 'Find a Texas school or district',
-      description: `Search or browse every Texas public school district and campus — ${num(
+      title: 'Find a Texas school, district or charter system',
+      description: `Search or browse every Texas geographic public school district, open-enrollment charter system and campus — ${num(
         counts.districts
-      )} districts and ${num(counts.campuses)} campuses — each listed with its district and county.`,
+      )} district-level systems and ${num(counts.campuses)} campuses — with the governance sector identified.`,
       canonical: `${SITE_ORIGIN}${SEARCH_PATH}`,
       scripts: [ADDRESS_SCRIPT_PATH],
       crumbs: [{ href: '/', label: 'Texas schools', current: 'Find a school' }],
       sections: [
         heroBlock({
           eyebrow: 'Search',
-          title: 'Find a school or district',
-          place: `${num(counts.districts)} districts &middot; ${num(counts.campuses)} campuses`,
+          title: 'Find a school, district or charter system',
+          place: `${num(counts.districts)} districts and charter systems &middot; ${num(counts.campuses)} campuses`,
           extra: `${box(true)}${addressBox}`,
-          lede: `Type a name above, or browse the lists below. Every entry names its district and county,
-            because Texas has 11 district names and 464 campus names that more than one school shares.`,
+          lede: `Type a name above, or browse the lists below. Every entry identifies its governance sector
+            and school system. Geographic schools name their county; charter campuses use a physical city when
+            available, while online schools are labeled without implying that their mailing city is the campus.`,
         }),
         section(
           'letters',
-          'Every school and district, by first letter',
+          'Every school, district and charter system, by first letter',
           letterNav(perLetter),
-          'Each letter lists the districts and campuses whose name begins with it, with the district and county of each.'
+          'Each letter lists the district-level systems and campuses whose name begins with it, with the governance sector of each.'
         ),
         section(
           'districts',
-          `All ${num(counts.districts)} districts`,
-          findList([...ds].sort(byName), 'No districts appear in this snapshot.'),
+          `All ${num(counts.districts)} districts and charter systems`,
+          findList([...ds].sort(byName), 'No district-level systems appear in this snapshot.'),
           `Alphabetical. Campuses are on the letter pages above — there are ${num(
             counts.campuses
           )} of them, too many for one page.`
@@ -392,8 +424,8 @@ export function renderSearchPage({ districts = [], campuses = [], letter = null,
   const cl = mine(cs)
 
   return shell({
-    title: `Texas schools and districts starting with ${L}`,
-    description: `The ${num(dl.length + cl.length)} Texas public school districts and campuses whose name begins with ${L}, each listed with its district and county.`,
+    title: `Texas schools, districts and charter systems starting with ${L}`,
+    description: `The ${num(dl.length + cl.length)} Texas public school districts, charter systems and campuses whose name begins with ${L}, with the governance sector identified.`,
     canonical: `${SITE_ORIGIN}${SEARCH_PATH}/${l}`,
     scripts: [ADDRESS_SCRIPT_PATH],
     crumbs: [
@@ -404,14 +436,14 @@ export function renderSearchPage({ districts = [], campuses = [], letter = null,
       heroBlock({
         eyebrow: 'Search index',
         title: `Names starting with ${L}`,
-        place: `${num(dl.length)} districts &middot; ${num(cl.length)} campuses`,
+        place: `${num(dl.length)} districts and charter systems &middot; ${num(cl.length)} campuses`,
         extra: `${box(false)}${addressBox}`,
       }),
       section('letters', 'Jump to another letter', letterNav(perLetter, l)),
       section(
         'districts',
-        `${num(dl.length)} districts starting with ${L}`,
-        findList(dl, `No district in this snapshot has a name beginning with ${L}.`)
+        `${num(dl.length)} districts and charter systems starting with ${L}`,
+        findList(dl, `No district or charter system in this snapshot has a name beginning with ${L}.`)
       ),
       section(
         'campuses',
@@ -548,18 +580,19 @@ export function searchClientJs() {
   function normalize(s) { return String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() }
 
   function decode(raw) {
-    var counties = raw.counties || []
+    var counties = raw.counties || [], cities = raw.cities || []
     var d = raw.districts || {}, c = raw.campuses || {}
     var dn = d.name || [], cn = c.name || []
     var out = [], i
-    for (i = 0; i < dn.length; i++) out.push(rec(dn[i], d.id[i], 'district', null, counties[d.county[i]]))
-    for (i = 0; i < cn.length; i++) out.push(rec(cn[i], c.id[i], 'campus', dn[c.district[i]], counties[c.county[i]]))
+    for (i = 0; i < dn.length; i++) out.push(rec(dn[i], d.id[i], 'district', null, counties[d.county[i]], cities[(d.city || [])[i]], (d.charter || [])[i], (d.online || [])[i]))
+    for (i = 0; i < cn.length; i++) out.push(rec(cn[i], c.id[i], 'campus', dn[c.district[i]], counties[c.county[i]], cities[(c.city || [])[i]], (c.charter || [])[i], (c.online || [])[i]))
     return out
   }
 
-  function rec(name, id, level, district, county) {
+  function rec(name, id, level, district, county, city, charter, online) {
     return {
       name: name, level: level, district: district || null, county: county || null,
+      city: city || null, isCharter: !!charter, isOnline: !!online,
       href: '/' + level + '/' + slugify(name) + '-' + id,
       key: normalize(name), dkey: normalize(district || '')
     }
@@ -653,9 +686,13 @@ export function searchClientJs() {
   }
 
   function meta(r) {
-    var bits = [r.level === 'campus' ? 'Campus' : 'District']
+    var bits = [r.isCharter
+      ? (r.level === 'campus' ? 'Open-enrollment charter campus' : 'Charter school system')
+      : (r.level === 'campus' ? 'Traditional public school campus' : 'Geographic public school district')]
+    if (r.isOnline) bits.push('Online school')
     if (r.level === 'campus' && r.district) bits.push(r.district)
-    if (r.county) bits.push(r.county.replace(/ County$/i, '') + ' County')
+    if (r.isCharter && !r.isOnline && r.city) bits.push(r.city)
+    if (!r.isCharter && r.county) bits.push(r.county.replace(/ County$/i, '') + ' County')
     return bits.join(' \\u00b7 ')
   }
 

@@ -1,9 +1,12 @@
 // src/normalize/finance.js
 import { num, str } from './entities.js'
 
-// source array key -> output column name
+// source array key -> output column name. Campus feeds contain both the
+// campus's own figure (`expenditure_school`) and its district's figure
+// (`expenditure_district`); district feeds contain only the latter. Choosing
+// the entity series per record keeps a campus line from silently showing its
+// parent district's amount.
 const SERIES = [
-  ['expenditure_district', 'spendEntity'],
   ['expenditure_peer', 'spendPeer'],
   ['expenditure_state', 'spendState'],
   ['revenue_district', 'revenueEntity'],
@@ -26,6 +29,17 @@ export function toFinance(records) {
     const yearLen = rec.year.length
     for (let i = 0; i < yearLen; i++) {
       const row = { id: rec.id, year: str(rec.year[i]) }
+      const entitySeries = Array.isArray(rec.expenditure_school)
+        ? rec.expenditure_school
+        : rec.expenditure_district
+      row.spendEntity =
+        Array.isArray(entitySeries) && entitySeries.length === yearLen ? num(entitySeries[i]) : null
+      row.spendDistrict =
+        Array.isArray(rec.expenditure_school) &&
+        Array.isArray(rec.expenditure_district) &&
+        rec.expenditure_district.length === yearLen
+          ? num(rec.expenditure_district[i])
+          : null
       for (const [srcKey, outKey] of SERIES) {
         const arr = rec[srcKey]
         row[outKey] = Array.isArray(arr) && arr.length === yearLen ? num(arr[i]) : null
@@ -46,6 +60,18 @@ export function financeAlignment(records) {
   for (const rec of records) {
     if (!Array.isArray(rec.year)) continue
     const yearLen = rec.year.length
+    const entityKey = Array.isArray(rec.expenditure_school) ? 'expenditure_school' : 'expenditure_district'
+    const entitySeries = rec[entityKey]
+    if (Array.isArray(entitySeries) && entitySeries.length !== yearLen) {
+      dropped.push({ entityId: rec.id, series: entityKey })
+    }
+    if (
+      entityKey === 'expenditure_school' &&
+      Array.isArray(rec.expenditure_district) &&
+      rec.expenditure_district.length !== yearLen
+    ) {
+      dropped.push({ entityId: rec.id, series: 'expenditure_district' })
+    }
     for (const [srcKey] of SERIES) {
       const arr = rec[srcKey]
       if (Array.isArray(arr) && arr.length !== yearLen) {

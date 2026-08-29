@@ -34,11 +34,11 @@
 //
 // -------------------------------------------------------------------- SCOPE
 //
-// Districts, not campuses. NCES publishes attendance-area polygons for school
-// districts; an individual campus is a point, and a dot map of 8,066 points
-// answers a different question than this page asks. Charters have no territory
-// at all and this site does not publish them.
+// Geographic districts are polygons. Open-enrollment charter campuses are a
+// separate point overlay: they are places, not resident-assignment territories,
+// and the map never manufactures a polygon for a charter school system.
 
+import mapshaper from 'mapshaper'
 import { esc, num, pct, section, shell, usd, SITE_ORIGIN } from './shell.js'
 import { HIGHER, LOWER } from './metrics.js'
 
@@ -137,6 +137,23 @@ export const NO_SHAPE_NOTE =
   'University K-12 and University of Texas at Austin HS enroll from across the state.'
 
 const finite = (v) => typeof v === 'number' && Number.isFinite(v)
+
+export const TEXAS_ALBERS =
+  '+proj=aea +lat_1=27.5 +lat_2=35 +lat_0=31.25 +lon_0=-99 +datum=NAD83'
+
+/** Project TEA longitude/latitude points into the same Albers plane as TIGER. */
+export const isOnlineSchool = (campus) =>
+  campus?.isOnline === true || String(campus?.onlineSchool ?? '').trim().toLowerCase() === 'yes'
+
+export function projectCharterCampuses(campuses = []) {
+  const from = mapshaper.internal.parseCrsString('wgs84')
+  const to = mapshaper.internal.parseCrsString(TEXAS_ALBERS)
+  const project = mapshaper.internal.getProjTransform(from, to)
+  return (campuses ?? [])
+    .filter((campus) => campus?.isCharter && !isOnlineSchool(campus) && finite(campus.lat) && finite(campus.lon))
+    .map((campus) => ({ ...campus, point: project(campus.lon, campus.lat) }))
+    .filter((campus) => campus.point.every(finite))
+}
 
 /* ------------------------------------------------------------- topology -- */
 
@@ -548,6 +565,7 @@ export function renderMapPage({
   snapshotDate = null,
   width = 900,
   hiFiHref = null,
+  charterCampuses = [],
 }) {
   const byGeoid = ringsByGeoid(topo)
   // The LOW-fidelity geometry is what ships inline; the high-fidelity file is
@@ -580,6 +598,12 @@ export function renderMapPage({
 
   const allRings = drawn.map((d) => byGeoid.get(d.geoid))
   const { height, project } = fitProjection(allRings, width)
+  const charterPoints = projectCharterCampuses(charterCampuses)
+    .map((campus) => ({ ...campus, svgPoint: project(campus.point) }))
+    .filter(({ svgPoint: [x, y] }) => x >= 0 && x <= width && y >= 0 && y <= height)
+  const onlineCharterCount = charterCampuses.filter(
+    (campus) => campus?.isCharter && isOnlineSchool(campus)
+  ).length
 
   // Where each Education Service Center region sits in projected space, so the
   // client can frame one without shipping the topology. Computed HERE because
@@ -639,6 +663,17 @@ export function renderMapPage({
         `<path d="${pathData(inlineRings.get(d.geoid), project)}"${b == null ? '' : ` data-b="${b}"`}>` +
         `<title>${esc(d.name)} — ${grade ?? 'not reported'}</title></path></a>`
       )
+    })
+    .join('')
+
+  const points = charterPoints
+    .map(({ name, href, city, districtName, svgPoint: [x, y] }) => {
+      const place = city ? ` in ${city}` : ''
+      const operator = districtName && districtName !== name ? ` · ${districtName}` : ''
+      const label = `${name}, open-enrollment charter campus${place}${operator}`
+      return `<a href="${esc(href)}" aria-label="${esc(label)}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(
+        1
+      )}" r="2.4"><title>${esc(name)} — open-enrollment charter campus${place}</title></circle></a>`
     })
     .join('')
 
@@ -705,6 +740,10 @@ export function renderMapPage({
   const legend = `<figcaption class="map-legend map-classes" data-map-legend>
       <p class="map-legend-title"><span data-map-legend-title>${esc(rating.label)}</span><span class="map-legend-hint"> &mdash; untick a class to hide it</span></p>
       <ul data-map-legend-items>${rating.ranges.map((r, i) => swatch(i, r)).join('')}${noDataKey}</ul>
+      <p class="map-charter-key"><input class="sr-only map-charter-toggle" type="checkbox" id="map-charters" checked>
+        <label for="map-charters"><span class="map-charter-swatch" aria-hidden="true"></span>Show ${num(
+          charterPoints.length
+        )} physical open-enrollment charter campus ${charterPoints.length === 1 ? 'location' : 'locations'}</label></p>
     </figcaption>`
 
   const coverage = `${num(rating.counted)} of ${num(drawn.length)} districts ${rating.counted === 1 ? 'has' : 'have'} a published rating${
@@ -746,8 +785,12 @@ export function renderMapPage({
   <p class="place">${esc(num(drawn.length))} districts${
         snapshotDate ? ` &middot; TEA data fetched ${esc(snapshotDate)}` : ''
       }</p>
-  <p class="lede">Every rated traditional district, drawn on its real boundary and shaded by its TEA
-    rating. Tap any district to open its page.</p>
+  <p class="lede">Geographic public school districts are drawn on their real boundaries and shaded by
+    TEA rating. Gold points show physical open-enrollment charter campuses as locations, never as resident-assignment areas.${
+      onlineCharterCount
+        ? ` ${num(onlineCharterCount)} online charter ${onlineCharterCount === 1 ? 'program is' : 'programs are'} not pinned to ${onlineCharterCount === 1 ? 'a mailing address' : 'mailing addresses'}.`
+        : ''
+    } Tap any feature to open its page.</p>
 </section>`,
       section(
         'map',
@@ -759,7 +802,7 @@ export function renderMapPage({
     <svg class="map-svg" viewBox="0 0 ${width} ${height}" role="group"
          aria-label="Texas school districts shaded by rating" data-map data-base-view="0 0 ${width} ${height}">
       <defs><pattern id="map-missing-pattern" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="var(--line-2)"/><path d="M-2 2L2-2M0 6L6 0M4 8L8 4" fill="none" stroke="var(--ink-3)" stroke-width=".7" opacity=".38"/></pattern></defs>
-      <g data-map-shapes>${paths}</g>
+      <g data-map-features><g data-map-shapes>${paths}</g><g data-map-charters>${points}</g></g>
     </svg>
     </figure>
     <p class="map-reset"><button type="reset">Show every class</button></p>
@@ -777,9 +820,14 @@ export function renderMapPage({
      shapes are simplified for the web, so a boundary here is close to but not exactly the legal
      line; the archived file and the command that produced it are recorded in the repository.</p>
   <p class="note">${esc(NO_SHAPE_NOTE)}</p>
-  <p class="note">Open-enrollment charter districts are not drawn and not counted. A charter
-     enrolls from anywhere and has no attendance boundary, so there is no territory to shade —
-     the same reason this site does not publish them elsewhere.</p>
+  <p class="note">Boundary shading covers geographic school-district territories. Open-enrollment
+     charter school systems have no attendance boundary, so physical campuses are shown as locations,
+     not district polygons; this map does not treat them
+     as a resident-assigned district. Charter points are not part of the shaded district totals.${
+       onlineCharterCount
+         ? ` TEA marks ${num(onlineCharterCount)} charter ${onlineCharterCount === 1 ? 'campus record' : 'campus records'} as online; ${onlineCharterCount === 1 ? 'it is' : 'they are'} omitted from the point layer because a mailing address is not a physical campus location.`
+         : ''
+     }</p>
   <p class="downloads"><a href="/download">Download the data behind this map</a> &middot;
      <a href="${MAP_HREF === '/map' ? '/rankings' : '/rankings'}">every ranked list</a></p>`
       ),

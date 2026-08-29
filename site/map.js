@@ -190,7 +190,7 @@
      layer changes, so it is the single source for what the tooltip says — no
      second copy to fall out of step. */
   const tip = document.querySelector('[data-map-tip]')
-  const shapes = root.querySelector('[data-map-shapes]')
+  const shapes = root.querySelector('[data-map-features]')
   if (!tip || !shapes) return
   // Touch has no hover: there a tap navigates, and a tooltip would either
   // flash and vanish or sit under the reader's finger.

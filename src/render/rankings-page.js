@@ -242,9 +242,20 @@ export const endSlug = (metric, end) =>
 
 export const metricSlug = (metric) => slugify(metric?.slug ?? metric?.key ?? metric?.label ?? 'metric')
 
+export const rankingSector = (scope) => {
+  const sector = scope?.sector ?? 'traditional'
+  if (!['traditional', 'charter', 'all'].includes(sector)) throw new Error(`unknown ranking sector ${JSON.stringify(sector)}`)
+  return sector
+}
+
+const rankingRoot = (scope) => {
+  const sector = rankingSector(scope)
+  return sector === 'traditional' ? RANKINGS_ROOT : `${RANKINGS_ROOT}/${sector === 'charter' ? 'charters' : 'all'}`
+}
+
 /** Site-relative path, no extension and no leading slash: what the sitemap wants. */
 export const rankingPath = ({ scope, metric, end = 'top' }) =>
-  `${RANKINGS_ROOT}/${scopeSlug(scope)}/${metricSlug(metric)}-${endSlug(metric, end)}`
+  `${rankingRoot(scope)}/${scopeSlug(scope)}/${metricSlug(metric)}-${endSlug(metric, end)}`
 
 export const rankingHref = (spec) => `/${rankingPath(spec)}`
 export const rankingFile = (spec) => `${rankingPath(spec)}.html`
@@ -357,9 +368,11 @@ const nounOf = (metric) => {
 export const populationLabel = (scope) => {
   if (scope?.population) return scope.population
   const level = scope?.level ?? 'district'
+  const sector = rankingSector(scope)
   const noun = level === 'district' ? 'school districts' : 'campuses'
+  const qualified = sector === 'charter' ? `open-enrollment charter ${noun}` : sector === 'all' ? `traditional and charter ${noun}` : noun
   const where = scope?.label ?? (scope?.kind === 'state' ? 'Texas' : '')
-  return where ? `${where} ${noun}` : noun
+  return where ? `${where} ${qualified}` : qualified
 }
 
 /**
@@ -474,13 +487,14 @@ const rankCell = (row) =>
     finite(row.rank) ? esc(ordinal(row.rank)) : '—'
   }${finite(row.tied) && row.tied > 0 ? ` <span class="chip-n">tied</span>` : ''}</td>`
 
-const whereCell = (row) => {
+const whereCell = (row, scope) => {
   if (row.districtName) {
     return `<td>${
       row.districtSlug ? `<a href="/district/${esc(row.districtSlug)}">${esc(row.districtName)}</a>` : esc(row.districtName)
     }</td>`
   }
   if (row.county) {
+    if (rankingSector(scope) === 'charter') return `<td>${esc(row.county)}</td>`
     const slug = row.countySlug ?? slugify(row.county)
     return `<td><a href="/county/${esc(slug)}">${esc(row.county)}</a></td>`
   }
@@ -514,7 +528,11 @@ const spanColumnLabel = (label, meta) =>
 
 const rankingTable = (rows, { metric, scope, meta, caption, wide = false }) => {
   const plan = columnPlan(rows, { metric, meta, wide })
-  const whereLabel = rows.some((r) => r.districtName) ? 'District' : 'County'
+  const whereLabel = rows.some((r) => r.districtName)
+    ? 'District'
+    : rankingSector(scope) === 'charter'
+      ? 'Administrative county'
+      : 'County'
 
   // The endpoints of a change are LEVELS, not changes: a 2021-22 score of 74 is
   // "74", never "+74". Built explicitly rather than by spreading the metric,
@@ -535,7 +553,7 @@ const rankingTable = (rows, { metric, scope, meta, caption, wide = false }) => {
 
   const body = rows.map(
     (r) =>
-      `<tr>${rankCell(r)}${nameCell(r, scope)}${plan.where ? whereCell(r) : ''}${
+      `<tr>${rankCell(r)}${nameCell(r, scope)}${plan.where ? whereCell(r, scope) : ''}${
         plan.rating ? `<td>${grade(r.rating)}</td>` : ''
       }<td class="num">${esc(fmtValue(r.value, metric))}</td>${
         plan.span
@@ -1129,6 +1147,7 @@ export function rankingCsv({ metric, scope, rows = [], meta = {}, snapshotDate =
 
   const notes = [
     `ranking: ${asTitle(rankingHeadline({ metric, scope, end, meta }))}`,
+    `sector: ${rankingSector(scope)} (${rankingSector(scope) === 'traditional' ? 'open-enrollment charters excluded' : rankingSector(scope) === 'charter' ? 'open-enrollment charters only' : 'traditional and open-enrollment charters included'})`,
     ...denominator.map((l) => `population: ${l}`),
     'rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.',
   ]
@@ -1208,6 +1227,7 @@ export function rankingCatalogue({ metrics = [], scopes = [], plan = DEFAULT_PLA
   for (const p of plan) {
     const matching = scopes.filter((s) => (s?.kind ?? 'state') === p.kind && (s?.level ?? 'district') === p.level)
     for (const scope of matching) {
+      if (rankingSector(scope) === 'charter' && (p.kind === 'county' || p.kind === 'region')) continue
       let taken = 0
       for (const metric of metrics) {
         if (!metric?.key || isContextMetric(metric.key)) continue
@@ -1274,15 +1294,16 @@ export function rankingCatalogue({ metrics = [], scopes = [], plan = DEFAULT_PLA
  */
 export function relatedFor(catalogue, entry, { limit = 24 } = {}) {
   const same = (a, b) => a?.path === b?.path
+  const sameSector = (e) => rankingSector(e.scope) === rankingSector(entry.scope)
   const inverse = catalogue.find(
-    (e) => e.scope === entry.scope && e.metric?.key === entry.metric?.key && e.end !== entry.end
+    (e) => sameSector(e) && e.scope === entry.scope && e.metric?.key === entry.metric?.key && e.end !== entry.end
   )
   const metrics = catalogue
-    .filter((e) => e.scope === entry.scope && e.metric?.key !== entry.metric?.key)
+    .filter((e) => sameSector(e) && e.scope === entry.scope && e.metric?.key !== entry.metric?.key)
     .slice(0, limit)
     .map((e) => ({ href: e.href, label: e.metric?.label ?? e.metric?.key }))
   const scopes = catalogue
-    .filter((e) => e.metric?.key === entry.metric?.key && !same(e, entry))
+    .filter((e) => sameSector(e) && e.metric?.key === entry.metric?.key && !same(e, entry))
     .slice(0, limit)
     .map((e) => ({ href: e.href, label: populationLabel(e.scope) }))
 

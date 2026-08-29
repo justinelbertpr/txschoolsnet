@@ -12,7 +12,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   SECTIONS, HERO_ID, HERO_LABEL, claimSentence, verdict, trajectory, changeRankings, domains, outcomes,
-  students, enrollment, transfers, discipline, actionNotices, community, postsecondary, spending, teachers, campuses, highlights, standouts, source, rankingHref, rankingPositions, boardPageOf,
+  students, accountabilityContext, enrollment, transfers, discipline, actionNotices, community, postsecondary, spending, teachers, campuses, highlights, standouts, source, rankingHref, rankingPositions, boardPageOf,
   rankedBoard, officialWebsiteHref,
 } from '../../src/render/sections.js'
 import { PAGE_ROWS } from '../../src/render/rankings-page.js'
@@ -75,6 +75,7 @@ const OPTIONAL = [
   ['domains', domains],
   ['outcomes', outcomes],
   ['students', students],
+  ['accountabilityContext', accountabilityContext],
   ['enrollment', enrollment],
   ['transfers', transfers],
   ['discipline', discipline],
@@ -110,6 +111,7 @@ describe('a section with no data', () => {
     expect(domains(empty({ domains: null }))).toBeNull()
     expect(outcomes(empty({ staar: { subjects: [] }, graduation: [], ccmr: [] }))).toBeNull()
     expect(students(empty({ profile: null }))).toBeNull()
+    expect(accountabilityContext(empty({ accountabilityContext: null }))).toBeNull()
     expect(enrollment(empty({ enrollmentTrend: { points: [{ year: '2025-26', enrollment: 100 }] } }))).toBeNull()
     expect(transfers(empty({ transferContext: null }))).toBeNull()
     expect(discipline(empty({ discipline: null }))).toBeNull()
@@ -138,6 +140,54 @@ describe('a section with no data', () => {
   })
 })
 
+describe('accountability-summary context', () => {
+  const datum = (value, status = 'reported', raw = value == null ? null : String(value)) => ({ value, status, raw })
+  const context = {
+    id: '001902001', level: 'campus', year: '2025-26',
+    students: { all: datum(195), economicallyDisadvantaged: datum(85), emergentBilingual: datum(0), specialEducation: datum(null, 'masked-small', '*') },
+    programs: {
+      earlyCollegeHighSchool: { count: datum(0) },
+      pathwaysInTechnologyEarlyCollegeHighSchool: { count: datum(null, 'not-reported', null) },
+    },
+    mobility: { year: '2024-25', mobileStudents: datum(20), denominatorStudents: datum(203), ratePct: datum(9.9) },
+  }
+
+  it('shows reported zero, masking, and the separate mobility denominator without estimates', () => {
+    const html = accountabilityContext(empty({
+      level: 'campus', accountabilityContext: context,
+      publicDataMeta: { accountability: { fetchedAt: '29 August 2026', masking: 'https://example.test/masking' } },
+    }))
+    expect(html).toContain('Emergent bilingual students</dt><dd>0</dd>')
+    expect(html).toContain('Students in this TEA accountability summary</dt><dd>195</dd>')
+    expect(html).toContain('Special education students</dt><dd>Masked — small number (*)</dd>')
+    expect(html).toContain('Mobile students</dt><dd>20</dd>')
+    expect(html).toContain('Students in TEA mobility denominator</dt><dd>203</dd>')
+    expect(html).toContain('TEA-published mobility rate</dt><dd>9.9%</dd>')
+    expect(html).not.toContain('Early college pathways')
+    expect(html).not.toMatch(/data-(?:comparison|rank|cohort)/)
+    expect(html).toContain('Context only')
+    expect(html).toContain('separate publication from the fall PEIMS enrollment')
+  })
+
+  it('shows an Early College or P-TECH count only when it is positive or masked', () => {
+    const relevant = structuredClone(context)
+    relevant.programs.earlyCollegeHighSchool.count = datum(12)
+    relevant.programs.earlyCollegeHighSchool.sharePct = datum(6.2)
+    relevant.flags = {
+      newCampus: datum(true),
+      charterSchool: datum(false),
+      alternativeEducationType: datum('Residential treatment facility'),
+    }
+    const html = accountabilityContext(empty({ accountabilityContext: relevant }))
+    expect(html).toContain('Early college pathways')
+    expect(html).toContain('Early College High School</dt><dd>12')
+    expect(html).toContain('TEA-published share: 6.2%')
+    expect(html).toContain('New campus compared with last year’s fall enrollment')
+    expect(html).toContain('Residential treatment facility')
+    expect(html).not.toContain('Charter school')
+  })
+})
+
 /* ------------------------------------------------------------------ verdict */
 
 describe('verdict', () => {
@@ -147,6 +197,22 @@ describe('verdict', () => {
     expect(html).toContain('<div class="entity-intro">')
     expect(html).toContain('<h1>Dallas ISD</h1>')
     expect(html).toContain('Dallas County')
+  })
+
+  it('labels an online campus and does not present its mailing city as a physical location', () => {
+    const html = verdict(empty({
+      level: 'campus', isCharter: true, isOnline: true,
+      districtName: 'Statewide Charter System', city: 'Austin', county: 'Travis',
+    }))
+    expect(html).toContain('Open-enrollment charter campus &middot; Online school')
+    expect(html).toContain('Statewide Charter System')
+    expect(html).not.toContain('Austin')
+  })
+
+  it('labels a charter system city as administrative rather than geographic coverage', () => {
+    const html = verdict(empty({ isCharter: true, city: 'Dallas', county: 'Dallas' }))
+    expect(html).toContain('Administrative office: Dallas')
+    expect(html).not.toContain('Dallas County')
   })
 
   it('states the change since the first year on record', () => {
@@ -337,6 +403,21 @@ describe('strengths and momentum', () => {
     expect(html).toContain('2025-26')
     expect(html).toContain('of 1,019 Texas districts reporting this measure')
     expect(html).not.toContain('in Texas average')
+  })
+
+  it('keeps statewide charter-system and charter-campus placements inside their own sectors', () => {
+    const card = {
+      id: 'rank:attendance', kind: 'rank', metric: 'attendance', metrics: ['attendance'],
+      label: 'Attendance', latestYear: '2025-26',
+      evidence: [{ kind: 'rank', period: 'current', metric: 'attendance', label: 'Attendance', fmt: 'pct', cohort: 'state', cohortLabel: 'Texas charter average', rank: 2, of: 179, tied: 0, value: 98, lowerIsBetter: false }],
+    }
+    const system = highlights(empty({ isCharter: true, highlights: [card] }))
+    expect(system).toContain('Texas charter school systems reporting this measure')
+    expect(system).not.toContain('Texas districts reporting this measure')
+
+    const campus = highlights(empty({ level: 'campus', isCharter: true, highlights: [card] }))
+    expect(campus).toContain('Texas charter campuses reporting this measure')
+    expect(campus).not.toContain('Texas schools reporting this measure')
   })
 
   it('keeps the value, tie and direction visible for a lower-is-better rank', () => {
@@ -635,7 +716,8 @@ describe('enrollment over time', () => {
   }
 
   it('sits immediately after student context and before the campus list', () => {
-    expect(SECTIONS.indexOf(enrollment)).toBe(SECTIONS.indexOf(students) + 1)
+    expect(SECTIONS.indexOf(accountabilityContext)).toBe(SECTIONS.indexOf(students) + 1)
+    expect(SECTIONS.indexOf(enrollment)).toBe(SECTIONS.indexOf(accountabilityContext) + 1)
     expect(SECTIONS.indexOf(enrollment)).toBeLessThan(SECTIONS.indexOf(campuses))
   })
 
@@ -748,6 +830,40 @@ describe('enrollment over time', () => {
     expect(html).toContain('Attendance-zone changes')
     expect(html).toContain('not why')
   })
+
+  it('labels a statewide charter comparison as the Texas charter average and names its sector', () => {
+    const key = 'public:enrollment:2025-26'
+    const charterTrend = {
+      points: [
+        { year: '2024-25', enrollment: 900, change: null },
+        { year: '2025-26', enrollment: 1_000, change: { fromYear: '2024-25', toYear: '2025-26', from: 900, to: 1_000, delta: 100, pct: 11.1 } },
+      ],
+      latest: { year: '2025-26', enrollment: 1_000 },
+      previous: { year: '2024-25', enrollment: 900 },
+      yoy: { fromYear: '2024-25', toYear: '2025-26', from: 900, to: 1_000, delta: 100, pct: 11.1 },
+      contiguous: true,
+      sinceFirst: null,
+    }
+    const render = (level, n) => enrollment(empty({
+      level,
+      isCharter: true,
+      enrollmentTrend: charterTrend,
+      own: { [key]: 1_000 },
+      cohorts: [{ key: 'state', label: 'Texas charter average', short: 'state', n, metrics: { [key]: 850 }, metricN: { [key]: n - 2 } }],
+    }))
+
+    const system = render('district', 179)
+    expect(system).toContain('Texas charter average for</span> <span data-compare-label>charter school systems')
+    expect(system).toContain('177</span> rated charter school systems reporting')
+    expect(system).toContain('average enrollment among reporting charter school systems')
+    expect(system).not.toContain('rated districts reporting')
+
+    const campus = render('campus', 965)
+    expect(campus).toContain('Texas charter average for</span> <span data-compare-label>charter campuses')
+    expect(campus).toContain('963</span> rated charter campuses reporting')
+    expect(campus).toContain('average enrollment among reporting charter campuses')
+    expect(campus).not.toContain('rated schools reporting')
+  })
 })
 
 /* ----------------------------------------------- public context modules */
@@ -790,6 +906,40 @@ describe('district transfer flows', () => {
 
   it('does not invent campus totals from heavily masked detail rows', () => {
     expect(transfers(empty({ level: 'campus', transferContext }))).toBeNull()
+  })
+
+  it('shows charter transfer-ins without inventing a resident population, transfers out or a balance', () => {
+    const charterContext = {
+      ...transferContext,
+      history: transferContext.history.map((point) => ({
+        ...point,
+        transfersOut: null,
+        net: null,
+        coverage: { officialTotals: { in: 'reported', out: 'not_reported' } },
+      })),
+      current: {
+        ...transferContext.current,
+        transfersOut: null,
+        net: null,
+        coverage: {
+          ...transferContext.current.coverage,
+          officialTotals: { in: 'reported', out: 'not_reported' },
+        },
+        topDestinations: [],
+      },
+    }
+    const html = transfers(empty({
+      isCharter: true,
+      name: 'Example Charter',
+      transferContext: charterContext,
+    }))
+
+    expect(html).toContain('Students entering this charter system')
+    expect(html).toContain('Largest reported resident-district origins')
+    expect(html).toContain('does not publish a transfers-out total')
+    expect(html).toContain('net transfer balance cannot be calculated')
+    expect(html).not.toContain('Transfers in minus transfers out')
+    expect(html).not.toContain('Largest reported destinations')
   })
 
   it('distinguishes an official masked total from a total TEA did not report', () => {
@@ -1146,6 +1296,22 @@ describe('claimSentence', () => {
     const s = claimSentence(vmFor({ level: 'campus' }), rank())
     expect(s).toContain('Texas schools')
     expect(s).not.toContain('districts')
+  })
+
+  it('makes copied charter claims explicitly sector-specific', () => {
+    const system = claimSentence(vmFor({ isCharter: true }), rank({ cohortLabel: 'Texas charter average', of: 179 }))
+    expect(system).toContain('among the 179 Texas charter school systems')
+    expect(system).not.toContain('Texas districts')
+
+    const campus = claimSentence(
+      vmFor({ level: 'campus', isCharter: true }),
+      rank({ cohortLabel: 'Texas charter average', of: 965 })
+    )
+    expect(campus).toContain('among the 965 Texas charter campuses')
+    expect(campus).not.toContain('Texas schools')
+
+    const peer = claimSentence(vmFor({ isCharter: true }), rank({ cohort: 'peer', of: 40 }))
+    expect(peer).toContain('charter school systems serving a similar share of economically disadvantaged students')
   })
 
   it('states the tie count, so a shared ceiling is never read as a sole placement', () => {

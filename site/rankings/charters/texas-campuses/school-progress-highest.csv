@@ -1,0 +1,841 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched the source data. The publisher may have revised it since.
+# official accountability landing page: Texas Education Agency Reports and Data Portal at https://tea.texas.gov/school-and-district-leaders/accountability/academic-accountability/performance-reporting/texas-education-agency-reports-and-data-portal
+# dataset: ranking board
+# page: https://txschools.net/rankings/charters/texas-campuses/school-progress-highest
+# rows: 823 (excluding this header and the column row)
+# ranking: Texas open-enrollment charter campuses with the highest School Progress in 2025-26
+# sector: charter (open-enrollment charters only)
+# population: 823 campuses of 965 campuses are ranked here.
+# population: 136 were not rated by TEA for 2025-26 and are not ranked.
+# population: 6 reported no figure for this measure and are not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = the source did not publish that figure, suppressed it, or did not report it. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# rights: txschools.net does not grant permission to reuse third-party source material; consult the publisher's terms and policies, including TEA's at https://tea.texas.gov/about-tea/welcome-and-overview/site-policies.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,district,rating,value,enrollment,url
+1,823,1,123803001,Tekoa Academy of Accelerated Studies,Tekoa Academy of Accelerated Studies STEM School,A,100,38,https://txschools.net/campus/tekoa-academy-of-accelerated-studies-123803001
+1,823,1,240801001,Triumph Public High Schools-Laredo North,Triumph Public High Schools Central Texas,A,100,105,https://txschools.net/campus/triumph-public-high-schools-laredo-north-240801001
+3,823,8,071804002,El Paso Academy West,El Paso Academy,A,97,112,https://txschools.net/campus/el-paso-academy-west-071804002
+3,823,8,101858005,Harmony School of Discovery - Houston,Harmony Public Schools - Houston North,A,97,882,https://txschools.net/campus/harmony-school-of-discovery-houston-101858005
+3,823,8,101862005,Harmony School of Innovation - Katy,Harmony Public Schools - Houston West,A,97,927,https://txschools.net/campus/harmony-school-of-innovation-katy-101862005
+3,823,8,101862002,Harmony School of Innovation-Sugar Land,Harmony Public Schools - Houston West,A,97,939,https://txschools.net/campus/harmony-school-of-innovation-sugar-land-101862002
+3,823,8,161807009,Harmony Science Academy - Euless,Harmony Public Schools - North Texas,A,97,684,https://txschools.net/campus/harmony-science-academy-euless-161807009
+3,823,8,072801110,Premier HS of Lubbock,Premier High Schools,A,97,135,https://txschools.net/campus/premier-hs-of-lubbock-072801110
+3,823,8,072801147,Premier HS-Houston (Champions),Premier High Schools,A,97,86,https://txschools.net/campus/premier-hs-houston-champions-072801147
+3,823,8,123803041,Tekoa Academy of Accelerated Studies,Tekoa Academy of Accelerated Studies STEM School,A,97,35,https://txschools.net/campus/tekoa-academy-of-accelerated-studies-123803041
+3,823,8,108808107,Vanguard Monet,Vanguard Academy,A,97,223,https://txschools.net/campus/vanguard-monet-108808107
+12,823,16,015834001,Basis San Antonio- Shavano Campus,Basis Texas,A,96,1111,https://txschools.net/campus/basis-san-antonio-shavano-campus-015834001
+12,823,16,015805001,Frank L Madla Early College HS,New Frontiers Public Schools Inc,A,96,146,https://txschools.net/campus/frank-l-madla-early-college-hs-015805001
+12,823,16,101858004,Harmony School of Advancement-Houston,Harmony Public Schools - Houston North,A,96,773,https://txschools.net/campus/harmony-school-of-advancement-houston-101858004
+12,823,16,227816008,Harmony Science Academy - Leander,Harmony Public Schools - Central Texas,A,96,640,https://txschools.net/campus/harmony-science-academy-leander-227816008
+12,823,16,101846001,Harmony Science Academy-Houston,Harmony Public Schools - Houston South,A,96,749,https://txschools.net/campus/harmony-science-academy-houston-101846001
+12,823,16,108807030,IDEA Ingram Hills College Preparatory,IDEA Public Schools,A,96,508,https://txschools.net/campus/idea-ingram-hills-college-preparatory-108807030
+12,823,16,108807014,IDEA Riverview College Preparatory,IDEA Public Schools,A,96,814,https://txschools.net/campus/idea-riverview-college-preparatory-108807014
+12,823,16,221801076,Ischool High - Atascocita,Texas College Preparatory Academies,A,96,158,https://txschools.net/campus/ischool-high-atascocita-221801076
+12,823,16,227820013,KIPP Houston HS,KIPP Texas Public Schools,A,96,590,https://txschools.net/campus/kipp-houston-hs-227820013
+12,823,16,183801003,Panola Early College HS,Panola Charter School,A,96,52,https://txschools.net/campus/panola-early-college-hs-183801003
+12,823,16,101806001,Ryss Early College at Broadway,Raul Yzaguirre Schools for Success,A,96,312,https://txschools.net/campus/ryss-early-college-at-broadway-101806001
+12,823,16,015827006,Sst Champions,School of Science and Technology,A,96,1689,https://txschools.net/campus/sst-champions-015827006
+12,823,16,015831008,Sst Hill Country College Prep HS,School of Science and Technology Discovery,A,96,421,https://txschools.net/campus/sst-hill-country-college-prep-hs-015831008
+12,823,16,108804003,Triumph Public High Schools-San Benito,Triumph Public High Schools-Rio Grande Valley,A,96,110,https://txschools.net/campus/triumph-public-high-schools-san-benito-108804003
+12,823,16,057803002,Uplift North Hills Prep HS,Uplift Education,A,96,540,https://txschools.net/campus/uplift-north-hills-prep-hs-057803002
+12,823,16,057803009,Uplift Summit Prep HS,Uplift Education,A,96,424,https://txschools.net/campus/uplift-summit-prep-hs-057803009
+12,823,16,101845008,Yes Prep - 5th Ward,Yes Prep Public Schools Inc,A,96,882,https://txschools.net/campus/yes-prep-5th-ward-101845008
+29,823,35,123807003,Bob Hope School - Cy Fair,Bob Hope School,A,95,193,https://txschools.net/campus/bob-hope-school-cy-fair-123807003
+29,823,35,015838010,Compass Rose Opportunity,Compass Rose Public Schools,A,95,146,https://txschools.net/campus/compass-rose-opportunity-015838010
+29,823,35,227816004,Harmony School of Endeavor - Austin,Harmony Public Schools - Central Texas,A,95,991,https://txschools.net/campus/harmony-school-of-endeavor-austin-227816004
+29,823,35,015828008,Harmony School of Excellence - Laredo,Harmony Public Schools - South Texas,A,95,690,https://txschools.net/campus/harmony-school-of-excellence-laredo-015828008
+29,823,35,015828007,Harmony School of Innovation - Brownsville,Harmony Public Schools - South Texas,A,95,410,https://txschools.net/campus/harmony-school-of-innovation-brownsville-015828007
+29,823,35,161807005,Harmony School of Innovation - Dallas,Harmony Public Schools - North Texas,A,95,592,https://txschools.net/campus/harmony-school-of-innovation-dallas-161807005
+29,823,35,161807011,Harmony School of Innovation - Fort Worth,Harmony Public Schools - North Texas,A,95,999,https://txschools.net/campus/harmony-school-of-innovation-fort-worth-161807011
+29,823,35,161807006,Harmony School of Innovation - Garland,Harmony Public Schools - North Texas,A,95,661,https://txschools.net/campus/harmony-school-of-innovation-garland-161807006
+29,823,35,161807013,Harmony Science Academy - Carrollton,Harmony Public Schools - North Texas,A,95,557,https://txschools.net/campus/harmony-science-academy-carrollton-161807013
+29,823,35,227816002,Harmony Science Academy-Pflugerville,Harmony Public Schools - Central Texas,A,95,777,https://txschools.net/campus/harmony-science-academy-pflugerville-227816002
+29,823,35,101862001,Harmony Science Academy-Sugar Land,Harmony Public Schools - Houston West,A,95,757,https://txschools.net/campus/harmony-science-academy-sugar-land-101862001
+29,823,35,108807084,IDEA Edgemere College Preparatory,IDEA Public Schools,A,95,598,https://txschools.net/campus/idea-edgemere-college-preparatory-108807084
+29,823,35,108807003,IDEA Frontier College Preparatory,IDEA Public Schools,A,95,793,https://txschools.net/campus/idea-frontier-college-preparatory-108807003
+29,823,35,108807011,IDEA McAllen College Preparatory,IDEA Public Schools,A,95,895,https://txschools.net/campus/idea-mcallen-college-preparatory-108807011
+29,823,35,108807036,IDEA Rundberg College Preparatory,IDEA Public Schools,A,95,792,https://txschools.net/campus/idea-rundberg-college-preparatory-108807036
+29,823,35,108807005,IDEA San Benito College Preparatory,IDEA Public Schools,A,95,800,https://txschools.net/campus/idea-san-benito-college-preparatory-108807005
+29,823,35,108807013,IDEA Weslaco Pike College Preparatory,IDEA Public Schools,A,95,735,https://txschools.net/campus/idea-weslaco-pike-college-preparatory-108807013
+29,823,35,057848018,ILTexas Katy - Westpark HS,International Leadership of Texas (ILTexas),A,95,858,https://txschools.net/campus/iltexas-katy-westpark-hs-057848018
+29,823,35,227820021,KIPP Somos Collegiate,KIPP Texas Public Schools,A,95,553,https://txschools.net/campus/kipp-somos-collegiate-227820021
+29,823,35,072801157,Premier HS - Corpus Christi,Premier High Schools,A,95,134,https://txschools.net/campus/premier-hs-corpus-christi-072801157
+29,823,35,072801156,Premier HS - Houston - Hobby,Premier High Schools,A,95,79,https://txschools.net/campus/premier-hs-houston-hobby-072801156
+29,823,35,072801108,Premier HS of Fort Worth,Premier High Schools,A,95,105,https://txschools.net/campus/premier-hs-of-fort-worth-072801108
+29,823,35,072801112,Premier HS of Midland,Premier High Schools,A,95,157,https://txschools.net/campus/premier-hs-of-midland-072801112
+29,823,35,015830102,Somerset Academy Lone Star,Somerset Academies of Texas,A,95,105,https://txschools.net/campus/somerset-academy-lone-star-015830102
+29,823,35,015831002,Sst Corpus Christi,School of Science and Technology Discovery,A,95,2304,https://txschools.net/campus/sst-corpus-christi-015831002
+29,823,35,015831009,Sst Sugar Land College Prep HS,School of Science and Technology Discovery,A,95,773,https://txschools.net/campus/sst-sugar-land-college-prep-hs-015831009
+29,823,35,123803103,Tekoa Academy of Accelerated Studies - Orange,Tekoa Academy of Accelerated Studies STEM School,A,95,108,https://txschools.net/campus/tekoa-academy-of-accelerated-studies-orange-123803103
+29,823,35,057803013,Uplift Infinity Prep HS,Uplift Education,A,95,382,https://txschools.net/campus/uplift-infinity-prep-hs-057803013
+29,823,35,101845006,Yes Prep - Brays Oaks,Yes Prep Public Schools Inc,A,95,1066,https://txschools.net/campus/yes-prep-brays-oaks-101845006
+29,823,35,101845003,Yes Prep - East End,Yes Prep Public Schools Inc,A,95,1040,https://txschools.net/campus/yes-prep-east-end-101845003
+29,823,35,101845004,Yes Prep - Gulfton,Yes Prep Public Schools Inc,A,95,1035,https://txschools.net/campus/yes-prep-gulfton-101845004
+29,823,35,101845101,Yes Prep - North Central,Yes Prep Public Schools Inc,A,95,1025,https://txschools.net/campus/yes-prep-north-central-101845101
+29,823,35,101845012,Yes Prep - Northline,Yes Prep Public Schools Inc,A,95,1036,https://txschools.net/campus/yes-prep-northline-101845012
+29,823,35,101845001,Yes Prep - Southeast,Yes Prep Public Schools Inc,A,95,802,https://txschools.net/campus/yes-prep-southeast-101845001
+29,823,35,101845002,Yes Prep - Southwest,Yes Prep Public Schools Inc,A,95,1085,https://txschools.net/campus/yes-prep-southwest-101845002
+29,823,35,101845009,Yes Prep - White Oak,Yes Prep Public Schools Inc,A,95,947,https://txschools.net/campus/yes-prep-white-oak-101845009
+65,823,25,015834007,Basis Cedar Park,Basis Texas,A,94,499,https://txschools.net/campus/basis-cedar-park-015834007
+65,823,25,015834107,Basis Cedar Park Pri,Basis Texas,A,94,834,https://txschools.net/campus/basis-cedar-park-pri-015834107
+65,823,25,101870001,Beta Academy,Beta Academy,A,94,633,https://txschools.net/campus/beta-academy-101870001
+65,823,25,123807103,Bob Hope Elem School-Baytown,Bob Hope School,A,94,436,https://txschools.net/campus/bob-hope-elem-school-baytown-123807103
+65,823,25,123807002,Bob Hope HS,Bob Hope School,A,94,552,https://txschools.net/campus/bob-hope-hs-123807002
+65,823,25,227817001,Cedars Academy Next Generation HS at Highland,Cedars International Academy,A,94,106,https://txschools.net/campus/cedars-academy-next-generation-hs-at-highland-227817001
+65,823,25,071804001,El Paso Academy,El Paso Academy,A,94,183,https://txschools.net/campus/el-paso-academy-071804001
+65,823,25,101819002,Friends for Life MS,Amigos Por Vida-Friends for Life Pub Chtr Sch,A,94,243,https://txschools.net/campus/friends-for-life-ms-101819002
+65,823,25,071806002,Harmony School of Innovation - Elem Paso,Harmony Public Schools - West Texas,A,94,1260,https://txschools.net/campus/harmony-school-of-innovation-elem-paso-071806002
+65,823,25,071806001,Harmony Science Acad (El Paso),Harmony Public Schools - West Texas,A,94,1036,https://txschools.net/campus/harmony-science-acad-el-paso-071806001
+65,823,25,108807039,IDEA Kyle College Preparatory,IDEA Public Schools,A,94,692,https://txschools.net/campus/idea-kyle-college-preparatory-108807039
+65,823,25,108807022,IDEA Monterrey Park College Preparatory,IDEA Public Schools,A,94,716,https://txschools.net/campus/idea-monterrey-park-college-preparatory-108807022
+65,823,25,108807002,IDEA Quest College Preparatory,IDEA Public Schools,A,94,664,https://txschools.net/campus/idea-quest-college-preparatory-108807002
+65,823,25,108807096,IDEA Sports Park College Preparatory,IDEA Public Schools,A,94,493,https://txschools.net/campus/idea-sports-park-college-preparatory-108807096
+65,823,25,108807017,IDEA Tres Lagos College Preparatory,IDEA Public Schools,A,94,659,https://txschools.net/campus/idea-tres-lagos-college-preparatory-108807017
+65,823,25,227820056,KIPP Connect Preparatory,KIPP Texas Public Schools,A,94,968,https://txschools.net/campus/kipp-connect-preparatory-227820056
+65,823,25,227820205,KIPP Shine Prep,KIPP Texas Public Schools,A,94,918,https://txschools.net/campus/kipp-shine-prep-227820205
+65,823,25,057807002,Life HS Waxahachie,Life School,A,94,1148,https://txschools.net/campus/life-hs-waxahachie-057807002
+65,823,25,072801146,Premier High Schools - Edinburg Career & Technical,Premier High Schools,A,94,140,https://txschools.net/campus/premier-high-schools-edinburg-career-technical-072801146
+65,823,25,174801101,Stephen F Austin State University Charter School,Stephen F Austin State University Charter School,A,94,254,https://txschools.net/campus/stephen-f-austin-state-university-charter-school-174801101
+65,823,25,123803101,Tekoa Academy of Accelerated Studies,Tekoa Academy of Accelerated Studies STEM School,A,94,214,https://txschools.net/campus/tekoa-academy-of-accelerated-studies-123803101
+65,823,25,246803001,The Texas Girls School,The Texas Girls School,A,94,37,https://txschools.net/campus/the-texas-girls-school-246803001
+65,823,25,057803007,Uplift Hampton Prep HS,Uplift Education,A,94,459,https://txschools.net/campus/uplift-hampton-prep-hs-057803007
+65,823,25,108808101,Vanguard Rembrandt,Vanguard Academy,A,94,1951,https://txschools.net/campus/vanguard-rembrandt-108808101
+65,823,25,101845013,Yes Prep - Northwest,Yes Prep Public Schools Inc,A,94,826,https://txschools.net/campus/yes-prep-northwest-101845013
+65,823,25,101845010,Yes Prep North Forest,Yes Prep Public Schools Inc,A,94,995,https://txschools.net/campus/yes-prep-north-forest-101845010
+91,823,25,123807001,Bob Hope School,Bob Hope School,A,93,446,https://txschools.net/campus/bob-hope-school-123807001
+91,823,25,092801001,Dan Chadwick Campus,East Texas Charter Schools,A,93,125,https://txschools.net/campus/dan-chadwick-campus-092801001
+91,823,25,101862006,Harmony School of Excellence - Sugar Land,Harmony Public Schools - Houston West,A,93,1511,https://txschools.net/campus/harmony-school-of-excellence-sugar-land-101862006
+91,823,25,161807012,Harmony School of Innovation- Euless,Harmony Public Schools - North Texas,A,93,716,https://txschools.net/campus/harmony-school-of-innovation-euless-161807012
+91,823,25,015828001,Harmony Science Acad (San Antonio),Harmony Public Schools - South Texas,A,93,658,https://txschools.net/campus/harmony-science-acad-san-antonio-015828001
+91,823,25,161807003,Harmony Science Academy - Dallas,Harmony Public Schools - North Texas,A,93,1096,https://txschools.net/campus/harmony-science-academy-dallas-161807003
+91,823,25,101862003,Harmony Science Academy-Katy,Harmony Public Schools - Houston West,A,93,1413,https://txschools.net/campus/harmony-science-academy-katy-101862003
+91,823,25,101828001,Houston Gateway Academy - Coral Campus,Houston Gateway Academy Inc,A,93,913,https://txschools.net/campus/houston-gateway-academy-coral-campus-101828001
+91,823,25,108807020,IDEA Carver College Preparatory,IDEA Public Schools,A,93,599,https://txschools.net/campus/idea-carver-college-preparatory-108807020
+91,823,25,108807004,IDEA Mission College Preparatory,IDEA Public Schools,A,93,806,https://txschools.net/campus/idea-mission-college-preparatory-108807004
+91,823,25,108807038,IDEA Pflugerville College Preparatory,IDEA Public Schools,A,93,656,https://txschools.net/campus/idea-pflugerville-college-preparatory-108807038
+91,823,25,108807008,IDEA Pharr College Preparatory,IDEA Public Schools,A,93,864,https://txschools.net/campus/idea-pharr-college-preparatory-108807008
+91,823,25,108807016,IDEA Rio Grande City College Preparatory,IDEA Public Schools,A,93,681,https://txschools.net/campus/idea-rio-grande-city-college-preparatory-108807016
+91,823,25,057848034,ILTexas Aggieland HS,International Leadership of Texas (ILTexas),A,93,233,https://txschools.net/campus/iltexas-aggieland-hs-057848034
+91,823,25,221801051,Ischool High at University Park,Texas College Preparatory Academies,A,93,458,https://txschools.net/campus/ischool-high-at-university-park-221801051
+91,823,25,072801152,Premier HS Houston Gallery North,Premier High Schools,A,93,128,https://txschools.net/campus/premier-hs-houston-gallery-north-072801152
+91,823,25,072801103,Premier HS of Brownsville,Premier High Schools,B,93,176,https://txschools.net/campus/premier-hs-of-brownsville-072801103
+91,823,25,072801137,Premier HS of Granbury,Premier High Schools,A,93,137,https://txschools.net/campus/premier-hs-of-granbury-072801137
+91,823,25,101806101,Ryss Academy at Brownsville,Raul Yzaguirre Schools for Success,A,93,598,https://txschools.net/campus/ryss-academy-at-brownsville-101806101
+91,823,25,101806002,Ryss Early College at Brownsville,Raul Yzaguirre Schools for Success,A,93,46,https://txschools.net/campus/ryss-early-college-at-brownsville-101806002
+91,823,25,183801002,Texas Early College HS,Panola Charter School,A,93,93,https://txschools.net/campus/texas-early-college-hs-183801002
+91,823,25,057845004,UME Dallas Secondary,UME Preparatory Academy,A,93,758,https://txschools.net/campus/ume-dallas-secondary-057845004
+91,823,25,212804102,UT Tyler University Academy at Longview,UT Tyler University Academy,A,93,496,https://txschools.net/campus/ut-tyler-university-academy-at-longview-212804102
+91,823,25,108808105,Vanguard Beethoven,Vanguard Academy,A,93,1811,https://txschools.net/campus/vanguard-beethoven-108808105
+91,823,25,057828004,Winfree Academy Charter School - Grand Prairie,Winfree Academy Charter Schools,A,93,221,https://txschools.net/campus/winfree-academy-charter-school-grand-prairie-057828004
+91,823,25,101845007,Yes Prep - Northside,Yes Prep Public Schools Inc,A,93,971,https://txschools.net/campus/yes-prep-northside-101845007
+117,823,28,101849041,Accelerated Int Charter School,Accelerated Intermediate Academy,A,92,24,https://txschools.net/campus/accelerated-int-charter-school-101849041
+117,823,28,101849101,Accelerated Interdisciplinary Acad,Accelerated Intermediate Academy,A,92,142,https://txschools.net/campus/accelerated-interdisciplinary-acad-101849101
+117,823,28,084804101,Ambassadors Preparatory Academy,Ambassadors Preparatory Academy,A,92,140,https://txschools.net/campus/ambassadors-preparatory-academy-084804101
+117,823,28,123807101,Bob Hope School - Elem Campus,Bob Hope School,A,92,626,https://txschools.net/campus/bob-hope-school-elem-campus-123807101
+117,823,28,101858007,Harmony School of Achievement - Houston,Harmony Public Schools - Houston North,A,92,686,https://txschools.net/campus/harmony-school-of-achievement-houston-101858007
+117,823,28,101858010,Harmony School of Excellence - Katy,Harmony Public Schools - Houston North,A,92,1373,https://txschools.net/campus/harmony-school-of-excellence-katy-101858010
+117,823,28,101846003,Harmony School of Ingenuity-Houston,Harmony Public Schools - Houston South,A,92,733,https://txschools.net/campus/harmony-school-of-ingenuity-houston-101846003
+117,823,28,101846002,Harmony School of Innovation - Houston,Harmony Public Schools - Houston South,A,92,518,https://txschools.net/campus/harmony-school-of-innovation-houston-101846002
+117,823,28,108807009,IDEA Edinburg College Preparatory,IDEA Public Schools,A,92,804,https://txschools.net/campus/idea-edinburg-college-preparatory-108807009
+117,823,28,108807015,IDEA North Mission College Preparatory,IDEA Public Schools,A,92,794,https://txschools.net/campus/idea-north-mission-college-preparatory-108807015
+117,823,28,108807006,IDEA San Juan College Preparatory,IDEA Public Schools,A,92,720,https://txschools.net/campus/idea-san-juan-college-preparatory-108807006
+117,823,28,108807018,IDEA Toros College Preparatory,IDEA Public Schools,A,92,199,https://txschools.net/campus/idea-toros-college-preparatory-108807018
+117,823,28,057848003,ILTexas Garland HS,International Leadership of Texas (ILTexas),A,92,616,https://txschools.net/campus/iltexas-garland-hs-057848003
+117,823,28,057848011,ILTexas Grand Prairie MS,International Leadership of Texas (ILTexas),A,92,423,https://txschools.net/campus/iltexas-grand-prairie-ms-057848011
+117,823,28,057848009,ILTexas Keller - Saginaw HS,International Leadership of Texas (ILTexas),A,92,784,https://txschools.net/campus/iltexas-keller-saginaw-hs-057848009
+117,823,28,015822007,Jubilee Living Way,Jubilee Academies,A,92,322,https://txschools.net/campus/jubilee-living-way-015822007
+117,823,28,227820020,KIPP University Prep HS,KIPP Texas Public Schools,A,92,473,https://txschools.net/campus/kipp-university-prep-hs-227820020
+117,823,28,220817003,Newman International Academy of Arlington Gibbins,Newman International Academy of Arlington,A,92,362,https://txschools.net/campus/newman-international-academy-of-arlington-gibbins-220817003
+117,823,28,161802001,Paul and Jane Meyer Public HS,Rapoport Academy Public School,A,92,245,https://txschools.net/campus/paul-and-jane-meyer-public-hs-161802001
+117,823,28,072801143,Premier High School-El Paso Eastpointe,Premier High Schools,B,92,163,https://txschools.net/campus/premier-high-school-el-paso-eastpointe-072801143
+117,823,28,072801113,Premier HS - Austin (South Campus),Premier High Schools,A,92,127,https://txschools.net/campus/premier-hs-austin-south-campus-072801113
+117,823,28,072801129,Premier HS - Elem Paso (Mesa),Premier High Schools,A,92,99,https://txschools.net/campus/premier-hs-elem-paso-mesa-072801129
+117,823,28,072801148,Premier HS of Texarkana,Premier High Schools,A,92,114,https://txschools.net/campus/premier-hs-of-texarkana-072801148
+117,823,28,152802101,Rise Academy,Rise Academy,A,92,287,https://txschools.net/campus/rise-academy-152802101
+117,823,28,015827003,Sst the Woodlands,School of Science and Technology,A,92,556,https://txschools.net/campus/sst-the-woodlands-015827003
+117,823,28,071803002,Triumph Public High Schools-El Paso East,Triumph Public High Schools-West Texas,B,92,120,https://txschools.net/campus/triumph-public-high-schools-el-paso-east-071803002
+117,823,28,057803041,Uplift North Hills Prep MS,Uplift Education,A,92,499,https://txschools.net/campus/uplift-north-hills-prep-ms-057803041
+117,823,28,057803101,Uplift North Hills Prep Ps,Uplift Education,A,92,641,https://txschools.net/campus/uplift-north-hills-prep-ps-057803101
+117,823,28,101845005,Yes Prep - West,Yes Prep Public Schools Inc,A,92,1015,https://txschools.net/campus/yes-prep-west-101845005
+146,823,41,101853106,Baker-Ripley Charter School,Bakerripley Community Schools,A,91,401,https://txschools.net/campus/baker-ripley-charter-school-101853106
+146,823,41,015834005,Basis Pflugerville,Basis Texas,A,91,330,https://txschools.net/campus/basis-pflugerville-015834005
+146,823,41,015834010,Basis Plano,Basis Texas,A,91,354,https://txschools.net/campus/basis-plano-015834010
+146,823,41,015834101,Basis San Antonio Pri- Medical Center Campus,Basis Texas,A,91,778,https://txschools.net/campus/basis-san-antonio-pri-medical-center-campus-015834101
+146,823,41,184801001,Crosstimbers Academy,Crosstimbers Academy,A,91,114,https://txschools.net/campus/crosstimbers-academy-184801001
+146,823,41,123805001,Ehrhart School,Ehrhart School,A,91,593,https://txschools.net/campus/ehrhart-school-123805001
+146,823,41,071806006,Harmony School of Excellence - Elem Paso,Harmony Public Schools - West Texas,A,91,681,https://txschools.net/campus/harmony-school-of-excellence-elem-paso-071806006
+146,823,41,071806007,Harmony School of Science - Elem Paso,Harmony Public Schools - West Texas,B,91,1494,https://txschools.net/campus/harmony-school-of-science-elem-paso-071806007
+146,823,41,101858006,Harmony School of Technology-Houston,Harmony Public Schools - Houston North,B,91,683,https://txschools.net/campus/harmony-school-of-technology-houston-101858006
+146,823,41,101862004,Harmony Science Academy- Beaumont,Harmony Public Schools - Houston West,A,91,1361,https://txschools.net/campus/harmony-science-academy-beaumont-101862004
+146,823,41,015815101,Heritage Academy,Heritage Academy,A,91,33,https://txschools.net/campus/heritage-academy-015815101
+146,823,41,101878001,Houston Classical School,Houston Classical Charter School,A,91,430,https://txschools.net/campus/houston-classical-school-101878001
+146,823,41,108807019,IDEA Elsa College Preparatory,IDEA Public Schools,B,91,739,https://txschools.net/campus/idea-elsa-college-preparatory-108807019
+146,823,41,108807029,IDEA Ewing Halsell College Preparatory,IDEA Public Schools,B,91,584,https://txschools.net/campus/idea-ewing-halsell-college-preparatory-108807029
+146,823,41,108807083,IDEA Owassa College Preparatory,IDEA Public Schools,A,91,674,https://txschools.net/campus/idea-owassa-college-preparatory-108807083
+146,823,41,108807200,IDEA Round Rock Tech College Preparatory,IDEA Public Schools,A,91,534,https://txschools.net/campus/idea-round-rock-tech-college-preparatory-108807200
+146,823,41,108807023,IDEA Walzem College Preparatory,IDEA Public Schools,A,91,681,https://txschools.net/campus/idea-walzem-college-preparatory-108807023
+146,823,41,057848006,ILTexas Arlington-Grand Prairie HS,International Leadership of Texas (ILTexas),B,91,718,https://txschools.net/campus/iltexas-arlington-grand-prairie-hs-057848006
+146,823,41,015822013,Jubilee Westwood,Jubilee Academies,B,91,71,https://txschools.net/campus/jubilee-westwood-015822013
+146,823,41,227820050,KIPP Academy MS,KIPP Texas Public Schools,B,91,517,https://txschools.net/campus/kipp-academy-ms-227820050
+146,823,41,227820059,KIPP Academy West,KIPP Texas Public Schools,A,91,415,https://txschools.net/campus/kipp-academy-west-227820059
+146,823,41,227820212,KIPP Connect Houston Pri,KIPP Texas Public Schools,B,91,1081,https://txschools.net/campus/kipp-connect-houston-pri-227820212
+146,823,41,227820018,KIPP East End HS,KIPP Texas Public Schools,A,91,602,https://txschools.net/campus/kipp-east-end-hs-227820018
+146,823,41,227820062,KIPP Journey Collegiate School,KIPP Texas Public Schools,A,91,616,https://txschools.net/campus/kipp-journey-collegiate-school-227820062
+146,823,41,072801163,Premier HS - Fort Worth (Jacksboro),Premier High Schools,A,91,121,https://txschools.net/campus/premier-hs-fort-worth-jacksboro-072801163
+146,823,41,072801131,Premier HS of Arlington,Premier High Schools,A,91,165,https://txschools.net/campus/premier-hs-of-arlington-072801131
+146,823,41,072801138,Premier HS of Dayton,Premier High Schools,A,91,92,https://txschools.net/campus/premier-hs-of-dayton-072801138
+146,823,41,072801116,Premier HS of Mission,Premier High Schools,B,91,144,https://txschools.net/campus/premier-hs-of-mission-072801116
+146,823,41,072801121,Premier HS of Waco,Premier High Schools,A,91,133,https://txschools.net/campus/premier-hs-of-waco-072801121
+146,823,41,072801115,Premier HS of Weslaco,Premier High Schools,A,91,118,https://txschools.net/campus/premier-hs-of-weslaco-072801115
+146,823,41,101806104,Ryss Academy at Pasadena,Raul Yzaguirre Schools for Success,B,91,233,https://txschools.net/campus/ryss-academy-at-pasadena-101806104
+146,823,41,015827008,Sst Sonterra,School of Science and Technology,A,91,202,https://txschools.net/campus/sst-sonterra-015827008
+146,823,41,015827004,Sst Willow Creek,School of Science and Technology,A,91,287,https://txschools.net/campus/sst-willow-creek-015827004
+146,823,41,057836101,St Anthony Academy,St Anthony School,B,91,207,https://txschools.net/campus/st-anthony-academy-057836101
+146,823,41,108804004,Triumph Public High Schools-Brownsville,Triumph Public High Schools-Rio Grande Valley,A,91,117,https://txschools.net/campus/triumph-public-high-schools-brownsville-108804004
+146,823,41,240801002,Triumph Public High Schools-Laredo South,Triumph Public High Schools Central Texas,A,91,147,https://txschools.net/campus/triumph-public-high-schools-laredo-south-240801002
+146,823,41,108804002,Triumph Public High Schools-McAllen,Triumph Public High Schools-Rio Grande Valley,A,91,119,https://txschools.net/campus/triumph-public-high-schools-mcallen-108804002
+146,823,41,057845003,UME Mansfield Elem,UME Preparatory Academy,A,91,213,https://txschools.net/campus/ume-mansfield-elem-057845003
+146,823,41,057803004,Uplift Williams Prep HS,Uplift Education,A,91,528,https://txschools.net/campus/uplift-williams-prep-hs-057803004
+146,823,41,220810001,Westlake Academy,Westlake Academy Charter School,A,91,908,https://txschools.net/campus/westlake-academy-220810001
+146,823,41,057828003,Winfree Academy Charter School (Richardson),Winfree Academy Charter Schools,B,91,121,https://txschools.net/campus/winfree-academy-charter-school-richardson-057828003
+146,823,41,101845011,Yes Prep - Southside,Yes Prep Public Schools Inc,A,91,875,https://txschools.net/campus/yes-prep-southside-101845011
+188,823,40,015834105,Basis Pflugerville Pri,Basis Texas,A,90,995,https://txschools.net/campus/basis-pflugerville-pri-015834105
+188,823,40,101837041,Calvin Nelms MS,Calvin Nelms Charter Schools,B,90,216,https://txschools.net/campus/calvin-nelms-ms-101837041
+188,823,40,227814001,Chaparral Star Academy,Chaparral Star Academy,A,90,387,https://txschools.net/campus/chaparral-star-academy-227814001
+188,823,40,212801001,Cumberland Academy HS,Cumberland Academy,B,90,364,https://txschools.net/campus/cumberland-academy-hs-212801001
+188,823,40,101871001,Dianne Johnson HS,A' Unlimited Potential,A,90,52,https://txschools.net/campus/dianne-johnson-hs-101871001
+188,823,40,221801071,El Paso Classical Academy,Texas College Preparatory Academies,A,90,291,https://txschools.net/campus/el-paso-classical-academy-221801071
+188,823,40,057834004,Evolution Academy Houston,Evolution Academy Charter School,A,90,195,https://txschools.net/campus/evolution-academy-houston-057834004
+188,823,40,101858001,Harmony School of Excellence-Houston,Harmony Public Schools - Houston North,B,90,1152,https://txschools.net/campus/harmony-school-of-excellence-houston-101858001
+188,823,40,101846102,Harmony School of Exploration- Houston,Harmony Public Schools - Houston South,B,90,787,https://txschools.net/campus/harmony-school-of-exploration-houston-101846102
+188,823,40,227816007,Harmony Science Academy - Georgetown,Harmony Public Schools - Central Texas,A,90,485,https://txschools.net/campus/harmony-science-academy-georgetown-227816007
+188,823,40,015828003,Harmony Science Academy - Laredo,Harmony Public Schools - South Texas,B,90,651,https://txschools.net/campus/harmony-science-academy-laredo-015828003
+188,823,40,101828002,Houston Gateway Academy Inc Elite College Prep,Houston Gateway Academy Inc,B,90,625,https://txschools.net/campus/houston-gateway-academy-inc-elite-college-prep-101828002
+188,823,40,101821001,Houston Heights Charter School,Houston Heights High School,A,90,152,https://txschools.net/campus/houston-heights-charter-school-101821001
+188,823,40,108807007,IDEA Alamo College Preparatory,IDEA Public Schools,B,90,750,https://txschools.net/campus/idea-alamo-college-preparatory-108807007
+188,823,40,108807092,IDEA Burke College Preparatory,IDEA Public Schools,B,90,747,https://txschools.net/campus/idea-burke-college-preparatory-108807092
+188,823,40,108807001,IDEA Donna College Preparatory,IDEA Public Schools,B,90,828,https://txschools.net/campus/idea-donna-college-preparatory-108807001
+188,823,40,108807119,IDEA Elsa Academy,IDEA Public Schools,B,90,702,https://txschools.net/campus/idea-elsa-academy-108807119
+188,823,40,108807021,IDEA South Flores College Preparatory,IDEA Public Schools,B,90,704,https://txschools.net/campus/idea-south-flores-college-preparatory-108807021
+188,823,40,057848010,ILTexas Grand Prairie Elem,International Leadership of Texas (ILTexas),B,90,893,https://txschools.net/campus/iltexas-grand-prairie-elem-057848010
+188,823,40,057848013,ILTexas North Richland Hills MS,International Leadership of Texas (ILTexas),A,90,346,https://txschools.net/campus/iltexas-north-richland-hills-ms-057848013
+188,823,40,015822010,Jubilee Brownsville,Jubilee Academies,B,90,980,https://txschools.net/campus/jubilee-brownsville-015822010
+188,823,40,227820206,KIPP Dream Prep,KIPP Texas Public Schools,B,90,932,https://txschools.net/campus/kipp-dream-prep-227820206
+188,823,40,227820061,KIPP Nexus MS,KIPP Texas Public Schools,B,90,447,https://txschools.net/campus/kipp-nexus-ms-227820061
+188,823,40,015807005,Northeast Campus,Southwest Preparatory School,A,90,69,https://txschools.net/campus/northeast-campus-015807005
+188,823,40,227804101,NYOS Lamar Secondary,NYOS Charter School,A,90,887,https://txschools.net/campus/nyos-lamar-secondary-227804101
+188,823,40,015814001,Positive Solutions Charter,Positive Solutions Charter School,B,90,91,https://txschools.net/campus/positive-solutions-charter-015814001
+188,823,40,072801164,Premier HS - Desoto,Premier High Schools,B,90,59,https://txschools.net/campus/premier-hs-desoto-072801164
+188,823,40,072801161,Premier HS - Houston (Sharpstown),Premier High Schools,A,90,154,https://txschools.net/campus/premier-hs-houston-sharpstown-072801161
+188,823,40,072801104,Premier HS of Palmview,Premier High Schools,B,90,96,https://txschools.net/campus/premier-hs-of-palmview-072801104
+188,823,40,072801144,Premier HS of Pflugerville,Premier High Schools,A,90,92,https://txschools.net/campus/premier-hs-of-pflugerville-072801144
+188,823,40,057848036,Richmond MS,International Leadership of Texas (ILTexas),A,90,270,https://txschools.net/campus/richmond-ms-057848036
+188,823,40,101806043,Ryss MS at East Aldine,Raul Yzaguirre Schools for Success,A,90,137,https://txschools.net/campus/ryss-ms-at-east-aldine-101806043
+188,823,40,101802001,Ser-Ninos Charter High,Ser-Ninos Charter School,B,90,233,https://txschools.net/campus/ser-ninos-charter-high-101802001
+188,823,40,101845102,Southeast Elem,Yes Prep Public Schools Inc,B,90,797,https://txschools.net/campus/southeast-elem-101845102
+188,823,40,015831003,Sst Advancement,School of Science and Technology Discovery,B,90,567,https://txschools.net/campus/sst-advancement-015831003
+188,823,40,015831005,Sst Sugar Land,School of Science and Technology Discovery,A,90,471,https://txschools.net/campus/sst-sugar-land-015831005
+188,823,40,101859101,Step Charter Elem,Step Charter School,B,90,296,https://txschools.net/campus/step-charter-elem-101859101
+188,823,40,071803001,Triumph Public High Schools-El Paso West,Triumph Public High Schools-West Texas,B,90,118,https://txschools.net/campus/triumph-public-high-schools-el-paso-west-071803001
+188,823,40,057803021,Uplift Elevate Prep HS,Uplift Education,B,90,190,https://txschools.net/campus/uplift-elevate-prep-hs-057803021
+188,823,40,057803005,Uplift Luna Prep HS,Uplift Education,B,90,501,https://txschools.net/campus/uplift-luna-prep-hs-057803005
+188,823,40,101845014,Yes Prep - Hobby,Yes Prep Public Schools Inc,A,90,709,https://txschools.net/campus/yes-prep-hobby-101845014
+229,823,27,057829002,A' Secondary School,A' Academy,B,89,829,https://txschools.net/campus/a-secondary-school-057829002
+229,823,27,057831001,Gateway Charter Academy,Gateway Charter Academy,B,89,248,https://txschools.net/campus/gateway-charter-academy-057831001
+229,823,27,161807010,Harmony School of Excellence - Dallas,Harmony Public Schools - North Texas,B,89,538,https://txschools.net/campus/harmony-school-of-excellence-dallas-161807010
+229,823,27,101858011,Harmony Science Academy - Bridgeland,Harmony Public Schools - Houston North,A,89,566,https://txschools.net/campus/harmony-science-academy-bridgeland-101858011
+229,823,27,108807028,IDEA Brackenridge College Preparatory,IDEA Public Schools,B,89,699,https://txschools.net/campus/idea-brackenridge-college-preparatory-108807028
+229,823,27,108807012,IDEA Brownsville College Preparatory,IDEA Public Schools,A,89,761,https://txschools.net/campus/idea-brownsville-college-preparatory-108807012
+229,823,27,108807025,IDEA Judson College Preparatory,IDEA Public Schools,B,89,731,https://txschools.net/campus/idea-judson-college-preparatory-108807025
+229,823,27,108807027,IDEA Najim College Preparatory,IDEA Public Schools,A,89,503,https://txschools.net/campus/idea-najim-college-preparatory-108807027
+229,823,27,108807116,IDEA Rio Grande City Academy,IDEA Public Schools,B,89,701,https://txschools.net/campus/idea-rio-grande-city-academy-108807116
+229,823,27,108807040,IDEA Rio Vista College Preparatory,IDEA Public Schools,B,89,632,https://txschools.net/campus/idea-rio-vista-college-preparatory-108807040
+229,823,27,108807114,IDEA Riverview Academy,IDEA Public Schools,B,89,718,https://txschools.net/campus/idea-riverview-academy-108807114
+229,823,27,057848002,ILTexas Garland MS,International Leadership of Texas (ILTexas),A,89,469,https://txschools.net/campus/iltexas-garland-ms-057848002
+229,823,27,057848028,ILTexas Houston Orem MS,International Leadership of Texas (ILTexas),A,89,420,https://txschools.net/campus/iltexas-houston-orem-ms-057848028
+229,823,27,043802101,Imagine Lone Star International Academy,Imagine Lone Star International Academy,A,89,269,https://txschools.net/campus/imagine-lone-star-international-academy-043802101
+229,823,27,227820015,KIPP Northeast College Preparatory,KIPP Texas Public Schools,B,89,591,https://txschools.net/campus/kipp-northeast-college-preparatory-227820015
+229,823,27,227820030,KIPP Oak Cliff Academy,KIPP Texas Public Schools,B,89,304,https://txschools.net/campus/kipp-oak-cliff-academy-227820030
+229,823,27,227820207,KIPP Sharp Prep,KIPP Texas Public Schools,B,89,1111,https://txschools.net/campus/kipp-sharp-prep-227820207
+229,823,27,071807101,La Fe Preparatory School,La Fe Preparatory School,B,89,185,https://txschools.net/campus/la-fe-preparatory-school-071807101
+229,823,27,014804007,Nolan Creek School,Orenda Charter School,B,89,92,https://txschools.net/campus/nolan-creek-school-014804007
+229,823,27,072801117,Premier HS - San Antonio (Windcrest),Premier High Schools,B,89,86,https://txschools.net/campus/premier-hs-san-antonio-windcrest-072801117
+229,823,27,072801142,Premier HS of Amarillo,Premier High Schools,A,89,215,https://txschools.net/campus/premier-hs-of-amarillo-072801142
+229,823,27,072801136,Premier HS of New Braunfels,Premier High Schools,B,89,77,https://txschools.net/campus/premier-hs-of-new-braunfels-072801136
+229,823,27,101838001,Southwest Public Schools College &career Prep Acad,Southwest Public Schools,A,89,453,https://txschools.net/campus/southwest-public-schools-college-career-prep-acad-101838001
+229,823,27,057803020,Uplift Ascend Prep HS,Uplift Education,B,89,302,https://txschools.net/campus/uplift-ascend-prep-hs-057803020
+229,823,27,057803010,Uplift Atlas Prep HS,Uplift Education,B,89,491,https://txschools.net/campus/uplift-atlas-prep-hs-057803010
+229,823,27,057803016,Uplift Grand College Prep and Career Institute,Uplift Education,B,89,385,https://txschools.net/campus/uplift-grand-college-prep-and-career-institute-057803016
+229,823,27,212804103,UT Tyler University Academy-Palestine,UT Tyler University Academy,A,89,281,https://txschools.net/campus/ut-tyler-university-academy-palestine-212804103
+229,823,27,108808104,Vanguard Mozart,Vanguard Academy,B,89,1130,https://txschools.net/campus/vanguard-mozart-108808104
+257,823,27,015834006,Basis San Antonio - Jack Lewis Jr Campus,Basis Texas,A,88,238,https://txschools.net/campus/basis-san-antonio-jack-lewis-jr-campus-015834006
+257,823,27,101837001,Calvin Nelms HS,Calvin Nelms Charter Schools,A,88,198,https://txschools.net/campus/calvin-nelms-hs-101837001
+257,823,27,015836001,Eleanor Kolitz Hebrew Language Academy,Eleanor Kolitz Hebrew Language Academy,B,88,464,https://txschools.net/campus/eleanor-kolitz-hebrew-language-academy-015836001
+257,823,27,057834003,Evolution Academy Beaumont,Evolution Academy Charter School,A,88,188,https://txschools.net/campus/evolution-academy-beaumont-057834003
+257,823,27,220809001,Fort Worth Academy of Fine Arts,Fort Worth Academy of Fine Arts,B,88,420,https://txschools.net/campus/fort-worth-academy-of-fine-arts-220809001
+257,823,27,161807015,Harmony Science Academy - Plano,Harmony Public Schools - North Texas,B,88,647,https://txschools.net/campus/harmony-science-academy-plano-161807015
+257,823,27,015815041,Heritage Academy of Del Rio,Heritage Academy,A,88,179,https://txschools.net/campus/heritage-academy-of-del-rio-015815041
+257,823,27,108807184,IDEA Edgemere Academy,IDEA Public Schools,B,88,712,https://txschools.net/campus/idea-edgemere-academy-108807184
+257,823,27,108807089,IDEA Los Encinos College Preparatory,IDEA Public Schools,B,88,891,https://txschools.net/campus/idea-los-encinos-college-preparatory-108807089
+257,823,27,057848007,ILTexas Keller Elem,International Leadership of Texas (ILTexas),B,88,928,https://txschools.net/campus/iltexas-keller-elem-057848007
+257,823,27,057848008,ILTexas Keller MS,International Leadership of Texas (ILTexas),A,88,432,https://txschools.net/campus/iltexas-keller-ms-057848008
+257,823,27,043801001,Imagine International Academy of North Texas,Imagine International Academy of North Texas,A,88,1438,https://txschools.net/campus/imagine-international-academy-of-north-texas-043801001
+257,823,27,227820041,KIPP Austin College Prep,KIPP Texas Public Schools,B,88,431,https://txschools.net/campus/kipp-austin-college-prep-227820041
+257,823,27,227820052,KIPP Sharpstown College Prep,KIPP Texas Public Schools,B,88,928,https://txschools.net/campus/kipp-sharpstown-college-prep-227820052
+257,823,27,227820083,KIPP Somos Pri,KIPP Texas Public Schools,B,88,321,https://txschools.net/campus/kipp-somos-pri-227820083
+257,823,27,227820016,KIPP Sunnyside HS,KIPP Texas Public Schools,B,88,606,https://txschools.net/campus/kipp-sunnyside-hs-227820016
+257,823,27,246801001,Meridian World School LLC,Meridian World School LLC,A,88,1757,https://txschools.net/campus/meridian-world-school-llc-246801001
+257,823,27,072801162,Premier HS - Fort Worth (Southside),Premier High Schools,B,88,136,https://txschools.net/campus/premier-hs-fort-worth-southside-072801162
+257,823,27,072801118,Premier HS of Tyler,Premier High Schools,B,88,68,https://txschools.net/campus/premier-hs-of-tyler-072801118
+257,823,27,014803101,Priority Charter Schools- Temple Charter Academy,Priority Charter Schools,B,88,223,https://txschools.net/campus/priority-charter-schools-temple-charter-academy-014803101
+257,823,27,015827001,Sst SA College Prep HS,School of Science and Technology,A,88,602,https://txschools.net/campus/sst-sa-college-prep-hs-015827001
+257,823,27,057804003,Texans Can Academy - Carrollton Farmers Branch,Texans Can Academies,B,88,173,https://txschools.net/campus/texans-can-academy-carrollton-farmers-branch-057804003
+257,823,27,057804008,Texans Can Academy - Fort Worth Lancaster Avenue,Texans Can Academies,B,88,285,https://txschools.net/campus/texans-can-academy-fort-worth-lancaster-avenue-057804008
+257,823,27,170802001,Thrive Center for Success,Thrive Center for Success,B,88,177,https://txschools.net/campus/thrive-center-for-success-170802001
+257,823,27,057808102,Universal Academy Coppell,Universal Academy,A,88,1299,https://txschools.net/campus/universal-academy-coppell-057808102
+257,823,27,057803012,Uplift Luna Prep MS,Uplift Education,B,88,618,https://txschools.net/campus/uplift-luna-prep-ms-057803012
+257,823,27,057803014,Uplift Mighty Prep HS,Uplift Education,B,88,392,https://txschools.net/campus/uplift-mighty-prep-hs-057803014
+257,823,27,057803019,Uplift Wisdom Prep HS,Uplift Education,B,88,317,https://txschools.net/campus/uplift-wisdom-prep-hs-057803019
+285,823,31,101815101,Alief Montessori Community School,Alief Montessori Community School,B,87,416,https://txschools.net/campus/alief-montessori-community-school-101815101
+285,823,31,101819001,Amigos Por Vida-Friends for Life Charter School,Amigos Por Vida-Friends for Life Pub Chtr Sch,B,87,559,https://txschools.net/campus/amigos-por-vida-friends-for-life-charter-school-101819001
+285,823,31,227825004,Austin Achieve HS,Austin Achieve Public Schools,B,87,608,https://txschools.net/campus/austin-achieve-hs-227825004
+285,823,31,071801003,Davinci School for Science and the Arts,Burnham Wood Charter School District,B,87,1068,https://txschools.net/campus/davinci-school-for-science-and-the-arts-071801003
+285,823,31,003801042,Dr Terry Robbins MS,Pineywoods Community Academy,B,87,256,https://txschools.net/campus/dr-terry-robbins-ms-003801042
+285,823,31,221801043,Founders Classical Academy - Lewisville,Texas College Preparatory Academies,A,87,902,https://txschools.net/campus/founders-classical-academy-lewisville-221801043
+285,823,31,014804006,Gateway College Preparatory School,Orenda Charter School,A,87,1678,https://txschools.net/campus/gateway-college-preparatory-school-014804006
+285,823,31,227816006,Harmony Science Academy - Cedar Park,Harmony Public Schools - Central Texas,A,87,736,https://txschools.net/campus/harmony-science-academy-cedar-park-227816006
+285,823,31,108807035,IDEA Montopolis College Preparatory,IDEA Public Schools,B,87,824,https://txschools.net/campus/idea-montopolis-college-preparatory-108807035
+285,823,31,108807102,IDEA Quest Academy,IDEA Public Schools,B,87,557,https://txschools.net/campus/idea-quest-academy-108807102
+285,823,31,108807010,IDEA Weslaco College Preparatory,IDEA Public Schools,B,87,713,https://txschools.net/campus/idea-weslaco-college-preparatory-108807010
+285,823,31,057848026,ILTexas Houston Windmill Lakes MS,International Leadership of Texas (ILTexas),B,87,434,https://txschools.net/campus/iltexas-houston-windmill-lakes-ms-057848026
+285,823,31,057848033,ILTexas Houston Windmill Lakes Orem HS,International Leadership of Texas (ILTexas),B,87,835,https://txschools.net/campus/iltexas-houston-windmill-lakes-orem-hs-057848033
+285,823,31,057848020,ILTexas Lancaster MS,International Leadership of Texas (ILTexas),B,87,337,https://txschools.net/campus/iltexas-lancaster-ms-057848020
+285,823,31,057848032,ILTexas Lancaster-Desoto HS,International Leadership of Texas (ILTexas),B,87,179,https://txschools.net/campus/iltexas-lancaster-desoto-hs-057848032
+285,823,31,057848038,ILTexas Mansfield Heritage MS,International Leadership of Texas (ILTexas),B,87,183,https://txschools.net/campus/iltexas-mansfield-heritage-ms-057848038
+285,823,31,057848017,ILTexas Westpark MS,International Leadership of Texas (ILTexas),B,87,455,https://txschools.net/campus/iltexas-westpark-ms-057848017
+285,823,31,015822008,Jubilee Harlingen,Jubilee Academies,B,87,362,https://txschools.net/campus/jubilee-harlingen-015822008
+285,823,31,227820001,KIPP Austin Collegiate,KIPP Texas Public Schools,B,87,859,https://txschools.net/campus/kipp-austin-collegiate-227820001
+285,823,31,227820014,KIPP Generations Collegiate,KIPP Texas Public Schools,B,87,592,https://txschools.net/campus/kipp-generations-collegiate-227820014
+285,823,31,227820057,KIPP Liberation College Preparatory,KIPP Texas Public Schools,B,87,368,https://txschools.net/campus/kipp-liberation-college-preparatory-227820057
+285,823,31,227820060,KIPP Prime College Preparatory,KIPP Texas Public Schools,B,87,428,https://txschools.net/campus/kipp-prime-college-preparatory-227820060
+285,823,31,227820058,KIPP Spirit College Prep,KIPP Texas Public Schools,B,87,531,https://txschools.net/campus/kipp-spirit-college-prep-227820058
+285,823,31,003801001,Pineywoods Community Academy HS,Pineywoods Community Academy,A,87,296,https://txschools.net/campus/pineywoods-community-academy-hs-003801001
+285,823,31,072801128,Premier HS - Austin (Wells Branch),Premier High Schools,B,87,86,https://txschools.net/campus/premier-hs-austin-wells-branch-072801128
+285,823,31,014803005,Priority Charter Schools - Killeen,Priority Charter Schools,B,87,107,https://txschools.net/campus/priority-charter-schools-killeen-014803005
+285,823,31,101859103,Step Charter Iii,Step Charter School,B,87,87,https://txschools.net/campus/step-charter-iii-101859103
+285,823,31,057804007,Texans Can Academy - Fort Worth Westcreek,Texans Can Academies,B,87,214,https://txschools.net/campus/texans-can-academy-fort-worth-westcreek-057804007
+285,823,31,057808101,Universal Academy,Universal Academy,B,87,669,https://txschools.net/campus/universal-academy-057808101
+285,823,31,057803006,Uplift Heights Healthcare Institute,Uplift Education,B,87,491,https://txschools.net/campus/uplift-heights-healthcare-institute-057803006
+285,823,31,057803043,Uplift Infinity Prep MS,Uplift Education,B,87,354,https://txschools.net/campus/uplift-infinity-prep-ms-057803043
+285,823,31,212804001,UT Tyler University Academy at Tyler,UT Tyler University Academy,A,87,447,https://txschools.net/campus/ut-tyler-university-academy-at-tyler-212804001
+317,823,31,015834004,Basis Austin,Basis Texas,A,86,252,https://txschools.net/campus/basis-austin-015834004
+317,823,31,015834008,Basis Richardson,Basis Texas,A,86,79,https://txschools.net/campus/basis-richardson-015834008
+317,823,31,015834002,Basis San Antonio- Pri North Central Campus,Basis Texas,A,86,688,https://txschools.net/campus/basis-san-antonio-pri-north-central-campus-015834002
+317,823,31,015835007,Great Hearts Irving Upper,Great Hearts Texas,A,86,1021,https://txschools.net/campus/great-hearts-irving-upper-015835007
+317,823,31,227816101,Harmony School of Excellence - Austin,Harmony Public Schools - Central Texas,B,86,485,https://txschools.net/campus/harmony-school-of-excellence-austin-227816101
+317,823,31,161807014,Harmony School of Innovation - Waco,Harmony Public Schools - North Texas,B,86,645,https://txschools.net/campus/harmony-school-of-innovation-waco-161807014
+317,823,31,015828009,Harmony School of Science- San Antonio,Harmony Public Schools - South Texas,B,86,994,https://txschools.net/campus/harmony-school-of-science-san-antonio-015828009
+317,823,31,101858009,Harmony Science Academy - Cypress,Harmony Public Schools - Houston North,B,86,676,https://txschools.net/campus/harmony-science-academy-cypress-101858009
+317,823,31,101846008,Harmony Virtual Academy,Harmony Public Schools - Houston South,B,86,555,https://txschools.net/campus/harmony-virtual-academy-101846008
+317,823,31,015815042,Heritage Academy of Del Rio MS,Heritage Academy,A,86,253,https://txschools.net/campus/heritage-academy-of-del-rio-ms-015815042
+317,823,31,108807091,IDEA Health Professions College Preparatory,IDEA Public Schools,B,86,427,https://txschools.net/campus/idea-health-professions-college-preparatory-108807091
+317,823,31,108807026,IDEA Mays College Preparatory,IDEA Public Schools,B,86,701,https://txschools.net/campus/idea-mays-college-preparatory-108807026
+317,823,31,108807188,IDEA Robindale Academy,IDEA Public Schools,B,86,642,https://txschools.net/campus/idea-robindale-academy-108807188
+317,823,31,221801056,Ischool High at the Woodlands,Texas College Preparatory Academies,B,86,676,https://txschools.net/campus/ischool-high-at-the-woodlands-221801056
+317,823,31,015822001,Jubilee San Antonio,Jubilee Academies,B,86,975,https://txschools.net/campus/jubilee-san-antonio-015822001
+317,823,31,227820002,KIPP Austin Brave,KIPP Texas Public Schools,B,86,372,https://txschools.net/campus/kipp-austin-brave-227820002
+317,823,31,227820101,KIPP Austin Comunidad,KIPP Texas Public Schools,B,86,552,https://txschools.net/campus/kipp-austin-comunidad-227820101
+317,823,31,101845103,North Central Elem,Yes Prep Public Schools Inc,B,86,834,https://txschools.net/campus/north-central-elem-101845103
+317,823,31,015801002,Por Vida Academy at Corpus Christi,Por Vida Academy,B,86,60,https://txschools.net/campus/por-vida-academy-at-corpus-christi-015801002
+317,823,31,072801167,Premier HS - McAllen,Premier High Schools,B,86,48,https://txschools.net/campus/premier-hs-mcallen-072801167
+317,823,31,072801153,Premier HS Odessa,Premier High Schools,A,86,153,https://txschools.net/campus/premier-hs-odessa-072801153
+317,823,31,072801130,Premier HS of San Juan,Premier High Schools,B,86,99,https://txschools.net/campus/premier-hs-of-san-juan-072801130
+317,823,31,057848035,Richmond Elem,International Leadership of Texas (ILTexas),B,86,867,https://txschools.net/campus/richmond-elem-057848035
+317,823,31,101853042,Ripley House MS Campus,Bakerripley Community Schools,B,86,169,https://txschools.net/campus/ripley-house-ms-campus-101853042
+317,823,31,236802101,Sam Houston State University Charter School,Sam Houston State University Charter School,B,86,343,https://txschools.net/campus/sam-houston-state-university-charter-school-236802101
+317,823,31,057836041,St Anthony School,St Anthony School,B,86,114,https://txschools.net/campus/st-anthony-school-057836041
+317,823,31,057804001,Texans Can Academy - Dallas North,Texans Can Academies,B,86,140,https://txschools.net/campus/texans-can-academy-dallas-north-057804001
+317,823,31,226801001,Texas Leadership of San Angelo,Texas Leadership Public Schools,B,86,1562,https://txschools.net/campus/texas-leadership-of-san-angelo-226801001
+317,823,31,101868001,The Pro-Vision Academy,The Pro-Vision Academy,C,86,141,https://txschools.net/campus/the-pro-vision-academy-101868001
+317,823,31,057813110,Trinity Basin Preparatory - Titan Academy,Trinity Basin Preparatory,B,86,445,https://txschools.net/campus/trinity-basin-preparatory-titan-academy-057813110
+317,823,31,057803102,Uplift Infinity Prep Ps,Uplift Education,B,86,510,https://txschools.net/campus/uplift-infinity-prep-ps-057803102
+317,823,31,101845111,Yes Prep Hobby Elem,Yes Prep Public Schools Inc,B,86,266,https://txschools.net/campus/yes-prep-hobby-elem-101845111
+349,823,30,021805101,Arrow Academy - Liberation Academy,Arrow Academy,B,85,181,https://txschools.net/campus/arrow-academy-liberation-academy-021805101
+349,823,30,057835104,Golden Rule Grand Prairie,Golden Rule Charter School,B,85,90,https://txschools.net/campus/golden-rule-grand-prairie-057835104
+349,823,30,101846006,Harmony School of Fine Arts and Technology-Houston,Harmony Public Schools - Houston South,B,85,758,https://txschools.net/campus/harmony-school-of-fine-arts-and-technology-houston-101846006
+349,823,30,108802104,Horizon Montessori Pearland - STEM Academy,Horizon Montessori Public Schools,B,85,165,https://txschools.net/campus/horizon-montessori-pearland-stem-academy-108802104
+349,823,30,108807209,IDEA A W Brown College Preparatory,IDEA Public Schools,B,85,192,https://txschools.net/campus/idea-a-w-brown-college-preparatory-108807209
+349,823,30,108807037,IDEA Bluff Springs College Preparatory,IDEA Public Schools,B,85,701,https://txschools.net/campus/idea-bluff-springs-college-preparatory-108807037
+349,823,30,108807095,IDEA Harlingen College Preparatory,IDEA Public Schools,B,85,551,https://txschools.net/campus/idea-harlingen-college-preparatory-108807095
+349,823,30,108807125,IDEA Judson Academy,IDEA Public Schools,B,85,643,https://txschools.net/campus/idea-judson-academy-108807125
+349,823,30,108807104,IDEA Mission Academy,IDEA Public Schools,B,85,581,https://txschools.net/campus/idea-mission-academy-108807104
+349,823,30,108807300,IDEA Round Rock Tech Academy,IDEA Public Schools,B,85,689,https://txschools.net/campus/idea-round-rock-tech-academy-108807300
+349,823,30,108807105,IDEA San Benito Academy,IDEA Public Schools,B,85,673,https://txschools.net/campus/idea-san-benito-academy-108807105
+349,823,30,108807117,IDEA Tres Lagos Academy,IDEA Public Schools,B,85,605,https://txschools.net/campus/idea-tres-lagos-academy-108807117
+349,823,30,227820051,KIPP 3D Academy,KIPP Texas Public Schools,B,85,520,https://txschools.net/campus/kipp-3d-academy-227820051
+349,823,30,227820073,KIPP Pleasant Grove Leadership Academy,KIPP Texas Public Schools,B,85,526,https://txschools.net/campus/kipp-pleasant-grove-leadership-academy-227820073
+349,823,30,227820053,KIPP Polaris Academy for Boys,KIPP Texas Public Schools,B,85,340,https://txschools.net/campus/kipp-polaris-academy-for-boys-227820053
+349,823,30,227820055,KIPP Voyage Academy for Girls,KIPP Texas Public Schools,B,85,333,https://txschools.net/campus/kipp-voyage-academy-for-girls-227820055
+349,823,30,057807001,Life School Oak Cliff,Life School,B,85,1456,https://txschools.net/campus/life-school-oak-cliff-057807001
+349,823,30,015825001,Lighthouse MS,Lighthouse Public Schools,B,85,104,https://txschools.net/campus/lighthouse-ms-015825001
+349,823,30,057844101,Manara Academy-Irving,Manara Academy,B,85,326,https://txschools.net/campus/manara-academy-irving-057844101
+349,823,30,220817005,Newman International Academy of Mansfield,Newman International Academy of Arlington,B,85,210,https://txschools.net/campus/newman-international-academy-of-mansfield-220817005
+349,823,30,072801109,Premier HS of Laredo,Premier High Schools,A,85,117,https://txschools.net/campus/premier-hs-of-laredo-072801109
+349,823,30,014801005,Richard Milburn Academy Houston (Suburban),Richard Milburn Alter High School (Killeen),B,85,163,https://txschools.net/campus/richard-milburn-academy-houston-suburban-014801005
+349,823,30,015831004,Sst Northwest,School of Science and Technology Discovery,B,85,637,https://txschools.net/campus/sst-northwest-015831004
+349,823,30,015827005,Sst Spring,School of Science and Technology,B,85,778,https://txschools.net/campus/sst-spring-015827005
+349,823,30,057804010,Texans Can Academy - Houston Hobby,Texans Can Academies,B,85,291,https://txschools.net/campus/texans-can-academy-houston-hobby-057804010
+349,823,30,057804009,Texans Can Academy - Houston North,Texans Can Academies,B,85,216,https://txschools.net/campus/texans-can-academy-houston-north-057804009
+349,823,30,057804004,Texans Can Academy - Pleasant Grove,Texans Can Academies,C,85,521,https://txschools.net/campus/texans-can-academy-pleasant-grove-057804004
+349,823,30,212801102,The Leadership Academy,Cumberland Academy,B,85,308,https://txschools.net/campus/the-leadership-academy-212801102
+349,823,30,071803003,Triumph Public High Schools-Abilene,Triumph Public High Schools-West Texas,B,85,111,https://txschools.net/campus/triumph-public-high-schools-abilene-071803003
+349,823,30,108808103,Vanguard Picasso,Vanguard Academy,B,85,574,https://txschools.net/campus/vanguard-picasso-108808103
+349,823,30,101845110,Yes Prep North Rankin Elem,Yes Prep Public Schools Inc,B,85,433,https://txschools.net/campus/yes-prep-north-rankin-elem-101845110
+380,823,15,021805041,Arrow Academy - Save Our Streets Center,Arrow Academy,B,84,134,https://txschools.net/campus/arrow-academy-save-our-streets-center-021805041
+380,823,15,221801068,Founders Classical Academy - Frisco,Texas College Preparatory Academies,A,84,897,https://txschools.net/campus/founders-classical-academy-frisco-221801068
+380,823,15,221801063,Founders Classical Academy of Flower Mound,Texas College Preparatory Academies,A,84,948,https://txschools.net/campus/founders-classical-academy-of-flower-mound-221801063
+380,823,15,015815104,Heritage Academy of San Antonio,Heritage Academy,A,84,8,https://txschools.net/campus/heritage-academy-of-san-antonio-015815104
+380,823,15,108807195,IDEA Harlingen Academy,IDEA Public Schools,B,84,620,https://txschools.net/campus/idea-harlingen-academy-108807195
+380,823,15,108807183,IDEA Owassa Academy,IDEA Public Schools,B,84,638,https://txschools.net/campus/idea-owassa-academy-108807183
+380,823,15,221801057,Ignite Community School - Humble,Texas College Preparatory Academies,B,84,322,https://txschools.net/campus/ignite-community-school-humble-221801057
+380,823,15,221801080,Ischool-Creekside,Texas College Preparatory Academies,B,84,117,https://txschools.net/campus/ischool-creekside-221801080
+380,823,15,057846001,Legacy Prep Charter Academy Mesquite West Campus,Legacy Preparatory,B,84,914,https://txschools.net/campus/legacy-prep-charter-academy-mesquite-west-campus-057846001
+380,823,15,057844001,Manara Leadership Academy,Manara Academy,B,84,94,https://txschools.net/campus/manara-leadership-academy-057844001
+380,823,15,072801159,Premier HS - Wichita Falls,Premier High Schools,B,84,120,https://txschools.net/campus/premier-hs-wichita-falls-072801159
+380,823,15,072801101,Premier HS of Abilene,Premier High Schools,B,84,159,https://txschools.net/campus/premier-hs-of-abilene-072801101
+380,823,15,072801107,Premier HS of Del Rio,Premier High Schools,C,84,50,https://txschools.net/campus/premier-hs-of-del-rio-072801107
+380,823,15,015830101,Somerset Academy Collegiate,Somerset Academies of Texas,B,84,1092,https://txschools.net/campus/somerset-academy-collegiate-015830101
+380,823,15,015807004,Southwest Preparatory School-Northwest,Southwest Preparatory School,A,84,121,https://txschools.net/campus/southwest-preparatory-school-northwest-015807004
+380,823,15,071809001,Vista Del Futuro Charter School,Vista Del Futuro Charter School,B,84,347,https://txschools.net/campus/vista-del-futuro-charter-school-071809001
+396,823,23,220802040,Arlington Classics Academy - MS,Arlington Classics Academy,B,83,531,https://txschools.net/campus/arlington-classics-academy-ms-220802040
+396,823,23,015834110,Basis Plano Pri,Basis Texas,A,83,921,https://txschools.net/campus/basis-plano-pri-015834110
+396,823,23,221801023,Founders Classical Academy- Carrollton,Texas College Preparatory Academies,B,83,580,https://txschools.net/campus/founders-classical-academy-carrollton-221801023
+396,823,23,221801020,Founders Classical Academy-Corinth-Upper School,Texas College Preparatory Academies,B,83,526,https://txschools.net/campus/founders-classical-academy-corinth-upper-school-221801020
+396,823,23,108807024,IDEA Eastside College Preparatory,IDEA Public Schools,B,83,500,https://txschools.net/campus/idea-eastside-college-preparatory-108807024
+396,823,23,108807202,IDEA Edgecliff College Preparatory,IDEA Public Schools,C,83,738,https://txschools.net/campus/idea-edgecliff-college-preparatory-108807202
+396,823,23,108807210,IDEA Lopez College Preparatory,IDEA Public Schools,B,83,122,https://txschools.net/campus/idea-lopez-college-preparatory-108807210
+396,823,23,108807185,IDEA Mesa Hills Academy,IDEA Public Schools,B,83,638,https://txschools.net/campus/idea-mesa-hills-academy-108807185
+396,823,23,057848015,ILTexas Katy MS,International Leadership of Texas (ILTexas),B,83,451,https://txschools.net/campus/iltexas-katy-ms-057848015
+396,823,23,227820054,KIPP Intrepid Preparatory,KIPP Texas Public Schools,C,83,512,https://txschools.net/campus/kipp-intrepid-preparatory-227820054
+396,823,23,227820218,KIPP Journey Pri,KIPP Texas Public Schools,B,83,1020,https://txschools.net/campus/kipp-journey-pri-227820218
+396,823,23,057827102,Nova Academy Prichard,Nova Academy Southeast,B,83,181,https://txschools.net/campus/nova-academy-prichard-057827102
+396,823,23,057850003,Pioneer Technology (PTAA) Fate,Pioneer Technology & Arts Academy,A,83,390,https://txschools.net/campus/pioneer-technology-ptaa-fate-057850003
+396,823,23,015843101,Prelude Preparatory Charter School,Prelude Preparatory Charter School,B,83,165,https://txschools.net/campus/prelude-preparatory-charter-school-015843101
+396,823,23,072801149,Premier HS - San Antonio (Ingram),Premier High Schools,B,83,92,https://txschools.net/campus/premier-hs-san-antonio-ingram-072801149
+396,823,23,072801135,Premier HS of Huntsville,Premier High Schools,A,83,62,https://txschools.net/campus/premier-hs-of-huntsville-072801135
+396,823,23,015830001,Somerset Academy Brooks,Somerset Academies of Texas,B,83,1221,https://txschools.net/campus/somerset-academy-brooks-015830001
+396,823,23,015807101,Southwest Prep Northwest Elem,Southwest Preparatory School,D,83,116,https://txschools.net/campus/southwest-prep-northwest-elem-015807101
+396,823,23,057804013,Texans Can Academy - Garland,Texans Can Academies,B,83,125,https://txschools.net/campus/texans-can-academy-garland-057804013
+396,823,23,057804012,Texans Can Academy - Houston Southwest,Texans Can Academies,B,83,287,https://txschools.net/campus/texans-can-academy-houston-southwest-057804012
+396,823,23,057803115,Uplift Crescendo Prep Ps,Uplift Education,B,83,562,https://txschools.net/campus/uplift-crescendo-prep-ps-057803115
+396,823,23,057803050,Uplift Elevate Prep MS,Uplift Education,C,83,267,https://txschools.net/campus/uplift-elevate-prep-ms-057803050
+396,823,23,057828001,Winfree Academy Charter School (Irving),Winfree Academy Charter Schools,B,83,133,https://txschools.net/campus/winfree-academy-charter-school-irving-057828001
+396,823,23,057828002,Winfree Academy Charter School (Lewisville),Winfree Academy Charter Schools,B,83,103,https://txschools.net/campus/winfree-academy-charter-school-lewisville-057828002
+420,823,33,057834001,Evolution Academy Charter School,Evolution Academy Charter School,B,82,256,https://txschools.net/campus/evolution-academy-charter-school-057834001
+420,823,33,161807002,Harmony Science Academy - Garland,Harmony Public Schools - North Texas,B,82,778,https://txschools.net/campus/harmony-science-academy-garland-161807002
+420,823,33,108802101,Horizon Montessori - STEM Academy,Horizon Montessori Public Schools,C,82,309,https://txschools.net/campus/horizon-montessori-stem-academy-108802101
+420,823,33,108807191,IDEA Health Professions Academy,IDEA Public Schools,B,82,329,https://txschools.net/campus/idea-health-professions-academy-108807191
+420,823,33,108807307,IDEA Lake Houston Academy,IDEA Public Schools,B,82,718,https://txschools.net/campus/idea-lake-houston-academy-108807307
+420,823,33,108807207,IDEA Lake Houston College Preparatory,IDEA Public Schools,C,82,623,https://txschools.net/campus/idea-lake-houston-college-preparatory-108807207
+420,823,33,108807205,IDEA Mesquite Hills College Preparatory,IDEA Public Schools,B,82,415,https://txschools.net/campus/idea-mesquite-hills-college-preparatory-108807205
+420,823,33,108807097,IDEA Palmview College Preparatory,IDEA Public Schools,B,82,532,https://txschools.net/campus/idea-palmview-college-preparatory-108807097
+420,823,33,108807090,IDEA Parmer Park College Preparatory,IDEA Public Schools,B,82,708,https://txschools.net/campus/idea-parmer-park-college-preparatory-108807090
+420,823,33,108807086,IDEA Rise College Preparatory,IDEA Public Schools,B,82,644,https://txschools.net/campus/idea-rise-college-preparatory-108807086
+420,823,33,221801061,Ignite Community School - Mesquite,Texas College Preparatory Academies,C,82,385,https://txschools.net/campus/ignite-community-school-mesquite-221801061
+420,823,33,057848005,ILTexas Arlington MS,International Leadership of Texas (ILTexas),B,82,388,https://txschools.net/campus/iltexas-arlington-ms-057848005
+420,823,33,057848031,ILTexas College Station MS,International Leadership of Texas (ILTexas),B,82,369,https://txschools.net/campus/iltexas-college-station-ms-057848031
+420,823,33,057848045,ILTexas Liberty HS,International Leadership of Texas (ILTexas),B,82,670,https://txschools.net/campus/iltexas-liberty-hs-057848045
+420,823,33,057848024,ILTexas Saginaw MS,International Leadership of Texas (ILTexas),B,82,379,https://txschools.net/campus/iltexas-saginaw-ms-057848024
+420,823,33,057848022,ILTexas Woodhaven MS,International Leadership of Texas (ILTexas),B,82,281,https://txschools.net/campus/iltexas-woodhaven-ms-057848022
+420,823,33,057830002,Inspired Vision Academy Secondary School,Inspired Vision Academy,B,82,557,https://txschools.net/campus/inspired-vision-academy-secondary-school-057830002
+420,823,33,057819001,Jean Massieu Academy,Jean Massieu Academy,D,82,172,https://txschools.net/campus/jean-massieu-academy-057819001
+420,823,33,227820081,KIPP Aspire Academy,KIPP Texas Public Schools,B,82,414,https://txschools.net/campus/kipp-aspire-academy-227820081
+420,823,33,227820211,KIPP Legacy Preparatory,KIPP Texas Public Schools,B,82,797,https://txschools.net/campus/kipp-legacy-preparatory-227820211
+420,823,33,101845104,North Forest Elem,Yes Prep Public Schools Inc,B,82,812,https://txschools.net/campus/north-forest-elem-101845104
+420,823,33,221801082,Plainview Classical Academy,Texas College Preparatory Academies,B,82,343,https://txschools.net/campus/plainview-classical-academy-221801082
+420,823,33,015801001,Por Vida Academy,Por Vida Academy,B,82,107,https://txschools.net/campus/por-vida-academy-015801001
+420,823,33,101806042,Ryss MS at Broadway,Raul Yzaguirre Schools for Success,C,82,287,https://txschools.net/campus/ryss-ms-at-broadway-101806042
+420,823,33,101806102,Ryss Pri at Broadway,Raul Yzaguirre Schools for Success,C,82,509,https://txschools.net/campus/ryss-pri-at-broadway-101806102
+420,823,33,015827007,Sst Schertz,School of Science and Technology,B,82,931,https://txschools.net/campus/sst-schertz-015827007
+420,823,33,057804005,Texans Can Academy - Grant East,Texans Can Academies,B,82,177,https://txschools.net/campus/texans-can-academy-grant-east-057804005
+420,823,33,226801004,Texas Leadership of Abilene,Texas Leadership Public Schools,C,82,772,https://txschools.net/campus/texas-leadership-of-abilene-226801004
+420,823,33,227824002,The East Austin College Prep at Mlk,Valere Public Schools,D,82,158,https://txschools.net/campus/the-east-austin-college-prep-at-mlk-227824002
+420,823,33,057803048,Uplift Atlas Prep MS,Uplift Education,B,82,427,https://txschools.net/campus/uplift-atlas-prep-ms-057803048
+420,823,33,057803047,Uplift Summit Prep MS,Uplift Education,C,82,484,https://txschools.net/campus/uplift-summit-prep-ms-057803047
+420,823,33,057803114,Uplift White Rock Hills Prep Ps,Uplift Education,B,82,661,https://txschools.net/campus/uplift-white-rock-hills-prep-ps-057803114
+420,823,33,057828005,Winfree Academy North Richland Hills,Winfree Academy Charter Schools,B,82,231,https://txschools.net/campus/winfree-academy-north-richland-hills-057828005
+420,823,33,101845109,Yes Prep Southwest Oaks Elem,Yes Prep Public Schools Inc,B,82,603,https://txschools.net/campus/yes-prep-southwest-oaks-elem-101845109
+454,823,38,227825005,Austin Achieve Pflugerville,Austin Achieve Public Schools,B,81,588,https://txschools.net/campus/austin-achieve-pflugerville-227825005
+454,823,38,015834104,Basis Benbrook,Basis Texas,B,81,616,https://txschools.net/campus/basis-benbrook-015834104
+454,823,38,105804101,Doral Academy of Texas,Doral Academy of Texas,B,81,450,https://txschools.net/campus/doral-academy-of-texas-105804101
+454,823,38,178801001,Dr M L Garza-Gonzalez Charter School,Dr M L Garza-Gonzalez Charter School,B,81,154,https://txschools.net/campus/dr-m-l-garza-gonzalez-charter-school-178801001
+454,823,38,015835001,Great Hearts Monte Vista,Great Hearts Texas,B,81,513,https://txschools.net/campus/great-hearts-monte-vista-015835001
+454,823,38,227816003,Harmony School of Science - Austin,Harmony Public Schools - Central Texas,C,81,497,https://txschools.net/campus/harmony-school-of-science-austin-227816003
+454,823,38,108802102,Horizon Montessori II - STEM Academy,Horizon Montessori Public Schools,B,81,314,https://txschools.net/campus/horizon-montessori-ii-stem-academy-108802102
+454,823,38,108807107,IDEA Alamo Academy,IDEA Public Schools,C,81,668,https://txschools.net/campus/idea-alamo-academy-108807107
+454,823,38,108807124,IDEA Eastside Academy,IDEA Public Schools,C,81,370,https://txschools.net/campus/idea-eastside-academy-108807124
+454,823,38,108807189,IDEA Los Encinos Academy,IDEA Public Schools,B,81,718,https://txschools.net/campus/idea-los-encinos-academy-108807189
+454,823,38,108807126,IDEA Mays Academy,IDEA Public Schools,B,81,615,https://txschools.net/campus/idea-mays-academy-108807126
+454,823,38,108807305,IDEA Mesquite Hills Academy,IDEA Public Schools,C,81,623,https://txschools.net/campus/idea-mesquite-hills-academy-108807305
+454,823,38,108807115,IDEA North Mission Academy,IDEA Public Schools,B,81,682,https://txschools.net/campus/idea-north-mission-academy-108807115
+454,823,38,108807108,IDEA Pharr Academy,IDEA Public Schools,B,81,674,https://txschools.net/campus/idea-pharr-academy-108807108
+454,823,38,057848021,ILTexas Woodhaven Elem,International Leadership of Texas (ILTexas),B,81,559,https://txschools.net/campus/iltexas-woodhaven-elem-057848021
+454,823,38,015822004,Jubilee - Lake View University Prep,Jubilee Academies,C,81,587,https://txschools.net/campus/jubilee-lake-view-university-prep-015822004
+454,823,38,227820216,KIPP Climb Academy,KIPP Texas Public Schools,B,81,633,https://txschools.net/campus/kipp-climb-academy-227820216
+454,823,38,227820402,KIPP Esperanza Pri,KIPP Texas Public Schools,C,81,345,https://txschools.net/campus/kipp-esperanza-pri-227820402
+454,823,38,227820217,KIPP Nexus Pri,KIPP Texas Public Schools,B,81,673,https://txschools.net/campus/kipp-nexus-pri-227820217
+454,823,38,227820071,KIPP Truth Academy,KIPP Texas Public Schools,B,81,410,https://txschools.net/campus/kipp-truth-academy-227820071
+454,823,38,057839101,La Academia De Estrellas,La Academia De Estrellas,C,81,721,https://txschools.net/campus/la-academia-de-estrellas-057839101
+454,823,38,061804002,Leadership Prep School Secondary,Leadership Prep School,B,81,826,https://txschools.net/campus/leadership-prep-school-secondary-061804002
+454,823,38,015806106,Legacy Traditional School - Cibolo,Legacy Traditional Schools - Texas,B,81,975,https://txschools.net/campus/legacy-traditional-school-cibolo-015806106
+454,823,38,221801034,Lewisville School of Science and Technology,Texas College Preparatory Academies,B,81,87,https://txschools.net/campus/lewisville-school-of-science-and-technology-221801034
+454,823,38,227804102,NYOS Lamar Elem,NYOS Charter School,B,81,921,https://txschools.net/campus/nyos-lamar-elem-227804102
+454,823,38,084802001,Odyssey Academy - Galveston,Odyssey Academy Inc,B,81,784,https://txschools.net/campus/odyssey-academy-galveston-084802001
+454,823,38,072801158,Premier HS - Lubbock (Briercroft),Premier High Schools,A,81,133,https://txschools.net/campus/premier-hs-lubbock-briercroft-072801158
+454,823,38,072801150,Premier HS - San Angelo,Premier High Schools,C,81,176,https://txschools.net/campus/premier-hs-san-angelo-072801150
+454,823,38,003801103,Sarah Strinden Elem,Pineywoods Community Academy,C,81,508,https://txschools.net/campus/sarah-strinden-elem-003801103
+454,823,38,015827002,Sst Alamo,School of Science and Technology,C,81,810,https://txschools.net/campus/sst-alamo-015827002
+454,823,38,101861105,The Rhodes School - Humble,The Rhodes School for Performing Arts,B,81,405,https://txschools.net/campus/the-rhodes-school-humble-101861105
+454,823,38,057813107,Trinity Basin Preparatory - Grand Prairie,Trinity Basin Preparatory,B,81,424,https://txschools.net/campus/trinity-basin-preparatory-grand-prairie-057813107
+454,823,38,108804001,Triumph Public High Schools-Mercedes,Triumph Public High Schools-Rio Grande Valley,B,81,132,https://txschools.net/campus/triumph-public-high-schools-mercedes-108804001
+454,823,38,240801003,Triumph Public High Schools-San Antonio,Triumph Public High Schools Central Texas,C,81,112,https://txschools.net/campus/triumph-public-high-schools-san-antonio-240801003
+454,823,38,057845001,UME Preparatory Academy,UME Preparatory Academy,B,81,548,https://txschools.net/campus/ume-preparatory-academy-057845001
+454,823,38,057845002,UME Preparatory Academy - Duncanville,UME Preparatory Academy,B,81,247,https://txschools.net/campus/ume-preparatory-academy-duncanville-057845002
+454,823,38,057808104,Universal Academy-Bartonville,Universal Academy,B,81,83,https://txschools.net/campus/universal-academy-bartonville-057808104
+454,823,38,057803046,Uplift Heights Prep MS,Uplift Education,B,81,468,https://txschools.net/campus/uplift-heights-prep-ms-057803046
+454,823,38,057803045,Uplift Williams Prep MS,Uplift Education,B,81,504,https://txschools.net/campus/uplift-williams-prep-ms-057803045
+493,823,25,101810002,Academy of Accelerated Learning,Academy of Accelerated Learning Inc,B,80,711,https://txschools.net/campus/academy-of-accelerated-learning-101810002
+493,823,25,221801011,Amarillo Collegiate Academy,Texas College Preparatory Academies,B,80,500,https://txschools.net/campus/amarillo-collegiate-academy-221801011
+493,823,25,015808009,Anne Frank Inspire Academy,Inspire Academies,B,80,532,https://txschools.net/campus/anne-frank-inspire-academy-015808009
+493,823,25,101803001,Aristoi Classical Upper School,Aristoi Classical Academy,B,80,683,https://txschools.net/campus/aristoi-classical-upper-school-101803001
+493,823,25,021803102,Brazos School for Inquiry and Creativity Tidwell,Brazos School for Inquiry & Creativity,C,80,156,https://txschools.net/campus/brazos-school-for-inquiry-and-creativity-tidwell-021803102
+493,823,25,101828004,Elite College Prep Academy - Riverstone,Houston Gateway Academy Inc,C,80,258,https://txschools.net/campus/elite-college-prep-academy-riverstone-101828004
+493,823,25,221801064,Founders Classical Academy - Corinth,Texas College Preparatory Academies,C,80,568,https://txschools.net/campus/founders-classical-academy-corinth-221801064
+493,823,25,015802001,George Gervin Academy,George Gervin Academy,B,80,716,https://txschools.net/campus/george-gervin-academy-015802001
+493,823,25,015805041,Greg A Garcia Early College Int,New Frontiers Public Schools Inc,B,80,173,https://txschools.net/campus/greg-a-garcia-early-college-int-015805041
+493,823,25,101858008,Harmony School of Enrichment - Houston,Harmony Public Schools - Houston North,C,80,663,https://txschools.net/campus/harmony-school-of-enrichment-houston-101858008
+493,823,25,071806004,Harmony Science Academy - Lubbock,Harmony Public Schools - West Texas,B,80,520,https://txschools.net/campus/harmony-science-academy-lubbock-071806004
+493,823,25,108807088,IDEA Robindale College Preparatory,IDEA Public Schools,C,80,780,https://txschools.net/campus/idea-robindale-college-preparatory-108807088
+493,823,25,057848004,ILTexas Arlington Elem,International Leadership of Texas (ILTexas),B,80,720,https://txschools.net/campus/iltexas-arlington-elem-057848004
+493,823,25,057848025,ILTexas Houston Windmill Lakes Elem,International Leadership of Texas (ILTexas),B,80,758,https://txschools.net/campus/iltexas-houston-windmill-lakes-elem-057848025
+493,823,25,057848016,ILTexas Westpark Elem,International Leadership of Texas (ILTexas),C,80,880,https://txschools.net/campus/iltexas-westpark-elem-057848016
+493,823,25,227820063,KIPP Mosaic Academy School,KIPP Texas Public Schools,B,80,956,https://txschools.net/campus/kipp-mosaic-academy-school-227820063
+493,823,25,072801145,Premier HS Online,Premier High Schools,C,80,3640,https://txschools.net/campus/premier-hs-online-072801145
+493,823,25,014801009,Richard Milburn Academy Pasadena,Richard Milburn Alter High School (Killeen),B,80,147,https://txschools.net/campus/richard-milburn-academy-pasadena-014801009
+493,823,25,101853101,Ripley House Charter School,Bakerripley Community Schools,B,80,337,https://txschools.net/campus/ripley-house-charter-school-101853101
+493,823,25,178808041,Seashore MS Acad,Seashore Charter Schools,C,80,167,https://txschools.net/campus/seashore-ms-acad-178808041
+493,823,25,101802041,Ser-Ninos Charter MS,Ser-Ninos Charter School,C,80,281,https://txschools.net/campus/ser-ninos-charter-ms-101802041
+493,823,25,013801101,St Mary's Academy Charter School,St Mary's Academy Charter School,C,80,329,https://txschools.net/campus/st-mary-s-academy-charter-school-013801101
+493,823,25,057804002,Texans Can Academy - Oak Cliff,Texans Can Academies,B,80,506,https://txschools.net/campus/texans-can-academy-oak-cliff-057804002
+493,823,25,061805001,Trivium Academy,Trivium Academy,A,80,422,https://txschools.net/campus/trivium-academy-061805001
+493,823,25,227829002,Valor North Austin,Valor Education,B,80,1199,https://txschools.net/campus/valor-north-austin-227829002
+493,823,25,101845106,Yes Prep East End Elem,Yes Prep Public Schools Inc,C,80,721,https://txschools.net/campus/yes-prep-east-end-elem-101845106
+519,823,33,021805102,Arrow Academy - Harvest Preparatory Academy,Arrow Academy,C,79,113,https://txschools.net/campus/arrow-academy-harvest-preparatory-academy-021805102
+519,823,33,227817101,Cedars International Academy,Cedars International Academy,C,79,437,https://txschools.net/campus/cedars-international-academy-227817101
+519,823,33,057841001,East Grand Preparatory Academy,Cityscape Schools,C,79,776,https://txschools.net/campus/east-grand-preparatory-academy-057841001
+519,823,33,071810003,El Paso Leadership Academy - MS East,El Paso Leadership Academy,C,79,116,https://txschools.net/campus/el-paso-leadership-academy-ms-east-071810003
+519,823,33,015835005,Great Hearts Western Hills,Great Hearts Texas,B,79,1378,https://txschools.net/campus/great-hearts-western-hills-015835005
+519,823,33,161807016,Harmony School of Innovation - Grand Prairie,Harmony Public Schools - North Texas,C,79,517,https://txschools.net/campus/harmony-school-of-innovation-grand-prairie-161807016
+519,823,33,015828004,Harmony School of Innovation - Laredo,Harmony Public Schools - South Texas,B,79,698,https://txschools.net/campus/harmony-school-of-innovation-laredo-015828004
+519,823,33,015828002,Harmony School of Innovation - San Antonio,Harmony Public Schools - South Texas,C,79,384,https://txschools.net/campus/harmony-school-of-innovation-san-antonio-015828002
+519,823,33,108807103,IDEA Frontier Academy,IDEA Public Schools,C,79,706,https://txschools.net/campus/idea-frontier-academy-108807103
+519,823,33,108807201,IDEA Horizon Vista College Preparatory,IDEA Public Schools,C,79,452,https://txschools.net/campus/idea-horizon-vista-college-preparatory-108807201
+519,823,33,108807130,IDEA Ingram Hills Academy,IDEA Public Schools,C,79,520,https://txschools.net/campus/idea-ingram-hills-academy-108807130
+519,823,33,108807111,IDEA McAllen Academy,IDEA Public Schools,C,79,739,https://txschools.net/campus/idea-mcallen-academy-108807111
+519,823,33,108807190,IDEA Parmer Park Academy,IDEA Public Schools,C,79,613,https://txschools.net/campus/idea-parmer-park-academy-108807190
+519,823,33,108807094,IDEA Spears College Preparatory,IDEA Public Schools,C,79,702,https://txschools.net/campus/idea-spears-college-preparatory-108807094
+519,823,33,108807113,IDEA Weslaco Pike Academy,IDEA Public Schools,C,79,696,https://txschools.net/campus/idea-weslaco-pike-academy-108807113
+519,823,33,057848037,ILTexas Mansfield Heritage Elem,International Leadership of Texas (ILTexas),C,79,623,https://txschools.net/campus/iltexas-mansfield-heritage-elem-057848037
+519,823,33,015822006,Jubilee Kingsville,Jubilee Academies,B,79,272,https://txschools.net/campus/jubilee-kingsville-015822006
+519,823,33,015822011,Jubilee Leadership Academy,Jubilee Academies,B,79,562,https://txschools.net/campus/jubilee-leadership-academy-015822011
+519,823,33,057844102,Manara STEM Academy - Arlington,Manara Academy,C,79,238,https://txschools.net/campus/manara-stem-academy-arlington-057844102
+519,823,33,101871102,Paul David Castro MS,A' Unlimited Potential,C,79,138,https://txschools.net/campus/paul-david-castro-ms-101871102
+519,823,33,072801165,Premier HS Mesquite,Premier High Schools,B,79,122,https://txschools.net/campus/premier-hs-mesquite-072801165
+519,823,33,227824004,Promesa College Prep West Corpus Christi,Valere Public Schools,C,79,368,https://txschools.net/campus/promesa-college-prep-west-corpus-christi-227824004
+519,823,33,015830103,Somerset Academy Oaks,Somerset Academies of Texas,C,79,275,https://txschools.net/campus/somerset-academy-oaks-015830103
+519,823,33,015831001,Sst Discovery,School of Science and Technology Discovery,C,79,466,https://txschools.net/campus/sst-discovery-015831001
+519,823,33,226801002,Texas Leadership of Midland,Texas Leadership Public Schools,B,79,824,https://txschools.net/campus/texas-leadership-of-midland-226801002
+519,823,33,101864041,The Lawson Academy,The Lawson Academy,B,79,317,https://txschools.net/campus/the-lawson-academy-101864041
+519,823,33,226801003,Trinity Leadership,Texas Leadership Public Schools,B,79,912,https://txschools.net/campus/trinity-leadership-226801003
+519,823,33,227819101,University of Texas Elem Charter School,University of Texas Elem Charter School,C,79,305,https://txschools.net/campus/university-of-texas-elem-charter-school-227819101
+519,823,33,057803018,Uplift Elevate Prep Ps,Uplift Education,C,79,649,https://txschools.net/campus/uplift-elevate-prep-ps-057803018
+519,823,33,057803103,Uplift Gradus Prep Ps,Uplift Education,C,79,670,https://txschools.net/campus/uplift-gradus-prep-ps-057803103
+519,823,33,057803044,Uplift Hampton Prep MS,Uplift Education,C,79,523,https://txschools.net/campus/uplift-hampton-prep-ms-057803044
+519,823,33,057803049,Uplift Mighty Prep MS,Uplift Education,B,79,493,https://txschools.net/campus/uplift-mighty-prep-ms-057803049
+519,823,33,227829001,Valor South Austin,Valor Education,B,79,1371,https://txschools.net/campus/valor-south-austin-227829001
+519,823,33,101845107,Yes Prep Airline Elem,Yes Prep Public Schools Inc,C,79,765,https://txschools.net/campus/yes-prep-airline-elem-101845107
+553,823,19,015838001,Compass Rose Legacy,Compass Rose Public Schools,C,78,459,https://txschools.net/campus/compass-rose-legacy-015838001
+553,823,19,221801014,Coppell Classical Academy,Texas College Preparatory Academies,C,78,491,https://txschools.net/campus/coppell-classical-academy-221801014
+553,823,19,015835004,Great Hearts Irving,Great Hearts Texas,C,78,926,https://txschools.net/campus/great-hearts-irving-015835004
+553,823,19,015835002,Great Hearts Monte Vista North,Great Hearts Texas,B,78,495,https://txschools.net/campus/great-hearts-monte-vista-north-015835002
+553,823,19,071801001,Howard Burnham Elem,Burnham Wood Charter School District,B,78,334,https://txschools.net/campus/howard-burnham-elem-071801001
+553,823,19,072802001,Huston Academy,Erath Excels Academy Inc,B,78,37,https://txschools.net/campus/huston-academy-072802001
+553,823,19,108807301,IDEA Horizon Vista Academy,IDEA Public Schools,C,78,703,https://txschools.net/campus/idea-horizon-vista-academy-108807301
+553,823,19,108807085,IDEA Mesa Hills College Preparatory,IDEA Public Schools,C,78,612,https://txschools.net/campus/idea-mesa-hills-college-preparatory-108807085
+553,823,19,108807140,IDEA Rio Vista Academy,IDEA Public Schools,C,78,600,https://txschools.net/campus/idea-rio-vista-academy-108807140
+553,823,19,057848019,ILTexas Lancaster Elem,International Leadership of Texas (ILTexas),C,78,716,https://txschools.net/campus/iltexas-lancaster-elem-057848019
+553,823,19,057848012,ILTexas North Richland Hills Elem,International Leadership of Texas (ILTexas),C,78,788,https://txschools.net/campus/iltexas-north-richland-hills-elem-057848012
+553,823,19,057848039,ILTexas Pearland K-5,International Leadership of Texas (ILTexas),B,78,682,https://txschools.net/campus/iltexas-pearland-k-5-057848039
+553,823,19,014804008,Kingsland School,Orenda Charter School,C,78,120,https://txschools.net/campus/kingsland-school-014804008
+553,823,19,061804001,Leadership Prep School Teel Elem,Leadership Prep School,B,78,466,https://txschools.net/campus/leadership-prep-school-teel-elem-061804001
+553,823,19,057850006,Pioneer Technology and Arts Academy North Dallas,Pioneer Technology & Arts Academy,B,78,305,https://txschools.net/campus/pioneer-technology-and-arts-academy-north-dallas-057850006
+553,823,19,101802102,Ser-Ninos Charter El II,Ser-Ninos Charter School,C,78,223,https://txschools.net/campus/ser-ninos-charter-el-ii-101802102
+553,823,19,101859102,Step Charter II,Step Charter School,C,78,340,https://txschools.net/campus/step-charter-ii-101859102
+553,823,19,057813108,Trinity Basin Preparatory - West,Trinity Basin Preparatory,C,78,350,https://txschools.net/campus/trinity-basin-preparatory-west-057813108
+553,823,19,108808106,Vanguard Van Gogh,Vanguard Academy,C,78,1050,https://txschools.net/campus/vanguard-van-gogh-108808106
+553,823,19,227803102,Wayside Real Learning Academy,Wayside Schools,C,78,711,https://txschools.net/campus/wayside-real-learning-academy-227803102
+573,823,18,057806101,Advantage Academy,Advantage Academy,C,77,909,https://txschools.net/campus/advantage-academy-057806101
+573,823,18,101847101,Beatrice Mayes Institute Charter School,Beatrice Mayes Institute Charter School,C,77,628,https://txschools.net/campus/beatrice-mayes-institute-charter-school-101847101
+573,823,18,015838003,Compass Rose Legacy Elem,Compass Rose Public Schools,C,77,335,https://txschools.net/campus/compass-rose-legacy-elem-015838003
+573,823,18,221801058,Founders Classical Academy of Leander,Texas College Preparatory Academies,A,77,698,https://txschools.net/campus/founders-classical-academy-of-leander-221801058
+573,823,18,101804001,George I Sanchez Charter,George I Sanchez Charter,C,77,611,https://txschools.net/campus/george-i-sanchez-charter-101804001
+573,823,18,108802103,Horizon Montessori Iii - STEM Academy,Horizon Montessori Public Schools,C,77,246,https://txschools.net/campus/horizon-montessori-iii-stem-academy-108802103
+573,823,18,108807109,IDEA Edinburg Academy,IDEA Public Schools,C,77,715,https://txschools.net/campus/idea-edinburg-academy-108807109
+573,823,18,108807198,IDEA Hidden Meadow Academy,IDEA Public Schools,C,77,563,https://txschools.net/campus/idea-hidden-meadow-academy-108807198
+573,823,18,227820209,KIPP Explore Academy,KIPP Texas Public Schools,C,77,718,https://txschools.net/campus/kipp-explore-academy-227820209
+573,823,18,227820215,KIPP Unity Pri,KIPP Texas Public Schools,C,77,988,https://txschools.net/campus/kipp-unity-pri-227820215
+573,823,18,015825002,Lighthouse High,Lighthouse Public Schools,C,77,88,https://txschools.net/campus/lighthouse-high-015825002
+573,823,18,061802004,North Texas Collegiate Academy-North Campus,North Texas Collegiate Academy,C,77,247,https://txschools.net/campus/north-texas-collegiate-academy-north-campus-061802004
+573,823,18,070801002,Oak Cliff Faith Family Academy,Faith Family Academy,C,77,2606,https://txschools.net/campus/oak-cliff-faith-family-academy-070801002
+573,823,18,057813104,Trinity Basin Preparatory - Fort Worth,Trinity Basin Preparatory,C,77,2003,https://txschools.net/campus/trinity-basin-preparatory-fort-worth-057813104
+573,823,18,152803001,Triumph Public High Schools-Lubbock,Triumph Public High Schools-Lubbock,C,77,119,https://txschools.net/campus/triumph-public-high-schools-lubbock-152803001
+573,823,18,057803003,Uplift Grand Prep Ps,Uplift Education,C,77,720,https://txschools.net/campus/uplift-grand-prep-ps-057803003
+573,823,18,057803111,Uplift Hampton Prep Ps,Uplift Education,C,77,729,https://txschools.net/campus/uplift-hampton-prep-ps-057803111
+573,823,18,057847001,Village Tech Schools,Village Tech Schools,B,77,1330,https://txschools.net/campus/village-tech-schools-057847001
+573,823,18,227803001,Wayside Sci-Tech MS and HS,Wayside Schools,B,77,592,https://txschools.net/campus/wayside-sci-tech-ms-and-hs-227803001
+592,823,13,101877001,Elevate Collegiate,Elevate Collegiate Charter School,C,76,224,https://txschools.net/campus/elevate-collegiate-101877001
+592,823,13,221801066,Founders Classical Academy of Schertz,Texas College Preparatory Academies,C,76,791,https://txschools.net/campus/founders-classical-academy-of-schertz-221801066
+592,823,13,108807087,IDEA Achieve College Preparatory,IDEA Public Schools,C,76,490,https://txschools.net/campus/idea-achieve-college-preparatory-108807087
+592,823,13,108807112,IDEA Brownsville Academy,IDEA Public Schools,C,76,636,https://txschools.net/campus/idea-brownsville-academy-108807112
+592,823,13,108807098,IDEA Hidden Meadow College Preparatory,IDEA Public Schools,C,76,363,https://txschools.net/campus/idea-hidden-meadow-college-preparatory-108807098
+592,823,13,108807110,IDEA Weslaco Academy,IDEA Public Schools,C,76,582,https://txschools.net/campus/idea-weslaco-academy-108807110
+592,823,13,057848023,ILTexas Saginaw Elem,International Leadership of Texas (ILTexas),C,76,902,https://txschools.net/campus/iltexas-saginaw-elem-057848023
+592,823,13,227820045,KIPP Paseo Preparatory School,KIPP Texas Public Schools,C,76,480,https://txschools.net/campus/kipp-paseo-preparatory-school-227820045
+592,823,13,227820214,KIPP Zenith Academy,KIPP Texas Public Schools,C,76,800,https://txschools.net/campus/kipp-zenith-academy-227820214
+592,823,13,165802101,Midland Academy Charter School,Midland Academy Charter School,B,76,431,https://txschools.net/campus/midland-academy-charter-school-165802101
+592,823,13,220817002,Newman International at Cedar Hill,Newman International Academy of Arlington,C,76,965,https://txschools.net/campus/newman-international-at-cedar-hill-220817002
+592,823,13,057850001,Pioneer Technology (PTAA) Mesquite,Pioneer Technology & Arts Academy,C,76,465,https://txschools.net/campus/pioneer-technology-ptaa-mesquite-057850001
+592,823,13,015831006,Sst Hill Country,School of Science and Technology Discovery,C,76,727,https://txschools.net/campus/sst-hill-country-015831006
+592,823,13,057803106,Uplift Triumph Prep Ps,Uplift Education,C,76,488,https://txschools.net/campus/uplift-triumph-prep-ps-057803106
+606,823,24,220802102,Arlington Classics Academy -Intermediate,Arlington Classics Academy,B,75,528,https://txschools.net/campus/arlington-classics-academy-intermediate-220802102
+606,823,24,021803001,Brazos School for Inquiry and Creativity Bryan/Col,Brazos School for Inquiry & Creativity,C,75,154,https://txschools.net/campus/brazos-school-for-inquiry-and-creativity-bryan-col-021803001
+606,823,24,101872002,Etoile Academy Charter School-Bissonnet,Etoile Academy Charter School,C,75,378,https://txschools.net/campus/etoile-academy-charter-school-bissonnet-101872002
+606,823,24,227816005,Harmony School of Innovation - Austin,Harmony Public Schools - Central Texas,C,75,364,https://txschools.net/campus/harmony-school-of-innovation-austin-227816005
+606,823,24,161807004,Harmony School of Innovation - Carrollton,Harmony Public Schools - North Texas,C,75,497,https://txschools.net/campus/harmony-school-of-innovation-carrollton-161807004
+606,823,24,071806009,Harmony School of Innovation - Odessa,Harmony Public Schools - West Texas,C,75,644,https://txschools.net/campus/harmony-school-of-innovation-odessa-071806009
+606,823,24,015828005,Harmony Science Academy - Brownsville,Harmony Public Schools - South Texas,C,75,506,https://txschools.net/campus/harmony-science-academy-brownsville-015828005
+606,823,24,071806005,Harmony Science Academy - Odessa,Harmony Public Schools - West Texas,C,75,546,https://txschools.net/campus/harmony-science-academy-odessa-071806005
+606,823,24,161807007,Harmony Science Academy- Fort Worth,Harmony Public Schools - North Texas,C,75,1299,https://txschools.net/campus/harmony-science-academy-fort-worth-161807007
+606,823,24,108807101,IDEA Donna Academy,IDEA Public Schools,D,75,729,https://txschools.net/campus/idea-donna-academy-108807101
+606,823,24,108807193,IDEA Hardy Academy,IDEA Public Schools,C,75,648,https://txschools.net/campus/idea-hardy-academy-108807193
+606,823,24,057848001,ILTexas Garland Elem,International Leadership of Texas (ILTexas),C,75,950,https://txschools.net/campus/iltexas-garland-elem-057848001
+606,823,24,057848027,ILTexas Houston Orem Elem,International Leadership of Texas (ILTexas),C,75,810,https://txschools.net/campus/iltexas-houston-orem-elem-057848027
+606,823,24,227820105,KIPP Paseo Pri,KIPP Texas Public Schools,D,75,567,https://txschools.net/campus/kipp-paseo-pri-227820105
+606,823,24,057839103,La Academia De Estrellas MS,La Academia De Estrellas,C,75,300,https://txschools.net/campus/la-academia-de-estrellas-ms-057839103
+606,823,24,061804003,Leadership Prep School Majestic Gardens Elem,Leadership Prep School,C,75,602,https://txschools.net/campus/leadership-prep-school-majestic-gardens-elem-061804003
+606,823,24,220817001,Newman International Academy of Arlington,Newman International Academy of Arlington,C,75,709,https://txschools.net/campus/newman-international-academy-of-arlington-220817001
+606,823,24,015807001,Northeast Elem Campus,Southwest Preparatory School,C,75,86,https://txschools.net/campus/northeast-elem-campus-015807001
+606,823,24,178808101,Seashore Learning Center,Seashore Charter Schools,B,75,255,https://txschools.net/campus/seashore-learning-center-178808101
+606,823,24,101838102,Southwest Public Schools Int'l Leadership Academy,Southwest Public Schools,C,75,484,https://txschools.net/campus/southwest-public-schools-int-l-leadership-academy-101838102
+606,823,24,057813101,Trinity Basin Preparatory - Dallas,Trinity Basin Preparatory,C,75,1654,https://txschools.net/campus/trinity-basin-preparatory-dallas-057813101
+606,823,24,061805002,Trivium Academy - Plano Campus,Trivium Academy,D,75,81,https://txschools.net/campus/trivium-academy-plano-campus-061805002
+606,823,24,057803110,Uplift Atlas Prep Ps,Uplift Education,C,75,658,https://txschools.net/campus/uplift-atlas-prep-ps-057803110
+606,823,24,057803011,Uplift Grand Prep MS,Uplift Education,C,75,423,https://txschools.net/campus/uplift-grand-prep-ms-057803011
+606,823,24,057803108,Uplift Meridian Prep Ps,Uplift Education,D,75,519,https://txschools.net/campus/uplift-meridian-prep-ps-057803108
+631,823,17,123807102,Bob Hope School Beaumont,Bob Hope School,C,74,334,https://txschools.net/campus/bob-hope-school-beaumont-123807102
+631,823,17,015838006,Compass Rose Destiny,Compass Rose Public Schools,C,74,739,https://txschools.net/campus/compass-rose-destiny-015838006
+631,823,17,101842001,Comquest Academy,Comquest Academy,B,74,35,https://txschools.net/campus/comquest-academy-101842001
+631,823,17,015835010,Great Hearts Arlington,Great Hearts Texas,C,74,1104,https://txschools.net/campus/great-hearts-arlington-015835010
+631,823,17,015835003,Great Hearts Northern Oaks,Great Hearts Texas,B,74,1473,https://txschools.net/campus/great-hearts-northern-oaks-015835003
+631,823,17,101858012,Harmony Science Academy - City Place,Harmony Public Schools - Houston North,C,74,455,https://txschools.net/campus/harmony-science-academy-city-place-101858012
+631,823,17,161807008,Harmony Science Academy - Grand Prairie,Harmony Public Schools - North Texas,C,74,482,https://txschools.net/campus/harmony-science-academy-grand-prairie-161807008
+631,823,17,071806008,Harmony Science Academy - Midland,Harmony Public Schools - West Texas,C,74,557,https://txschools.net/campus/harmony-science-academy-midland-071806008
+631,823,17,015815001,Heritage Academy of Windcrest,Heritage Academy,C,74,101,https://txschools.net/campus/heritage-academy-of-windcrest-015815001
+631,823,17,101828101,Houston Gateway Academy,Houston Gateway Academy Inc,C,74,568,https://txschools.net/campus/houston-gateway-academy-101828101
+631,823,17,108807192,IDEA Burke Academy,IDEA Public Schools,C,74,680,https://txschools.net/campus/idea-burke-academy-108807192
+631,823,17,108807099,IDEA Converse College Preparatory,IDEA Public Schools,C,74,577,https://txschools.net/campus/idea-converse-college-preparatory-108807099
+631,823,17,108807129,IDEA Ewing Halsell Academy,IDEA Public Schools,C,74,673,https://txschools.net/campus/idea-ewing-halsell-academy-108807129
+631,823,17,108807093,IDEA Hardy College Preparatory,IDEA Public Schools,C,74,694,https://txschools.net/campus/idea-hardy-college-preparatory-108807093
+631,823,17,108807197,IDEA Palmview Academy,IDEA Public Schools,D,74,654,https://txschools.net/campus/idea-palmview-academy-108807197
+631,823,17,014801004,Richard Milburn Academy Lubbock,Richard Milburn Alter High School (Killeen),B,74,135,https://txschools.net/campus/richard-milburn-academy-lubbock-014801004
+631,823,17,071801004,The Linguistic Acad of Elem Paso-Cultural Demo Site,Burnham Wood Charter School District,B,74,379,https://txschools.net/campus/the-linguistic-acad-of-elem-paso-cultural-demo-site-071801004
+631,823,17,057813105,Trinity Basin Preparatory - Mesquite,Trinity Basin Preparatory,D,74,797,https://txschools.net/campus/trinity-basin-preparatory-mesquite-057813105
+649,823,13,015834106,Basis San Antonio Pri - Jack Lewis Jr Campus,Basis Texas,B,73,717,https://txschools.net/campus/basis-san-antonio-pri-jack-lewis-jr-campus-015834106
+649,823,13,152806001,Betty M Condra School for Education Innovation,Betty M Condra School for Education Innovation,D,73,168,https://txschools.net/campus/betty-m-condra-school-for-education-innovation-152806001
+649,823,13,057841002,Buckner Preparatory,Cityscape Schools,C,73,442,https://txschools.net/campus/buckner-preparatory-057841002
+649,823,13,101856101,Draw Academy,Draw Academy,C,73,695,https://txschools.net/campus/draw-academy-101856101
+649,823,13,101804004,George I Sanchez North,George I Sanchez Charter,C,73,330,https://txschools.net/campus/george-i-sanchez-north-101804004
+649,823,13,057835001,Golden Rule Charter School,Golden Rule Charter School,D,73,498,https://txschools.net/campus/golden-rule-charter-school-057835001
+649,823,13,015835008,Great Hearts Lakeside,Great Hearts Texas,B,73,1418,https://txschools.net/campus/great-hearts-lakeside-015835008
+649,823,13,015835009,Great Hearts Live Oak,Great Hearts Texas,B,73,1224,https://txschools.net/campus/great-hearts-live-oak-015835009
+649,823,13,108807139,IDEA Kyle Academy,IDEA Public Schools,C,73,600,https://txschools.net/campus/idea-kyle-academy-108807139
+649,823,13,108807206,IDEA Southeast College Preparatory,IDEA Public Schools,D,73,566,https://txschools.net/campus/idea-southeast-college-preparatory-108807206
+649,823,13,014801006,Richard Milburn Academy Fort Worth,Richard Milburn Alter High School (Killeen),D,73,94,https://txschools.net/campus/richard-milburn-academy-fort-worth-014801006
+649,823,13,101838041,Southwest Public Schools Lead &global Studies Acad,Southwest Public Schools,B,73,295,https://txschools.net/campus/southwest-public-schools-lead-global-studies-acad-101838041
+649,823,13,227803101,Wayside Eden Park Academy,Wayside Schools,D,73,227,https://txschools.net/campus/wayside-eden-park-academy-227803101
+649,823,13,057828006,Winfree Academy Charter School Dallas,Winfree Academy Charter Schools,C,73,244,https://txschools.net/campus/winfree-academy-charter-school-dallas-057828006
+663,823,9,015838002,Compass Rose Ingenuity,Compass Rose Public Schools,D,72,795,https://txschools.net/campus/compass-rose-ingenuity-015838002
+663,823,9,057835101,Golden Rule Sunnyside,Golden Rule Charter School,D,72,102,https://txschools.net/campus/golden-rule-sunnyside-057835101
+663,823,9,015835013,Great Hearts Prairie View,Great Hearts Texas,C,72,975,https://txschools.net/campus/great-hearts-prairie-view-015835013
+663,823,9,108807302,IDEA Edgecliff Academy,IDEA Public Schools,D,72,730,https://txschools.net/campus/idea-edgecliff-academy-108807302
+663,823,9,108807106,IDEA San Juan Academy,IDEA Public Schools,D,72,532,https://txschools.net/campus/idea-san-juan-academy-108807106
+663,823,9,057848041,ILTexas Bg Ramirez MS,International Leadership of Texas (ILTexas),C,72,424,https://txschools.net/campus/iltexas-bg-ramirez-ms-057848041
+663,823,9,057850002,Pioneer Technology (PTAA) Greenville,Pioneer Technology & Arts Academy,C,72,865,https://txschools.net/campus/pioneer-technology-ptaa-greenville-057850002
+663,823,9,227824003,Promesa College Prep Brownsville,Valere Public Schools,C,72,151,https://txschools.net/campus/promesa-college-prep-brownsville-227824003
+663,823,9,057803107,Uplift Luna Prep Ps,Uplift Education,C,72,740,https://txschools.net/campus/uplift-luna-prep-ps-057803107
+663,823,9,227829004,Valor Leander,Valor Education,B,72,756,https://txschools.net/campus/valor-leander-227829004
+673,823,10,015834003,Basis San Antonio - Northeast Campus,Basis Texas,B,71,196,https://txschools.net/campus/basis-san-antonio-northeast-campus-015834003
+673,823,10,108807308,IDEA Yukon Academy,IDEA Public Schools,C,71,723,https://txschools.net/campus/idea-yukon-academy-108807308
+673,823,10,221801005,Ignite Community School - Huntsville,Texas College Preparatory Academies,C,71,395,https://txschools.net/campus/ignite-community-school-huntsville-221801005
+673,823,10,057848030,ILTexas College Station Elem,International Leadership of Texas (ILTexas),C,71,798,https://txschools.net/campus/iltexas-college-station-elem-057848030
+673,823,10,227820303,KIPP Pleasant Grove Pri,KIPP Texas Public Schools,C,71,444,https://txschools.net/campus/kipp-pleasant-grove-pri-227820303
+673,823,10,227820302,KIPP Truth Elem,KIPP Texas Public Schools,C,71,454,https://txschools.net/campus/kipp-truth-elem-227820302
+673,823,10,101855101,Meyerpark Elem,Meyerpark Charter,C,71,259,https://txschools.net/campus/meyerpark-elem-101855101
+673,823,10,014803003,Priority Charter Schools Copperas Cove,Priority Charter Schools,C,71,199,https://txschools.net/campus/priority-charter-schools-copperas-cove-014803003
+673,823,10,015807002,Southwest Preparatory Southeast Campus,Southwest Preparatory School,C,71,188,https://txschools.net/campus/southwest-preparatory-southeast-campus-015807002
+673,823,10,101814102,The Varnett School - Northeast,The Varnett Public School,C,71,314,https://txschools.net/campus/the-varnett-school-northeast-101814102
+673,823,10,057803105,Uplift Pinnacle Prep Ps,Uplift Education,C,71,500,https://txschools.net/campus/uplift-pinnacle-prep-ps-057803105
+684,823,14,101870002,Beta Academy,Beta Academy,D,70,1041,https://txschools.net/campus/beta-academy-101870002
+684,823,14,220809101,Fort Worth Academy of Fine Arts Elem,Fort Worth Academy of Fine Arts,B,70,248,https://txschools.net/campus/fort-worth-academy-of-fine-arts-elem-220809101
+684,823,14,108807120,IDEA Carver Academy,IDEA Public Schools,C,70,419,https://txschools.net/campus/idea-carver-academy-108807120
+684,823,14,108807138,IDEA Pflugerville Academy,IDEA Public Schools,D,70,652,https://txschools.net/campus/idea-pflugerville-academy-108807138
+684,823,14,108807136,IDEA Rundberg Academy,IDEA Public Schools,D,70,648,https://txschools.net/campus/idea-rundberg-academy-108807136
+684,823,14,108807196,IDEA Sports Park Academy,IDEA Public Schools,D,70,565,https://txschools.net/campus/idea-sports-park-academy-108807196
+684,823,14,220817006,Newman International Academy Watauga,Newman International Academy of Arlington,D,70,451,https://txschools.net/campus/newman-international-academy-watauga-220817006
+684,823,14,072801166,Premier HS - Houston (Greenspoint),Premier High Schools,D,70,69,https://txschools.net/campus/premier-hs-houston-greenspoint-072801166
+684,823,14,161802102,Quinn Campus Public MS,Rapoport Academy Public School,D,70,268,https://txschools.net/campus/quinn-campus-public-ms-161802102
+684,823,14,015802004,Ruth Jones McClendon MS,George Gervin Academy,B,70,28,https://txschools.net/campus/ruth-jones-mcclendon-ms-015802004
+684,823,14,101845105,Southside Elem,Yes Prep Public Schools Inc,D,70,631,https://txschools.net/campus/southside-elem-101845105
+684,823,14,057813106,Trinity Basin Preparatory - Arlington,Trinity Basin Preparatory,C,70,483,https://txschools.net/campus/trinity-basin-preparatory-arlington-057813106
+684,823,14,057803104,Uplift Heights Prep Ps,Uplift Education,C,70,887,https://txschools.net/campus/uplift-heights-prep-ps-057803104
+684,823,14,057803109,Uplift Summit Prep Ps,Uplift Education,C,70,697,https://txschools.net/campus/uplift-summit-prep-ps-057803109
+684,823,14,057803015,Uplift Wisdom Prep MS,Uplift Education,C,70,517,https://txschools.net/campus/uplift-wisdom-prep-ms-057803015
+699,823,17,227825001,Austin Achieve MS,Austin Achieve Public Schools,D,69,694,https://txschools.net/campus/austin-achieve-ms-227825001
+699,823,17,213801001,Brazos River Charter School,Brazos River Charter School,C,69,60,https://txschools.net/campus/brazos-river-charter-school-213801001
+699,823,17,068802001,Compass Academy Charter School,Compass Academy Charter School,C,69,1759,https://txschools.net/campus/compass-academy-charter-school-068802001
+699,823,17,015838005,Compass Rose Journey,Compass Rose Public Schools,D,69,471,https://txschools.net/campus/compass-rose-journey-015838005
+699,823,17,227824001,East Austin College Prep at Southwest Key,Valere Public Schools,D,69,135,https://txschools.net/campus/east-austin-college-prep-at-southwest-key-227824001
+699,823,17,108809001,Excellence In Leadership Academy,Excellence In Leadership Academy,D,69,168,https://txschools.net/campus/excellence-in-leadership-academy-108809001
+699,823,17,070801041,Faith Family Master Academy,Faith Family Academy,D,69,277,https://txschools.net/campus/faith-family-master-academy-070801041
+699,823,17,221801046,Founders Classical Academy-Tyler,Texas College Preparatory Academies,C,69,437,https://txschools.net/campus/founders-classical-academy-tyler-221801046
+699,823,17,108807303,IDEA La Joya Academy,IDEA Public Schools,D,69,638,https://txschools.net/campus/idea-la-joya-academy-108807303
+699,823,17,108807203,IDEA La Joya College Preparatory,IDEA Public Schools,D,69,514,https://txschools.net/campus/idea-la-joya-college-preparatory-108807203
+699,823,17,108807121,IDEA South Flores Academy,IDEA Public Schools,D,69,630,https://txschools.net/campus/idea-south-flores-academy-108807121
+699,823,17,108807208,IDEA Yukon College Preparatory,IDEA Public Schools,C,69,604,https://txschools.net/campus/idea-yukon-college-preparatory-108807208
+699,823,17,105801001,Katherine Anne Porter School,Katherine Anne Porter School,D,69,76,https://txschools.net/campus/katherine-anne-porter-school-105801001
+699,823,17,015807102,Seguin Campus,Southwest Preparatory School,D,69,269,https://txschools.net/campus/seguin-campus-015807102
+699,823,17,220801001,Treetops School International,Treetops School International,C,69,186,https://txschools.net/campus/treetops-school-international-220801001
+699,823,17,057813109,Trinity Basin Preparatory - South,Trinity Basin Preparatory,D,69,585,https://txschools.net/campus/trinity-basin-preparatory-south-057813109
+699,823,17,057803051,Uplift Ascend Prep MS,Uplift Education,D,69,426,https://txschools.net/campus/uplift-ascend-prep-ms-057803051
+699,823,17,101873001,Yellowstone College Preparatory,Yellowstone College Preparatory,D,69,361,https://txschools.net/campus/yellowstone-college-preparatory-101873001
+717,823,4,015838008,Compass Rose Dream,Compass Rose Public Schools,D,68,465,https://txschools.net/campus/compass-rose-dream-015838008
+717,823,4,015838009,Compass Rose Impact,Compass Rose Public Schools,B,68,152,https://txschools.net/campus/compass-rose-impact-015838009
+717,823,4,101858002,Harmony School of Endeavor-Houston,Harmony Public Schools - Houston North,D,68,560,https://txschools.net/campus/harmony-school-of-endeavor-houston-101858002
+717,823,4,014801008,Richard Milburn Academy Amarillo,Richard Milburn Alter High School (Killeen),B,68,133,https://txschools.net/campus/richard-milburn-academy-amarillo-014801008
+717,823,4,014801007,Richard Milburn Academy Corpus Christi,Richard Milburn Alter High School (Killeen),C,68,235,https://txschools.net/campus/richard-milburn-academy-corpus-christi-014801007
+722,823,4,221801077,Founders Classical Academy of Prosper,Texas College Preparatory Academies,B,67,953,https://txschools.net/campus/founders-classical-academy-of-prosper-221801077
+722,823,4,057835102,Golden Rule Desoto,Golden Rule Charter School,D,67,408,https://txschools.net/campus/golden-rule-desoto-057835102
+722,823,4,057848014,ILTexas Katy Elem,International Leadership of Texas (ILTexas),D,67,936,https://txschools.net/campus/iltexas-katy-elem-057848014
+722,823,4,101874001,Legacy School of Sport Sciences,Legacy School of Sport Sciences,D,67,550,https://txschools.net/campus/legacy-school-of-sport-sciences-101874001
+722,823,4,227831001,Unparalleled Preparatory Academy,Unparalleled Preparatory Academy,C,67,33,https://txschools.net/campus/unparalleled-preparatory-academy-227831001
+727,823,12,212801041,Cumberland Academy Upper Elem,Cumberland Academy,D,66,280,https://txschools.net/campus/cumberland-academy-upper-elem-212801041
+727,823,12,071810002,El Paso Leadership Academy - HS East,El Paso Leadership Academy,F,66,361,https://txschools.net/campus/el-paso-leadership-academy-hs-east-071810002
+727,823,12,057835103,Golden Rule Southwest,Golden Rule Charter School,F,66,187,https://txschools.net/campus/golden-rule-southwest-057835103
+727,823,12,161807001,Harmony Science Acad (Waco),Harmony Public Schools - North Texas,D,66,592,https://txschools.net/campus/harmony-science-acad-waco-161807001
+727,823,12,227816001,Harmony Science Academy - Austin,Harmony Public Schools - Central Texas,D,66,704,https://txschools.net/campus/harmony-science-academy-austin-227816001
+727,823,12,101858003,Harmony Science Academy - Bryan,Harmony Public Schools - Houston North,D,66,342,https://txschools.net/campus/harmony-science-academy-bryan-101858003
+727,823,12,057848044,ILTexas Msg Ramirez MS,International Leadership of Texas (ILTexas),D,66,434,https://txschools.net/campus/iltexas-msg-ramirez-ms-057848044
+727,823,12,015822002,Jubilee Highland Hills,Jubilee Academies,D,66,639,https://txschools.net/campus/jubilee-highland-hills-015822002
+727,823,12,061802005,North Texas Collegiate Academy-East Campus,North Texas Collegiate Academy,D,66,298,https://txschools.net/campus/north-texas-collegiate-academy-east-campus-061802005
+727,823,12,101802101,Ser-Ninos Charter Elem,Ser-Ninos Charter School,D,66,469,https://txschools.net/campus/ser-ninos-charter-elem-101802101
+727,823,12,101838104,Southwest Public Schools Visual & Perf Arts Acad,Southwest Public Schools,D,66,371,https://txschools.net/campus/southwest-public-schools-visual-perf-arts-acad-101838104
+727,823,12,101840101,Two Dimensions Preparatory Academy,Two Dimensions Preparatory Academy,D,66,135,https://txschools.net/campus/two-dimensions-preparatory-academy-101840101
+727,823,12,057803116,Uplift Wisdom Prep Ps,Uplift Education,D,66,579,https://txschools.net/campus/uplift-wisdom-prep-ps-057803116
+740,823,7,057829001,A' Academy Elem,A' Academy,F,65,874,https://txschools.net/campus/a-academy-elem-057829001
+740,823,7,161802101,Audre and Bernard Rapoport Academy,Rapoport Academy Public School,D,65,401,https://txschools.net/campus/audre-and-bernard-rapoport-academy-161802101
+740,823,7,015835012,Great Hearts Invictus,Great Hearts Texas,B,65,1034,https://txschools.net/campus/great-hearts-invictus-015835012
+740,823,7,108807304,IDEA Ambrose and Freda Robinson Academy,IDEA Public Schools,D,65,438,https://txschools.net/campus/idea-ambrose-and-freda-robinson-academy-108807304
+740,823,7,108807135,IDEA Montopolis Academy,IDEA Public Schools,D,65,645,https://txschools.net/campus/idea-montopolis-academy-108807135
+740,823,7,057848043,ILTexas Msg Ramirez Elem,International Leadership of Texas (ILTexas),D,65,919,https://txschools.net/campus/iltexas-msg-ramirez-elem-057848043
+740,823,7,227820219,KIPP Mosaic Pri,KIPP Texas Public Schools,F,65,1038,https://txschools.net/campus/kipp-mosaic-pri-227820219
+740,823,7,057803017,Uplift Ascend Prep Ps,Uplift Education,D,65,841,https://txschools.net/campus/uplift-ascend-prep-ps-057803017
+748,823,5,101803002,Aristoi Classical Academy-Cypress,Aristoi Classical Academy,C,64,584,https://txschools.net/campus/aristoi-classical-academy-cypress-101803002
+748,823,5,221801073,Founders Classical Academy - Conroe,Texas College Preparatory Academies,C,64,950,https://txschools.net/campus/founders-classical-academy-conroe-221801073
+748,823,5,015835006,Great Hearts Forest Heights,Great Hearts Texas,B,64,1414,https://txschools.net/campus/great-hearts-forest-heights-015835006
+748,823,5,057848040,ILTexas Pearland 6-8,International Leadership of Texas (ILTexas),D,64,244,https://txschools.net/campus/iltexas-pearland-6-8-057848040
+748,823,5,221801079,Responsiveed - Online,Texas College Preparatory Academies,D,64,248,https://txschools.net/campus/responsiveed-online-221801079
+748,823,5,227829005,Valor San Antonio,Valor Education,C,64,449,https://txschools.net/campus/valor-san-antonio-227829005
+754,823,8,220811101,East Fort Worth Montessori Academy,East Fort Worth Montessori Academy,D,63,106,https://txschools.net/campus/east-fort-worth-montessori-academy-220811101
+754,823,8,108807204,IDEA Ambrose and Freda Robinson College Preparator,IDEA Public Schools,D,63,116,https://txschools.net/campus/idea-ambrose-and-freda-robinson-college-preparator-108807204
+754,823,8,108807199,IDEA Converse Academy,IDEA Public Schools,D,63,682,https://txschools.net/campus/idea-converse-academy-108807199
+754,823,8,221801062,Ignite Community School - Mainland,Texas College Preparatory Academies,F,63,405,https://txschools.net/campus/ignite-community-school-mainland-221801062
+754,823,8,221801069,Ignite Community School - Westchase,Texas College Preparatory Academies,D,63,1178,https://txschools.net/campus/ignite-community-school-westchase-221801069
+754,823,8,057848042,ILTexas Bg Ramirez Elem,International Leadership of Texas (ILTexas),D,63,896,https://txschools.net/campus/iltexas-bg-ramirez-elem-057848042
+754,823,8,015839001,Promesa Academy Charter School,Promesa Academy Charter School,D,63,275,https://txschools.net/campus/promesa-academy-charter-school-015839001
+754,823,8,014801010,Richard Milburn Academy Midland,Richard Milburn Alter High School (Killeen),C,63,165,https://txschools.net/campus/richard-milburn-academy-midland-014801010
+754,823,8,014801001,Richard Milburn Alter HS (Killeen),Richard Milburn Alter High School (Killeen),C,63,168,https://txschools.net/campus/richard-milburn-alter-hs-killeen-014801001
+763,823,9,015834108,Basis Richardson Pri,Basis Texas,B,62,480,https://txschools.net/campus/basis-richardson-pri-015834108
+763,823,9,015838007,Compass Rose Harvest,Compass Rose Public Schools,F,62,471,https://txschools.net/campus/compass-rose-harvest-015838007
+763,823,9,221801027,Founders Classical Academy - East Lewisville,Texas College Preparatory Academies,C,62,198,https://txschools.net/campus/founders-classical-academy-east-lewisville-221801027
+763,823,9,015835011,Great Hearts Online - TX,Great Hearts Texas,D,62,1063,https://txschools.net/campus/great-hearts-online-tx-015835011
+763,823,9,108807194,IDEA Spears Academy,IDEA Public Schools,D,62,719,https://txschools.net/campus/idea-spears-academy-108807194
+763,823,9,227826101,Magnolia Montessori for All,Montessori for All,D,62,556,https://txschools.net/campus/magnolia-montessori-for-all-227826101
+763,823,9,057850004,Pioneer Technology (PTAA) Mesquite Elem,Pioneer Technology & Arts Academy,D,62,175,https://txschools.net/campus/pioneer-technology-ptaa-mesquite-elem-057850004
+763,823,9,101868002,Pro-Vision MS,The Pro-Vision Academy,D,62,98,https://txschools.net/campus/pro-vision-ms-101868002
+763,823,9,015808016,Rise Inspire Academy,Inspire Academies,D,62,29,https://txschools.net/campus/rise-inspire-academy-015808016
+763,823,9,057803008,Uplift Mighty Prep Ps,Uplift Education,D,62,539,https://txschools.net/campus/uplift-mighty-prep-ps-057803008
+773,823,2,057831002,Gateway Charter Academy - MS - HS,Gateway Charter Academy,F,60,182,https://txschools.net/campus/gateway-charter-academy-ms-hs-057831002
+773,823,2,108807187,IDEA Achieve Academy,IDEA Public Schools,D,60,500,https://txschools.net/campus/idea-achieve-academy-108807187
+773,823,2,084802002,Odyssey Academy - Texas City,Odyssey Academy Inc,F,60,599,https://txschools.net/campus/odyssey-academy-texas-city-084802002
+776,823,10,108810101,Brillante Academy,Brillante Academy,F,59,426,https://txschools.net/campus/brillante-academy-108810101
+776,823,10,071810001,El Paso Leadership Academy,El Paso Leadership Academy,F,59,188,https://txschools.net/campus/el-paso-leadership-academy-071810001
+776,823,10,101872001,Etoile Academy Charter School,Etoile Academy Charter School,F,59,686,https://txschools.net/campus/etoile-academy-charter-school-101872001
+776,823,10,221801022,Ischool Virtual Academy of Texas,Texas College Preparatory Academies,D,59,407,https://txschools.net/campus/ischool-virtual-academy-of-texas-221801022
+776,823,10,084802003,Odyssey Academy - Webster,Odyssey Academy Inc,D,59,395,https://txschools.net/campus/odyssey-academy-webster-084802003
+776,823,10,057850005,Pioneer Technology (PTAA) Royse City Elem,Pioneer Technology & Arts Academy,D,59,200,https://txschools.net/campus/pioneer-technology-ptaa-royse-city-elem-057850005
+776,823,10,014801002,Richard Milburn Academy Odessa,Richard Milburn Alter High School (Killeen),C,59,288,https://txschools.net/campus/richard-milburn-academy-odessa-014801002
+776,823,10,015842001,Royal Academy of Excellence,Royal Public Schools,F,59,394,https://txschools.net/campus/royal-academy-of-excellence-015842001
+776,823,10,227805041,Texas Empowerment Academy,Texas Empowerment Academy,F,59,461,https://txschools.net/campus/texas-empowerment-academy-227805041
+776,823,10,101840103,Two Dimensions/Vickery,Two Dimensions Preparatory Academy,F,59,207,https://txschools.net/campus/two-dimensions-vickery-101840103
+776,823,10,101814101,Varnett Charter School,The Varnett Public School,F,59,479,https://txschools.net/campus/varnett-charter-school-101814101
+787,823,8,101875001,Bloom Academy Charter School,Bloom Academy Charter School,F,58,364,https://txschools.net/campus/bloom-academy-charter-school-101875001
+787,823,8,221801060,Denton Classical Academy,Texas College Preparatory Academies,C,58,211,https://txschools.net/campus/denton-classical-academy-221801060
+787,823,8,015844101,Essence Preparatory Charter School,Essence Preparatory Charter School,F,58,438,https://txschools.net/campus/essence-preparatory-charter-school-015844101
+787,823,8,221801075,Founders Classical Academy-Bastrop,Texas College Preparatory Academies,D,58,285,https://txschools.net/campus/founders-classical-academy-bastrop-221801075
+787,823,8,108807309,IDEA A W Brown Academy,IDEA Public Schools,F,58,478,https://txschools.net/campus/idea-a-w-brown-academy-108807309
+787,823,8,108807137,IDEA Bluff Springs Academy,IDEA Public Schools,F,58,517,https://txschools.net/campus/idea-bluff-springs-academy-108807137
+787,823,8,221801052,Ignite Community School - Beaumont,Texas College Preparatory Academies,F,58,195,https://txschools.net/campus/ignite-community-school-beaumont-221801052
+787,823,8,057830001,Inspired Vision Academy Elem,Inspired Vision Academy,F,58,547,https://txschools.net/campus/inspired-vision-academy-elem-057830001
+787,823,8,227803103,Wayside Altamira Academy,Wayside Schools,F,58,393,https://txschools.net/campus/wayside-altamira-academy-227803103
+796,823,7,101803041,Aristoi Classical Academy,Aristoi Classical Academy,C,57,446,https://txschools.net/campus/aristoi-classical-academy-101803041
+796,823,7,221801081,Founders Classical Academy - Fort Worth,Texas College Preparatory Academies,C,57,126,https://txschools.net/campus/founders-classical-academy-fort-worth-221801081
+796,823,7,108807123,IDEA Walzem Academy,IDEA Public Schools,F,57,604,https://txschools.net/campus/idea-walzem-academy-108807123
+796,823,7,227820213,KIPP Peace Elem,KIPP Texas Public Schools,F,57,469,https://txschools.net/campus/kipp-peace-elem-227820213
+796,823,7,061802003,North Texas Collegiate Academy-South Campus,North Texas Collegiate Academy,F,57,252,https://txschools.net/campus/north-texas-collegiate-academy-south-campus-061802003
+796,823,7,057802001,Pegasus Charter HS,Pegasus School of Liberal Arts and Sciences,D,57,277,https://txschools.net/campus/pegasus-charter-hs-057802001
+796,823,7,072801160,Premier HS - Longview,Premier High Schools,B,57,31,https://txschools.net/campus/premier-hs-longview-072801160
+796,823,7,101814103,The Varnett School - East,The Varnett Public School,F,57,291,https://txschools.net/campus/the-varnett-school-east-101814103
+804,823,5,227825003,Austin Achieve Northeast Elem,Austin Achieve Public Schools,F,56,877,https://txschools.net/campus/austin-achieve-northeast-elem-227825003
+804,823,5,212801042,Cumberland Academy MS,Cumberland Academy,F,56,240,https://txschools.net/campus/cumberland-academy-ms-212801042
+804,823,5,108807128,IDEA Brackenridge Academy,IDEA Public Schools,F,56,611,https://txschools.net/campus/idea-brackenridge-academy-108807128
+804,823,5,108807122,IDEA Monterrey Park Academy,IDEA Public Schools,F,56,554,https://txschools.net/campus/idea-monterrey-park-academy-108807122
+804,823,5,108807186,IDEA Rise Academy,IDEA Public Schools,F,56,641,https://txschools.net/campus/idea-rise-academy-108807186
+804,823,5,227829003,Valor Kyle,Valor Education,D,56,963,https://txschools.net/campus/valor-kyle-227829003
+810,823,4,178807101,Corpus Christi Montessori School,Corpus Christi Montessori School,F,55,132,https://txschools.net/campus/corpus-christi-montessori-school-178807101
+810,823,4,108807306,IDEA Southeast Academy,IDEA Public Schools,F,55,683,https://txschools.net/campus/idea-southeast-academy-108807306
+810,823,4,015825101,Lighthouse Elem,Lighthouse Public Schools,F,55,289,https://txschools.net/campus/lighthouse-elem-015825101
+810,823,4,057803112,Uplift Williams Prep Ps,Uplift Education,F,55,545,https://txschools.net/campus/uplift-williams-prep-ps-057803112
+810,823,4,227806044,UT Charter Scholars Academy,University of Texas University Charter School,C,55,67,https://txschools.net/campus/ut-charter-scholars-academy-227806044
+815,823,2,108807127,IDEA Najim Academy,IDEA Public Schools,F,54,463,https://txschools.net/campus/idea-najim-academy-108807127
+815,823,2,221801065,Ignite Community School - Fallbrook,Texas College Preparatory Academies,F,54,152,https://txschools.net/campus/ignite-community-school-fallbrook-221801065
+815,823,2,057809101,Nova Academy,Nova Academy,F,54,67,https://txschools.net/campus/nova-academy-057809101
+818,823,0,071801005,Davinci Acad for Sci and the Arts at San Antonio,Burnham Wood Charter School District,F,52,114,https://txschools.net/campus/davinci-acad-for-sci-and-the-arts-at-san-antonio-071801005
+819,823,1,114801001,Pathway Academy,Pathway Academy,F,50,130,https://txschools.net/campus/pathway-academy-114801001
+819,823,1,015808020,Sherman Inspire Academy,Inspire Academies,F,50,428,https://txschools.net/campus/sherman-inspire-academy-015808020
+821,823,1,221801083,Ignite Community School - Fort Worth,Texas College Preparatory Academies,F,48,615,https://txschools.net/campus/ignite-community-school-fort-worth-221801083
+821,823,1,101881001,Up Excellence Academy,Up Excellence Academy,F,48,116,https://txschools.net/campus/up-excellence-academy-101881001
+823,823,0,015845001,Celebrate Dyslexia School,Celebrate Dyslexia Schools,F,46,100,https://txschools.net/campus/celebrate-dyslexia-school-015845001

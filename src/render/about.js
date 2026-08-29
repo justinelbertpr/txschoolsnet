@@ -13,7 +13,19 @@
 // reader's questions in the order they arrive: what is this, what does it add,
 // where did the numbers come from, what should I distrust.
 
-import { esc, num, section, shell, statGrid, table, SITE_ORIGIN } from './shell.js'
+import {
+  esc,
+  num,
+  section,
+  shell,
+  statGrid,
+  table,
+  SITE_ORIGIN,
+  TEA_REPORTS_DATA_PORTAL,
+  TXSCHOOLS_REPORTS,
+} from './shell.js'
+
+const TEA_SITE_POLICIES = 'https://tea.texas.gov/about-tea/welcome-and-overview/site-policies'
 
 /** TEA's own classification counts, measured from the committed snapshot. */
 const AEA_DISTRICTS = 30
@@ -33,17 +45,20 @@ const GRADIENT = {
 const intro = () => `<section class="hero">
   <p class="eyebrow">Unofficial</p>
   <h1>About txschools.net</h1>
-  <p class="alert"><strong>txschools.net is not affiliated with, endorsed by, or operated by
-  the Texas Education Agency.</strong> It is an unofficial presentation of data TEA publishes.
-  The official site is <a href="https://txschools.gov">txschools.gov</a>. Where a figure here
-  disagrees with the figure there, the official one is right and this one is wrong.</p>
+  <p class="alert"><strong>txschools.net is an independent, unofficial research site. It is not
+  operated by, endorsed by, or affiliated with the Texas Education Agency.</strong> TEA publishes
+  the underlying accountability reports and data downloads. Its
+  <a href="${TEA_REPORTS_DATA_PORTAL}">Reports and Data Portal</a> is the official landing page for
+  those files, while <a href="${TXSCHOOLS_REPORTS}">TXschools.gov</a> provides official individual
+  district and campus reports. Where a figure here disagrees with TEA's figure, TEA's is right and
+  this one is wrong.</p>
 </section>`
 
 /* ------------------------------------------------------------ what it adds -- */
 
 const adds = (counts = {}) => {
   const tally = [
-    counts.districts != null ? ['Districts', num(counts.districts)] : null,
+    counts.districts != null ? ['District & charter systems', num(counts.districts)] : null,
     counts.campuses != null ? ['Campuses', num(counts.campuses)] : null,
     counts.years != null ? ['Academic years', num(counts.years)] : null,
     counts.metrics != null ? ['Metrics compared', num(counts.metrics)] : null,
@@ -68,8 +83,8 @@ const adds = (counts = {}) => {
   TEA rewrote the rules mid-window, so making the years comparable takes work.</p>
 
   <h3>The underlying data, downloadable</h3>
-  <p class="callout">Every district page offers its own figures as CSV and JSON; campuses are rows
-  in the bulk files. The whole normalised dataset is at <a href="/download">the download page</a>.
+  <p class="callout">Every district and charter-system page offers its own figures as CSV and JSON;
+  campuses are rows in the bulk files. The whole normalised dataset is at <a href="/download">the download page</a>.
   Nothing here is meant to be taken on trust.</p>
 
   ${tally.length ? statGrid(tally) : ''}`,
@@ -93,14 +108,16 @@ const provenance = (snapshotDate, sources = [], enrollmentSource = null, publicS
   return section(
     'provenance',
     'Where the numbers come from',
-    `<p class="callout">The data is fetched from the files TEA serves publicly at
-  <a href="https://txschools.gov" rel="nofollow">txschools.gov</a>. TEA overwrites those files in
+    `<p class="callout">The accountability snapshot is fetched from files TEA publishes through
+  <a href="${TXSCHOOLS_REPORTS}" rel="nofollow">TXschools.gov</a>. TEA's
+  <a href="${TEA_REPORTS_DATA_PORTAL}" rel="nofollow">Reports and Data Portal</a> is the official
+  landing page for accountability reports and bulk downloads. TEA overwrites the fetched files in
   place with each release, so every fetch is kept under the date it was taken with a
   <strong>sha256 checksum of each file's decompressed contents</strong>: a change between releases
   shows up as a changed checksum rather than as a silently different number.</p>
   <p class="callout">This site was built from the snapshot taken
   <strong>${esc(snapshotDate ?? 'on the date shown on each page')}</strong>${
-    sources.length ? `, comprising the ${num(sources.length)} txschools.gov files below.` : '.'
+    sources.length ? `, comprising the ${num(sources.length)} TEA accountability files below.` : '.'
   }</p>
   ${
     enrollmentSource
@@ -120,7 +137,7 @@ const provenance = (snapshotDate, sources = [], enrollmentSource = null, publicS
   }
   ${
     addedRows.length
-      ? `<p class="callout">Separate official publications add the history, family-action notices and context that txschools.gov does not expose on these pages. Each section keeps its own year, denominator and limitations.</p>
+      ? `<p class="callout">Separate official publications add history, family-action notices and context that are not part of the accountability snapshot. Each section keeps its own year, denominator and limitations.</p>
   ${table({
         caption: 'Additional official public sources used by this site',
         head: ['Public dataset', 'Agency', 'Year or period', { label: 'Rows', num: true }],
@@ -130,6 +147,12 @@ const provenance = (snapshotDate, sources = [], enrollmentSource = null, publicS
   }
   <p class="note">Row counts are what the build measured after normalising the published files. They
   count table rows, not distinct schools; historical tables carry several years per entity.</p>
+  <p class="note">TEA and the other agencies named here are the publishers of the underlying
+  records. txschools.net does not grant permission to reuse third-party source material; consult
+  each publisher's terms and policies. TEA&rsquo;s <a href="${TEA_SITE_POLICIES}" rel="nofollow">current
+  site policy</a> says TEA website content is copyrighted and states limited copying conditions;
+  this site does not reinterpret or expand them. Cite txschools.net as well when using this site's
+  derived comparisons or rankings.</p>
   <p class="downloads"><a href="/download">Download the dataset</a> and check any of this against
   TEA's own publication.</p>`,
     'Each fetch is archived and checksummed, so every published figure traces back to the bytes TEA served.'
@@ -216,7 +239,7 @@ const corrections = () =>
     'Errors',
     `<p class="callout">This site is built and maintained independently, and mistakes in it are its
   own rather than the Texas Education Agency's. If a figure here looks wrong, check it against
-  <a href="https://txschools.gov">txschools.gov</a>. Every claim published here is covered by tests
+  <a href="${TXSCHOOLS_REPORTS}">TXschools.gov</a>. Every claim published here is covered by tests
   that recompute it from the source data, so a future release from TEA that changes the picture
   fails the build rather than quietly ageing into being wrong.</p>
   <p>If it still looks wrong after checking against TEA's own figure, that is a bug in this site's
@@ -237,8 +260,8 @@ export function renderAboutPage({ snapshotDate, counts = {}, sources = [], enrol
   return shell({
     title: 'About txschools.net — an unofficial view of Texas school ratings',
     description:
-      'txschools.net is not affiliated with, endorsed by, or operated by the Texas Education Agency. ' +
-      'It is an unofficial presentation of data TEA publishes at txschools.gov, adding peer-group ' +
+      'txschools.net is independent and unofficial; it is not operated by, endorsed by, or affiliated with the Texas Education Agency. ' +
+      'It presents TEA-published accountability data with peer-group ' +
       'comparisons, ranks with denominators and five years of history. Methodology and provenance in full.',
     canonical: `${SITE_ORIGIN}/about`,
     crumbs: [{ href: '/', label: 'Texas schools', current: 'About' }],

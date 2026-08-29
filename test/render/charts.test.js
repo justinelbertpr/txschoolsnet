@@ -19,7 +19,7 @@
 
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { trajectoryChart, scoreBars, stackedShare, comparisonChart, groupedBars, esc, SERIES } from '../../src/render/charts.js'
+import { trajectoryChart, scoreBars, stackedShare, comparisonChart, cmpDomain, groupedBars, esc, SERIES } from '../../src/render/charts.js'
 
 const count = (s, re) => (s.match(re) ?? []).length
 const circles = (s) => count(s, /<circle/g)
@@ -437,6 +437,27 @@ describe('stackedShare', () => {
 /* ---------------------------------------------------------- comparisonChart */
 
 describe('comparisonChart', () => {
+  it('publishes the fixed x/y domain used to place every displayed series', () => {
+    const svg = comparisonChart({
+      years: ['2022-23', '2023-24'],
+      series: [
+        { key: 'entity', values: [8_000, 9_000] },
+        { key: 'peer', values: [12_000, 13_000] },
+      ],
+      domain: { lo: 7_000, hi: 14_000 },
+    })
+    expect(svg).toContain('data-lo="7000"')
+    expect(svg).toContain('data-hi="14000"')
+    expect(svg).toContain('data-years="2"')
+  })
+
+  it('ignores non-numeric values when deriving its domain', () => {
+    expect(cmpDomain([10_000, null, undefined, NaN, Infinity, '12000', 20_000])).toEqual({
+      lo: 9_000,
+      hi: 21_000,
+    })
+  })
+
   it('draws no point for a missing year, rather than a point at zero', () => {
     const svg = cmpChart({ series: [{ key: 'entity', values: [10_000, null, 12_000] }] })
     expect(svg).not.toContain('NaN')

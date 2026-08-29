@@ -1,0 +1,182 @@
+# txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
+# source: Texas Education Agency, published publicly at https://txschools.gov
+# snapshot: 15 August 2026 — the date this site fetched the source data. The publisher may have revised it since.
+# official accountability landing page: Texas Education Agency Reports and Data Portal at https://tea.texas.gov/school-and-district-leaders/accountability/academic-accountability/performance-reporting/texas-education-agency-reports-and-data-portal
+# dataset: ranking board
+# page: https://txschools.net/rankings/charters/texas-districts/school-progress-highest
+# rows: 165 (excluding this header and the column row)
+# ranking: Texas open-enrollment charter school districts with the highest School Progress in 2025-26
+# sector: charter (open-enrollment charters only)
+# population: 165 districts of 179 districts are ranked here.
+# population: 14 were not rated by TEA for 2025-26 and are not ranked.
+# rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
+# empty cell = the source did not publish that figure, suppressed it, or did not report it. It does not mean zero.
+# numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# rights: txschools.net does not grant permission to reuse third-party source material; consult the publisher's terms and policies, including TEA's at https://tea.texas.gov/about-tea/welcome-and-overview/site-policies.
+# lines starting with # are comments — pandas: read_csv(path, comment='#')
+rank,rank_of,tied,entity_id,name,county,rating,value,enrollment,url
+1,165,0,123803,Tekoa Academy of Accelerated Studies STEM School,Jefferson,A,96,395,https://txschools.net/district/tekoa-academy-of-accelerated-studies-stem-school-123803
+2,165,0,071804,El Paso Academy,El Paso,A,95,295,https://txschools.net/district/el-paso-academy-071804
+3,165,3,101862,Harmony Public Schools - Houston West,Harris,A,94,6908,https://txschools.net/district/harmony-public-schools-houston-west-101862
+3,165,3,183801,Panola Charter School,Panola,A,94,174,https://txschools.net/district/panola-charter-school-183801
+3,165,3,174801,Stephen F Austin State University Charter School,Nacogdoches,A,94,254,https://txschools.net/district/stephen-f-austin-state-university-charter-school-174801
+3,165,3,246803,The Texas Girls School,Williamson,A,94,37,https://txschools.net/district/the-texas-girls-school-246803
+7,165,0,092801,East Texas Charter Schools,Gregg,A,93,125,https://txschools.net/district/east-texas-charter-schools-092801
+8,165,2,084804,Ambassadors Preparatory Academy,Galveston,A,92,140,https://txschools.net/district/ambassadors-preparatory-academy-084804
+8,165,2,152802,Rise Academy,Lubbock,A,92,287,https://txschools.net/district/rise-academy-152802
+8,165,2,101845,Yes Prep Public Schools Inc,Harris,B,92,20811,https://txschools.net/district/yes-prep-public-schools-inc-101845
+11,165,7,101849,Accelerated Intermediate Academy,Harris,A,91,166,https://txschools.net/district/accelerated-intermediate-academy-101849
+11,165,7,101819,Amigos Por Vida-Friends for Life Pub Chtr Sch,Harris,A,91,802,https://txschools.net/district/amigos-por-vida-friends-for-life-pub-chtr-sch-101819
+11,165,7,123807,Bob Hope School,Jefferson,A,91,2587,https://txschools.net/district/bob-hope-school-123807
+11,165,7,184801,Crosstimbers Academy,Parker,A,91,114,https://txschools.net/district/crosstimbers-academy-184801
+11,165,7,123805,Ehrhart School,Jefferson,A,91,593,https://txschools.net/district/ehrhart-school-123805
+11,165,7,101846,Harmony Public Schools - Houston South,Harris,A,91,4100,https://txschools.net/district/harmony-public-schools-houston-south-101846
+11,165,7,101878,Houston Classical Charter School,Harris,A,91,430,https://txschools.net/district/houston-classical-charter-school-101878
+11,165,7,220810,Westlake Academy Charter School,Tarrant,A,91,908,https://txschools.net/district/westlake-academy-charter-school-220810
+19,165,5,227814,Chaparral Star Academy,Travis,A,90,387,https://txschools.net/district/chaparral-star-academy-227814
+19,165,5,101821,Houston Heights High School,Harris,A,90,152,https://txschools.net/district/houston-heights-high-school-101821
+19,165,5,015814,Positive Solutions Charter School,Bexar,B,90,91,https://txschools.net/district/positive-solutions-charter-school-015814
+19,165,5,015831,School of Science and Technology Discovery,Bexar,A,90,6366,https://txschools.net/district/school-of-science-and-technology-discovery-015831
+19,165,5,212804,UT Tyler University Academy,Smith,A,90,1224,https://txschools.net/district/ut-tyler-university-academy-212804
+19,165,5,108808,Vanguard Academy,Hidalgo,A,90,6739,https://txschools.net/district/vanguard-academy-108808
+25,165,5,043802,Imagine Lone Star International Academy,Collin,A,89,269,https://txschools.net/district/imagine-lone-star-international-academy-043802
+25,165,5,071807,La Fe Preparatory School,El Paso,B,89,185,https://txschools.net/district/la-fe-preparatory-school-071807
+25,165,5,101806,Raul Yzaguirre Schools for Success,Harris,B,89,2180,https://txschools.net/district/raul-yzaguirre-schools-for-success-101806
+25,165,5,015827,School of Science and Technology,Bexar,B,89,5855,https://txschools.net/district/school-of-science-and-technology-015827
+25,165,5,108804,Triumph Public High Schools-Rio Grande Valley,Hidalgo,B,89,478,https://txschools.net/district/triumph-public-high-schools-rio-grande-valley-108804
+25,165,5,071803,Triumph Public High Schools-West Texas,El Paso,B,89,349,https://txschools.net/district/triumph-public-high-schools-west-texas-071803
+31,165,11,101837,Calvin Nelms Charter Schools,Harris,A,88,414,https://txschools.net/district/calvin-nelms-charter-schools-101837
+31,165,11,015836,Eleanor Kolitz Hebrew Language Academy,Bexar,B,88,464,https://txschools.net/district/eleanor-kolitz-hebrew-language-academy-015836
+31,165,11,101858,Harmony Public Schools - Houston North,Harris,B,88,8811,https://txschools.net/district/harmony-public-schools-houston-north-101858
+31,165,11,161807,Harmony Public Schools - North Texas,McLennan,B,88,11300,https://txschools.net/district/harmony-public-schools-north-texas-161807
+31,165,11,015828,Harmony Public Schools - South Texas,Bexar,B,88,4991,https://txschools.net/district/harmony-public-schools-south-texas-015828
+31,165,11,071806,Harmony Public Schools - West Texas,El Paso,B,88,6738,https://txschools.net/district/harmony-public-schools-west-texas-071806
+31,165,11,101828,Houston Gateway Academy Inc,Harris,B,88,2364,https://txschools.net/district/houston-gateway-academy-inc-101828
+31,165,11,043801,Imagine International Academy of North Texas,Collin,A,88,1438,https://txschools.net/district/imagine-international-academy-of-north-texas-043801
+31,165,11,246801,Meridian World School LLC,Williamson,A,88,1757,https://txschools.net/district/meridian-world-school-llc-246801
+31,165,11,015805,New Frontiers Public Schools Inc,Bexar,B,88,335,https://txschools.net/district/new-frontiers-public-schools-inc-015805
+31,165,11,057836,St Anthony School,Dallas,B,88,321,https://txschools.net/district/st-anthony-school-057836
+31,165,11,170802,Thrive Center for Success,Montgomery,B,88,177,https://txschools.net/district/thrive-center-for-success-170802
+43,165,2,101815,Alief Montessori Community School,Harris,B,87,416,https://txschools.net/district/alief-montessori-community-school-101815
+43,165,2,240801,Triumph Public High Schools Central Texas,Webb,B,87,364,https://txschools.net/district/triumph-public-high-schools-central-texas-240801
+43,165,2,057808,Universal Academy,Dallas,A,87,2051,https://txschools.net/district/universal-academy-057808
+46,165,4,015834,Basis Texas,Bexar,A,86,9480,https://txschools.net/district/basis-texas-015834
+46,165,4,015815,Heritage Academy,Bexar,A,86,574,https://txschools.net/district/heritage-academy-015815
+46,165,4,236802,Sam Houston State University Charter School,Walker,B,86,343,https://txschools.net/district/sam-houston-state-university-charter-school-236802
+46,165,4,101868,The Pro-Vision Academy,Harris,B,86,239,https://txschools.net/district/the-pro-vision-academy-101868
+46,165,4,057845,UME Preparatory Academy,Dallas,B,86,1766,https://txschools.net/district/ume-preparatory-academy-057845
+51,165,6,101853,Bakerripley Community Schools,Harris,B,85,1908,https://txschools.net/district/bakerripley-community-schools-101853
+51,165,6,057834,Evolution Academy Charter School,Dallas,A,85,639,https://txschools.net/district/evolution-academy-charter-school-057834
+51,165,6,227816,Harmony Public Schools - Central Texas,Travis,B,85,5679,https://txschools.net/district/harmony-public-schools-central-texas-227816
+51,165,6,227820,KIPP Texas Public Schools,Travis,B,85,31611,https://txschools.net/district/kipp-texas-public-schools-227820
+51,165,6,014804,Orenda Charter School,Bell,A,85,1937,https://txschools.net/district/orenda-charter-school-014804
+51,165,6,003801,Pineywoods Community Academy,Angelina,B,85,1060,https://txschools.net/district/pineywoods-community-academy-003801
+51,165,6,072801,Premier High Schools,Erath,B,85,8860,https://txschools.net/district/premier-high-schools-072801
+58,165,5,101870,Beta Academy,Harris,B,84,1674,https://txschools.net/district/beta-academy-101870
+58,165,5,227817,Cedars International Academy,Travis,B,84,543,https://txschools.net/district/cedars-international-academy-227817
+58,165,5,057846,Legacy Preparatory,Dallas,B,84,914,https://txschools.net/district/legacy-preparatory-057846
+58,165,5,227804,NYOS Charter School,Travis,B,84,1808,https://txschools.net/district/nyos-charter-school-227804
+58,165,5,101859,Step Charter School,Harris,B,84,723,https://txschools.net/district/step-charter-school-101859
+58,165,5,071809,Vista Del Futuro Charter School,El Paso,B,84,347,https://txschools.net/district/vista-del-futuro-charter-school-071809
+64,165,7,108807,IDEA Public Schools,Hidalgo,B,83,79608,https://txschools.net/district/idea-public-schools-108807
+64,165,7,057844,Manara Academy,Dallas,B,83,658,https://txschools.net/district/manara-academy-057844
+64,165,7,057827,Nova Academy Southeast,Dallas,B,83,181,https://txschools.net/district/nova-academy-southeast-057827
+64,165,7,015801,Por Vida Academy,Bexar,B,83,167,https://txschools.net/district/por-vida-academy-015801
+64,165,7,015843,Prelude Preparatory Charter School,Bexar,B,83,165,https://txschools.net/district/prelude-preparatory-charter-school-015843
+64,165,7,015830,Somerset Academies of Texas,Bexar,B,83,2693,https://txschools.net/district/somerset-academies-of-texas-015830
+64,165,7,057804,Texans Can Academies,Dallas,B,83,2935,https://txschools.net/district/texans-can-academies-057804
+64,165,7,057828,Winfree Academy Charter Schools,Dallas,B,83,1053,https://txschools.net/district/winfree-academy-charter-schools-057828
+72,165,4,101871,A' Unlimited Potential,Harris,B,82,190,https://txschools.net/district/a-unlimited-potential-101871
+72,165,4,071801,Burnham Wood Charter School District,El Paso,B,82,1895,https://txschools.net/district/burnham-wood-charter-school-district-071801
+72,165,4,057819,Jean Massieu Academy,Dallas,D,82,172,https://txschools.net/district/jean-massieu-academy-057819
+72,165,4,015822,Jubilee Academies,Bexar,B,82,5019,https://txschools.net/district/jubilee-academies-015822
+72,165,4,226801,Texas Leadership Public Schools,Tom Green,B,82,4070,https://txschools.net/district/texas-leadership-public-schools-226801
+77,165,7,057829,A' Academy,Dallas,C,81,1703,https://txschools.net/district/a-academy-057829
+77,165,7,105804,Doral Academy of Texas,Hays,B,81,450,https://txschools.net/district/doral-academy-of-texas-105804
+77,165,7,178801,Dr M L Garza-Gonzalez Charter School,Nueces,B,81,154,https://txschools.net/district/dr-m-l-garza-gonzalez-charter-school-178801
+77,165,7,220809,Fort Worth Academy of Fine Arts,Tarrant,B,81,668,https://txschools.net/district/fort-worth-academy-of-fine-arts-220809
+77,165,7,108802,Horizon Montessori Public Schools,Hidalgo,B,81,1034,https://txschools.net/district/horizon-montessori-public-schools-108802
+77,165,7,015806,Legacy Traditional Schools - Texas,Bexar,B,81,1855,https://txschools.net/district/legacy-traditional-schools-texas-015806
+77,165,7,101861,The Rhodes School for Performing Arts,Harris,B,81,405,https://txschools.net/district/the-rhodes-school-for-performing-arts-101861
+77,165,7,057803,Uplift Education,Dallas,B,81,23540,https://txschools.net/district/uplift-education-057803
+85,165,5,101810,Academy of Accelerated Learning Inc,Harris,B,80,711,https://txschools.net/district/academy-of-accelerated-learning-inc-101810
+85,165,5,021805,Arrow Academy,Brazos,B,80,428,https://txschools.net/district/arrow-academy-021805
+85,165,5,057848,International Leadership of Texas (ILTexas),Dallas,B,80,26257,https://txschools.net/district/international-leadership-of-texas-iltexas-057848
+85,165,5,057807,Life School,Dallas,B,80,5560,https://txschools.net/district/life-school-057807
+85,165,5,013801,St Mary's Academy Charter School,Bee,C,80,329,https://txschools.net/district/st-mary-s-academy-charter-school-013801
+85,165,5,061805,Trivium Academy,Denton,B,80,503,https://txschools.net/district/trivium-academy-061805
+91,165,5,220802,Arlington Classics Academy,Tarrant,B,79,1552,https://txschools.net/district/arlington-classics-academy-220802
+91,165,5,015802,George Gervin Academy,Bexar,B,79,744,https://txschools.net/district/george-gervin-academy-015802
+91,165,5,061804,Leadership Prep School,Denton,B,79,1894,https://txschools.net/district/leadership-prep-school-061804
+91,165,5,014803,Priority Charter Schools,Bell,B,79,529,https://txschools.net/district/priority-charter-schools-014803
+91,165,5,101864,The Lawson Academy,Harris,B,79,317,https://txschools.net/district/the-lawson-academy-101864
+91,165,5,227819,University of Texas Elem Charter School,Travis,C,79,305,https://txschools.net/district/university-of-texas-elem-charter-school-227819
+97,165,4,072802,Erath Excels Academy Inc,Erath,B,78,111,https://txschools.net/district/erath-excels-academy-inc-072802
+97,165,4,057839,La Academia De Estrellas,Dallas,C,78,1021,https://txschools.net/district/la-academia-de-estrellas-057839
+97,165,4,220817,Newman International Academy of Arlington,Tarrant,C,78,2697,https://txschools.net/district/newman-international-academy-of-arlington-220817
+97,165,4,178808,Seashore Charter Schools,Nueces,B,78,422,https://txschools.net/district/seashore-charter-schools-178808
+97,165,4,101838,Southwest Public Schools,Harris,B,78,1727,https://txschools.net/district/southwest-public-schools-101838
+102,165,5,057806,Advantage Academy,Dallas,C,77,909,https://txschools.net/district/advantage-academy-057806
+102,165,5,101847,Beatrice Mayes Institute Charter School,Harris,C,77,628,https://txschools.net/district/beatrice-mayes-institute-charter-school-101847
+102,165,5,070801,Faith Family Academy,Ellis,C,77,2883,https://txschools.net/district/faith-family-academy-070801
+102,165,5,101802,Ser-Ninos Charter School,Harris,C,77,1206,https://txschools.net/district/ser-ninos-charter-school-101802
+102,165,5,152803,Triumph Public High Schools-Lubbock,Lubbock,C,77,119,https://txschools.net/district/triumph-public-high-schools-lubbock-152803
+102,165,5,057847,Village Tech Schools,Dallas,B,77,1330,https://txschools.net/district/village-tech-schools-057847
+108,165,4,021803,Brazos School for Inquiry & Creativity,Brazos,C,76,310,https://txschools.net/district/brazos-school-for-inquiry-creativity-021803
+108,165,4,101877,Elevate Collegiate Charter School,Harris,C,76,224,https://txschools.net/district/elevate-collegiate-charter-school-101877
+108,165,4,165802,Midland Academy Charter School,Midland,B,76,431,https://txschools.net/district/midland-academy-charter-school-165802
+108,165,4,161802,Rapoport Academy Public School,McLennan,C,76,914,https://txschools.net/district/rapoport-academy-public-school-161802
+108,165,4,057813,Trinity Basin Preparatory,Dallas,C,76,6741,https://txschools.net/district/trinity-basin-preparatory-057813
+113,165,1,101804,George I Sanchez Charter,Harris,C,75,941,https://txschools.net/district/george-i-sanchez-charter-101804
+113,165,1,057850,Pioneer Technology & Arts Academy,Dallas,C,75,2400,https://txschools.net/district/pioneer-technology-arts-academy-057850
+115,165,2,057841,Cityscape Schools,Dallas,C,74,1218,https://txschools.net/district/cityscape-schools-057841
+115,165,2,101842,Comquest Academy,Harris,B,74,35,https://txschools.net/district/comquest-academy-101842
+115,165,2,221801,Texas College Preparatory Academies,Taylor,B,74,17201,https://txschools.net/district/texas-college-preparatory-academies-221801
+118,165,5,227825,Austin Achieve Public Schools,Travis,C,73,2852,https://txschools.net/district/austin-achieve-public-schools-227825
+118,165,5,152806,Betty M Condra School for Education Innovation,Lubbock,D,73,168,https://txschools.net/district/betty-m-condra-school-for-education-innovation-152806
+118,165,5,212801,Cumberland Academy,Smith,C,73,1519,https://txschools.net/district/cumberland-academy-212801
+118,165,5,101856,Draw Academy,Harris,C,73,695,https://txschools.net/district/draw-academy-101856
+118,165,5,057830,Inspired Vision Academy,Dallas,C,73,1104,https://txschools.net/district/inspired-vision-academy-057830
+118,165,5,015807,Southwest Preparatory School,Bexar,C,73,849,https://txschools.net/district/southwest-preparatory-school-015807
+124,165,3,101803,Aristoi Classical Academy,Harris,B,72,1713,https://txschools.net/district/aristoi-classical-academy-101803
+124,165,3,057831,Gateway Charter Academy,Dallas,D,72,430,https://txschools.net/district/gateway-charter-academy-057831
+124,165,3,015825,Lighthouse Public Schools,Bexar,C,72,481,https://txschools.net/district/lighthouse-public-schools-015825
+124,165,3,227803,Wayside Schools,Travis,C,72,1923,https://txschools.net/district/wayside-schools-227803
+128,165,5,057835,Golden Rule Charter School,Dallas,D,71,1285,https://txschools.net/district/golden-rule-charter-school-057835
+128,165,5,015835,Great Hearts Texas,Bexar,B,71,14038,https://txschools.net/district/great-hearts-texas-015835
+128,165,5,101855,Meyerpark Charter,Harris,C,71,259,https://txschools.net/district/meyerpark-charter-101855
+128,165,5,084802,Odyssey Academy Inc,Galveston,C,71,1778,https://txschools.net/district/odyssey-academy-inc-084802
+128,165,5,227824,Valere Public Schools,Travis,C,71,812,https://txschools.net/district/valere-public-schools-227824
+128,165,5,227829,Valor Education,Travis,B,71,4738,https://txschools.net/district/valor-education-227829
+134,165,0,015838,Compass Rose Public Schools,Bexar,C,70,4033,https://txschools.net/district/compass-rose-public-schools-015838
+135,165,5,213801,Brazos River Charter School,Somervell,C,69,60,https://txschools.net/district/brazos-river-charter-school-213801
+135,165,5,068802,Compass Academy Charter School,Ector,C,69,1759,https://txschools.net/district/compass-academy-charter-school-068802
+135,165,5,108809,Excellence In Leadership Academy,Hidalgo,D,69,168,https://txschools.net/district/excellence-in-leadership-academy-108809
+135,165,5,105801,Katherine Anne Porter School,Hays,D,69,76,https://txschools.net/district/katherine-anne-porter-school-105801
+135,165,5,220801,Treetops School International,Tarrant,C,69,186,https://txschools.net/district/treetops-school-international-220801
+135,165,5,101873,Yellowstone College Preparatory,Harris,D,69,361,https://txschools.net/district/yellowstone-college-preparatory-101873
+141,165,0,014801,Richard Milburn Alter High School (Killeen),Bell,C,68,1528,https://txschools.net/district/richard-milburn-alter-high-school-killeen-014801
+142,165,2,015808,Inspire Academies,Bexar,C,67,1158,https://txschools.net/district/inspire-academies-015808
+142,165,2,101874,Legacy School of Sport Sciences,Harris,D,67,550,https://txschools.net/district/legacy-school-of-sport-sciences-101874
+142,165,2,227831,Unparalleled Preparatory Academy,Travis,C,67,33,https://txschools.net/district/unparalleled-preparatory-academy-227831
+145,165,0,057833,Education Center International Academy,Dallas,D,66,144,https://txschools.net/district/education-center-international-academy-057833
+146,165,1,101872,Etoile Academy Charter School,Harris,F,64,1064,https://txschools.net/district/etoile-academy-charter-school-101872
+146,165,1,061802,North Texas Collegiate Academy,Denton,D,64,797,https://txschools.net/district/north-texas-collegiate-academy-061802
+148,165,1,220811,East Fort Worth Montessori Academy,Tarrant,D,63,106,https://txschools.net/district/east-fort-worth-montessori-academy-220811
+148,165,1,015839,Promesa Academy Charter School,Bexar,D,63,275,https://txschools.net/district/promesa-academy-charter-school-015839
+150,165,2,071810,El Paso Leadership Academy,El Paso,F,62,665,https://txschools.net/district/el-paso-leadership-academy-071810
+150,165,2,227826,Montessori for All,Travis,D,62,556,https://txschools.net/district/montessori-for-all-227826
+150,165,2,101814,The Varnett Public School,Harris,D,62,1084,https://txschools.net/district/the-varnett-public-school-101814
+153,165,0,101840,Two Dimensions Preparatory Academy,Harris,D,60,342,https://txschools.net/district/two-dimensions-preparatory-academy-101840
+154,165,2,108810,Brillante Academy,Hidalgo,F,59,426,https://txschools.net/district/brillante-academy-108810
+154,165,2,015842,Royal Public Schools,Bexar,F,59,394,https://txschools.net/district/royal-public-schools-015842
+154,165,2,227805,Texas Empowerment Academy,Travis,F,59,760,https://txschools.net/district/texas-empowerment-academy-227805
+157,165,1,101875,Bloom Academy Charter School,Harris,F,58,364,https://txschools.net/district/bloom-academy-charter-school-101875
+157,165,1,015844,Essence Preparatory Charter School,Bexar,F,58,438,https://txschools.net/district/essence-preparatory-charter-school-015844
+159,165,0,057802,Pegasus School of Liberal Arts and Sciences,Dallas,D,57,277,https://txschools.net/district/pegasus-school-of-liberal-arts-and-sciences-057802
+160,165,1,178807,Corpus Christi Montessori School,Nueces,F,55,132,https://txschools.net/district/corpus-christi-montessori-school-178807
+160,165,1,227806,University of Texas University Charter School,Travis,B,55,695,https://txschools.net/district/university-of-texas-university-charter-school-227806
+162,165,0,057809,Nova Academy,Dallas,F,54,67,https://txschools.net/district/nova-academy-057809
+163,165,0,114801,Pathway Academy,Howard,F,50,130,https://txschools.net/district/pathway-academy-114801
+164,165,0,101881,Up Excellence Academy,Harris,F,48,116,https://txschools.net/district/up-excellence-academy-101881
+165,165,0,015845,Celebrate Dyslexia Schools,Bexar,F,46,100,https://txschools.net/district/celebrate-dyslexia-schools-015845

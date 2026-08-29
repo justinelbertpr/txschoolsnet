@@ -1,15 +1,18 @@
 # txschools.net — unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.
 # source: Texas Education Agency, published publicly at https://txschools.gov
 # snapshot: 15 August 2026 — the date this site fetched the source data. The publisher may have revised it since.
+# official accountability landing page: Texas Education Agency Reports and Data Portal at https://tea.texas.gov/school-and-district-leaders/accountability/academic-accountability/performance-reporting/texas-education-agency-reports-and-data-portal
 # dataset: ranking board
 # page: https://txschools.net/rankings/harris-county-districts/overall-score-gains
 # rows: 19 (excluding this header and the column row)
 # ranking: Harris County school districts with the largest overall score gains since 2021-22
+# sector: traditional (open-enrollment charters excluded)
 # population: 19 districts of 19 districts are ranked here.
 # rank_of is how many rows were actually ranked (can be smaller than the population above); two rows on the same value share a rank ("tied"), and the next rank is skipped.
 # methodology: TEA re-scored 2021-22 under the rules it adopted for 2022-23 and publishes that re-scoring as "2021-22 What If". This ranking reads the re-scored series, so the change spans one consistent methodology rather than a break.
 # empty cell = the source did not publish that figure, suppressed it, or did not report it. It does not mean zero.
 # numbers are unformatted: no thousands separators, no currency symbols, no percent signs.
+# rights: txschools.net does not grant permission to reuse third-party source material; consult the publisher's terms and policies, including TEA's at https://tea.texas.gov/about-tea/welcome-and-overview/site-policies.
 # lines starting with # are comments — pandas: read_csv(path, comment='#')
 rank,rank_of,tied,entity_id,name,county,rating,value,2021_22,2025_26,enrollment,url
 1,19,0,101902,Aldine ISD,Harris,C,10,69,79,52161,https://txschools.net/district/aldine-isd-101902

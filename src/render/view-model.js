@@ -4,7 +4,7 @@
 import { num, percentage, str } from '../normalize/entities.js'
 import { CCMR, GRADUATION, COMPLETION, DOMAIN_ORDER } from './labels.js'
 import { DOMAIN_LABELS } from '../normalize/domains.js'
-import { metricSpecs, sourceBundles, cohortMetrics, buildCohorts, rankAll, standouts } from './metrics.js'
+import { metricSpecs, sourceBundles, cohortMetrics, buildCohorts, rankAll, standouts, sameSector } from './metrics.js'
 import { buildHighlights } from './highlights.js'
 import { mergePublicComparisons } from './public-comparisons.js'
 
@@ -34,7 +34,13 @@ export function peerBand({ entity, entities, ecoDis }) {
   if (mine == null) return { ids: new Set(), n: 0 }
   const ids = new Set(
     entities
-      .filter((e) => e.level === entity.level && ecoDis.get(e.id) != null && Math.abs(ecoDis.get(e.id) - mine) <= PEER_BAND)
+      .filter(
+        (e) =>
+          e.level === entity.level &&
+          sameSector(e, entity) &&
+          ecoDis.get(e.id) != null &&
+          Math.abs(ecoDis.get(e.id) - mine) <= PEER_BAND
+      )
       .map((e) => e.id)
   )
   return { ids, n: ids.size }
@@ -62,10 +68,11 @@ const seriesReportingByYear = (rows, keep) => {
 /**
  * ONE definition of a cohort, used for every n this file publishes.
  *
- *   A cohort is every entity OF THE SAME LEVEL that TEA gave an overall score
- *   for the current year, narrowed by what the cohort is about (region, county,
- *   peer band, or nothing at all for the state) — the entity itself included,
- *   when it was rated.
+ *   A cohort is every entity OF THE SAME LEVEL AND SECTOR that TEA gave an
+ *   overall score for the current year, narrowed by what the cohort is about
+ *   (region, county, peer band, or nothing at all for the state) — the entity
+ *   itself included, when it was rated. Traditional and open-enrollment charter
+ *   entities never silently share a default comparison population.
  *
  * Three properties follow, and all three are the reason for the rule:
  *
@@ -99,7 +106,12 @@ const ratedPool = ({ entity, entities, ratings, latestYear }) => {
     if (r.year !== latestYear) continue
     if (typeof r.score === 'number' && Number.isFinite(r.score)) score.set(r.id, r.score)
   }
-  return { score, pool: entities.filter((e) => e.level === entity.level && score.has(e.id)) }
+  return {
+    score,
+    pool: entities.filter(
+      (e) => e.level === entity.level && sameSector(e, entity) && score.has(e.id)
+    ),
+  }
 }
 
 /**
@@ -434,13 +446,15 @@ export function buildViewModel({
   educatorHistory = [],
   educatorLatestYear = null,
   disciplineSummary = null,
+  accountabilityContext = null,
   transferSummary = null,
   publicDataMeta = null,
   publicComparisonBundles = null,
 }) {
   const ecoDis = new Map(profile.map((p) => [p.id, p.ecoDisPct]))
 
-  // The cohort pool: same level, rated this year. Every n below comes from it.
+  // The cohort pool: same level, same sector, rated this year. Every n below
+  // comes from it.
   const { score: latestScore, pool } = ratedPool({ entity, entities, ratings, latestYear })
   const poolIds = new Set(pool.map((e) => e.id))
   const band = peerBand({ entity, entities: pool, ecoDis })
@@ -448,11 +462,13 @@ export function buildViewModel({
   const history = ratings.filter((r) => r.id === entity.id).sort((a, b) => b.year.localeCompare(a.year))
 
   const state = placement({ entity, pool, score: latestScore })
-  const region = placement({
-    entity,
-    pool: pool.filter((e) => e.regionId === entity.regionId),
-    score: latestScore,
-  })
+  const region = entity.isCharter
+    ? { rank: null, of: null, tied: null }
+    : placement({
+        entity,
+        pool: pool.filter((e) => e.regionId === entity.regionId),
+        score: latestScore,
+      })
 
   const stateByYear = seriesByYear(ratings, (id) => poolIds.has(id))
   const stateReportingByYear = seriesReportingByYear(ratings, (id) => poolIds.has(id))
@@ -477,7 +493,7 @@ export function buildViewModel({
   const enrol = entity.enrollment
   const comparisons = [
     {
-      key: 'state', label: 'Texas average', n: pool.length,
+      key: 'state', label: entity.isCharter ? 'Texas charter average' : 'Texas average', n: pool.length,
       byYear: stateByYear, reportingNByYear: stateReportingByYear,
     },
     band.n > 1
@@ -490,8 +506,12 @@ export function buildViewModel({
           note: `Within 10 points of this ${entity.level}'s economically disadvantaged share`,
         }
       : null,
-    cohort(`${str(raw?.region) ?? 'Region ' + entity.regionId}`, 'region', (e) => e.regionId === entity.regionId),
-    cohort(`${entity.county} County`, 'county', (e) => e.countyId === entity.countyId),
+    entity.isCharter
+      ? null
+      : cohort(`${str(raw?.region) ?? 'Region ' + entity.regionId}`, 'region', (e) => e.regionId === entity.regionId),
+    entity.isCharter
+      ? null
+      : cohort(`${entity.county} County`, 'county', (e) => e.countyId === entity.countyId),
     enrol
       ? cohort('Similar size', 'size', (e) => e.enrollment != null && e.enrollment >= enrol * 0.6 && e.enrollment <= enrol * 1.6)
       : null,
@@ -625,6 +645,7 @@ export function buildViewModel({
     teacherTurnover: educatorContext.teacherTurnover,
     classSize: educatorContext.classSize,
     discipline,
+    accountabilityContext,
     transferContext,
     publicDataMeta,
     notRated: entity.rating === 'Not Rated',
@@ -695,8 +716,13 @@ export function buildViewModel({
       ? {
           years: fin.map((f) => f.year),
           spendEntity: fin.map((f) => f.spendEntity),
+          spendDistrict: fin.map((f) => f.spendDistrict),
           spendPeer: fin.map((f) => f.spendPeer),
           spendState: fin.map((f) => f.spendState),
+          vsDistrict:
+            last?.spendEntity != null && last?.spendDistrict != null
+              ? last.spendEntity - last.spendDistrict
+              : null,
           vsPeer: last?.spendEntity != null && last?.spendPeer != null ? last.spendEntity - last.spendPeer : null,
           vsState: last?.spendEntity != null && last?.spendState != null ? last.spendEntity - last.spendState : null,
         }

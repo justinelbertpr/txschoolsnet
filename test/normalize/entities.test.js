@@ -5,8 +5,11 @@ const district = {
   id: '001902', district_id: '001902', district_name: 'Cayuga ISD',
   region_id: '07', county_id: '001', county: 'Anderson',
   entity_type: 'Traditional', campus_type: '', alt_standards: 'No',
+  online_school: 'No',
   enrollment: 574, name: 'Cayuga ISD', rating: 'B', score: 89,
   latitude: 31.922964, longitude: -95.923871, mult_year: '0', paired_id: '',
+  address: '17750 N US Hwy 287, Tennessee Colony, TX 75861',
+  street_address: '17750 N US Hwy 287', city: 'Tennessee Colony', state: 'TX', zip_5: '75861',
 }
 
 const charterCampus = {
@@ -49,6 +52,18 @@ describe('toEntity', () => {
     expect(toEntity(charterCampus, 'campus').isAlt).toBe(true)
   })
 
+  it('retains TEA\'s online-school flag and exposes a strict boolean', () => {
+    expect(toEntity(district, 'district')).toMatchObject({ onlineSchool: 'No', isOnline: false })
+    expect(toEntity({ ...charterCampus, online_school: 'Yes' }, 'campus')).toMatchObject({
+      onlineSchool: 'Yes',
+      isOnline: true,
+    })
+    expect(toEntity({ ...charterCampus, online_school: '' }, 'campus')).toMatchObject({
+      onlineSchool: null,
+      isOnline: false,
+    })
+  })
+
   it('trims entity_type and alt_standards before comparing, so they never disagree with entityType', () => {
     const untrimmed = { ...district, entity_type: ' Charter ', alt_standards: ' Yes ' }
     const e = toEntity(untrimmed, 'district')
@@ -75,6 +90,17 @@ describe('toEntity', () => {
   it('normalises empty strings to null', () => {
     expect(toEntity(district, 'district').pairedId).toBeNull()
     expect(toEntity(charterCampus, 'campus').pairedId).toBe('001902002')
+  })
+
+  it('retains physical location fields for truthful charter-campus search results', () => {
+    const e = toEntity(district, 'district')
+    expect(e).toMatchObject({
+      address: '17750 N US Hwy 287, Tennessee Colony, TX 75861',
+      streetAddress: '17750 N US Hwy 287',
+      city: 'Tennessee Colony',
+      state: 'TX',
+      zip: '75861',
+    })
   })
 
   it('nulls a non-numeric score rather than emitting NaN', () => {

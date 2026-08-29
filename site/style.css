@@ -367,7 +367,7 @@ body {
      .masthead-id     the NAMEPLATE — the mark, the disclaimer that qualifies
                       the mark, and the theme control. Read once. Allowed to
                       scroll away.
-     .masthead-tools  the TOOLS — the five destinations and the search box.
+     .masthead-tools  the TOOLS — the primary destinations and the search box.
                       Used continuously. Stays pinned.
 
    The split is one declaration: this element is sticky with a NEGATIVE top
@@ -506,7 +506,7 @@ header.site .navlist-site {
   margin-left: -.4rem;
   font-size: var(--t-small);
 }
-/* No underline on these five: this is a masthead strip, not running text —
+/* No underline on these masthead links: this is a masthead strip, not running text —
    the same exception .navlist-letters a already takes, and consistent with
    .navlist a's own reasoning, which is about lists that sit IN running
    content and read as plain sentences without one. The current page is still
@@ -2153,6 +2153,7 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
   .map-classes:has(#map-b4:not(:checked)) ~ .map-svg [data-b="4"] {
     fill: var(--line-2); stroke: var(--line); stroke-width: .3;
   }
+  .map-classes:has(#map-charters:not(:checked)) ~ .map-svg [data-map-charters] { display: none; }
 }
 
 .map-svg a:focus-visible { outline: none; }
@@ -2194,6 +2195,27 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
 .map-class:not(:checked) + label { color: var(--ink-3); }
 .map-class:not(:checked) + label .map-swatch { background: var(--line-2); }
 .map-class:not(:checked) + label .map-range { text-decoration: line-through; }
+.map-charter-key { margin: .25rem 0 0; font-size: var(--t-small); }
+.map-charter-key label {
+  display: inline-flex; align-items: center; gap: .45rem; min-height: 2.75rem;
+  padding: 0 .5rem 0 .35rem; cursor: pointer; border: 1px solid transparent;
+  border-radius: var(--radius);
+}
+.map-charter-key label:hover { background: var(--hover); }
+.map-charter-toggle:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 1px; }
+.map-charter-toggle:not(:checked) + label { color: var(--ink-3); text-decoration: line-through; }
+.map-charter-swatch {
+  width: .8rem; height: .8rem; border-radius: 999px;
+  background: var(--accent-brass); border: 1px solid var(--ink);
+}
+.map-svg [data-map-charters] circle {
+  fill: var(--accent-brass); stroke: var(--ink); stroke-width: .7; opacity: .9;
+  vector-effect: non-scaling-stroke;
+}
+.map-svg [data-map-charters] a:focus-visible circle { stroke: var(--surface); stroke-width: 2.5; opacity: 1; }
+@media (hover: hover) {
+  .map-svg [data-map-charters] a:hover circle { stroke: var(--surface); stroke-width: 1.8; opacity: 1; }
+}
 
 .map-swatch {
   width: 1.1rem; height: 1.1rem; flex: none;
@@ -3055,7 +3077,7 @@ header.site .theme-toggle:focus-visible,
 header.site .desktop-search:focus-visible,
 header.site .nav-menu > summary:focus-visible { outline-color: var(--brand-gold); }
 
-@media (min-width: 48rem) {
+@media (min-width: 56rem) {
   .desktop-nav { display: flex; align-items: center; justify-content: flex-end; }
   .nav-menu { display: none; }
   header.site .sitenav { flex: 0 1 auto; margin: 0; }
@@ -3078,11 +3100,11 @@ header.site .nav-menu > summary:focus-visible { outline-color: var(--brand-gold)
   }
 }
 
-@media (pointer: coarse) and (min-width: 48rem) {
+@media (pointer: coarse) and (min-width: 56rem) {
   .desktop-search { width: 2.75rem; height: 2.75rem; }
 }
 
-@media (max-width: 47.99rem) {
+@media (max-width: 55.99rem) {
   .desktop-nav { display: none; }
   .masthead-id { padding-block: .32rem; }
   /* The strip says a SHORTER sentence on a phone rather than a clipped long

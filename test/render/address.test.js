@@ -22,6 +22,7 @@ const topo = {
     teaToGeoid: {
       '057905': '4816230',
       '227901': '4808940',
+      '101851': '4800001',
     },
   },
 }
@@ -30,6 +31,7 @@ const districts = [
   { id: '057905', level: 'district', name: 'Dallas ISD', county: 'Dallas', website: 'www.dallasisd.org' },
   { id: '227901', level: 'district', name: 'Austin ISD', county: 'Travis', website: 'javascript:alert(1)' },
   { id: '999999', level: 'district', name: 'No Bridge ISD', county: 'Nowhere' },
+  { id: '101851', level: 'district', name: 'KIPP Texas Public Schools', county: 'Travis', isCharter: true },
 ]
 
 describe('district address index', () => {
@@ -48,6 +50,7 @@ describe('district address index', () => {
       'Travis',
     ])
     expect(JSON.stringify(index)).not.toContain('No Bridge ISD')
+    expect(JSON.stringify(index)).not.toContain('KIPP Texas')
   })
 
   it('round-trips as a compact JSON object and survives a missing archive', () => {
@@ -74,7 +77,7 @@ describe('address lookup control', () => {
   })
 
   it('is immediately discoverable beside search and explicitly discloses the address recipient', () => {
-    expect(html).toContain('Find my district by address')
+    expect(html).toContain('Find my resident district by address')
     expect(html).toContain('Home street address')
     expect(html).toContain('Start typing your address')
     expect(html).toContain('Apartment or unit number isn’t needed.')

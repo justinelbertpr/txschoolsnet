@@ -17,6 +17,7 @@ import {
   geoidsIn,
   mappableDistricts,
   pathData,
+  projectCharterCampuses,
   quantileBreaks,
   hiFiPaths,
   renderMapPage,
@@ -128,6 +129,18 @@ describe('projection', () => {
     // Three collinear points a hundredth of a unit apart collapse to one.
     const d = pathData([[[0, 0], [0.001, 0], [0.002, 0], [20, 0]]], project)
     expect(d.match(/[ML]/g)).toHaveLength(2)
+  })
+
+  it('projects only charter campuses with valid coordinates into the map plane', () => {
+    const rows = projectCharterCampuses([
+      { id: '1', isCharter: true, lon: -95, lat: 30 },
+      { id: '2', isCharter: false, lon: -96, lat: 31 },
+      { id: '3', isCharter: true, lon: null, lat: 31 },
+      { id: '4', isCharter: true, isOnline: true, lon: -97, lat: 32 },
+      { id: '5', isCharter: true, onlineSchool: 'Yes', lon: -98, lat: 33 },
+    ])
+    expect(rows).toHaveLength(1)
+    expect(rows[0].point.every(Number.isFinite)).toBe(true)
   })
 })
 
@@ -333,6 +346,18 @@ describe('renderMapPage', () => {
     const html = page()
     expect(html).toContain('South Texas ISD')
     expect(html).toContain('no attendance boundary')
+  })
+
+  it('does not pin online charter programs to their mailing address', () => {
+    const online = {
+      id: '101801002', name: 'Online Charter', isCharter: true, isOnline: true,
+      onlineSchool: 'Yes', lat: 31, lon: -99, city: 'Austin', href: '/campus/online-charter-101801002',
+    }
+    const html = page({ charterCampuses: [online] })
+    expect(html).not.toContain('href="/campus/online-charter-101801002"')
+    expect(html).toContain('0 physical open-enrollment charter campus locations')
+    expect(html).toContain('1 online charter program is not pinned to a mailing address')
+    expect(html).toContain('because a mailing address is not a physical campus location')
   })
 
   it('ships the measured traffic light, not the classic one', () => {

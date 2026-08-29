@@ -259,13 +259,26 @@ export function cohortMetricSummary(specs, bundles, ids) {
 /** Backwards-compatible average-only view used for the entity's own values. */
 export const cohortMetrics = (specs, bundles, ids) => cohortMetricSummary(specs, bundles, ids).metrics
 
-/** The three cohorts every metric is compared against. */
+/**
+ * Traditional and open-enrollment charter entities are separate sectors.
+ * A default comparison may never cross that boundary: doing so changes both
+ * the reference value and the rank denominator merely because the other kind
+ * of public school was added to the dataset.
+ */
+export const sameSector = (a, b) => !!a?.isCharter === !!b?.isCharter
+
+/** The cohorts every metric is compared against. */
 const finiteEnrollment = (value) => typeof value === 'number' && Number.isFinite(value) && value > 0
 
 export function buildCohorts({ entity, entities, bundles, specs, band, regionName, countyName }) {
-  const sameLevel = entities.filter((e) => e.level === entity.level)
-  const region = sameLevel.filter((e) => e.regionId === entity.regionId)
-  const county = sameLevel.filter((e) => e.countyId === entity.countyId)
+  const sameLevel = entities.filter((e) => e.level === entity.level && sameSector(e, entity))
+  const sameLevelIds = new Set(sameLevel.map((e) => e.id))
+  const peerIds = [...(band?.ids ?? [])].filter((id) => sameLevelIds.has(id))
+  // A charter's TEA county/region describes its operator administration, not
+  // an attendance boundary or necessarily the campus's physical location.
+  // Publishing those as geographic comparison cohorts would be misleading.
+  const region = entity.isCharter ? [] : sameLevel.filter((e) => e.regionId === entity.regionId)
+  const county = entity.isCharter ? [] : sameLevel.filter((e) => e.countyId === entity.countyId)
   const enrollment = entity.enrollment
   const similarSize = finiteEnrollment(enrollment)
     ? sameLevel.filter(
@@ -277,13 +290,13 @@ export function buildCohorts({ entity, entities, bundles, specs, band, regionNam
     : []
 
   const defs = [
-    band.n > 1
+    peerIds.length > 1
       ? {
           key: 'peer',
           label: 'Similar economic-disadvantage rate',
           short: 'similar economic context',
           note: `Within 10 points of this ${entity.level}'s economically disadvantaged share`,
-          ids: [...band.ids],
+          ids: peerIds,
         }
       : null,
     region.length > 1 ? { key: 'region', label: regionName, short: 'region', ids: region.map((e) => e.id) } : null,
@@ -297,7 +310,12 @@ export function buildCohorts({ entity, entities, bundles, specs, band, regionNam
           ids: similarSize.map((e) => e.id),
         }
       : null,
-    { key: 'state', label: 'Texas average', short: 'state', ids: sameLevel.map((e) => e.id) },
+    {
+      key: 'state',
+      label: entity.isCharter ? 'Texas charter average' : 'Texas average',
+      short: 'state',
+      ids: sameLevel.map((e) => e.id),
+    },
   ].filter(Boolean)
 
   // `n` is the number of entities IN the cohort, not the number that reported any

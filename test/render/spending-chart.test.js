@@ -27,6 +27,7 @@ const vm = (over = {}) => ({
   finance: {
     years: ['2018', '2019', '2020'],
     spendEntity: [12935, 12174, 10934],
+    spendDistrict: [null, null, null],
     spendPeer: [12916, 12976, 13500],
     spendState: [13054, 13108, 13600],
     vsPeer: -1644,
@@ -74,6 +75,134 @@ describe('the spending chart’s two renderers', () => {
     expect(data.series.map((s) => s.key)).toEqual(['entity', 'tea', 'state'])
     expect(data.series[0]).toEqual({ key: 'entity', label: 'Klein ISD', values: [12935, 12174, 10934] })
     expect(data.domain).toEqual(cmpDomain(data.series.flatMap((series) => series.values)))
+    expect(html).toContain('class="line line-entity"')
+    expect(html).toContain('class="line line-tea"')
+    expect(html).toContain('class="line line-state"')
+    expect(html).not.toContain('Parent district:')
+  })
+
+  it('publishes campus, parent district, TEA references and selected same-sector comparison separately', () => {
+    const cohortMetricKeys = [
+      'public:spending:2019',
+      'public:spending:2020',
+    ]
+    const cohorts = [
+      {
+        key: 'peer',
+        label: 'Similar charter campuses',
+        short: 'similar charter campuses',
+        n: 30,
+        metrics: {
+          [cohortMetricKeys[0]]: 9_750,
+          [cohortMetricKeys[1]]: 10_250,
+        },
+        metricN: {
+          [cohortMetricKeys[0]]: 28,
+          [cohortMetricKeys[1]]: 29,
+        },
+      },
+      {
+        key: 'state',
+        label: 'Texas charter average',
+        short: 'state',
+        n: 800,
+        metrics: {
+          [cohortMetricKeys[0]]: 12_500,
+          [cohortMetricKeys[1]]: 13_500,
+        },
+        metricN: {
+          [cohortMetricKeys[0]]: 760,
+          [cohortMetricKeys[1]]: 780,
+        },
+      },
+    ]
+    const campus = vm({
+      level: 'campus',
+      name: 'Klein Charter Academy',
+      districtName: 'Klein Charter System',
+      isCharter: true,
+      finance: {
+        years: ['2019', '2020'],
+        spendEntity: [8_500, 9_500],
+        spendDistrict: [10_500, 11_500],
+        spendPeer: [null, null],
+        spendState: [11_000, 12_000],
+        vsDistrict: -2_000,
+        vsPeer: null,
+        vsState: -2_500,
+      },
+      own: {
+        [cohortMetricKeys[0]]: 8_500,
+        [cohortMetricKeys[1]]: 9_500,
+      },
+      cohorts,
+    })
+    const html = spending(campus)
+    const island = html.match(/<script type="application\/json" data-spending>([\s\S]*?)<\/script>/)
+    const data = JSON.parse(island[1])
+
+    expect(data.series.map((series) => series.key)).toEqual(['entity', 'peer', 'state'])
+    expect(data.series).toEqual([
+      { key: 'entity', label: 'Klein Charter Academy', values: [8_500, 9_500] },
+      { key: 'peer', label: 'Parent district: Klein Charter System', values: [10_500, 11_500] },
+      { key: 'state', label: 'Texas average', values: [11_000, 12_000] },
+    ])
+    expect(data.selected).toMatchObject({
+      key: 'selected',
+      label: 'Selected comparison: Similar charter campuses',
+      values: [9_750, 10_250],
+    })
+    expect(data.domain).toEqual(cmpDomain([
+      ...data.series.flatMap((series) => series.values),
+      ...cohorts.flatMap((cohort) => cohortMetricKeys.map((key) => cohort.metrics[key])),
+    ]))
+    for (const key of ['entity', 'peer', 'state', 'selected']) {
+      expect(html).toContain(`class="line line-${key}"`)
+    }
+    expect(html).not.toContain('class="line line-tea"')
+    expect(html).toContain('Parent district: Klein Charter System')
+    expect(html).toContain('Selected comparison: Similar charter campuses')
+    expect(html).toContain('Not reported in this TEA campus finance record: TEA peer group')
+    for (const amount of ['$9,500', '$11,500', '$12,000', '$10,250']) {
+      expect(html).toContain(amount)
+    }
+  })
+
+  it('keeps campus entity values and both chart domains fixed when the selected comparison changes', () => {
+    const metric = (year) => `public:spending:${year}`
+    const cohorts = [
+      {
+        key: 'peer', label: 'Similar charter campuses', metrics: { [metric('2019')]: 9_000, [metric('2020')]: 9_500 },
+      },
+      {
+        key: 'state', label: 'Texas charter average', metrics: { [metric('2019')]: 14_000, [metric('2020')]: 15_000 },
+      },
+    ]
+    const page = (ordered) => spending(vm({
+      level: 'campus',
+      name: 'Campus A',
+      districtName: 'Operator A',
+      finance: {
+        years: ['2019', '2020'],
+        spendEntity: [8_000, 8_500],
+        spendDistrict: [10_000, 10_500],
+        spendPeer: [null, null],
+        spendState: [12_000, 12_500],
+      },
+      own: { [metric('2019')]: 8_000, [metric('2020')]: 8_500 },
+      cohorts: ordered,
+    }))
+    const peerPage = page(cohorts)
+    const statePage = page([...cohorts].reverse())
+    const parse = (html) => JSON.parse(html.match(/<script type="application\/json" data-spending>([\s\S]*?)<\/script>/)[1])
+    const entityPath = (html) => html.match(/<path d="([^"]+)" class="line line-entity"/)?.[1]
+    const axis = (html) => html.match(/data-lo="([^"]+)" data-hi="([^"]+)" data-years="([^"]+)"/).slice(1)
+
+    expect(parse(peerPage).series[0].values).toEqual([8_000, 8_500])
+    expect(parse(statePage).series[0].values).toEqual([8_000, 8_500])
+    expect(parse(peerPage).domain).toEqual(parse(statePage).domain)
+    expect(entityPath(peerPage)).toBe(entityPath(statePage))
+    expect(axis(peerPage)).toEqual(axis(statePage))
   })
 
   it('locks the scale across every standard comparison cohort', () => {
@@ -102,7 +231,7 @@ describe('the spending chart’s two renderers', () => {
   })
 
   it('publishes nothing where there is no chart', () => {
-    // Campuses have no finance file, so the section — and its island — vanish.
+    // An entity with no finance rows has no section or data island.
     expect(spending(vm({ finance: null }))).toBeNull()
   })
 })

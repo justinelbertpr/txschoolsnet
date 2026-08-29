@@ -402,11 +402,13 @@ function provenance() {
     '## Source and terms of use',
     '',
     [
-      `- **Primary data source:** Texas Education Agency (TEA) accountability data${snapshot ? `, archived snapshot of ${snapshot}` : ''}.`,
+      `- **Accountability data publisher:** [Texas Education Agency Reports and Data Portal](https://tea.texas.gov/school-and-district-leaders/accountability/academic-accountability/performance-reporting/texas-education-agency-reports-and-data-portal)${snapshot ? `, archived snapshot of ${snapshot}` : ''}.`,
+      '- **Official individual reports:** [TXschools.gov](https://txschools.gov).',
       ...(sources.length ? [`- **Supplemental sources on this page:** ${sources.join(' · ')}. Their dates, scope and caveats appear with the relevant figures below.`] : []),
       `- **Page:** ${url}`,
-      '- **Publisher:** txschools.net — an independent, unofficial site. It is **not** operated by, endorsed by, or connected to the Texas Education Agency.',
-      '- **Scope:** traditional public school districts and campuses.',
+      '- **Publisher:** txschools.net — an independent, unofficial research site. It is **not** operated by, endorsed by, or affiliated with the Texas Education Agency.',
+      '- **Scope:** Texas public school districts, open-enrollment charter school systems, and campuses included in this TEA snapshot.',
+      "- **Source rights:** txschools.net does not grant permission to reuse third-party source material; consult each publisher's terms and policies, including [TEA Site Policies](https://tea.texas.gov/about-tea/welcome-and-overview/site-policies).",
       // The page links its own machine-readable copies. Anyone loading this
       // export into a tool that can fetch is better served by those than by
       // re-parsing the tables below.

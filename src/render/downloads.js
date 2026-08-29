@@ -18,15 +18,27 @@
 // Nothing here stamps a wall-clock timestamp. The meaningful date is the snapshot
 // date; a generation time would only make every file churn on every build.
 
-import { esc, num, section, shell, table, SITE_ORIGIN } from './shell.js'
+import {
+  esc,
+  num,
+  section,
+  shell,
+  table,
+  SITE_ORIGIN,
+  TEA_REPORTS_DATA_PORTAL,
+} from './shell.js'
 import { metricSpecs } from './metrics.js'
 import { RACE, EXPERIENCE } from './labels.js'
 
+// Kept as the direct publication/report host for backwards compatibility with
+// ranking exports. The TEA portal is the official landing page for bulk files;
+// TXschools.gov is the official individual-report view and current data host.
 export const OFFICIAL_SOURCE = 'https://txschools.gov'
 export const ENROLLMENT_SOURCE = 'https://rptsvr1.tea.texas.gov/adhocrpt/adspr.html'
 const TRANSFER_SOURCE = 'https://rptsvr1.tea.texas.gov/adhocrpt/Standard_Reports/Transfer_Reports/transfer_reports.html'
 const EDUCATOR_SOURCE = 'https://tea.texas.gov/texas-schools/accountability/academic-accountability/performance-reporting/texas-academic-performance-reports'
 const DISCIPLINE_SOURCE = 'https://tea.texas.gov/data-reports/student-data/discipline-data-products/discipline-reports'
+const TEA_SITE_POLICIES = 'https://tea.texas.gov/about-tea/welcome-and-overview/site-policies'
 
 /* ------------------------------------------------------------------- csv --- */
 
@@ -62,6 +74,9 @@ const provenanceLines = ({ snapshotDate = null, sourceUrl = OFFICIAL_SOURCE, sou
     `source: ${sourceName}, published publicly at ${sourceUrl}`,
     `snapshot: ${snapshotDate ?? 'unrecorded'} — the date this site fetched the source data. The publisher may have revised it since.`,
   ]
+  if (sourceUrl === OFFICIAL_SOURCE) {
+    lines.push(`official accountability landing page: Texas Education Agency Reports and Data Portal at ${TEA_REPORTS_DATA_PORTAL}`)
+  }
   if (dataset) lines.push(`dataset: ${dataset}`)
   if (entityId) lines.push(`entity: ${entityId}${entityName ? ` — ${entityName}` : ''}${level ? ` (${level})` : ''}`)
   if (page) lines.push(`page: ${page}`)
@@ -69,6 +84,7 @@ const provenanceLines = ({ snapshotDate = null, sourceUrl = OFFICIAL_SOURCE, sou
   for (const n of notes) lines.push(n)
   lines.push('empty cell = the source did not publish that figure, suppressed it, or did not report it. It does not mean zero.')
   lines.push('numbers are unformatted: no thousands separators, no currency symbols, no percent signs.')
+  lines.push(`rights: txschools.net does not grant permission to reuse third-party source material; consult the publisher's terms and policies, including TEA's at ${TEA_SITE_POLICIES}.`)
   lines.push("lines starting with # are comments — pandas: read_csv(path, comment='#')")
   return lines
 }
@@ -303,6 +319,17 @@ const entityDataNotes = (vm) => {
       ...published,
     ]
   }
+  if (vm.accountabilityContext) {
+    notes.accountabilityContext = [
+      'Context only: student-group, Early College/P-TECH and mobility figures are not ranked or compared.',
+      'The accountability-summary student total is separate from fall PEIMS enrollment and can differ; neither is substituted for the other.',
+      'Reported zero, small-number and complementary masks, unavailable values, and blank not-reported fields are distinct source states. No missing count or percentage is estimated.',
+      'Campus mobility uses TEA’s separately published 2024-25 campus denominator.',
+      vm.publicDataMeta?.accountability?.masking
+        ? `TEA masking definitions: ${vm.publicDataMeta.accountability.masking}`
+        : null,
+    ].filter(Boolean)
+  }
 
   return notes
 }
@@ -515,6 +542,35 @@ export function entityRows(vm) {
       section: 'enrollment_history', metric: 'students_enrolled', label: 'Students enrolled',
       year: point.year, value: point.enrollment ?? null, unit: 'count',
     })
+  }
+
+  const accountability = vm.accountabilityContext
+  if (accountability) {
+    const addDatum = (metric, label, datum, unit = 'count', year = accountability.year) => push({
+      section: 'accountability_context', metric, label, year,
+      value: datum?.value ?? null, unit, status: datum?.status ?? 'not-reported', mask: datum?.raw ?? null,
+    })
+    addDatum('students_all', 'Students in this TEA accountability summary', accountability.students?.all)
+    addDatum('students_economically_disadvantaged', 'Economically disadvantaged students', accountability.students?.economicallyDisadvantaged)
+    addDatum('students_emergent_bilingual', 'Emergent bilingual students', accountability.students?.emergentBilingual)
+    addDatum('students_special_education', 'Special education students', accountability.students?.specialEducation)
+    addDatum('students_grades_3_12', 'Students in grades 3–12', accountability.students?.grades3to12)
+    addDatum('emergent_bilingual_pct', 'Emergent bilingual share', accountability.shares?.emergentBilingualPct, 'percent')
+    addDatum('special_education_pct', 'Special education share', accountability.shares?.specialEducationPct, 'percent')
+    addDatum('grades_3_12_pct', 'Share of students in grades 3–12', accountability.shares?.grades3to12Pct, 'percent')
+    addDatum('early_college_high_school', 'Enrolled in Early College High School', accountability.programs?.earlyCollegeHighSchool?.count)
+    addDatum('early_college_high_school_pct', 'Early College High School share', accountability.programs?.earlyCollegeHighSchool?.sharePct, 'percent')
+    addDatum('p_tech', 'Pathways in Technology Early College High School', accountability.programs?.pathwaysInTechnologyEarlyCollegeHighSchool?.count)
+    addDatum('p_tech_pct', 'P-TECH share', accountability.programs?.pathwaysInTechnologyEarlyCollegeHighSchool?.sharePct, 'percent')
+    if (accountability.mobility) {
+      addDatum('mobility_mobile_students', 'Mobile students', accountability.mobility.mobileStudents, 'count', accountability.mobility.year)
+      addDatum('mobility_denominator_students', 'Students in TEA mobility denominator', accountability.mobility.denominatorStudents, 'count', accountability.mobility.year)
+      addDatum('mobility_rate', 'TEA-published mobility rate', accountability.mobility.ratePct, 'percent', accountability.mobility.year)
+    }
+    for (const [key, datum] of Object.entries(accountability.flags ?? {})) {
+      const label = key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (letter) => letter.toUpperCase())
+      addDatum(`flag:${key}`, label, datum, key === 'alternativeEducationType' ? 'category' : 'boolean')
+    }
   }
 
   /* Dated public-data modules. These remain separate from the comparison
@@ -771,6 +827,7 @@ export function entityCsv(vm) {
   const transfersMeta = vm.publicDataMeta?.transfers
   const educatorsMeta = vm.publicDataMeta?.educators
   const disciplineMeta = vm.publicDataMeta?.discipline
+  const accountabilityMeta = vm.publicDataMeta?.accountability
   const fetched = (date) => date ? `, fetched ${date}` : ''
   const head = commentBlock({
     snapshotDate: vm.snapshotDate ?? null,
@@ -799,6 +856,9 @@ export function entityCsv(vm) {
       vm.discipline
         ? `additional source: discipline counts come from TEA Discipline Reports at ${disciplineMeta?.source ?? DISCIPLINE_SOURCE}${fetched(disciplineMeta?.fetchedAt)}. Students and actions have different units, categories overlap, masks and statuses are preserved, and rates use cumulative year-end enrollment.`
         : null,
+      vm.accountabilityContext
+        ? `additional source: student-count and campus-mobility context comes from TEA’s bulk accountability summary at ${accountabilityMeta?.source ?? TEA_REPORTS_DATA_PORTAL}${fetched(accountabilityMeta?.fetchedAt)}. Its student total is separate from fall PEIMS enrollment and can differ. Reported zero, both TEA mask types, unavailable values and blank not-reported fields remain distinct; see ${accountabilityMeta?.masking ?? 'the TEA masking definitions linked from the source manifest'}.`
+        : null,
       ...dataNoteLines(dataNotes),
       'comparison scope: this static file contains every available peer, similar-size, region, county, and state cohort for the entity. It does not inherit a transient comparison selection or pinned entity from the web page; use cohort and cohort_label to select a comparison.',
       'key: (section, metric, year, cohort). That tuple appears at most once in this file, so the table pivots without collapsing two different values into one cell.',
@@ -823,9 +883,18 @@ export function entityJson(vm, { space = 2 } = {}) {
       unofficial: 'Unofficial. Not operated by, endorsed by, or affiliated with the Texas Education Agency.',
       source: 'Texas Education Agency',
       sourceUrl: `${OFFICIAL_SOURCE}/?view=${kind}&id=${vm.id}&lng=en`,
+      // Legacy host-level field retained for existing data consumers. The two
+      // explicit fields below state the portal/report roles without ambiguity.
       officialSource: OFFICIAL_SOURCE,
+      accountabilityDataPortal: TEA_REPORTS_DATA_PORTAL,
+      officialEntityReport: `${OFFICIAL_SOURCE}/?view=${kind}&id=${vm.id}&lng=en`,
       sources: [
-        { name: 'TEA accountability and profile data', url: `${OFFICIAL_SOURCE}/?view=${kind}&id=${vm.id}&lng=en`, fetched: vm.snapshotDate ?? null },
+        {
+          name: 'TEA accountability and profile data',
+          url: `${OFFICIAL_SOURCE}/?view=${kind}&id=${vm.id}&lng=en`,
+          landingUrl: TEA_REPORTS_DATA_PORTAL,
+          fetched: vm.snapshotDate ?? null,
+        },
         { name: 'TEA PEIMS Student Program and Special Populations Reports', url: vm.enrollmentSourceUrl ?? ENROLLMENT_SOURCE, fetched: vm.enrollmentSnapshotDate ?? null },
         hasOfficialNoticeData(vm) ? { name: 'TEA Schools Identified for Improvement and Public Education Grant lists', url: vm.publicDataMeta?.actionFlags?.sources?.landing ?? vm.publicDataMeta?.actionFlags?.sources?.improvement ?? null, fetched: vm.publicDataMeta?.actionFlags?.fetchedAt ?? null } : null,
         vm.communityContext ? { name: 'U.S. Census Bureau Small Area Income and Poverty Estimates', url: vm.publicDataMeta?.community?.landing ?? null, fetched: vm.publicDataMeta?.community?.fetchedAt ?? null } : null,
@@ -833,6 +902,7 @@ export function entityJson(vm, { space = 2 } = {}) {
         vm.transferContext ? { name: 'TEA Student Transfer Reports', url: vm.publicDataMeta?.transfers?.source ?? TRANSFER_SOURCE, fetched: vm.publicDataMeta?.transfers?.fetchedAt ?? null } : null,
         vm.teacherTurnover || vm.classSize ? { name: 'TEA Texas Academic Performance Reports (TAPR)', url: vm.publicDataMeta?.educators?.source ?? EDUCATOR_SOURCE, fetched: vm.publicDataMeta?.educators?.fetchedAt ?? null } : null,
         vm.discipline ? { name: 'TEA Discipline Reports', url: vm.publicDataMeta?.discipline?.source ?? DISCIPLINE_SOURCE, fetched: vm.publicDataMeta?.discipline?.fetchedAt ?? null } : null,
+        vm.accountabilityContext ? { name: 'TEA bulk accountability summary context', url: vm.publicDataMeta?.accountability?.source ?? TEA_REPORTS_DATA_PORTAL, fetched: vm.publicDataMeta?.accountability?.fetchedAt ?? null, masking: vm.publicDataMeta?.accountability?.masking ?? null } : null,
       ].filter(Boolean),
       snapshotDate: vm.snapshotDate ?? null,
       snapshotNote: 'Snapshot dates record when this site fetched each source. A publisher may have revised its data since.',
@@ -848,7 +918,7 @@ export function entityJson(vm, { space = 2 } = {}) {
         ? '“Not found” can include private or out-of-state college and later enrollment. “Not trackable” means a graduate had a non-standard identifier that could not be matched; neither label by itself means no college.'
         : null,
       highlightsNote: 'highlights is a deterministic selection of positive evidence, not a summary or a separate source. Each item carries the values, years, benchmark coverage and ties that caused it to be selected.',
-      license: 'The underlying figures are public data from the publishers named in sources, and this site claims no rights in them. The structure, derived comparisons and ranks are free to reuse; a link back is appreciated.',
+      rightsNotice: `TEA and the other agencies named in sources are the publishers of the underlying records. txschools.net does not grant permission to reuse third-party source material; consult each publisher's terms and policies, including TEA's at ${TEA_SITE_POLICIES}. Cite txschools.net as well when using this site's derived comparisons or rankings.`,
     },
 
     entity: {
@@ -911,6 +981,7 @@ export function entityJson(vm, { space = 2 } = {}) {
     teacherTurnover: vm.teacherTurnover ?? null,
     classSize: vm.classSize ?? null,
     discipline: vm.discipline ?? null,
+    accountabilityContext: vm.accountabilityContext ?? null,
 
     // The UI never gets a prose-only claim that the reporter file cannot audit.
     // Keep the selector's typed evidence intact: endpoints, benchmark averages,
@@ -1037,7 +1108,7 @@ export function renderDownloadPage({ files = [], snapshotDate = null, enrollment
         head: ['File', 'Format', { label: 'Rows', num: true }, { label: 'Size', num: true }],
         rows,
       })
-    : `<p class="note na">No bulk files have been generated for this snapshot yet. Every district page still
+    : `<p class="note na">No bulk files have been generated for this snapshot yet. Every district or charter-system page still
        offers its own record as CSV and JSON, linked from the “Where this comes from” section at the
        bottom of the page.</p>`
 
@@ -1051,22 +1122,31 @@ export function renderDownloadPage({ files = [], snapshotDate = null, enrollment
 
   const countList = Object.entries(counts)
     .filter(([, v]) => v !== null && v !== undefined)
-    .map(([k, v]) => `<div class="stat"><dt>${esc(humanKey(k))}</dt><dd>${typeof v === 'number' ? num(v) : esc(v)}</dd></div>`)
+    .map(([k, v]) => `<div class="stat"><dt>${esc(
+      k === 'districts'
+        ? 'District & charter systems'
+        : k === 'sourceFiles'
+          ? 'TXschools.gov source files'
+          : humanKey(k)
+    )}</dt><dd>${typeof v === 'number' ? num(v) : esc(v)}</dd></div>`)
     .join('')
 
   return shell({
     title: 'Download the data — txschools.net',
     description:
-      'Texas school and district accountability data as CSV and JSON, with the snapshot date and source recorded inside every file.',
+      'Texas school, district and charter-system accountability data as CSV and JSON, with the snapshot date and source recorded inside every file.',
     canonical: `${SITE_ORIGIN}/download`,
     crumbs: [{ href: '/', label: 'Texas schools', current: 'Download' }],
     sections: [
       `<section class="hero">
   <p class="eyebrow">Data</p>
   <h1>Download the data</h1>
-  <p class="summary">The site combines archived Texas Education Agency data from
-  <a href="${OFFICIAL_SOURCE}">txschools.gov</a>${snapshotDate ? `, fetched <strong>${esc(snapshotDate)}</strong>` : ''},
+  <p class="summary">The site combines archived Texas Education Agency data published through
+  <a href="${OFFICIAL_SOURCE}">TXschools.gov</a>${snapshotDate ? `, fetched <strong>${esc(snapshotDate)}</strong>` : ''},
   with five years of <a href="${ENROLLMENT_SOURCE}">PEIMS enrollment reports</a>${enrollmentSnapshotDate ? `, fetched <strong>${esc(enrollmentSnapshotDate)}</strong>` : ''}.
+  TEA's <a href="${TEA_REPORTS_DATA_PORTAL}">Reports and Data Portal</a> is the official landing page
+  for accountability reports and bulk downloads; TXschools.gov provides official individual district
+  and campus reports.
   Separate TEA staffing, discipline, transfer and action lists, Census community estimates, and THECB
   postsecondary outcomes are listed with their own dates and limits below. These files restructure those
   official public sources. Each one records inside itself where it came from and when, so a figure taken
@@ -1083,9 +1163,9 @@ export function renderDownloadPage({ files = [], snapshotDate = null, enrollment
 
       section(
         'per-entity',
-        'One district at a time',
-        `<p>Per-entity files are built for ${districtCount ? `the ${num(districtCount)} ` : ''}districts only.
-  Every district page links its own record in both formats:</p>
+        'One district or charter system at a time',
+        `<p>Per-entity files are built for ${districtCount ? `the ${num(districtCount)} ` : ''}district-level records,
+  including open-enrollment charter school systems. Every district or charter-system page links its own record in both formats:</p>
   <ul class="prose-list">
     <li><code>/data/entity/&lt;district id&gt;.csv</code> — long format, one row per metric and comparison
       group. Each <code>(section, metric, year, cohort)</code> appears once.</li>
@@ -1095,13 +1175,13 @@ export function renderDownloadPage({ files = [], snapshotDate = null, enrollment
   <p><strong>Campus records come from the bulk files, not from a per-campus download.</strong> This site
   is served as static assets under a 20,000-file cap. There are ${entityCount ? num(entityCount) : '10,230'}
   districts and campuses, so a CSV and a JSON for each would be ${entityCount ? num(entityCount * 2) : '20,460'}
-  files before a single page. Districts took the slots: they are the smaller half${
+  files before a single page. District-level records took the slots: they are the smaller half${
     districtCount && campusCount ? ` (${num(districtCount)} against ${num(campusCount)})` : ''
   } and the half
   people download. A campus page therefore links the bulk files rather than a per-campus file that does
   not exist. Those bulk tables list campuses as well as districts, but they carry fewer columns than a
   per-entity record: the rest of a campus's figures are on its own page.</p>
-  <p>The id is TEA's own: six digits for a district (<code>057905</code>), nine for a campus
+  <p>The id is TEA's own: six digits for a district or charter system (<code>057905</code>), nine for a campus
   (<code>001902001</code>). It is the last part of every URL on this site, and it is the key to join
   these files back to anything TEA publishes — including joining a campus back to its district.</p>`,
         'Useful when you are checking one district rather than analysing all of them.'
@@ -1130,16 +1210,18 @@ export function renderDownloadPage({ files = [], snapshotDate = null, enrollment
 
       section(
         'citing',
-        'Citing and licence',
-        `<p>The files combine public figures from the Texas Education Agency, U.S. Census Bureau and
-  Texas Higher Education Coordinating Board. Each file names its actual publisher and source URL. This
-  site claims no rights in those figures and cannot grant formal terms for them — ask TEA for TEA data,
-  or the other publisher named in the file. What this site adds is the structure: joins across separate
-  tables, comparison cohorts, ranks and their denominators. That part is free to use, commercially or
-  otherwise, and a link back is appreciated rather than required.</p>
+        'Citing and source rights',
+        `<p>The files combine records published by the Texas Education Agency, U.S. Census Bureau and
+  Texas Higher Education Coordinating Board. Each file names its actual publisher and source URL. Those
+  agencies remain the publishers of the underlying records. txschools.net does not grant permission to
+  reuse third-party source material; consult each publisher's terms and policies. TEA&rsquo;s
+  <a href="${TEA_SITE_POLICIES}" rel="nofollow">current site policy</a> says TEA website content is
+  copyrighted and states limited copying conditions. This page does not reinterpret those conditions or
+  offer a separate licence for this site's joins, comparison cohorts, ranks or denominators.</p>
   <p>An honest citation names the originating publisher and this unofficial restructuring. For example:</p>
   <p class="callout">Texas Education Agency accountability and PEIMS enrollment data${snapshotDate ? `, accountability snapshot of ${esc(snapshotDate)}` : ''},
-  via txschools.net (unofficial). Originals: <a href="${OFFICIAL_SOURCE}">txschools.gov</a> and
+  via txschools.net (unofficial). Official sources: <a href="${TEA_REPORTS_DATA_PORTAL}">TEA Reports and Data Portal</a>,
+  <a href="${OFFICIAL_SOURCE}">TXschools.gov</a> individual reports, and
   <a href="${ENROLLMENT_SOURCE}">TEA PEIMS Student Program reports</a>. For Census, THECB or another
   supplemental table, substitute the publisher and source recorded in that file's header.</p>
   <p>If a number matters to your story, check it against the original publisher before publishing. This

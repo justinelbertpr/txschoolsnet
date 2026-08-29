@@ -5,13 +5,38 @@ import {
   latestSnapshot,
   dropOrphans,
   assertOrphanIdSet,
-  excludeCharters,
   mergeEnrollmentHistory,
   DISCIPLINE_HEADLINES,
   isDisciplineSummaryRow,
   summarizeDisciplineRows,
   KNOWN_ORPHAN_IDS,
+  accountabilityForEntities,
 } from '../src/build.js'
+
+describe('accountability context join', () => {
+  const entities = [{ id: '001902', level: 'district' }, { id: '001902001', level: 'campus' }]
+
+  it('joins only exact id+level matches and drops unpublished source entities', () => {
+    const rows = [
+      { id: '001902', level: 'district' },
+      { id: '001902', level: 'campus' },
+      { id: '001902001', level: 'campus' },
+      { id: '999999', level: 'district' },
+    ]
+    expect(accountabilityForEntities(rows, entities)).toEqual([
+      { id: '001902001', level: 'campus' },
+      { id: '001902', level: 'district' },
+    ])
+  })
+
+  it('rejects duplicate source rows rather than silently choosing one', () => {
+    expect(() => accountabilityForEntities([{ id: '001902', level: 'district' }, { id: '001902', level: 'district' }], entities)).toThrow(/duplicate district:001902/)
+  })
+
+  it('rejects a large-looking source that omits any canonical entity', () => {
+    expect(() => accountabilityForEntities([{ id: '001902', level: 'district' }], entities)).toThrow(/missing 1 canonical entities.*campus:001902001/)
+  })
+})
 
 describe('assertIntegrity', () => {
   const entities = [{ id: 'a' }, { id: 'b' }]
@@ -86,6 +111,13 @@ describe('dropOrphans', () => {
     expect(result.dropped).toBe(0)
   })
 
+  it('keeps a charter row when its id is in the canonical entity set', () => {
+    const charter = { id: 'charter', isCharter: true }
+    const result = dropOrphans([charter], new Set([charter.id]))
+    expect(result.rows).toEqual([charter])
+    expect(result.droppedIds).toEqual([])
+  })
+
   it('reports the distinct set of dropped ids, not just a count', () => {
     const known = new Set(['a'])
     // 'ghost' dropped twice (e.g. two year-label rows for the same orphan
@@ -121,34 +153,6 @@ describe('assertOrphanIdSet', () => {
     expect(() => assertOrphanIdSet('ratings', threeOfFour, KNOWN_ORPHAN_IDS)).toThrow(
       new RegExp(`expected orphan ids no longer dropped: ${KNOWN_ORPHAN_IDS[3]}`)
     )
-  })
-})
-
-describe('excludeCharters', () => {
-  // Requirement 4: this site publishes traditional public school districts
-  // and campuses only. Charters are dropped at the single point every
-  // entity enters the pipeline (build()), so nothing downstream — the
-  // entity count, the payload, rankings, search, the sitemap — has to know
-  // to filter them a second time.
-  it('drops every entity flagged isCharter, keeps the rest unchanged', () => {
-    const entities = [
-      { id: 'a', name: 'Traditional ISD', isCharter: false },
-      { id: 'b', name: 'Charter Academy', isCharter: true },
-      { id: 'c', name: 'Another Traditional ISD', isCharter: false },
-    ]
-    expect(excludeCharters(entities)).toEqual([
-      { id: 'a', name: 'Traditional ISD', isCharter: false },
-      { id: 'c', name: 'Another Traditional ISD', isCharter: false },
-    ])
-  })
-
-  it('returns every entity when none are charters', () => {
-    const entities = [{ id: 'a', isCharter: false }, { id: 'b', isCharter: false }]
-    expect(excludeCharters(entities)).toEqual(entities)
-  })
-
-  it('returns an empty list when every entity is a charter', () => {
-    expect(excludeCharters([{ id: 'a', isCharter: true }])).toEqual([])
   })
 })
 

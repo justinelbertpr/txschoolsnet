@@ -21,7 +21,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   RANKABLE, RANKABLE_BY_KEY, RANKABLE_BY_SLUG, CHANGE_METRICS, STAAR_SUBJECTS, rankable,
-  SCOPES, SCOPE_KINDS, PEER_BANDS, AEA_MODES, LEVELS,
+  SCOPES, SCOPE_KINDS, PEER_BANDS, AEA_MODES, SECTORS, LEVELS,
   MIN_POPULATION, WINDOW_COVERAGE, METHOD_BREAK_YEAR, METHOD_BREAK_NOTE,
   rankingBundles, rankBy, changeMetrics, availableYears, rankEverywhere,
   place, parseScope, scopeKey, resolveMetric, isRankable, windowLabel,
@@ -341,6 +341,24 @@ describe('rankBy', () => {
     expect(() => rankBy({ entities, bundles, metric: 'nope' })).toThrow(/unknown metric/)
     expect(() => rankBy({ entities, bundles, metric: 'score', level: 'school' })).toThrow(/level must be/)
     expect(() => rankBy({ entities, bundles, metric: 'score', filters: { aea: 'maybe' } })).toThrow(/aea must be/)
+    expect(() => rankBy({ entities, bundles, metric: 'score', filters: { sector: 'private' } })).toThrow(/sector must be/)
+  })
+
+  it('defaults to traditional schools and can explicitly rank charter or all sectors', () => {
+    expect(SECTORS).toEqual(['traditional', 'charter', 'all'])
+    const specs = [...filler(10, 70), ...filler(10, 80, { isCharter: true })]
+    const { entities, bundles } = fixture(specs)
+    const traditional = rankBy({ entities, bundles, metric: 'score' })
+    const charter = rankBy({ entities, bundles, metric: 'score', filters: { sector: 'charter' } })
+    const charterFromScope = rankBy({ entities, bundles, metric: 'score', scope: { kind: 'state', sector: 'charter' } })
+    const all = rankBy({ entities, bundles, metric: 'score', filters: { sector: 'all' } })
+    expect(traditional.rows).toHaveLength(10)
+    expect(traditional.population.excluded.sector).toBe(10)
+    expect(charter.rows).toHaveLength(10)
+    expect(charterFromScope.rows.map((row) => row.id)).toEqual(charter.rows.map((row) => row.id))
+    expect(charter.rows.every((row) => row.isCharter)).toBe(true)
+    expect(all.rows).toHaveLength(20)
+    expect(charter.population.sentence).toContain('open-enrollment charter districts only')
   })
 
   it('ranks a lower-is-better metric from the bottom up', () => {
@@ -848,7 +866,7 @@ describe('exported contract', () => {
     expect(r.metric).toMatchObject({ key: 'score', slug: 'overall-score', lowerIsBetter: false })
     expect(r.scope).toMatchObject({ kind: 'state', label: 'Texas' })
     expect(r.level).toBe('district')
-    expect(r.filters).toEqual({ aea: 'include' })
+    expect(r.filters).toEqual({ aea: 'include', sector: 'traditional' })
     expect(r.population).toHaveProperty('sentence')
     expect(r.population).toHaveProperty('excluded')
   })

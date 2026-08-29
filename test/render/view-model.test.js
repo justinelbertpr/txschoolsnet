@@ -71,12 +71,13 @@ describe('entitySlug', () => {
 
 /* --------------------------------------------------------------- peerBand -- */
 
-const ent = (id, level = 'district') => ({ id, level })
+const ent = (id, level = 'district', isCharter = false) => ({ id, level, isCharter })
 
 describe('peerBand', () => {
   const entities = [
     ent('d0'), ent('d1'), ent('d2'), ent('d3'),
     ent('c0', 'campus'), ent('c1', 'campus'),
+    ent('h0', 'district', true), ent('h1', 'district', true),
   ]
   const ecoDis = new Map([
     ['d0', 50], // the entity itself
@@ -85,6 +86,8 @@ describe('peerBand', () => {
     ['d3', 61], // +11: outside
     ['c0', 50], // same eco-dis, wrong level
     ['c1', 51],
+    ['h0', 50], // same level and eco-dis, wrong sector
+    ['h1', 55],
   ])
 
   it('selects entities within ten points of the eco-dis share, inclusive', () => {
@@ -101,6 +104,17 @@ describe('peerBand', () => {
     const band = peerBand({ entity: ent('d0'), entities, ecoDis })
     expect(band.ids.has('c0')).toBe(false)
     expect(band.ids.has('c1')).toBe(false)
+  })
+
+  it('excludes the other sector, so a traditional district is never banded with a charter', () => {
+    const band = peerBand({ entity: ent('d0'), entities, ecoDis })
+    expect(band.ids.has('h0')).toBe(false)
+    expect(band.ids.has('h1')).toBe(false)
+  })
+
+  it('bands a charter only against charters', () => {
+    const band = peerBand({ entity: ent('h0', 'district', true), entities, ecoDis })
+    expect([...band.ids].sort()).toEqual(['h0', 'h1'])
   })
 
   it('bands a campus only against campuses', () => {
@@ -174,8 +188,8 @@ const makeUniverse = () => {
   }))
 
   const finance = entities.flatMap((e, i) => [
-    { id: e.id, year: '2022-23', spendEntity: 10_000, spendPeer: 10_500, spendState: 11_000 },
-    { id: e.id, year: '2023-24', spendEntity: 12_000 + i * 50, spendPeer: 12_500, spendState: 13_000 },
+    { id: e.id, year: '2022-23', spendEntity: 10_000, spendDistrict: null, spendPeer: 10_500, spendState: 11_000 },
+    { id: e.id, year: '2023-24', spendEntity: 12_000 + i * 50, spendDistrict: null, spendPeer: 12_500, spendState: 13_000 },
   ])
 
   const achievement = entities.map((e, i) => ({
@@ -190,6 +204,35 @@ const makeUniverse = () => {
   }))
 
   return { entities, ratings, domains, profile, finance, achievement }
+}
+
+const makeMixedUniverse = () => {
+  const traditional = makeUniverse()
+  const charterId = (id) => `c${id}`
+  const charterEntities = traditional.entities.map((entity) => ({
+    ...entity,
+    id: charterId(entity.id),
+    name: `Charter ${entity.name}`,
+    entityType: 'Charter',
+    isCharter: true,
+  }))
+  const clone = (rows, patch = (row) => row) => rows.map((row) => patch({ ...row, id: charterId(row.id) }))
+  return {
+    entities: [...traditional.entities, ...charterEntities],
+    ratings: [
+      ...traditional.ratings,
+      ...clone(traditional.ratings, (row) => ({ ...row, score: Math.min(100, row.score + 20) })),
+    ],
+    domains: [
+      ...traditional.domains,
+      ...clone(traditional.domains, (row) => ({ ...row, score: Math.min(100, row.score + 20) })),
+    ],
+    profile: [...traditional.profile, ...clone(traditional.profile)],
+    finance: [...traditional.finance, ...clone(traditional.finance)],
+    achievement: [...traditional.achievement, ...clone(traditional.achievement)],
+    traditionalEntity: traditional.entities[0],
+    charterEntity: charterEntities[0],
+  }
 }
 
 const build = (over = {}) => {
@@ -347,6 +390,57 @@ describe('buildViewModel', () => {
     expect(build({ entity: makeUniverse().entities[11] }).rank).toBe(1)
   })
 
+  it('keeps every traditional comparison unchanged when charter entities are added', () => {
+    const baseline = build()
+    const mixed = makeMixedUniverse()
+    const vm = build({
+      ...mixed,
+      entity: mixed.traditionalEntity,
+      allRatings: mixed.ratings,
+    })
+
+    expect({
+      rank: vm.rank,
+      rankOf: vm.rankOf,
+      regionRank: vm.regionRank,
+      regionRankOf: vm.regionRankOf,
+      stateAvg: vm.stateAvg,
+      peerAvg: vm.peerAvg,
+      peerN: vm.peerN,
+    }).toEqual({
+      rank: baseline.rank,
+      rankOf: baseline.rankOf,
+      regionRank: baseline.regionRank,
+      regionRankOf: baseline.regionRankOf,
+      stateAvg: baseline.stateAvg,
+      peerAvg: baseline.peerAvg,
+      peerN: baseline.peerN,
+    })
+    expect(vm.cohorts).toEqual(baseline.cohorts)
+  })
+
+  it('gives a charter only charter statewide, peer and size comparisons', () => {
+    const mixed = makeMixedUniverse()
+    const vm = build({
+      ...mixed,
+      entity: mixed.charterEntity,
+      allRatings: mixed.ratings,
+    })
+
+    expect(vm.rankOf).toBe(12)
+    expect(vm.peerN).toBe(12)
+    expect(vm.regionRank).toBeNull()
+    expect(vm.regionRankOf).toBeNull()
+    expect(vm.comparisons.map((comparison) => comparison.key)).toEqual(['state', 'peer', 'size'])
+    expect(vm.comparisons.find((comparison) => comparison.key === 'state').label).toBe('Texas charter average')
+    expect(vm.cohorts.map((cohort) => cohort.key)).toEqual(['peer', 'size', 'state'])
+    expect(vm.cohorts.find((cohort) => cohort.key === 'state')).toMatchObject({
+      label: 'Texas charter average',
+      n: 12,
+    })
+    expect(vm.cohorts.some((cohort) => cohort.key === 'region' || cohort.key === 'county')).toBe(false)
+  })
+
   it('states an n for every comparison line it offers', () => {
     const vm = build()
     expect(vm.comparisons.length).toBeGreaterThan(1)
@@ -379,8 +473,42 @@ describe('buildViewModel', () => {
   it('computes finance against the newest year of the series', () => {
     const vm = build()
     expect(vm.finance.years).toEqual(['2022-23', '2023-24'])
+    expect(vm.finance.spendEntity).toEqual([10_000, 12_000])
+    expect(vm.finance.spendDistrict).toEqual([null, null])
+    expect(vm.finance.vsDistrict).toBeNull()
     expect(vm.finance.vsPeer).toBe(12_000 - 12_500)
     expect(vm.finance.vsState).toBe(12_000 - 13_000)
+  })
+
+  it('keeps campus and parent-district spending as separate invariant series', () => {
+    const u = makeUniverse()
+    const campus = {
+      ...u.entities[0],
+      id: '100001',
+      level: 'campus',
+      name: 'District 0 Elementary',
+      districtId: '100',
+      districtName: 'District 0 ISD',
+    }
+    const vm = build({
+      entity: campus,
+      entities: [...u.entities, campus],
+      finance: [
+        { id: campus.id, year: '2022-23', spendEntity: 8_000, spendDistrict: 10_000, spendPeer: null, spendState: 11_000 },
+        { id: campus.id, year: '2023-24', spendEntity: 9_500, spendDistrict: 12_000, spendPeer: null, spendState: 13_000 },
+      ],
+    })
+
+    expect(vm.finance).toMatchObject({
+      years: ['2022-23', '2023-24'],
+      spendEntity: [8_000, 9_500],
+      spendDistrict: [10_000, 12_000],
+      spendPeer: [null, null],
+      spendState: [11_000, 13_000],
+      vsDistrict: -2_500,
+      vsPeer: null,
+      vsState: -3_500,
+    })
   })
 
   it('nulls finance entirely for an entity with no rows, rather than emitting zeroes', () => {
