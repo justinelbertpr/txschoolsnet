@@ -170,7 +170,7 @@ jobs:
           expect_ok / 'Texas school ratings' || exit 1
           expect_ok /about 'not affiliated with the Texas Education Agency' || exit 1
           expect_ok /download 'entities.csv' || exit 1
-          expect_ok /districts/a 'Texas school districts starting with A' || exit 1
+          expect_ok /districts/a 'txschools.net/districts/a' || exit 1
           expect_ok /region/10 'txschools.net/region/10' || exit 1
           expect_ok /county/dallas 'Dallas County' || exit 1
           expect_ok "/district/$district_page" "txschools.net/district/$district_page" || exit 1
@@ -228,6 +228,6 @@ jobs:
           done
           echo "https://txschools.net/ -> $code"
           [ "$code" = "200" ] || { echo "the apex is not serving"; exit 1; }
-          grep -q "Texas school accountability" /tmp/live.html || {
+          grep -qF 'Texas school ratings' /tmp/live.html || {
             echo "the apex answered but did not return the home page"; exit 1; }
           echo "Live."
