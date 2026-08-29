@@ -106,7 +106,7 @@
 import { Worker, isMainThread, workerData, parentPort } from 'node:worker_threads'
 import { availableParallelism } from 'node:os'
 import { fileURLToPath } from 'node:url'
-import { deflateSync, gunzipSync } from 'node:zlib'
+import { deflateSync, gzipSync, gunzipSync } from 'node:zlib'
 import { existsSync, readFileSync } from 'node:fs'
 import { readdir, writeFile, stat, rm, mkdir, readFile } from 'node:fs/promises'
 
@@ -1370,6 +1370,40 @@ export function accountabilityDownloadRows(accountability, byId = new Map()) {
   })
 }
 
+// Workers Static Assets rejects any individual file larger than 25 MiB. Keep
+// ordinary bulk tables as directly readable CSV, but turn a table that crosses
+// that hard limit into an explicit gzip archive rather than relying on HTTP
+// content encoding (which happens after Wrangler has already rejected it).
+export const CLOUDFLARE_ASSET_MAX_BYTES = 25 * 1024 * 1024
+
+export function bulkCsvAsset(name, csv) {
+  const uncompressedBytes = Buffer.byteLength(csv)
+  if (uncompressedBytes <= CLOUDFLARE_ASSET_MAX_BYTES) {
+    return {
+      file: `${name}.csv`,
+      label: `${name}.csv`,
+      format: 'csv',
+      body: csv,
+      uncompressedBytes,
+    }
+  }
+
+  const body = gzipSync(csv, { level: 9 })
+  if (body.length > CLOUDFLARE_ASSET_MAX_BYTES) {
+    throw new Error(
+      `${name}.csv.gz is ${(body.length / 1024 / 1024).toFixed(1)} MiB; ` +
+      'even the compressed archive exceeds Cloudflare’s 25 MiB asset limit'
+    )
+  }
+  return {
+    file: `${name}.csv.gz`,
+    label: `${name}.csv.gz`,
+    format: 'csv.gz',
+    body,
+    uncompressedBytes,
+  }
+}
+
 export async function prerender({ concurrency } = {}) {
   const started = Date.now()
   const dir = await snapshotDir()
@@ -2146,26 +2180,25 @@ export async function prerender({ concurrency } = {}) {
 
   const files = []
   for (const [name, rows, description, sourceMeta = {}] of bulk) {
-    const body = await write(
-      `data/${name}.csv`,
-      datasetCsv(rows, {
-        columns: DATASETS[name],
-        dataset: name,
-        snapshotDate: sourceMeta.snapshotDate ?? snapshotDate,
-        meta: {
-          ...(sourceMeta.sourceUrl
-            ? { sourceUrl: sourceMeta.sourceUrl, sourceName: sourceMeta.sourceName ?? 'Texas Education Agency' }
-            : {}),
-          ...(sourceMeta.notes?.length ? { notes: sourceMeta.notes } : {}),
-        },
-      })
-    )
+    const csv = datasetCsv(rows, {
+      columns: DATASETS[name],
+      dataset: name,
+      snapshotDate: sourceMeta.snapshotDate ?? snapshotDate,
+      meta: {
+        ...(sourceMeta.sourceUrl
+          ? { sourceUrl: sourceMeta.sourceUrl, sourceName: sourceMeta.sourceName ?? 'Texas Education Agency' }
+          : {}),
+        ...(sourceMeta.notes?.length ? { notes: sourceMeta.notes } : {}),
+      },
+    })
+    const asset = bulkCsvAsset(name, csv)
+    await write(`data/${asset.file}`, asset.body)
     files.push({
-      href: `/data/${name}.csv`,
-      label: `${name}.csv`,
-      format: 'csv',
+      href: `/data/${asset.file}`,
+      label: asset.label,
+      format: asset.format,
       rows: rows.length,
-      bytes: Buffer.byteLength(body),
+      bytes: asset.uncompressedBytes,
       description,
     })
   }

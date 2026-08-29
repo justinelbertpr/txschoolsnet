@@ -23,9 +23,10 @@
 // src/prerender.js before raising the limit rather than after. Pin measures fit
 // because they are grouped into 1,020 district bundles, not 8,066 campus files.
 
-import { readdir } from 'node:fs/promises'
+import { readdir, stat } from 'node:fs/promises'
 
 const LIMIT = 18_000 // Free plan caps at 20,000 assets per Worker version
+const ASSET_SIZE_LIMIT = 25 * 1024 * 1024 // Workers Static Assets hard limit per file
 
 async function count(dir) {
   let n = 0
@@ -47,7 +48,20 @@ async function breakdown(dir) {
   return out.sort((a, b) => b[1] - a[1])
 }
 
+async function oversized(dir, out = []) {
+  for (const e of await readdir(dir, { withFileTypes: true })) {
+    const path = `${dir}/${e.name}`
+    if (e.isDirectory()) await oversized(path, out)
+    else {
+      const { size } = await stat(path)
+      if (size > ASSET_SIZE_LIMIT) out.push({ path, size })
+    }
+  }
+  return out
+}
+
 const n = await count('site')
+const tooLarge = await oversized('site')
 
 console.log(`site/ contains ${n.toLocaleString('en-US')} files (limit ${LIMIT.toLocaleString('en-US')})`)
 for (const [name, c] of await breakdown('site')) {
@@ -61,5 +75,12 @@ if (n > LIMIT) {
       `Before raising this number, read the FILE BUDGET note at the top of src/prerender.js —\n` +
       `the usual cause is per-entity data files, which do not fit at any ratio for campuses.`
   )
+  process.exit(1)
+}
+
+if (tooLarge.length) {
+  for (const { path, size } of tooLarge) {
+    console.error(`FAIL: ${path} is ${(size / 1024 / 1024).toFixed(1)} MiB; the per-asset limit is 25 MiB.`)
+  }
   process.exit(1)
 }

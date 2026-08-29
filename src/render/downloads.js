@@ -1158,7 +1158,7 @@ export function renderDownloadPage({ files = [], snapshotDate = null, enrollment
         'files',
         'What is available',
         list,
-        'Sizes are uncompressed; files are served gzipped, so the download is smaller than the figure shown. 1 MB means 1,000,000 bytes.'
+        'Sizes describe the uncompressed table. Normal downloads may transfer smaller through HTTP compression; files ending in .gz are gzip archives and must be decompressed before reading. 1 MB means 1,000,000 bytes.'
       ),
 
       section(
