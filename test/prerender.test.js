@@ -231,6 +231,13 @@ describe('renderSitemap', () => {
     expect(xml).toContain(`<loc>${SITE_ORIGIN}/</loc>`)
     expect(xml).toContain(`<loc>${SITE_ORIGIN}/about</loc>`)
   })
+
+  it('publishes separate canonical browse entries for districts and charter systems', () => {
+    const xml = renderSitemap(['districts.html', 'districts/a.html', 'charters.html'])
+    expect(xml).toContain(`<loc>${SITE_ORIGIN}/districts</loc>`)
+    expect(xml).toContain(`<loc>${SITE_ORIGIN}/districts/a</loc>`)
+    expect(xml).toContain(`<loc>${SITE_ORIGIN}/charters</loc>`)
+  })
 })
 
 describe('ALPHABET', () => {

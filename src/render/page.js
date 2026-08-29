@@ -136,9 +136,9 @@ const railPins = (payload) =>
     : `  <div class="rail-block rail-pins">
     <h2 class="rail-title">Pin to compare</h2>
     <p class="rail-hint">Add up to five schools or districts. Each joins the ratings chart and becomes a comparison for current measures. District pins also join spending.</p>
-    <input class="pin-search" type="search" placeholder="Search schools and districts" aria-label="Search schools and districts to pin" autocomplete="off">
+    <input class="pin-search" type="search" placeholder="Search schools, districts and charter systems" aria-label="Search schools, districts and charter systems to pin" autocomplete="off">
     <ul class="pin-results" hidden></ul>
-    <ul class="pin-list" aria-label="Pinned schools and districts"></ul>
+    <ul class="pin-list" aria-label="Pinned schools, districts and charter systems"></ul>
     <script type="application/json" data-pin-source>${JSON.stringify({ payload }).replace(/</g, '\\u003c')}</script>
   </div>`
 
@@ -263,7 +263,7 @@ export function renderEntity(vm, { payload = payloadPath() } = {}) {
   const crumbs = vm.isCharter
     ? [
         { href: '/', label: 'Texas schools' },
-        { href: '/charters', label: 'Charter schools' },
+        { href: '/charters', label: 'Charter school systems' },
         vm.level === 'campus' ? { href: `/district/${vm.districtSlug}`, label: vm.districtName } : null,
       ].filter(Boolean)
     : [

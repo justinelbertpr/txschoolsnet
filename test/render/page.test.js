@@ -185,7 +185,9 @@ describe('railFor', () => {
     // than making the narrower claim site/app.js used to have to correct.
     expect(html).toContain('<h2 class="rail-title">Pin to compare</h2>')
     expect(html).toContain('Each joins the ratings chart and becomes a comparison for current measures.')
-    expect(html).toContain('<ul class="pin-list" aria-label="Pinned schools and districts"></ul>')
+    expect(html).toContain('placeholder="Search schools, districts and charter systems"')
+    expect(html).toContain('aria-label="Search schools, districts and charter systems to pin"')
+    expect(html).toContain('<ul class="pin-list" aria-label="Pinned schools, districts and charter systems"></ul>')
     expect(html.length).toBeLessThan(4_000)
   })
 
@@ -380,6 +382,12 @@ describe('renderEntity', () => {
     for (const [, id] of html.matchAll(/href="#([a-z]+)"/g)) expect(html).toContain(`id="${id}"`)
   })
 
+  it('names the charter-system index accurately in charter entity breadcrumbs', () => {
+    const html = renderEntity(vm({ isCharter: true }), { payload: PAYLOAD })
+    expect(html).toContain('<li><a href="/charters">Charter school systems</a></li>')
+    expect(html).not.toContain('>Charter schools</a>')
+  })
+
   it('puts a synchronized cohort switch near the top on mobile without duplicating its data', () => {
     const html = renderEntity(vm(), { payload: PAYLOAD })
     expect(html.match(/chip-cohort/g)).toHaveLength(4) // two cohorts in the rail and the mobile copy
@@ -432,7 +440,7 @@ describe('the primary nav cannot become unreachable', () => {
     expect(tools).toContain('class="brand-mark-texas" href="/texas.svg"')
     expect(tools).toContain('class="brand-mark-bars"')
     expect(html).toContain('<div class="desktop-nav">')
-    for (const href of ['/districts/a', '/rankings', '/download', '/about']) {
+    for (const href of ['/districts', '/charters', '/rankings', '/download', '/about']) {
       expect(tools.match(new RegExp(`<a href="${href}"`, 'g'))).toHaveLength(2)
     }
     // Search is words in the mobile menu and a compact icon on desktop, not
@@ -440,7 +448,7 @@ describe('the primary nav cannot become unreachable', () => {
     expect(tools.match(/href="\/search"/g)).toHaveLength(2)
     expect(tools.match(/>Find schools<\/a>/g)).toHaveLength(1)
     expect(tools).toContain(
-      '<a class="desktop-search" href="/search" aria-label="Search schools and districts" title="Search"'
+      '<a class="desktop-search" href="/search" aria-label="Search schools, districts and charter systems" title="Search"'
     )
     expect(tools.match(/class="desktop-search"/g)).toHaveLength(1)
     expect(tools).toMatch(/class="desktop-search"[\s\S]*?<svg aria-hidden="true"/)
@@ -458,8 +466,21 @@ describe('the primary nav cannot become unreachable', () => {
       sections: ['<section id="a"><h2>A</h2></section>'],
     })
     expect(html).toContain(
-      '<a class="desktop-search" href="/search" aria-label="Search schools and districts" title="Search" aria-current="page"'
+      '<a class="desktop-search" href="/search" aria-label="Search schools, districts and charter systems" title="Search" aria-current="page"'
     )
+  })
+
+  it('marks Districts and Charters current only on their own browse surfaces', () => {
+    const districts = shell({
+      title: 'Districts', description: 'D', canonical: 'https://txschools.net/districts/a', sections: [],
+    })
+    const charters = shell({
+      title: 'Charters', description: 'D', canonical: 'https://txschools.net/charters', sections: [],
+    })
+    expect(districts.match(/href="\/districts"[^>]*aria-current="page"/g)).toHaveLength(2)
+    expect(districts).not.toMatch(/href="\/charters"[^>]*aria-current="page"/)
+    expect(charters.match(/href="\/charters"[^>]*aria-current="page"/g)).toHaveLength(2)
+    expect(charters).not.toMatch(/href="\/districts"[^>]*aria-current="page"/)
   })
 
   it('emits no inline script inside the header', () => {

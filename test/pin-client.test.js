@@ -21,7 +21,7 @@ describe('pinned current-measure comparisons', () => {
         <p class="rail-hint">Compare matching measures.</p>
         <input class="pin-search">
         <ul class="pin-results" hidden></ul>
-        <ul class="pin-list" aria-label="Pinned schools and districts"></ul>
+        <ul class="pin-list" aria-label="Pinned schools, districts and charter systems"></ul>
         <script type="application/json" data-pin-source>{"payload":"/data/payload-test.json"}</script>
       </aside>
       <div class="cohort-bar" data-accountability-population="standard">
