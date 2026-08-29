@@ -13,6 +13,7 @@
 // renderer rather than calling an escape helper directly.
 
 import { describe, it, expect } from 'vitest'
+import { gunzipSync } from 'node:zlib'
 import {
   SITE_ORIGIN,
   entityPath,
@@ -34,6 +35,8 @@ import {
   recentChangeRankIndex,
   sharePng,
   accountabilityDownloadRows,
+  bulkCsvAsset,
+  CLOUDFLARE_ASSET_MAX_BYTES,
 } from '../src/prerender.js'
 import { OG_IMAGE } from '../src/render/shell.js'
 import { rankingCatalogue } from '../src/render/rankings-page.js'
@@ -74,6 +77,25 @@ describe('accountabilityDownloadRows', () => {
     expect(at('charterSchool')).toMatchObject({ value: false, unit: 'boolean' })
     expect(at('alternativeEducationType')).toMatchObject({ value: 'AEC', unit: 'category' })
     expect(rows.every((row) => row.name === 'Test Campus')).toBe(true)
+  })
+})
+
+describe('bulkCsvAsset', () => {
+  it('keeps normal tables as plain CSV', () => {
+    expect(bulkCsvAsset('entities', 'id\n1\n')).toMatchObject({
+      file: 'entities.csv', label: 'entities.csv', format: 'csv', body: 'id\n1\n', uncompressedBytes: 5,
+    })
+  })
+
+  it('publishes a lossless gzip archive before an oversized CSV reaches Wrangler', () => {
+    const csv = 'x'.repeat(CLOUDFLARE_ASSET_MAX_BYTES + 1)
+    const asset = bulkCsvAsset('accountability', csv)
+    expect(asset).toMatchObject({
+      file: 'accountability.csv.gz', label: 'accountability.csv.gz', format: 'csv.gz',
+      uncompressedBytes: CLOUDFLARE_ASSET_MAX_BYTES + 1,
+    })
+    expect(gunzipSync(asset.body).toString()).toBe(csv)
+    expect(asset.body.length).toBeLessThan(CLOUDFLARE_ASSET_MAX_BYTES)
   })
 })
 

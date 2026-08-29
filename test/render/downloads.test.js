@@ -199,10 +199,11 @@ describe('accountability context exports', () => {
 
   it('lists a generated accountability bulk file with its neutral description', () => {
     const html = renderDownloadPage({
-      files: [{ href: '/data/accountability.csv', label: 'accountability.csv', format: 'csv', rows: 9, description: 'Context-only counts; masked values are not zero.' }],
+      files: [{ href: '/data/accountability.csv.gz', label: 'accountability.csv.gz', format: 'csv.gz', rows: 9, description: 'Context-only counts; masked values are not zero.' }],
       counts: { sourceFiles: 14 },
     })
-    expect(html).toContain('accountability.csv')
+    expect(html).toContain('accountability.csv.gz')
+    expect(html).toContain('must be decompressed before reading')
     expect(html).toContain('Context-only counts; masked values are not zero.')
     expect(html).toContain('TXschools.gov source files')
   })
