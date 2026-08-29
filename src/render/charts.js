@@ -382,7 +382,7 @@ export function stackedShare(parts, { w = 640, h = 26 } = {}) {
  */
 export const CMP_GEOM = { w: 640, h: 320, pad: { t: 16, r: 16, b: 28, l: 52 } }
 export const cmpDomain = (values) => {
-  const all = values.filter((v) => v !== null && v !== undefined)
+  const all = values.filter((v) => typeof v === 'number' && Number.isFinite(v))
   return all.length ? { lo: Math.min(...all) * 0.9, hi: Math.max(...all) * 1.05 } : { lo: 0, hi: 1 }
 }
 
@@ -439,7 +439,8 @@ export function comparisonChart({ years, series, domain = null, w = CMP_GEOM.w, 
 
   // Grouped so site/app.js can replace each layer wholesale when a pinned
   // district changes the scale, instead of surgically editing sibling nodes.
-  return `<svg viewBox="0 0 ${w} ${h}" class="chart chart-cmp" role="img" aria-label="Comparison over time">
+  return `<svg viewBox="0 0 ${w} ${h}" class="chart chart-cmp" role="img" aria-label="Comparison over time"
+  data-lo="${lo}" data-hi="${hi}" data-years="${years.length}">
   <g class="cmp-grid">${grid}</g><g class="cmp-lines">${lines}</g><g class="cmp-x">${xlabels}</g>
 </svg>`
 }

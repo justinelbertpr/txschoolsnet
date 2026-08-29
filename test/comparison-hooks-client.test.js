@@ -224,6 +224,72 @@ describe('generic selected-comparison hooks', () => {
     dom.window.close()
   })
 
+  it('preserves charter-system and charter-campus populations when the state cohort is selected', () => {
+    for (const scenario of [
+      { path: '/district/example-charter-123456', units: 'charter school systems', n: 179 },
+      { path: '/campus/example-charter-campus-123456001', units: 'charter campuses', n: 965 },
+    ]) {
+      const metric = 'public:enrollment:2025'
+      const dom = new JSDOM(`<!doctype html><html><body>
+        <div class="cohort-bar">
+          <button class="chip-cohort" data-cohort="peer" aria-pressed="true">Similar context</button>
+          <button class="chip-cohort" data-cohort="state" aria-pressed="false">Texas charter average</button>
+        </div>
+        <p data-comparison-readout data-metric="${metric}" data-format="count">
+          <strong data-entity-value>123</strong><strong data-compare-value>100</strong>
+          <span><span data-compare-kind>average for</span> <span data-compare-label>Similar context</span> · <span data-compare-n>8</span> reporting</span>
+        </p>
+        <section id="outcomes">
+          <div data-bars="staar">
+            <div class="hbar" data-metric="staar:Math:0">
+              <span class="hbar-track"><span class="hbar-mark hbar-mark-peer" data-mark="peer" data-value="50"></span></span>
+              <span class="hbar-sub"><span class="hbar-delta">+10.0 vs peers</span></span>
+            </div>
+          </div>
+          <ul class="legend"><li><span class="swatch swatch-peer"></span>Tick: Similar context</li></ul>
+          <p class="note">Percentage of tests at or above each level. The tick on each bar is the average for similar context.</p>
+          <table class="data">
+            <caption>CCMR criteria</caption>
+            <thead><tr><th>Criterion</th><th>This entity</th><th>Average<small>similar context</small></th><th>Difference</th></tr></thead>
+            <tbody><tr data-metric="ccmr:0"><th>Ready</th><td>61%</td><td>50.0%</td><td>+11.0</td></tr></tbody>
+          </table>
+          <p>Difference is this entity minus <span data-ccmr-comparison>the average for</span> <strong data-ccmr-cohort>Similar context</strong>.</p>
+        </section>
+        <script type="application/json" data-cohorts>${JSON.stringify([
+          { key: 'peer', short: 'similar context', label: 'Similar context', n: 20, metrics: { [metric]: 100, 'staar:Math:0': 50, 'ccmr:0': 50 }, metricN: { [metric]: 18, 'staar:Math:0': 19, 'ccmr:0': 20 } },
+          { key: 'state', short: 'state', label: 'Texas charter average', n: scenario.n, metrics: { [metric]: 200, 'staar:Math:0': 55, 'ccmr:0': 56 }, metricN: { [metric]: scenario.n - 2, 'staar:Math:0': scenario.n - 3, 'ccmr:0': scenario.n - 4 } },
+        ])}</script>
+        <script type="application/json" data-own>{"${metric}":123,"staar:Math:0":60,"ccmr:0":61}</script>
+      </body></html>`, {
+        url: `https://txschools.net${scenario.path}`,
+        runScripts: 'outside-only',
+        pretendToBeVisual: true,
+      })
+      const { window } = dom
+      window.matchMedia = vi.fn(() => ({ matches: true, addEventListener() {}, removeEventListener() {} }))
+      window.eval(app)
+      window.document.querySelector('[data-cohort="state"]').click()
+
+      const readoutMeta = window.document.querySelector('[data-compare-kind]').parentElement.textContent
+      expect(readoutMeta).toBe(
+        `Texas charter average for ${scenario.units} · ${(scenario.n - 2).toLocaleString('en-US')} rated ${scenario.units} reporting`
+      )
+      expect(window.document.querySelector('#outcomes p.note').textContent).toContain(
+        `The tick on each bar is the Texas charter average for ${scenario.units}.`
+      )
+      expect(window.document.querySelector('[data-ccmr-comparison]').textContent).toBe('the Texas charter average for')
+      expect(window.document.querySelector('[data-ccmr-cohort]').textContent).toBe(scenario.units)
+      expect(window.document.querySelector('table.data thead th:nth-child(3)').textContent).toContain('Texas charter average')
+      expect(window.document.querySelector('table.data thead th:nth-child(3)').textContent).toContain(scenario.units)
+      expect(window.document.querySelector('.cohort-status').textContent).toContain(
+        `Texas charter average, ${scenario.n.toLocaleString('en-US')} ${scenario.units}`
+      )
+      expect(window.document.body.textContent).not.toContain('rated Texas districts')
+      expect(window.document.body.textContent).not.toContain('rated Texas schools')
+      dom.window.close()
+    }
+  })
+
   it('uses precomputed hero prose for server cohorts and a fallback clause only for runtime pins', () => {
     const dom = new JSDOM(`<!doctype html><html><body>
       <div class="cohort-bar">

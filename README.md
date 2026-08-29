@@ -1,7 +1,12 @@
 # txschools.net
 
 A public dashboard tracking how Texas public schools move through the state A–F accountability
-system, built on the full statewide dataset published by TEA via txschools.gov.
+system. The Texas Education Agency publishes the underlying records; its
+[Reports and Data Portal](https://tea.texas.gov/school-and-district-leaders/accountability/academic-accountability/performance-reporting/texas-education-agency-reports-and-data-portal)
+is the official landing page for accountability reports and bulk downloads, while
+[TXschools.gov](https://txschools.gov) provides official individual district and campus reports.
+txschools.net is independent and unofficial. It is not operated by, endorsed by, or affiliated
+with TEA.
 
 ## Status
 
@@ -20,14 +25,16 @@ deliberately minimal.
 ## What this is
 
 txschools.gov publishes the entire statewide accountability dataset as static JSON — 1,199
-districts, 9,031 campuses, and five academic years of rating history, 52.5 MB in total. This
-project normalizes that into queryable tables and prerenders a page for every district and campus.
+district-level systems, 9,031 campuses, and five academic years of rating history, 52.5 MB in
+total. This project normalizes all 10,230 entities into queryable tables and prerenders a page for
+every district-level record and campus.
 
-This site publishes traditional public school districts only. Open-enrollment charter districts
-and campuses are excluded outright, at the normalized-table stage, before any downstream table is
-built — not filtered per view, not offered as a toggle. Of TEA's 1,199 districts and 9,031
-campuses, 1,020 districts and 8,066 campuses are traditional and appear here; the remaining 179
-districts and 965 campuses are charters and appear nowhere on the site.
+The snapshot contains 1,020 geographic districts and 179 open-enrollment charter school systems,
+plus 8,066 campuses operated by geographic districts and 965 charter campuses. The build keeps
+both sectors and preserves TEA's charter classification so pages, downloads and comparisons can
+label and compare the two governance models accurately without mixing their cohorts. Boundary and
+address features remain different: a charter campus is not treated as the geographic
+resident-assigned district for an address.
 
 The editorial thesis, validated against the data before being adopted:
 
@@ -43,8 +50,9 @@ rather than quietly going stale.
 
 ```
 npm run fetch                 refresh the 14-file txschools.gov accountability snapshot
-npm run fetch:automated       refresh the six automatable supplemental archives below
+npm run fetch:automated       refresh the seven automatable supplemental archives below
 npm run fetch:enrollment      refresh five years of PEIMS enrollment
+npm run fetch:accountability  refresh TEA's 2026 district/campus accountability-summary downloads
 npm run fetch:transfers       refresh five years of PEIMS transfer flows (105 reports)
 npm run fetch:educators       refresh five years of TAPR turnover and class-size data
 npm run fetch:discipline      refresh five years of PEIMS discipline summaries
@@ -55,14 +63,14 @@ npm run verify                verify every committed data archive against its ma
 npm run drift                 ask whether the 14 accountability files have changed
 npm run build                 normalize the newest snapshots into build/*.ndjson
 npm run export                build the dashboard payload into site/data/
-npm run prerender             render 9,086 entity pages into site/
+npm run prerender             render 10,230 entity pages into site/
 npm run site                  verify + build + export + prerender
 npm test                      run unit, integrity and published-figure regressions
 ```
 
 The `fetch:*` commands and `npm run drift` touch the network. Fetches are rarely needed: dated
 snapshots are committed, so `npm run site` reproduces the site offline. `npm run fetch:automated`
-runs enrollment, transfers, educators, discipline, community and postsecondary sequentially. It
+runs enrollment, accountability, transfers, educators, discipline, community and postsecondary sequentially. It
 does **not** refresh action-status flags; that reviewed PDF workflow is documented below.
 Fetchers reproduce the source years configured in their modules; when an agency publishes a new
 year or changes a schema, update the corresponding source constants and tests before refreshing

@@ -460,13 +460,14 @@ const SCOPE_BY_KIND = new Map(SCOPES.map((s) => [s.kind, s]))
 
 /** 'state' | 'region:07' | {kind:'county', id:'001'} -> {kind, id}. */
 export function parseScope(scope = 'state') {
+  const sector = typeof scope === 'object' && scope?.sector != null ? scope.sector : null
   const raw = typeof scope === 'string' ? scope : `${scope?.kind ?? 'state'}${scope?.id != null ? `:${scope.id}` : ''}`
   const [kind, ...rest] = String(raw).split(':')
   if (!SCOPE_BY_KIND.has(kind)) throw new Error(`rankings: unknown scope kind ${JSON.stringify(kind)}`)
   const id = rest.join(':') || null
-  if (kind === 'state') return { kind, id: null }
+  if (kind === 'state') return { kind, id: null, ...(sector ? { sector } : {}) }
   if (id == null) throw new Error(`rankings: scope ${kind} needs an id, e.g. "${kind}:07"`)
-  return { kind, id: kind === 'region' ? padRegion(id) : id }
+  return { kind, id: kind === 'region' ? padRegion(id) : id, ...(sector ? { sector } : {}) }
 }
 
 /** The inverse, for URL building. */
@@ -497,13 +498,16 @@ function scopeLabel({ kind, id }, members) {
 /* ---------------------------------------------------------------- filters -- */
 
 export const AEA_MODES = ['include', 'exclude', 'only']
+export const SECTORS = ['traditional', 'charter', 'all']
 export const LEVELS = ['district', 'campus']
 
-const DEFAULT_FILTERS = { aea: 'include' }
+const DEFAULT_FILTERS = { aea: 'include', sector: 'traditional' }
 
 function normalizeFilters(filters = {}) {
   const f = { ...DEFAULT_FILTERS, ...filters }
+  if (f.sector == null) f.sector = DEFAULT_FILTERS.sector
   if (!AEA_MODES.includes(f.aea)) throw new Error(`rankings: aea must be one of ${AEA_MODES.join(', ')}`)
+  if (!SECTORS.includes(f.sector)) throw new Error(`rankings: sector must be one of ${SECTORS.join(', ')}`)
   return f
 }
 
@@ -516,6 +520,11 @@ function normalizeFilters(filters = {}) {
 function filterPhrases(filters, level) {
   const kind = levelWord(level, 2)
   return [
+    filters.sector === 'traditional'
+      ? `open-enrollment charter ${kind} are excluded`
+      : filters.sector === 'charter'
+        ? `open-enrollment charter ${kind} only`
+        : `traditional and open-enrollment charter ${kind} are included`,
     filters.aea === 'include'
       ? `alternative-education ${kind} are included`
       : filters.aea === 'only'
@@ -669,7 +678,7 @@ const roundDelta = (v, fmt) => (fmt === 'usd' ? Math.round(v) : Math.round(v * 1
  * to the number handed in. Reported that way in `population.excluded`.
  */
 function poolFor({ entities, bundles, metric, scope, level, filters }) {
-  const excluded = { level: 0, scope: 0, aea: 0, population: 0, notRated: 0 }
+  const excluded = { level: 0, scope: 0, sector: 0, aea: 0, population: 0, notRated: 0 }
   const def = SCOPE_BY_KIND.get(scope.kind)
   const members = []
 
@@ -686,6 +695,10 @@ function poolFor({ entities, bundles, metric, scope, level, filters }) {
     const group = def.groupOf(b)
     if (group == null || (scope.id != null && group !== scope.id)) {
       excluded.scope += 1
+      continue
+    }
+    if ((filters.sector === 'traditional' && b.isCharter) || (filters.sector === 'charter' && !b.isCharter)) {
+      excluded.sector += 1
       continue
     }
     if (filters.aea === 'exclude' && b.isAlt) {
@@ -736,6 +749,7 @@ function envelope({ metric, scope, level, filters, members, excluded, rows, kind
     )
   }
   if (excluded.aea > 0) reasons.push(`${nf(excluded.aea)} removed by the alternative-education filter`)
+  if (excluded.sector > 0) reasons.push(`${nf(excluded.sector)} removed by the ${filters.sector} sector filter`)
   const missing = (excluded.noValue ?? 0) + (excluded.noStart ?? 0) + (excluded.noEnd ?? 0)
   if (missing > 0) {
     reasons.push(
@@ -840,8 +854,8 @@ const rowOf = (b) => ({
 export function rankBy({ entities, bundles, metric, scope = 'state', level = 'district', filters, limit = null, latestYear = null }) {
   const m = resolveMetric(metric)
   if (!LEVELS.includes(level)) throw new Error(`rankings: level must be one of ${LEVELS.join(', ')}`)
-  const f = normalizeFilters(filters)
   const s = parseScope(scope)
+  const f = normalizeFilters({ ...filters, sector: filters?.sector ?? s.sector })
   const { members, excluded } = poolFor({ entities, bundles, metric: m, scope: s, level, filters: f })
 
   excluded.noValue = 0
@@ -888,8 +902,8 @@ export const windowLabel = (from, to) => `${from} to ${to}`
 export function availableYears({ entities, bundles, metric, scope = 'state', level = 'district', filters }) {
   const m = resolveMetric(metric)
   if (!m.change) return []
-  const f = normalizeFilters(filters)
   const s = parseScope(scope)
+  const f = normalizeFilters({ ...filters, sector: filters?.sector ?? s.sector })
   const { members } = poolFor({ entities, bundles, metric: m, scope: s, level, filters: f })
 
   const counts = new Map()
@@ -949,8 +963,8 @@ export function changeMetrics({
   if (basis !== 'absolute' && basis !== 'relative') throw new Error(`rankings: basis must be 'absolute' or 'relative'`)
   if (!LEVELS.includes(level)) throw new Error(`rankings: level must be one of ${LEVELS.join(', ')}`)
 
-  const f = normalizeFilters(filters)
   const s = parseScope(scope)
+  const f = normalizeFilters({ ...filters, sector: filters?.sector ?? s.sector })
   const { members, excluded } = poolFor({ entities, bundles, metric: m, scope: s, level, filters: f })
 
   let start = from

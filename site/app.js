@@ -66,6 +66,33 @@ const near = (a, b) => a !== null && a !== undefined && b !== null && b !== unde
 /** The nouns this site uses for the two levels, matching the server's prose. */
 const UNIT = location.pathname.startsWith('/campus/') ? 'campuses' : 'districts'
 
+// The server keeps traditional and charter cohorts separate. Recover that
+// sector from the state cohort it embeds so client-side switches preserve the
+// same explicit population labels instead of broadening a charter comparison
+// to generic "Texas districts" or "Texas schools."
+const CHARTER_PAGE = (() => {
+  const tag = document.querySelector('script[data-cohorts]')
+  if (!tag) return false
+  try {
+    const cohorts = JSON.parse(tag.textContent)
+    return Array.isArray(cohorts) && cohorts.some((c) => c?.key === 'state' && /charter/i.test(c?.label ?? ''))
+  } catch {
+    return false
+  }
+})()
+const COHORT_UNITS = CHARTER_PAGE
+  ? UNIT === 'campuses'
+    ? 'charter campuses'
+    : 'charter school systems'
+  : UNIT
+const REPORTING_UNITS = CHARTER_PAGE
+  ? COHORT_UNITS
+  : UNIT === 'campuses'
+    ? 'schools'
+    : 'districts'
+const STATE_AVERAGE_KIND = CHARTER_PAGE ? 'Texas charter average for' : 'statewide cohort average across'
+const STATE_AVERAGE_TARGET = CHARTER_PAGE ? COHORT_UNITS : 'Texas'
+
 /* ---------------------------------------------------------- the payload ---- */
 
 /**
@@ -602,14 +629,14 @@ function initCohorts(chart, spend = null) {
   // geography instead and states that this is a cohort average.
   const proseLabel = (c) =>
     isState(c)
-      ? 'Texas'
+      ? STATE_AVERAGE_TARGET
       : isSize(c)
-        ? `similarly sized ${UNIT}`
+        ? `similarly sized ${COHORT_UNITS}`
         : c?.key === 'peer'
-          ? `${UNIT} with a similar economic-disadvantage rate`
+          ? `${COHORT_UNITS} with a similar economic-disadvantage rate`
           : label(c)
   /** "Region 04: Houston (46 districts)" for a cohort, the bare name for a pin. */
-  const withCount = (c) => (isOne(c) ? label(c) : `${label(c)} (${num(c.n)} ${UNIT})`)
+  const withCount = (c) => (isOne(c) ? label(c) : `${label(c)} (${num(c.n)} ${COHORT_UNITS})`)
   const sbCohort = document.querySelector('[data-sb-cohort]')
 
   /* ---- small DOM helpers ---- */
@@ -776,7 +803,7 @@ function initCohorts(chart, spend = null) {
 
       const kind = document.createElement('span')
       kind.dataset.compareKind = ''
-      kind.textContent = isOne(c) ? 'figure for' : isState(c) ? 'statewide cohort average across' : 'average for'
+      kind.textContent = isOne(c) ? 'figure for' : isState(c) ? STATE_AVERAGE_KIND : 'average for'
       const name = document.createElement('span')
       name.dataset.compareLabel = ''
       name.textContent = proseLabel(c)
@@ -787,8 +814,7 @@ function initCohorts(chart, spend = null) {
       const n = document.createElement('span')
       n.dataset.compareN = ''
       n.textContent = num(reporting)
-      const reportingUnit = UNIT === 'campuses' ? 'schools' : 'districts'
-      meta.append(document.createTextNode(' · '), n, document.createTextNode(` rated ${reportingUnit} reporting`))
+      meta.append(document.createTextNode(' · '), n, document.createTextNode(` rated ${REPORTING_UNITS} reporting`))
     }
 
     return (c) => {
@@ -1042,9 +1068,9 @@ function initCohorts(chart, spend = null) {
           (isOne(c)
             ? `The tick on each bar is ${label(c)}'s own figure, not an average. This comparison is not published by TEA.`
             : (isState(c)
-                ? `The tick on each bar is the statewide cohort average across Texas. `
+                ? `The tick on each bar is the ${STATE_AVERAGE_KIND} ${STATE_AVERAGE_TARGET}. `
                 : `The tick on each bar is the average for ${proseLabel(c)}. `) +
-              `The row gives the number reporting that measure; ${num(c.n)} ${UNIT} are in the full cohort. ` +
+              `The row gives the number reporting that measure; ${num(c.n)} ${COHORT_UNITS} are in the full cohort. ` +
               `This comparison is not published by TEA.`)
       }
     }
@@ -1084,13 +1110,13 @@ function initCohorts(chart, spend = null) {
       if (headLabel) headLabel.nodeValue = isOne(c)
         ? `Pinned ${c.level ?? 'entity'}`
         : isState(c)
-          ? 'Statewide average'
+          ? CHARTER_PAGE ? 'Texas charter average' : 'Statewide average'
           : 'Average'
-      if (head) head.textContent = isState(c) ? 'Texas cohort' : c.short
+      if (head) head.textContent = isState(c) ? CHARTER_PAGE ? COHORT_UNITS : 'Texas cohort' : c.short
       if (noteComparison) noteComparison.textContent = isOne(c)
         ? 'the figure for'
         : isState(c)
-          ? 'the statewide cohort average across'
+          ? `the ${STATE_AVERAGE_KIND}`
           : 'the average for'
       if (noteCohort) noteCohort.textContent = proseLabel(c)
       rows.forEach((r, i) => {
@@ -1162,7 +1188,7 @@ function initCohorts(chart, spend = null) {
       }
       if (head && headHtml != null) {
         if (restore) head.innerHTML = headHtml
-        else if (stateSelected) head.textContent = 'Texas average'
+        else if (stateSelected) head.textContent = CHARTER_PAGE ? 'Texas charter average' : 'Texas average'
         else head.textContent = isOne(c) ? c.short : cap(c.short)
       }
       rows.forEach((r, i) => {
@@ -1247,7 +1273,7 @@ function initCohorts(chart, spend = null) {
     return (c, onChart) => {
       el.textContent = isOne(c)
         ? `Every switchable benchmark on this page is now against ${label(c)}.`
-        : `Every switchable benchmark on this page is now against ${label(c)}, ${num(c.n)} ${UNIT}.` +
+        : `Every switchable benchmark on this page is now against ${label(c)}, ${num(c.n)} ${COHORT_UNITS}.` +
           (onChart ? ' Its line is on the trajectory chart.' : '')
     }
   })()
@@ -1668,13 +1694,13 @@ function initSpendChart() {
         sw.className = 'swatch swatch-selected'
         const latestReporting = latestReportingFor(selected)
         const selectedLabel = selected.cohort?.key === 'state'
-          ? `Selected comparison: txschools.net statewide cohort average${
+          ? `Selected comparison: txschools.net ${CHARTER_PAGE ? 'Texas charter average' : 'statewide cohort average'}${
               latestReporting
-                ? ` (${num(latestReporting.reporting)} Texas ${UNIT} reporting for ${latestReporting.year})`
+                ? ` (${num(latestReporting.reporting)} Texas ${COHORT_UNITS} reporting for ${latestReporting.year})`
                 : ''
             }`
           : selected.cohort?.key === 'size'
-            ? `Selected comparison: average for similarly sized ${UNIT}`
+            ? `Selected comparison: average for similarly sized ${COHORT_UNITS}`
           : `Selected comparison: ${selected.label}`
         comparison.append(sw, document.createTextNode(selectedLabel))
       } else if (comparison) {

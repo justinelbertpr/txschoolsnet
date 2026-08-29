@@ -244,7 +244,7 @@
       busy = value
       button.disabled = value
       input.disabled = value
-      button.textContent = value ? 'Finding…' : 'Find my district'
+      button.textContent = value ? 'Finding…' : 'Find my resident district'
       input.setAttribute('aria-busy', String(value))
     }
 
@@ -264,7 +264,7 @@
       }
       result.appendChild(actions)
       appendBoundaryNote(result,
-        'District boundaries and enrollment eligibility can change. Confirm this address with the district before registering.')
+        'This is the geographic public school district containing the address. Boundaries and enrollment eligibility can change. Confirm this address with the district before registering. This result does not determine admission to an open-enrollment charter school; confirm charter eligibility and enrollment with that school.')
       result.hidden = false
       say('Found ' + record[0] + '. Results and enrollment links are below.')
       result.focus({ preventScroll: true })
@@ -277,7 +277,7 @@
       result.appendChild(text('p', 'addressfind-result-kicker', 'Census match'))
       result.appendChild(text('h3', '', name || 'A Texas school district'))
       appendBoundaryNote(result,
-        'This district is not in the site’s current traditional-district index. Confirm the boundary and enrollment eligibility with the district.')
+        'This geographic district is not in the site’s current boundary index. Confirm the boundary and enrollment eligibility with the district. Open-enrollment charter schools are choices, not resident-assigned districts.')
       result.hidden = false
       say('The Census Bureau found a district, but it is not in this site’s current index.')
       result.focus({ preventScroll: true })

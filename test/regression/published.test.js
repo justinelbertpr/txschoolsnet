@@ -38,7 +38,13 @@ const readOrGuide = async (path) => {
 
 const CAYUGA_ID = '001902'
 const YEARS = ['2025-26', '2024-25', '2023-24', '2022-23', '2021-22']
-const ENTITY_COUNT = 9086
+const ENTITY_COUNT = 10230
+const SECTOR_COUNTS = {
+  'district:false': 1020,
+  'district:true': 179,
+  'campus:false': 8066,
+  'campus:true': 965,
+}
 
 /* ---------------------------------------------------------------- parsing -- */
 
@@ -103,9 +109,17 @@ beforeAll(async () => {
   // A spread of the whole entity list, districts and campuses, rated and not.
   // One page proves the renderer can be right; a corruption applied to every
   // page is only visible across many.
+  const sectorIndices = Object.keys(SECTOR_COUNTS)
+    .map((key) => {
+      const [level, isCharter] = key.split(':')
+      return payload.entities.level.findIndex(
+        (value, i) => value === level && String(payload.entities.isCharter?.[i]) === isCharter
+      )
+    })
+    .filter((i) => i >= 0)
   const indices = [...new Set(
     Array.from({ length: 24 }, (_, k) => Math.floor((k * payload.entities.id.length) / 24))
-      .concat(cayugaIndex)
+      .concat(cayugaIndex, sectorIndices)
   )]
   sample = await Promise.all(indices.map(pageFor))
 })
@@ -118,10 +132,24 @@ describe('published payload (site/data/<payload>.json)', () => {
     expect(payload.years).toHaveLength(5)
   })
 
-  it('keeps every entity column and every score/grade row at 9,086', () => {
+  it('keeps every entity column and every score/grade row at 10,230', () => {
     for (const col of Object.values(payload.entities)) expect(col).toHaveLength(ENTITY_COUNT)
     expect(payload.scores).toHaveLength(ENTITY_COUNT)
     expect(payload.grades).toHaveLength(ENTITY_COUNT)
+  })
+
+  it('publishes exact level-by-sector totals and a boolean charter label for every entity', () => {
+    expect(payload.entities.isCharter.every((value) => typeof value === 'boolean')).toBe(true)
+    const actual = Object.fromEntries(
+      Object.keys(SECTOR_COUNTS).map((key) => {
+        const [level, isCharter] = key.split(':')
+        const count = payload.entities.level.filter(
+          (value, i) => value === level && String(payload.entities.isCharter[i]) === isCharter
+        ).length
+        return [key, count]
+      })
+    )
+    expect(actual).toEqual(SECTOR_COUNTS)
   })
 
   it('gives every entity one cell per year', () => {
@@ -130,7 +158,7 @@ describe('published payload (site/data/<payload>.json)', () => {
   })
 
   // Right filename, right shape, no data in it: the corruption that the length
-  // assertions above cannot see, because an array of 9,086 nulls is 9,086
+  // assertions above cannot see, because an array of 10,230 nulls is 10,230
   // long. TEA rates the overwhelming majority of entities every year.
   it('is not an empty shell — most cells carry a real score and grade', () => {
     const cells = payload.scores.flat()
@@ -243,6 +271,23 @@ describe('published page (site/district/cayuga-isd-001902.html)', () => {
 /* ------------------------------------------------- page agrees with payload */
 
 describe('page and payload agree on every history row', () => {
+  it('samples both entity levels in both governance sectors and labels each page truthfully', () => {
+    const seen = new Set()
+    for (const page of sample) {
+      const isCharter = payload.entities.isCharter[page.i]
+      seen.add(`${page.level}:${isCharter}`)
+      const kind = isCharter
+        ? page.level === 'district'
+          ? 'Charter school system'
+          : 'Open-enrollment charter campus'
+        : page.level === 'district'
+          ? 'Geographic public school district'
+          : 'Traditional public school campus'
+      expect(page.html).toContain(`<p class="eyebrow">${kind}`)
+    }
+    expect(seen).toEqual(new Set(Object.keys(SECTOR_COUNTS)))
+  })
+
   it("Cayuga ISD's rendered rows match the payload's scores/grades for the same years", () => {
     const rows = historyRows(cayuga.html)
     expect(rows).toHaveLength(payload.years.length)

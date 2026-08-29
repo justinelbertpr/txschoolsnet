@@ -120,7 +120,14 @@ import { buildViewModel, entitySlug, slugify } from './render/view-model.js'
 import { metricSpecs } from './render/metrics.js'
 import { buildPublicComparisonBundles } from './render/public-comparisons.js'
 import { renderEntity } from './render/page.js'
-import { renderRegionPage, renderCountyPage, renderLetterPage, renderHomePage, regionPath } from './render/hubs.js'
+import {
+  renderRegionPage,
+  renderCountyPage,
+  renderLetterPage,
+  renderChartersPage,
+  renderHomePage,
+  regionPath,
+} from './render/hubs.js'
 import { searchIndexJson, searchClientJs, renderSearchPage, SEARCH_LETTERS } from './render/search.js'
 import { addressClientJs, districtLocatorJson } from './render/address.js'
 import { publishAddressStreetShards } from './addresses.js'
@@ -190,8 +197,10 @@ ${paths.map((p) => `<url><loc>${SITE_ORIGIN}/${p.replace(/\.html$/, '')}</loc></
 
 export const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('')
 
-const ndjson = (table) =>
-  readFileSync(`build/${table}.ndjson`, 'utf8').trim().split('\n').map((l) => JSON.parse(l))
+const ndjson = (table) => {
+  const text = readFileSync(`build/${table}.ndjson`, 'utf8').trim()
+  return text ? text.split('\n').map((line) => JSON.parse(line)) : []
+}
 
 const gz = (dir, name) => JSON.parse(gunzipSync(readFileSync(`${dir}/${name}.json.gz`)).toString('utf8'))
 
@@ -251,6 +260,10 @@ export function loadTables(dir) {
   const transfers = ndjson('transfers')
   const educators = ndjson('educators')
   const discipline = ndjson('discipline')
+  const accountability = existsSync('build/accountability.ndjson') ? ndjson('accountability') : []
+  const accountabilityMeta = existsSync('build/accountability-meta.json')
+    ? JSON.parse(readFileSync('build/accountability-meta.json', 'utf8'))
+    : null
   const publicDataMeta = JSON.parse(readFileSync('build/public-data-meta.json', 'utf8'))
   const finance = [...toFinance(gz(dir, 'finance_district')), ...toFinance(gz(dir, 'finance_school'))]
 
@@ -288,6 +301,7 @@ export function loadTables(dir) {
     transfers,
     educators,
     discipline,
+    accountability,
     publicComparisonBundles: buildPublicComparisonBundles({
       entities,
       finance,
@@ -307,6 +321,8 @@ export function loadTables(dir) {
     transferById: new Map(transfers.map((row) => [row.id, row])),
     educatorById,
     disciplineById: new Map(discipline.map((row) => [row.id, row])),
+    accountabilityById: new Map(accountability.map((row) => [`${row.level}:${row.id}`, row])),
+    accountabilityMeta,
     publicDataMeta,
     domains: toDomains(gz(dir, 'overview')),
     finance,
@@ -352,6 +368,7 @@ const viewModelFor = (t, entity, snapshotDate, { previousYear = null, recentChan
     educatorHistory: t.educatorById.get(entity.id) ?? [],
     educatorLatestYear: t.publicDataMeta?.educators?.latestYear ?? null,
     disciplineSummary: t.disciplineById.get(entity.id) ?? null,
+    accountabilityContext: t.accountabilityById.get(`${entity.level}:${entity.id}`) ?? null,
     transferSummary: t.transferById.get(entity.id) ?? null,
     publicDataMeta: {
       actionFlags: {
@@ -389,6 +406,13 @@ const viewModelFor = (t, entity, snapshotDate, { previousYear = null, recentChan
         fetchedAt: t.publicDataMeta?.discipline?.fetchedAt
           ? humanDate(t.publicDataMeta.discipline.fetchedAt)
           : null,
+      },
+      accountability: {
+        ...t.publicDataMeta?.accountability,
+        fetchedAt: t.publicDataMeta?.accountability?.fetchedAt
+          ? humanDate(t.publicDataMeta.accountability.fetchedAt)
+          : null,
+        masking: t.accountabilityMeta?.masking ?? t.publicDataMeta?.accountability?.masking ?? null,
       },
     },
     publicComparisonBundles: t.publicComparisonBundles,
@@ -666,10 +690,16 @@ const groupBy = (rows, key) => {
 export function hubPlan(entities, regionNames) {
   const withSlug = entities.map((e) => (e.level === 'district' ? { ...e, slug: entitySlug(e) } : e))
   const districts = withSlug.filter((e) => e.level === 'district')
+  const traditional = withSlug.filter((e) => !e.isCharter)
+  const traditionalDistricts = districts.filter((e) => !e.isCharter)
+  const charterDistricts = districts.filter((e) => e.isCharter)
 
-  const byRegion = groupBy(withSlug, (e) => regionPath(e.regionId))
-  const byCounty = groupBy(withSlug, (e) => (e.county ? slugify(e.county) : null))
-  const state = avgOf(districts)
+  // TEA's county and region on an open-enrollment charter record can describe
+  // its operator office rather than the physical campus. Geographic hubs and
+  // resident-boundary comparisons therefore remain traditional-only.
+  const byRegion = groupBy(traditional, (e) => regionPath(e.regionId))
+  const byCounty = groupBy(traditional, (e) => (e.county ? slugify(e.county) : null))
+  const state = avgOf(traditionalDistricts)
 
   const regions = [...byRegion.keys()].sort().map((id) => ({
     id,
@@ -690,7 +720,7 @@ export function hubPlan(entities, regionNames) {
     }
   })
 
-  return { districts, regions, counties, state }
+  return { districts, traditionalDistricts, charterDistricts, regions, counties, state }
 }
 /* --------------------------------------------------------------- rankings -- */
 //
@@ -913,7 +943,11 @@ export function recentChangeRankIndex({ entities = [], bundles = null, latestYea
 
   for (const level of ['district', 'campus']) {
     for (const metric of metrics) {
-      for (const kind of ['state', 'region']) {
+      for (const { sector, kind } of [
+        { sector: 'traditional', kind: 'state' },
+        { sector: 'traditional', kind: 'region' },
+        { sector: 'charter', kind: 'state' },
+      ]) {
         const groups = rankEverywhere({
           entities,
           bundles,
@@ -924,6 +958,7 @@ export function recentChangeRankIndex({ entities = [], bundles = null, latestYea
           from: previousYear,
           to: latestYear,
           latestYear,
+          filters: { sector },
         })
 
         for (const result of groups.values()) {
@@ -975,9 +1010,11 @@ export function recentChangeRankIndex({ entities = [], bundles = null, latestYea
 /** State (both levels), every region, and the counties big enough to rank. */
 export function rankingScopes({ regions, counties }) {
   return [
-    { kind: 'state', label: 'Texas', level: 'district' },
-    { kind: 'state', label: 'Texas', level: 'campus' },
-    ...regions.map((r) => ({ kind: 'region', id: r.id, label: r.name, level: 'district', href: `/region/${r.id}` })),
+    { kind: 'state', label: 'Texas', level: 'district', sector: 'traditional' },
+    { kind: 'state', label: 'Texas', level: 'campus', sector: 'traditional' },
+    { kind: 'state', label: 'Texas', level: 'district', sector: 'charter' },
+    { kind: 'state', label: 'Texas', level: 'campus', sector: 'charter' },
+    ...regions.map((r) => ({ kind: 'region', id: r.id, label: r.name, level: 'district', sector: 'traditional', href: `/region/${r.id}` })),
     ...countyRankingScopes(counties),
   ]
 }
@@ -1124,8 +1161,11 @@ export function planRankings({ entities, bundles, regions, counties, latestYear 
   for (const entry of catalogue) {
     const { metric, scope } = entry
     const level = scope.level ?? 'district'
-    const where = scope.kind === 'state' ? 'state' : { kind: scope.kind, id: scope.id }
-    const ck = `${metric.key}|${level}|${scopeKey(where)}`
+    const sector = scope.sector ?? 'traditional'
+    const where = scope.kind === 'state'
+      ? { kind: 'state', sector }
+      : { kind: scope.kind, id: scope.id, sector }
+    const ck = `${metric.key}|${level}|${scopeKey(where)}|${sector}`
 
     if (!cache.has(ck)) {
       const args = { entities, bundles, scope: where, level, latestYear }
@@ -1188,7 +1228,10 @@ export function planRankings({ entities, bundles, regions, counties, latestYear 
 export function rankingIndex(kept) {
   const idx = {}
   for (const b of kept) {
-    const scope = b.scope.kind === 'state' ? 'state' : `${b.scope.kind}:${b.scope.countySlug ?? b.scope.id}`
+    const sector = b.scope.sector ?? 'traditional'
+    const scope = b.scope.kind === 'state'
+      ? `state:${sector}`
+      : `${b.scope.kind}:${b.scope.countySlug ?? b.scope.id}:${sector}`
     const slot = (((idx[b.level] ??= {})[scope] ??= {})[b.metric.key] ??= {})
     // `pages` is how many files this board is, measured from the population it
     // was actually built from. sections.js needs it to link the page holding a
@@ -1209,10 +1252,11 @@ export function rankingIndex(kept) {
 export const rankingLinksFor = (idx, e) => {
   const byScope = idx?.[e.level]
   if (!byScope) return null
+  const sector = e.isCharter ? 'charter' : 'traditional'
   const links = {
-    state: byScope.state ?? null,
-    region: byScope[`region:${regionPath(e.regionId)}`] ?? null,
-    county: byScope[`county:${slugify(e.county ?? '')}`] ?? null,
+    state: byScope[`state:${sector}`] ?? null,
+    region: e.isCharter ? null : byScope[`region:${regionPath(e.regionId)}:${sector}`] ?? null,
+    county: e.isCharter ? null : byScope[`county:${slugify(e.county ?? '')}:${sector}`] ?? null,
   }
   return links.state || links.region || links.county ? links : null
 }
@@ -1230,18 +1274,20 @@ export const rankingLinksFor = (idx, e) => {
  * that decision in one place, upstream of every hub, is what stops a future
  * hub template from having to remember the rule for itself.
  */
-export const rankingBoardsFor = (kept, scope) =>
+export const rankingBoardsFor = (kept, scope, sector = 'traditional') =>
   kept
     .filter((b) => {
       const k = b.scope.kind === 'state' ? 'state' : `${b.scope.kind}:${b.scope.countySlug ?? b.scope.id}`
-      return k === scope
+      return k === scope && (b.scope.sector ?? 'traditional') === sector
     })
     .map((b) => ({
       href: b.href,
       label: b.title,
       // Never a bare number: a link to a ranked list with no n is the same
       // unlabelled boast a rank with no n is.
-      meta: `${b.n.toLocaleString('en-US')} ${b.level === 'campus' ? 'campuses' : 'districts'}`,
+      meta: `${b.n.toLocaleString('en-US')} ${
+        b.level === 'campus' ? (sector === 'charter' ? 'charter campuses' : 'campuses') : sector === 'charter' ? 'charter school systems' : 'districts'
+      }`,
     }))
 
 /* ------------------------------------------------------------------- main -- */
@@ -1282,6 +1328,46 @@ const DATASETS = {
                'students_pct_of_cumulative_year_end_enrollment',
                'actions', 'actions_status', 'actions_mask',
                'actions_per_100_cumulative_year_end_students'],
+  accountability: ['id', 'level', 'name', 'school_year', 'group', 'metric', 'label', 'value', 'unit',
+                   'status', 'source_raw', 'denominator', 'denominator_status', 'denominator_source_raw'],
+}
+
+/** Lossless long-form projection of every normalized accountability datum. */
+export function accountabilityDownloadRows(accountability, byId = new Map()) {
+  return (accountability ?? []).flatMap((context) => {
+    const name = byId.get(context.id)?.name ?? null
+    const row = (group, metric, label, datum, unit, denominator = null, year = context.year) => ({
+      id: context.id, level: context.level, name, school_year: year, group, metric, label,
+      value: datum?.value ?? null, unit, status: datum?.status ?? 'not-reported', source_raw: datum?.raw ?? null,
+      denominator: denominator?.value ?? null, denominator_status: denominator?.status ?? null,
+      denominator_source_raw: denominator?.raw ?? null,
+    })
+    const rows = [
+      row('students', 'students_all', 'Students in this TEA accountability summary', context.students?.all, 'students'),
+      row('students', 'students_economically_disadvantaged', 'Economically disadvantaged students', context.students?.economicallyDisadvantaged, 'students'),
+      row('students', 'students_emergent_bilingual', 'Emergent bilingual students', context.students?.emergentBilingual, 'students'),
+      row('students', 'students_special_education', 'Special education students', context.students?.specialEducation, 'students'),
+      row('students', 'students_grades_3_12', 'Students in grades 3–12', context.students?.grades3to12, 'students'),
+      row('shares', 'emergent_bilingual_pct', 'Emergent bilingual share', context.shares?.emergentBilingualPct, 'percent'),
+      row('shares', 'special_education_pct', 'Special education share', context.shares?.specialEducationPct, 'percent'),
+      row('shares', 'grades_3_12_pct', 'Share of students in grades 3–12', context.shares?.grades3to12Pct, 'percent'),
+      row('programs', 'early_college_high_school_count', 'Enrolled in Early College High School', context.programs?.earlyCollegeHighSchool?.count, 'students'),
+      row('programs', 'early_college_high_school_pct', 'Early College High School share', context.programs?.earlyCollegeHighSchool?.sharePct, 'percent'),
+      row('programs', 'p_tech_count', 'Pathways in Technology Early College High School', context.programs?.pathwaysInTechnologyEarlyCollegeHighSchool?.count, 'students'),
+      row('programs', 'p_tech_pct', 'P-TECH share', context.programs?.pathwaysInTechnologyEarlyCollegeHighSchool?.sharePct, 'percent'),
+    ]
+    if (context.mobility) {
+      rows.push(
+        row('mobility', 'mobile_students', 'Mobile students', context.mobility.mobileStudents, 'students', context.mobility.denominatorStudents, context.mobility.year),
+        row('mobility', 'mobility_denominator_students', 'Students in TEA mobility denominator', context.mobility.denominatorStudents, 'students', null, context.mobility.year),
+        row('mobility', 'mobility_rate', 'Mobility rate', context.mobility.ratePct, 'percent', context.mobility.denominatorStudents, context.mobility.year)
+      )
+    }
+    for (const [key, datum] of Object.entries(context.flags ?? {})) {
+      rows.push(row('flags', key, key.replace(/([a-z])([A-Z])/g, '$1 $2'), datum, key === 'alternativeEducationType' ? 'category' : 'boolean'))
+    }
+    return rows
+  })
 }
 
 export async function prerender({ concurrency } = {}) {
@@ -1319,6 +1405,7 @@ export async function prerender({ concurrency } = {}) {
   const transfers = ndjson('transfers')
   const educators = ndjson('educators')
   const discipline = ndjson('discipline')
+  const accountability = existsSync('build/accountability.ndjson') ? ndjson('accountability') : []
   const publicDataMeta = JSON.parse(readFileSync('build/public-data-meta.json', 'utf8'))
   const rawDistricts = gz(dir, 'districts')
   const subjects = [...new Set(cleanAchievement(gz(dir, 'student_achievement_tab')).flatMap((a) => a.subject ?? []))]
@@ -1334,8 +1421,10 @@ export async function prerender({ concurrency } = {}) {
     if (e.countyId && e.county && !countyNames.has(e.countyId)) countyNames.set(e.countyId, e.county)
   }
   const years = [...new Set(allRatings.map((r) => r.year))].sort().reverse()
-  const { districts, regions, counties, state } = hubPlan(entities, regionNames)
+  const { districts, traditionalDistricts, charterDistricts, regions, counties, state } = hubPlan(entities, regionNames)
   const campuses = entities.filter((e) => e.level === 'campus')
+  const traditionalCampuses = campuses.filter((e) => !e.isCharter)
+  const charterCampuses = campuses.filter((e) => e.isCharter)
 
   // site/data holds the content-hashed dashboard payload that `npm run export`
   // just wrote; only the entity subdirectory is ours to clear.
@@ -1427,7 +1516,7 @@ export async function prerender({ concurrency } = {}) {
 
   const rankIndex = rankingIndex(kept)
   const rankingsIndexHref = RANKINGS_HREF
-  const boardsFor = (scope) => rankingBoardsFor(kept, scope)
+  const boardsFor = (scope, sector = 'traditional') => rankingBoardsFor(kept, scope, sector)
 
   // The interactive rankings tool's starting ranking: statewide districts,
   // overall score, highest first — the same catalogue entry `kept` already
@@ -1437,7 +1526,12 @@ export async function prerender({ concurrency } = {}) {
   // loop computes for that board — never a second, independently-computed
   // ranking that could drift from the static page it duplicates.
   const toolEntry = kept.find(
-    (b) => b.scope.kind === 'state' && b.level === 'district' && b.metric.key === 'score' && b.end === 'top'
+    (b) =>
+      b.scope.kind === 'state' &&
+      (b.scope.sector ?? 'traditional') === 'traditional' &&
+      b.level === 'district' &&
+      b.metric.key === 'score' &&
+      b.end === 'top'
   )
   let toolSource = null
 
@@ -1543,6 +1637,16 @@ export async function prerender({ concurrency } = {}) {
 
   const enrolled = districts.map((d) => d.enrollment).filter(finite)
 
+  await write(
+    'charters.html',
+    renderChartersPage({
+      charters: [...charterDistricts, ...charterCampuses],
+      snapshotDate,
+      rankings: boardsFor('state', 'charter'),
+      rankingsIndex: rankingsIndexHref,
+    })
+  )
+
   // The front page carries the statewide boards, and at most six of them: the
   // headline metrics first (the overall score and its change over time — the two
   // orderings a newsroom actually asks for), then whatever else is statewide, and
@@ -1573,22 +1677,30 @@ export async function prerender({ concurrency } = {}) {
       rankingsIndex: rankingsIndexHref,
       regions: regions.map((r) => ({ id: r.id, name: r.name, districtCount: r.districtCount })),
       letters: ALPHABET.map((letter) => ({ letter, count: letterCounts.get(letter) })),
-      counts: { districts: districts.length, campuses: campuses.length },
+      counts: {
+        districts: districts.length,
+        campuses: campuses.length,
+        geographicDistricts: traditionalDistricts.length,
+        charterSystems: charterDistricts.length,
+        geographicCampuses: traditionalCampuses.length,
+        charterCampuses: charterCampuses.length,
+      },
       snapshotDate,
       stats: [
-        ['Districts', districts.length, 'Every Texas public school district in this snapshot'],
-        ['Campuses', campuses.length, 'Individual schools, each with a page of its own'],
-        ['Counties', counties.length, 'Counties with at least one district or campus'],
+        ['Geographic districts', traditionalDistricts.length, 'Public school districts with geographic resident boundaries'],
+        ['Charter systems', charterDistricts.length, 'Open-enrollment charter operators, compared in their own sector'],
+        ['Campuses', campuses.length, `${traditionalCampuses.length.toLocaleString('en-US')} traditional and ${charterCampuses.length.toLocaleString('en-US')} open-enrollment charter campuses`],
+        ['Counties', counties.length, 'Counties with at least one geographic district or traditional campus'],
         ['Academic years', years.length, `Rating history from ${years.at(-1)} to ${years[0]}`],
         [
-          'Average district score',
+          'Average geographic-district score',
           state.avg,
-          `Mean of the ${state.n.toLocaleString('en-US')} districts TEA gave a ${years[0]} score`,
+          `Mean of the ${state.n.toLocaleString('en-US')} geographic districts TEA gave a ${years[0]} score`,
         ],
         [
           'Students enrolled',
           enrolled.reduce((a, b) => a + b, 0),
-          `Across the ${enrolled.length.toLocaleString('en-US')} districts reporting enrollment`,
+          `Across the ${enrolled.length.toLocaleString('en-US')} districts and charter systems reporting enrollment`,
         ],
       ],
     })
@@ -1917,6 +2029,8 @@ export async function prerender({ concurrency } = {}) {
       ),
   ])
 
+  const accountabilityRows = accountabilityDownloadRows(accountability, byId)
+
   const publicSnapshot = (key) => publicDataMeta[key]?.fetchedAt
     ? humanDate(publicDataMeta[key].fetchedAt)
     : null
@@ -2013,6 +2127,21 @@ export async function prerender({ concurrency } = {}) {
         ],
       },
     ],
+    [
+      'accountability',
+      accountabilityRows,
+      'TEA accountability-summary context counts for enrolled student groups, Early College/P-TECH participation, and campus mobility. Status and source-raw fields distinguish reported zero, both TEA mask types, unavailable values, and blank non-reporting.',
+      {
+        snapshotDate: publicSnapshot('accountability'),
+        sourceUrl: publicDataMeta.accountability?.source,
+        notes: [
+          'context only: these fields are not rankings, comparisons, estimates, or quality judgments.',
+          'the accountability-summary student total is a separate TEA publication from fall PEIMS enrollment and can differ; neither is substituted for the other.',
+          `masking definitions: ${publicDataMeta.accountability?.masking ?? 'see the TEA accountability masking rules linked from the source manifest'}.`,
+          'campus mobility uses TEA’s separately published 2024-25 campus denominator; no rate is calculated by this site.',
+        ],
+      },
+    ],
   ]
 
   const files = []
@@ -2088,6 +2217,7 @@ export async function prerender({ concurrency } = {}) {
         transferDistrictYears: transferRows.length,
         educatorRows: educators.length,
         disciplineRows: disciplineRows.length,
+        accountabilityContextRows: accountabilityRows.length,
       },
     })
   )
@@ -2110,6 +2240,13 @@ export async function prerender({ concurrency } = {}) {
         url: enrollmentMeta.source,
       },
       publicSources: [
+        {
+          name: '2026 accountability summary bulk download',
+          agency: 'Texas Education Agency',
+          year: publicDataMeta.accountability?.schoolYear,
+          rows: accountability.length,
+          url: publicDataMeta.accountability?.source,
+        },
         {
           name: 'Schools Identified for Improvement and Public Education Grant lists',
           agency: 'Texas Education Agency',
@@ -2178,7 +2315,7 @@ export async function prerender({ concurrency } = {}) {
   // Map that public id to the local TEA profile through the same archived bridge
   // the map uses. An empty file is still written when the optional archive is
   // absent, so the client can show Census's district name instead of a 404.
-  await write('data/district-locator.json', districtLocatorJson({ topo, districts }))
+  await write('data/district-locator.json', districtLocatorJson({ topo, districts: traditionalDistricts }))
   if (!topo) {
     console.log('  (no data/boundaries archive — /map skipped; run `npm run fetch:boundaries`)')
   } else {
@@ -2189,7 +2326,7 @@ export async function prerender({ concurrency } = {}) {
     // Every layer below is indexed by position in it.
     const drawable = mappableDistricts(
       topo,
-      districts
+      traditionalDistricts
         .filter((d) => teaToGeoid.has(String(d.id)))
         .map((d) => ({
           teaId: String(d.id),
@@ -2204,7 +2341,7 @@ export async function prerender({ concurrency } = {}) {
     )
     const order = drawable.map((d) => d.teaId)
 
-    const ratings = new Map(districts.map((d) => [String(d.id), d.rating]))
+    const ratings = new Map(traditionalDistricts.map((d) => [String(d.id), d.rating]))
     const rating = buildRatingLayer({ ratings, order })
 
     const mapLayers = []
@@ -2282,7 +2419,7 @@ export async function prerender({ concurrency } = {}) {
               .map((detail) => leaderRow(detail, 'out')),
           },
         ],
-        note: 'Transfers in are students who live elsewhere and attend here; transfers out are students who live here and attend another public district or charter. Charter districts appear in TEA flows but are not drawn because they have no attendance boundary. A transfer does not say why a student attends elsewhere.',
+        note: 'Transfers in are students who live elsewhere and attend here; transfers out are students who live here and attend another public district or charter. This shaded balance layer covers geographic districts only; charter campus points are locations and do not receive a balance. A transfer does not say why a student attends elsewhere.',
       }
       mapLayers.push(
         buildDivergingLayer({
@@ -2321,11 +2458,23 @@ export async function prerender({ concurrency } = {}) {
     }
     await write(
       MAP_FILE,
-      renderMapPage({ topo, topoLo, districts: drawable, layers: mapLayers, rating, snapshotDate, hiFiHref })
+      renderMapPage({
+        topo,
+        topoLo,
+        districts: drawable,
+        layers: mapLayers,
+        rating,
+        snapshotDate,
+        hiFiHref,
+        charterCampuses: charterCampuses.map((campus) => ({
+          ...campus,
+          href: `/campus/${entitySlug(campus)}`,
+        })),
+      })
     )
     mapWritten = mapLayers.length + 1
     console.log(
-      `  map: ${drawable.length} districts drawn, ${mapWritten} layers` +
+      `  map: ${drawable.length} districts drawn, ${charterCampuses.length} charter campuses located, ${mapWritten} layers` +
         (topoLo ? ' (1% inline, 3% fetched on wide screens)' : ' (single fidelity)')
     )
   }
@@ -2376,6 +2525,7 @@ export async function prerender({ concurrency } = {}) {
     'download.html',
     'search.html',
     'rankings.html',
+    'charters.html',
     // Written only when the boundary archive is present; a sitemap entry for a
     // file this build did not write would be a 404 advertised to every crawler.
     ...(mapWritten ? [MAP_FILE] : []),

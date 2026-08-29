@@ -10,6 +10,9 @@
 import { renderSearch, searchAssets } from './search.js'
 
 export const SITE_ORIGIN = 'https://txschools.net'
+export const TEA_REPORTS_DATA_PORTAL =
+  'https://tea.texas.gov/school-and-district-leaders/accountability/academic-accountability/performance-reporting/texas-education-agency-reports-and-data-portal'
+export const TXSCHOOLS_REPORTS = 'https://txschools.gov'
 
 /**
  * Runs synchronously, before the stylesheet paints anything, so a reader who
@@ -231,7 +234,7 @@ export const navList = (items, { label = null, className = null } = {}) =>
 </nav>`
 
 /**
- * The primary navigation, on every page. Four destinations, all of which exist as
+ * The primary navigation, on every page. Every destination is a static page, so
  * static pages, so this works with JavaScript off and with CSS off. The current
  * item is derived from the canonical URL the caller already passes — no page has
  * to remember to say which one it is.
@@ -239,6 +242,7 @@ export const navList = (items, { label = null, className = null } = {}) =>
 const PRIMARY_NAV = [
   { href: '/search', label: 'Find schools', match: (p) => p === '/search' || p.startsWith('/search/') },
   { href: '/districts/a', label: 'Districts', match: (p) => p.startsWith('/districts/') },
+  { href: '/charters', label: 'Charters', match: (p) => p === '/charters' },
   // /rankings was reachable only from region/county hubs and a few entity-page
   // links, never from the persistent nav itself — added here so it is one
   // click from every page, the way Download and About already are.
@@ -460,7 +464,7 @@ ${main}`
       <div class="nav-menu-panel">
         ${siteNav(canonical)}${headerSearch ? `
         ${headerSearch}` : ''}
-        <p class="nav-menu-note">Traditional public schools only &middot; Source: Texas Education Agency</p>
+        <p class="nav-menu-note">Districts, charter school systems &amp; campuses &middot; Source: Texas Education Agency</p>
       </div>
     </details>
     <button type="button" class="theme-toggle" data-theme-toggle>
@@ -477,19 +481,21 @@ ${frame}
   <div class="footer-grid">
     <div class="footer-about">
       <a class="footer-brand" href="/">txschools<span>.net</span></a>
-      <p>Independent, unofficial research built from public Texas Education Agency data. This site is not operated by, endorsed by, or connected to TEA.</p>
+      <p>txschools.net is independent and unofficial. It is not operated by, endorsed by, or affiliated with the Texas Education Agency. Accountability records come from TEA-published reports and data downloads.</p>
     </div>
     <nav aria-label="Explore">
       <h2>Explore</h2>
       <a href="/search">Find a school</a>
       <a href="/districts/a">Browse districts</a>
+      <a href="/charters">Browse charter systems</a>
       <a href="/rankings">Rankings</a>
     </nav>
     <nav aria-label="Research and data">
       <h2>Research &amp; data</h2>
       <a href="/download">Download data</a>
       <a href="/about">Methods &amp; caveats</a>
-      <a href="https://txschools.gov">Official TEA source</a>
+      <a href="${TEA_REPORTS_DATA_PORTAL}">TEA reports &amp; data</a>
+      <a href="${TXSCHOOLS_REPORTS}">Official school reports</a>
     </nav>
   </div>
   <p class="footer-fineprint">Every number can be traced to the archived source snapshot. <a href="/about">See how this site works and what it adds</a>.</p>

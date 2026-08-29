@@ -30,6 +30,23 @@ describe('toFinance', () => {
     expect(r.revenueEntity).toBe(15091)
   })
 
+  it("uses a campus's own expenditure instead of its parent district's amount", () => {
+    const campus = {
+      id: '001902001',
+      year: ['2024', '2025'],
+      expenditure_school: [11404, 12316],
+      expenditure_district: [20871, 33350],
+      expenditure_state: [18125, 18972],
+    }
+    const latest = toFinance([campus]).find((r) => r.year === '2025')
+    expect(latest.spendEntity).toBe(12316)
+    expect(latest.spendDistrict).toBe(33350)
+  })
+
+  it('does not expose a duplicate district comparator on district rows', () => {
+    expect(toFinance([rec])[0].spendDistrict).toBeNull()
+  })
+
   it('keeps the year as a string', () => {
     expect(toFinance([rec])[0].year).toBe('2018')
   })
@@ -73,5 +90,18 @@ describe('financeAlignment', () => {
     const report = financeAlignment([short])
     expect(report).toHaveLength(2)
     expect(report.map((r) => r.series).sort()).toEqual(['expenditure_peer', 'revenue_peer'])
+  })
+
+  it('checks the school and district series independently on campus rows', () => {
+    const campus = {
+      id: '001902001',
+      year: ['2024', '2025'],
+      expenditure_school: [11404],
+      expenditure_district: [20871],
+    }
+    expect(financeAlignment([campus])).toEqual([
+      { entityId: '001902001', series: 'expenditure_school' },
+      { entityId: '001902001', series: 'expenditure_district' },
+    ])
   })
 })

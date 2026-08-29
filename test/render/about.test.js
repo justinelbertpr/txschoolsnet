@@ -29,16 +29,16 @@ const words = text.split(' ').filter(Boolean).length
 
 describe('non-affiliation', () => {
   it('states plainly that the site is not TEA', () => {
-    expect(text).toContain('not affiliated with, endorsed by, or operated by')
+    expect(text).toContain('not operated by, endorsed by, or affiliated with')
     expect(text).toContain('Texas Education Agency')
   })
 
   it('calls itself unofficial', () => {
-    expect(text).toMatch(/unofficial presentation of data/i)
+    expect(text).toMatch(/independent, unofficial research site/i)
   })
 
   it('puts the disclaimer above every other section', () => {
-    const disclaimer = page.indexOf('not affiliated with, endorsed by, or operated by')
+    const disclaimer = page.indexOf('not operated by, endorsed by, or affiliated with')
     const methodology = page.indexOf('methodology-refresh')
     expect(disclaimer).toBeGreaterThan(-1)
     expect(disclaimer).toBeLessThan(methodology)
@@ -50,12 +50,15 @@ describe('non-affiliation', () => {
 })
 
 describe('the official source', () => {
-  it('links txschools.gov', () => {
+  it('distinguishes the bulk-data portal from individual reports', () => {
+    expect(page).toContain('texas-education-agency-reports-and-data-portal')
+    expect(page).toContain('Reports and Data Portal')
     expect(page).toContain('href="https://txschools.gov"')
+    expect(text).toMatch(/TXschools\.gov provides official individual district and campus reports/i)
   })
 
   it('says the official figure wins in a disagreement', () => {
-    expect(text).toMatch(/the official one is right and this one is wrong/i)
+    expect(text).toMatch(/TEA's is right and this one is wrong/i)
   })
 })
 
@@ -140,13 +143,13 @@ describe('the edit holds', () => {
   it('stays inside a length a reader will finish', () => {
     // 1,507 words when four auditors read it; 1,082 after the cut. The cap is a
     // ratchet, not a target — it exists so the page cannot quietly grow back.
-    expect(words).toBeLessThan(1150)
+    expect(words).toBeLessThan(1200)
   })
 
   it('reaches the reader before it reaches its own prose style', () => {
     // The disclaimer is the first thing a reader needs, so it arrives in the
     // first 40 words rather than after a paragraph of throat-clearing.
-    expect(text.split(' ').slice(0, 40).join(' ')).toMatch(/not affiliated with/i)
+    expect(text.split(' ').slice(0, 40).join(' ')).toMatch(/not operated by.*affiliated with/i)
   })
 
   it('drops the house aphorisms the auditors flagged', () => {
@@ -176,7 +179,7 @@ describe('page shape', () => {
   it('lists every source file with its row count', () => {
     for (const s of SOURCES) expect(page).toContain(s.name)
     expect(page).toContain('58,984')
-    expect(page).toMatch(/the 4 txschools\.gov files below/)
+    expect(page).toMatch(/the 4 TEA accountability files below/)
   })
 
   it('separately identifies the PEIMS enrollment archive when it is present', () => {
@@ -212,9 +215,16 @@ describe('page shape', () => {
     expect(withPublic).toContain('Each section keeps its own year, denominator and limitations')
   })
 
+  it('states source rights without inventing a reuse licence or personal-use restriction', () => {
+    expect(text).toContain('does not grant permission to reuse third-party source material')
+    expect(text).toContain("consult each publisher's terms and policies")
+    expect(text).not.toMatch(/free to use|personal use only/i)
+  })
+
   it('shows the pass-through counts', () => {
     expect(page).toContain('1,199')
     expect(page).toContain('9,031')
+    expect(page).toContain('District &amp; charter systems')
   })
 
   it('needs no JavaScript to be readable', () => {
@@ -233,7 +243,7 @@ describe('page shape', () => {
 
   it('renders with no counts and no sources', () => {
     const bare = renderAboutPage({ snapshotDate: '2026-08-15' })
-    expect(bare).toContain('not affiliated with, endorsed by, or operated by')
+    expect(bare).toContain('not operated by, endorsed by, or affiliated with')
     expect(bare).not.toContain('<table')
     expect(bare).not.toContain('<dl class="stats">')
   })

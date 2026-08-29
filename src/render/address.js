@@ -39,7 +39,7 @@ export function buildDistrictLocator({ topo = null, districts = [] } = {}) {
   const rows = {}
 
   for (const district of [...(districts ?? [])].sort((a, b) => String(a?.id).localeCompare(String(b?.id)))) {
-    if (!district?.id || !district.name) continue
+    if (!district?.id || !district.name || district.isCharter) continue
     const geoid = bridge[String(district.id)]
     if (!geoid) continue
     if (rows[geoid]) throw new Error(`district locator: GEOID ${geoid} maps to more than one published district`)
@@ -77,7 +77,7 @@ export function renderAddressLookup({
   const markup = `<div class="addressfind" id="${esc(root)}" data-address-lookup data-address-index="${esc(indexUrl)}"
   data-address-geocoder="${esc(CENSUS_GEOCODER_PATH)}" data-address-streets="${esc(streetsUrl)}">
   <details class="addressfind-details"${open ? ' open' : ''}>
-    <summary><span>Find my district by address</span><small>Start with your house number and street</small></summary>
+    <summary><span>Find my resident district by address</span><small>Start with your house number and street</small></summary>
     <div class="addressfind-body">
       <form class="addressfind-form" method="get" action="/search" data-address-form>
         <label class="addressfind-label" for="${esc(id)}">Home street address</label>
@@ -92,7 +92,7 @@ export function renderAddressLookup({
               <ul class="addressfind-options" id="${esc(suggestions)}" role="listbox" aria-label="Texas address suggestions"></ul>
             </div>
           </div>
-          <button class="addressfind-go" type="submit">Find my district</button>
+          <button class="addressfind-go" type="submit">Find my resident district</button>
         </div>
         <p class="addressfind-help" id="${esc(help)}">Apartment or unit number isn’t needed. Choose a suggestion, or enter the full street, city and ZIP yourself.</p>
         <p class="addressfind-privacy" id="${esc(hint)}">Suggestions use Census street data stored on txschools.net. Your address is not sent anywhere while you type. Your selected or manually entered address is sent directly to the
@@ -421,7 +421,7 @@ export function addressClientJs() {
       busy = value
       button.disabled = value
       input.disabled = value
-      button.textContent = value ? 'Finding\u2026' : 'Find my district'
+      button.textContent = value ? 'Finding\u2026' : 'Find my resident district'
       input.setAttribute('aria-busy', String(value))
     }
 
@@ -441,7 +441,7 @@ export function addressClientJs() {
       }
       result.appendChild(actions)
       appendBoundaryNote(result,
-        'District boundaries and enrollment eligibility can change. Confirm this address with the district before registering.')
+        'This is the geographic public school district containing the address. Boundaries and enrollment eligibility can change. Confirm this address with the district before registering. This result does not determine admission to an open-enrollment charter school; confirm charter eligibility and enrollment with that school.')
       result.hidden = false
       say('Found ' + record[0] + '. Results and enrollment links are below.')
       result.focus({ preventScroll: true })
@@ -454,7 +454,7 @@ export function addressClientJs() {
       result.appendChild(text('p', 'addressfind-result-kicker', 'Census match'))
       result.appendChild(text('h3', '', name || 'A Texas school district'))
       appendBoundaryNote(result,
-        'This district is not in the site\u2019s current traditional-district index. Confirm the boundary and enrollment eligibility with the district.')
+        'This geographic district is not in the site\u2019s current boundary index. Confirm the boundary and enrollment eligibility with the district. Open-enrollment charter schools are choices, not resident-assigned districts.')
       result.hidden = false
       say('The Census Bureau found a district, but it is not in this site\u2019s current index.')
       result.focus({ preventScroll: true })

@@ -25,6 +25,7 @@ import { readFile, readdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { SOURCES } from './sources.js'
 import { ENROLLMENT_ROOT, verifyEnrollmentSnapshot } from './enrollment.js'
+import { ACCOUNTABILITY_ROOT, verifyAccountabilitySnapshot } from './accountability.js'
 import { ACTION_ROOT, verifyActionSnapshot } from './action-flags.js'
 import { COMMUNITY_ROOT, verifyCommunitySnapshot } from './community.js'
 import { POSTSECONDARY_ROOT, verifyPostsecondarySnapshot } from './postsecondary.js'
@@ -190,6 +191,14 @@ export async function verifyAllEnrollment(root = ENROLLMENT_ROOT) {
   })
 }
 
+export async function verifyAllAccountability(root = ACCOUNTABILITY_ROOT) {
+  return verifyArchive(root, {
+    label: 'accountability',
+    refresh: 'run `npm run fetch:accountability`',
+    verifySnapshot: verifyAccountabilitySnapshot,
+  })
+}
+
 export async function verifyAllActionFlags(root = ACTION_ROOT) {
   return verifyArchive(root, {
     label: 'action-flags',
@@ -241,7 +250,10 @@ export async function verifyAllDiscipline(root = DISCIPLINE_ROOT) {
 /** All non-accountability data archives, verified sequentially to bound memory. */
 export async function verifyAllSupplemental() {
   const archives = []
-  for (const verify of [
+  // Accountability verification becomes mandatory as soon as its first
+  // snapshot exists; this keeps existing checkouts buildable before the
+  // initial reviewed bulk fetch is committed.
+  const verifiers = [
     verifyAllEnrollment,
     verifyAllActionFlags,
     verifyAllCommunity,
@@ -249,7 +261,9 @@ export async function verifyAllSupplemental() {
     verifyAllTransfers,
     verifyAllEducators,
     verifyAllDiscipline,
-  ]) {
+  ]
+  if (existsSync(ACCOUNTABILITY_ROOT)) verifiers.splice(1, 0, verifyAllAccountability)
+  for (const verify of verifiers) {
     archives.push(await verify())
   }
   return {

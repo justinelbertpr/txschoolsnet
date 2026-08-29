@@ -9,7 +9,18 @@
 // or prints a comparison it was not given the other side of. Where an argument is
 // missing the sentence carrying it disappears — it is never filled with a guess.
 
-import { esc, grade, navList, num, section, shell, statGrid, table, SITE_ORIGIN } from './shell.js'
+import {
+  esc,
+  grade,
+  navList,
+  num,
+  section,
+  shell,
+  statGrid,
+  table,
+  SITE_ORIGIN,
+  TEA_REPORTS_DATA_PORTAL,
+} from './shell.js'
 import { entitySlug, slugify } from './view-model.js'
 import { renderSearch, SEARCH_PATH } from './search.js'
 import { ADDRESS_SCRIPT_PATH, renderAddressLookup } from './address.js'
@@ -22,6 +33,12 @@ export const regionPath = (regionId) => String(regionId ?? '').padStart(2, '0')
 const href = (d) => `/district/${esc(d.slug || entitySlug(d))}`
 
 const finite = (v) => typeof v === 'number' && Number.isFinite(v)
+
+/** TEA's district-level table contains both geographic districts and charter LEAs. */
+const charter = (row) => row?.isCharter === true || String(row?.entityType ?? '').toLowerCase() === 'charter'
+
+/** Region and county hubs describe geographic school systems, never charter administrative rows. */
+const geographicOnly = (rows) => (rows ?? []).filter((row) => !charter(row))
 
 /** Mean of the published scores, plus the n it averages. Never one without the other. */
 const avgScore = (rows) => {
@@ -192,12 +209,24 @@ const azNav = (current = null) =>
  * The districts table. Returns a stated-empty paragraph instead of a table with no
  * rows, because an empty table reads as a rendering failure rather than as a fact.
  */
-const districtTable = (districts, { caption, showCounty = false, emptyMessage }) => {
+const districtTable = (
+  districts,
+  {
+    caption,
+    showCounty = false,
+    showType = false,
+    entityHeading = 'District',
+    countyHeading = 'County',
+    linkCounties = true,
+    emptyMessage,
+  }
+) => {
   if (!districts.length) return `<p class="note na">${esc(emptyMessage)}</p>`
 
   const head = [
-    'District',
-    showCounty ? 'County' : null,
+    entityHeading,
+    showType ? 'Type' : null,
+    showCounty ? countyHeading : null,
     'Rating',
     { label: 'Score', num: true },
     { label: 'Students', num: true },
@@ -206,8 +235,16 @@ const districtTable = (districts, { caption, showCounty = false, emptyMessage })
   const rows = districts.map(
     (d) =>
       `<tr><th scope="row"><a href="${href(d)}">${esc(d.name ?? d.id)}</a></th>${
+        showType ? `<td>${charter(d) ? 'Charter school system' : 'Geographic district'}</td>` : ''
+      }${
         showCounty
-          ? `<td>${d.county ? `<a href="/county/${esc(slugify(d.county))}">${esc(d.county)}</a>` : '—'}</td>`
+          ? `<td>${
+              d.county
+                ? linkCounties && !charter(d)
+                  ? `<a href="/county/${esc(slugify(d.county))}">${esc(d.county)}</a>`
+                  : esc(d.county)
+                : '—'
+            }</td>`
           : ''
       }<td>${grade(d.rating)}</td><td class="num">${finite(d.score) ? d.score : '—'}</td><td class="num">${num(
         d.enrollment
@@ -312,7 +349,7 @@ export function renderRegionPage({
 }) {
   const id = regionPath(regionId)
   const name = regionName || `Region ${id}`
-  const { districts: ds, campuses } = split(districts)
+  const { districts: ds, campuses } = split(geographicOnly(districts))
   const sorted = [...ds].sort(byScoreThenName)
   const cos = countyList(counties, ds)
   const nCampus = campusTotal(ds, campuses)
@@ -343,7 +380,7 @@ export function renderRegionPage({
 
   return shell({
     title: `${name} — Texas school districts and ratings`,
-    description: `Accountability ratings for the ${num(ds.length)} school districts in ${name}${
+    description: `Accountability ratings for the ${num(ds.length)} geographic school districts in ${name}${
       nCampus == null ? '' : ` and their ${num(nCampus)} campuses`
     }, with each district's rating, score and enrollment.`,
     canonical: `${SITE_ORIGIN}/region/${id}`,
@@ -353,7 +390,8 @@ export function renderRegionPage({
         eyebrow: `Education service region ${id}`,
         title: name,
         place,
-        lede: 'One of the twenty regions TEA uses to organise Texas public education. Every district below links to its full record.',
+        lede: `One of the twenty regions TEA uses to organise Texas public education. Every geographic
+               district below links to its full record; open-enrollment charter systems are indexed statewide.`,
       }),
       section(
         'summary',
@@ -418,7 +456,7 @@ export function renderCountyPage({
 }) {
   const name = String(countyName ?? '').replace(/ County$/i, '')
   const slug = countySlug || slugify(name)
-  const { districts: ds, campuses } = split(districts)
+  const { districts: ds, campuses } = split(geographicOnly(districts))
   const sorted = [...ds].sort(byScoreThenName)
   const nCampus = campusTotal(ds, campuses)
   const avg = avgScore(ds)
@@ -453,7 +491,7 @@ export function renderCountyPage({
 
   return shell({
     title: `${name} County — Texas school districts and ratings`,
-    description: `The ${num(ds.length)} school districts in ${name} County, Texas${
+    description: `The ${num(ds.length)} geographic school districts in ${name} County, Texas${
       region ? `, part of ${region}` : ''
     }, with each district's accountability rating, score and enrollment.`,
     canonical: `${SITE_ORIGIN}/county/${slug}`,
@@ -463,7 +501,8 @@ export function renderCountyPage({
         eyebrow: 'County',
         title: `${name} County`,
         place,
-        lede: `Every public school district whose administrative county TEA records as ${name}.`,
+        lede: `Every geographic public school district whose administrative county TEA records as ${name}.
+               Open-enrollment charter systems are indexed statewide because their recorded county is not an attendance boundary.`,
       }),
       section(
         'summary',
@@ -506,6 +545,112 @@ export function renderCountyPage({
   })
 }
 
+/* --------------------------------------------------------------- charters -- */
+
+/**
+ * A statewide index for TEA's district-level open-enrollment charter records.
+ * Charters are deliberately not folded into region or county hubs: the county
+ * on a TEA record is administrative context, not a resident attendance area.
+ * The `districts` alias lets a caller pass the same all-entity list used by the
+ * A-Z pages; an explicit `charters` list wins when supplied.
+ */
+export function renderChartersPage({
+  charters = null,
+  districts = [],
+  snapshotDate = null,
+  stateAvg = null,
+  stateN = null,
+  rankings = [],
+  rankingsIndex = null,
+} = {}) {
+  const supplied = charters ?? districts
+  const { districts: systems, campuses } = split((supplied ?? []).filter(charter))
+  const sorted = [...systems].sort(byScoreThenName)
+  const nCampus = campusTotal(systems, campuses)
+  const avg = avgScore(systems)
+  const enrolled = enrollTotal(systems)
+
+  const place = [
+    plural(systems.length, 'charter school system'),
+    nCampus == null ? null : plural(nCampus, 'campus'),
+  ]
+    .filter(Boolean)
+    .join(' &middot; ')
+
+  const stats = statGrid([
+    ['Charter school systems', num(systems.length)],
+    nCampus == null ? null : ['Campuses', num(nCampus)],
+    [
+      'Average charter-system score',
+      avg.avg == null ? '—' : avg.avg.toFixed(1),
+      avg.avg == null
+        ? 'No charter school system has a published score'
+        : `Mean of ${num(avg.n)} charter school systems with a score`,
+    ],
+    enrolled.total == null
+      ? null
+      : ['Students', num(enrolled.total), `Across ${num(enrolled.n)} charter school systems reporting enrollment`],
+  ])
+
+  return shell({
+    title: 'Texas charter school systems and ratings',
+    description: `Accountability ratings for ${num(systems.length)} open-enrollment charter school systems in Texas${
+      nCampus == null ? '' : ` and their ${num(nCampus)} campuses`
+    }, with each system's rating, score and enrollment.`,
+    canonical: `${SITE_ORIGIN}/charters`,
+    crumbs: [{ href: '/', label: 'Texas schools', current: 'Charter school systems' }],
+    sections: [
+      hero({
+        eyebrow: 'Statewide charter coverage',
+        title: 'Texas charter school systems',
+        place,
+        lede: `Open-enrollment charter school systems are listed statewide. The county on a TEA record
+               is administrative context; it is not presented here as a geographic attendance boundary.`,
+      }),
+      section(
+        'summary',
+        'What this index contains',
+        `${stats}\n  ${averageLine({
+          mine: avg,
+          unit: 'charter school systems',
+          cohort: 'The Texas charter-school sector',
+          stateAvg,
+          stateN,
+        })}`
+      ),
+      rankingsSection({
+        rankings,
+        rankingsIndex,
+        heading: 'Charter school systems ranked',
+        ariaLabel: 'Rankings for Texas charter school systems',
+        lede: `Statewide ranked lists for open-enrollment charter school systems. Each list states its
+               population, denominator, ties and exclusions.`,
+        more: 'Every ranking this site publishes',
+      }),
+      section(
+        'charter-systems',
+        `${plural(systems.length, 'charter school system')} statewide`,
+        districtTable(sorted, {
+          caption: 'Texas open-enrollment charter school systems',
+          showCounty: true,
+          entityHeading: 'Charter school system',
+          countyHeading: 'Administrative county',
+          linkCounties: false,
+          emptyMessage: 'No open-enrollment charter school systems appear in this snapshot.',
+        }),
+        'Ordered by overall score, highest first. Systems TEA did not rate appear last.'
+      ),
+      section(
+        'browse',
+        'Browse another way',
+        `<p><a href="/districts/a">District and charter-system A&ndash;Z</a> &middot;
+           <a href="${SEARCH_PATH}">search districts, charter systems and campuses</a></p>`
+      ),
+      sourceSection(snapshotDate),
+    ],
+  })
+}
+
 /* ----------------------------------------------------------------- letter -- */
 
 /**
@@ -521,31 +666,33 @@ export function renderLetterPage({ letter, districts = [], snapshotDate = null }
   const mine = ds.filter((d) => String(d.name ?? '').trim().slice(0, 1).toLowerCase() === l).sort(byName)
 
   return shell({
-    title: `Texas school districts starting with ${L}`,
-    description: `An index of the ${num(mine.length)} Texas public school districts whose name begins with ${L}, each with its accountability rating, score and enrollment.`,
+    title: `Texas school districts and charter systems starting with ${L}`,
+    description: `An index of the ${num(mine.length)} Texas public school districts and open-enrollment charter school systems whose name begins with ${L}, each with its accountability rating, score and enrollment.`,
     canonical: `${SITE_ORIGIN}/districts/${l}`,
     crumbs: [{ href: '/', label: 'Texas schools', current: `Districts: ${L}` }],
     sections: [
       hero({
-        eyebrow: 'District index',
-        title: `Districts starting with ${L}`,
-        place: `${plural(mine.length, 'district')} in this snapshot ${mine.length === 1 ? 'begins' : 'begin'} with ${L}`,
-        lede: 'District names are not unique in Texas, so each link carries the district number TEA assigns.',
+        eyebrow: 'District and charter-system index',
+        title: `Districts and charter systems starting with ${L}`,
+        place: `${plural(mine.length, 'school system')} in this snapshot ${mine.length === 1 ? 'begins' : 'begin'} with ${L}`,
+        lede: 'Names are not unique in Texas, so every row states whether it is a geographic district or charter school system and links the TEA number assigned to it.',
       }),
       section(
         'index',
         'Jump to another letter',
         `${azNav(l)}
-      <p class="note">This index lists districts only.
-         <a href="${SEARCH_PATH}/${esc(l)}">Districts <em>and</em> campuses starting with ${esc(L)}</a>.</p>`
+      <p class="note">This index lists district-level systems only.
+         <a href="${SEARCH_PATH}/${esc(l)}">Districts, charter systems <em>and</em> campuses starting with ${esc(L)}</a>.</p>`
       ),
       section(
         'districts',
-        `${plural(mine.length, 'district')} beginning with ${L}`,
+        `${plural(mine.length, 'school system')} beginning with ${L}`,
         districtTable(mine, {
-          caption: `Texas districts beginning with ${L}`,
+          caption: `Texas districts and charter school systems beginning with ${L}`,
           showCounty: true,
-          emptyMessage: `No district in this snapshot has a name beginning with ${L}.`,
+          showType: true,
+          countyHeading: 'County on TEA record',
+          emptyMessage: `No district or charter school system in this snapshot has a name beginning with ${L}.`,
         }),
         'Ordered alphabetically.'
       ),
@@ -577,28 +724,50 @@ const statItems = (stats) => {
  * rather than inventing them.
  */
 const homeCounts = (stats, counts) => {
-  if (finite(counts?.districts) && finite(counts?.campuses)) return counts
+  const first = (...values) => values.find(finite) ?? null
+  const geographicDistricts = first(counts?.geographicDistricts, counts?.traditionalDistricts)
+  const charterSystems = first(counts?.charterSystems, counts?.charterDistricts)
+  const geographicCampuses = first(counts?.geographicCampuses, counts?.traditionalCampuses)
+  const charterCampuses = first(counts?.charterCampuses)
+  const districts = first(
+    counts?.districts,
+    geographicDistricts != null && charterSystems != null ? geographicDistricts + charterSystems : null
+  )
+  const campuses = first(
+    counts?.campuses,
+    geographicCampuses != null && charterCampuses != null ? geographicCampuses + charterCampuses : null
+  )
+  if (districts != null && campuses != null) {
+    return { districts, campuses, geographicDistricts, charterSystems, geographicCampuses, charterCampuses }
+  }
   const found = {}
   for (const [label, value] of statItems(stats).map((s) => [String(s[0]).toLowerCase(), s[1]])) {
     if (label === 'districts' || label === 'campuses') found[label] = Number(String(value).replace(/,/g, ''))
   }
-  return finite(found.districts) && finite(found.campuses) ? found : null
+  return finite(found.districts) && finite(found.campuses)
+    ? {
+        ...found,
+        geographicDistricts: null,
+        charterSystems: null,
+        geographicCampuses: null,
+        charterCampuses: null,
+      }
+    : null
 }
 
 /**
- * The production caller predates the traditional-only filter and still hands
- * the district stat the note "Every Texas public school district". The count is
- * correct; that scope sentence is not. Rewrite only those two known legacy
- * notes, leaving every caller-supplied label, value and unrelated note intact.
+ * Older callers describe the district-level table as districts only even though
+ * it now includes TEA's charter-system records. Rewrite only those two known
+ * notes, leaving every unrelated caller-supplied fact intact.
  */
 const scopedHomeStats = (items) =>
   items.map(([label, value, note]) => {
     const key = String(label).toLowerCase()
     if (key === 'districts' && /every texas public school district/i.test(String(note ?? ''))) {
-      return [label, value, 'Traditional public school districts included in this snapshot']
+      return ['District & charter systems', value, 'Geographic districts and open-enrollment charter school systems in this snapshot']
     }
     if (key === 'campuses' && /individual schools, each with a page of its own/i.test(String(note ?? ''))) {
-      return [label, value, 'Schools in those traditional public school districts, each with a page of its own']
+      return [label, value, 'Campuses operated by geographic districts and charter school systems, each with a page of its own']
     }
     return [label, value, note]
   })
@@ -614,15 +783,21 @@ const homeHero = ({ place, search, address }) => `<section class="hero hero-home
       <div class="home-hero-search">${search}</div>
     </div>
     <div class="home-hero-address">${address}
-      <p class="lede">Explore TEA&rsquo;s A&ndash;F ratings for traditional public districts and schools.
-        Follow five years of history and compare each one with a similar economic context.
-        <strong>Open-enrollment charter districts and campuses are not included.</strong></p>
+      <p class="lede">Explore TEA&rsquo;s A&ndash;F ratings for Texas public school districts,
+        open-enrollment charter school systems and campuses. Follow five years of history and compare
+        each one with a similar economic context.</p>
     </div>
   </div>
 </section>`
 
 /** A compact statement of independence, coverage and provenance beside the primary task. */
-const homeTrustStrip = (snapshotDate) => `<aside class="home-trust-strip" aria-label="About this site and its data">
+const homeTrustStrip = (snapshotDate, counts = null) => {
+  const coverage = finite(counts?.geographicDistricts) && finite(counts?.charterSystems)
+    ? `${plural(counts.geographicDistricts, 'geographic district')} &middot; ${plural(counts.charterSystems, 'charter school system')}${
+        finite(counts.campuses) ? ` &middot; ${plural(counts.campuses, 'campus')}` : ''
+      }`
+    : 'Geographic districts, open-enrollment charter school systems and campuses'
+  return `<aside class="home-trust-strip" aria-label="About this site and its data">
   <dl class="home-trust-list">
     <div class="home-trust-item home-trust-independent">
       <dt>Publisher</dt>
@@ -630,16 +805,17 @@ const homeTrustStrip = (snapshotDate) => `<aside class="home-trust-strip" aria-l
     </div>
     <div class="home-trust-item home-trust-coverage">
       <dt>Coverage</dt>
-      <dd>Traditional public school districts and their campuses &middot; open-enrollment charters excluded</dd>
+      <dd>${coverage} &middot; <a href="/charters">browse charter systems</a></dd>
     </div>
     <div class="home-trust-item home-trust-source">
       <dt>Source</dt>
-      <dd><a href="https://txschools.gov" rel="nofollow">Texas Education Agency data</a>${
+      <dd><a href="${TEA_REPORTS_DATA_PORTAL}" rel="nofollow">Texas Education Agency data</a>${
         snapshotDate ? ` &middot; fetched ${esc(snapshotDate)}` : ' &middot; archived with each build'
       }</dd>
     </div>
   </dl>
 </aside>`
+}
 
 /** Three routes into the same dataset, written for tasks rather than site departments. */
 const homeTaskCards = (rankingsIndex) => `<section id="start" class="home-section home-tasks">
@@ -648,7 +824,7 @@ const homeTaskCards = (rankingsIndex) => `<section id="start" class="home-sectio
   <div class="home-task-grid">
     <article class="home-task-card home-task-card-families home-task-card-find">
       <p class="eyebrow">For families</p>
-      <h3>Find a school or district</h3>
+      <h3>Find a school, district or charter system</h3>
       <p>Look up a name, then see its current rating, five-year direction and comparison with similar schools.</p>
       <p class="home-task-action"><a href="${SEARCH_PATH}">Search and browse schools</a></p>
     </article>
@@ -715,8 +891,10 @@ export function renderHomePage({
   const c = homeCounts(stats, counts)
 
   const place = c
-    ? `${num(c.districts)} districts &middot; ${num(c.campuses)} campuses`
-    : 'Traditional public schools: Districts and campuses, by region, county and name'
+    ? finite(c.geographicDistricts) && finite(c.charterSystems)
+      ? `${plural(c.geographicDistricts, 'geographic district')} &middot; ${plural(c.charterSystems, 'charter school system')} &middot; ${plural(c.campuses, 'campus')}`
+      : `${num(c.districts)} districts and charter systems &middot; ${num(c.campuses)} campuses`
+    : 'Districts and campuses, by region, county and name &middot; Charter school systems statewide'
 
   const searchByName = renderSearch({
     variant: 'hero',
@@ -726,33 +904,33 @@ export function renderHomePage({
     // reader who came to browse.
     autofocus: false,
     id: 'home-search',
-    label: 'Find a school or district',
-    placeholder: 'School or district name',
+    label: 'Find a school, district or charter system',
+    placeholder: 'School, district or charter name',
     hint: c
-      ? `Search ${num(c.districts + c.campuses)} districts and schools. Each result names its district and county.`
-      : 'Each result names its district and county, so repeated school names stay clear.',
+      ? `Search ${num(c.districts + c.campuses)} districts, charter systems and schools. Each result identifies its sector, system and relevant location context.`
+      : 'Each result identifies its governance sector and school system, with county for geographic schools or physical city for charter campuses when applicable.',
     // The shell emits the header instance's assets once per page.
     assets: false,
   })
   const address = renderAddressLookup({ id: 'home-address' })
 
   return shell({
-    title: 'Traditional Texas public school ratings — find a district or school',
+    title: 'Texas public school ratings — find a district, charter system or school',
     description:
-      'Search traditional Texas public school districts and their campuses by name, then read the A–F accountability ratings the Texas Education Agency published, with ranks, five years of history and comparisons against schools serving a similar share of economically disadvantaged students. Open-enrollment charters are not included. Unofficial.',
+      'Search Texas public school districts, open-enrollment charter school systems and campuses by name, then read the A–F accountability ratings the Texas Education Agency published, with ranks, five years of history and comparisons against schools serving a similar share of economically disadvantaged students. Unofficial.',
     canonical: `${SITE_ORIGIN}/`,
     scripts: [ADDRESS_SCRIPT_PATH],
     crumbs: [],
     sections: [
       homeHero({ place, search: searchByName, address }),
-      homeTrustStrip(snapshotDate),
+      homeTrustStrip(snapshotDate, c),
       homeTaskCards(rankingsIndex),
       rankingsSection({
         rankings,
         rankingsIndex,
         heading: 'Texas schools, ranked',
         ariaLabel: 'Ranked lists',
-        lede: `Featured rankings of traditional public school districts and campuses. These lists order
+        lede: `Featured rankings of public school districts, charter school systems and campuses. These lists order
                specific TEA measures rather than declaring one school “best”; each states its population,
                denominator, ties and exclusions.`,
         more: 'Every ranking — statewide, by region, by county',
@@ -762,7 +940,7 @@ export function renderHomePage({
       items.length
         ? hubSection(
             'statewide',
-            'Traditional public schools at a glance',
+            'Texas public schools at a glance',
             `<div class="home-stats-grid">${statGrid(items)}</div>`,
             snapshotDate
               ? `Every figure is from the TEA snapshot fetched ${esc(snapshotDate)}.`
@@ -780,22 +958,22 @@ export function renderHomePage({
               { className: 'home-region-list' }
             )}</div>`
           : '<p class="note na">No regions are listed in this snapshot.</p>',
-        'TEA groups Texas public education into regional service centres. Open a region to browse its traditional public school districts and counties.',
+        'TEA groups geographic school districts into regional service centres. Open a region to browse its districts and counties, or use the statewide charter-system index for open-enrollment charters.',
         'home-section home-regions'
       ),
       hubSection(
         'index',
-        'Find a district A–Z',
+        'Find a district or charter system A–Z',
         ls.length
           ? `<div class="home-az-grid">${linkList(
               ls.map((x) => ({ href: `/districts/${x.letter}`, label: x.letter.toUpperCase(), n: x.n })),
               'District index by first letter',
               { className: 'home-az-list' }
             )}</div>
-      <p class="note"><a href="${SEARCH_PATH}">The full index of districts <em>and</em> campuses</a> —
-         every included name, with the district and county of each.</p>`
+      <p class="note"><a href="${SEARCH_PATH}">The full index of districts, charter systems <em>and</em> campuses</a> —
+         every included name, with its system and relevant location context. <a href="/charters">Browse charter school systems statewide</a>.</p>`
           : '<p class="note na">No district index is available in this snapshot.</p>',
-        'The alphabetical index of every traditional public school district included here, for when you know the name but not the region.',
+        'The alphabetical index of every geographic district and open-enrollment charter school system included here, with the governance type stated on every row.',
         'home-section home-index'
       ),
       hubSection(
@@ -805,7 +983,8 @@ export function renderHomePage({
          outcomes, demographics, staffing and finance come from
          <a href="https://txschools.gov" rel="nofollow">txschools.gov</a>${
            snapshotDate ? `, fetched ${esc(snapshotDate)}` : ''
-         }; enrollment history comes from TEA's
+         }; student-count and program context comes from the official bulk summaries in TEA&rsquo;s
+         <a href="${TEA_REPORTS_DATA_PORTAL}" rel="nofollow">Reports and Data Portal</a>; enrollment history comes from TEA's
          <a href="https://rptsvr1.tea.texas.gov/adhocrpt/adspr.html" rel="nofollow">PEIMS Student Program reports</a>.
          Both archives carry checksums, so any number here can be traced back to the bytes TEA served.</p>
       <p class="downloads"><a href="/download">Download the whole dataset</a> &middot;

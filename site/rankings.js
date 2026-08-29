@@ -81,6 +81,7 @@ const DEFAULTS = {
   metric: 'score.latest',
   level: 'district',
   scope: 'state',
+  sector: 'traditional',
   aea: 'exclude',
   order: 'top',
   n: '50',
@@ -248,10 +249,15 @@ export function decodePayload(payload) {
  * the first one is checkable.
  */
 export function selectPool(rows, state) {
-  const [kind, id] = splitScope(state.scope)
+  // A charter system's TEA county/ESC fields are administrative context, not
+  // a resident geography. Treat a stale or hand-written charter area query as
+  // statewide even when it bypasses the controls and calls this function
+  // directly.
+  const [kind, id] = splitScope(scopeForSector(state.scope, state.sector))
   let total = 0
   let inScope = 0
   let aeaRemoved = 0
+  let sectorRemoved = 0
   const pool = []
   for (const r of rows) {
     if (r.level !== state.level) continue
@@ -259,10 +265,14 @@ export function selectPool(rows, state) {
     if (kind === 'r' && r.regionId !== id) continue
     if (kind === 'c' && r.countyId !== id) continue
     inScope++
+    if ((state.sector === 'traditional' && r.isCharter) || (state.sector === 'charter' && !r.isCharter)) {
+      sectorRemoved++
+      continue
+    }
     if (state.aea === 'exclude' && r.isAlt) { aeaRemoved++; continue }
     pool.push(r)
   }
-  return { total, inScope, pool, aeaRemoved }
+  return { total, inScope, pool, sectorRemoved, aeaRemoved }
 }
 
 export const splitScope = (scope) => {
@@ -336,14 +346,15 @@ const orderPhrase = (metric, order) => {
  * in the table. Built from the same counts the rows were built from — there is
  * no second computation here that could disagree with the list underneath it.
  */
-export function describe({ state, metric, names, total, inScope, pool, aeaRemoved, ranked, missing, tiedRows, distinct, shown }) {
+export function describe({ state, metric, names, total, inScope, pool, sectorRemoved, aeaRemoved, ranked, missing, tiedRows, distinct, shown }) {
   const level = state.level
   const many = noun(level, 2)
   const count = (n) => `${n0(n)} ${noun(level, n)}`
   const where = scopePhrase(state, names)
   const statewide = where === 'statewide'
+  const sectorLabel = state.sector === 'charter' ? 'open-enrollment charter' : state.sector === 'all' ? 'traditional and open-enrollment charter' : 'traditional'
 
-  const headline = `${count(ranked)} ${where}, ranked by ${metric.short}, ${orderPhrase(metric, state.order)}.`
+  const headline = `${n0(ranked)} ${sectorLabel} ${noun(level, ranked)} ${where}, ranked by ${metric.short}, ${orderPhrase(metric, state.order)}.`
 
   const lines = []
 
@@ -352,9 +363,10 @@ export function describe({ state, metric, names, total, inScope, pool, aeaRemove
   // the ranking is actually of.
   const steps = [`${count(total)} in this dataset`]
   if (!statewide) steps.push(`${n0(inScope)} of them ${where}`)
+  if (sectorRemoved) steps.push(`${n0(sectorRemoved)} removed by the ${state.sector} sector filter`)
   if (aeaRemoved) steps.push(`${n0(aeaRemoved)} alternative-education ${many} excluded`)
   lines.push(
-    `Population: ${count(pool)} ${where} — ` +
+    `Population: ${n0(pool)} ${sectorLabel} ${noun(level, pool)} ${where} — ` +
       `alternative-education ${many} ${state.aea === 'exclude' ? 'excluded' : 'included'}. ` +
       `${steps.join('; ')}; leaves ${n0(pool)}.`
   )
@@ -438,7 +450,7 @@ export function columnsFor(metric, state, names) {
   cols.push({
     key: 'county',
     csv: 'county',
-    label: 'County',
+    label: state.sector === 'charter' ? 'Administrative county' : 'County',
     cls: 'rk-sub',
     sortable: true,
     defaultDir: 'asc',
@@ -612,7 +624,7 @@ export function buildCsv({ displayed, cols, description, state, metric, snapshot
     `ranked by: ${metric.label} (${orderPhrase(metric, state.order)})`,
     `ranking: ${description.headline}`,
     ...description.lines.map((l) => `note: ${l}`),
-    `filters: level=${state.level} scope=${state.scope} alternative_education=${state.aea === 'include' ? 'included' : 'excluded'} order=${state.order} show=${state.n}`,
+    `filters: level=${state.level} scope=${state.scope} sector=${state.sector} alternative_education=${state.aea === 'include' ? 'included' : 'excluded'} order=${state.order} show=${state.n}`,
     `counts: ${total} at this level; ${inScope} in the selected area; ${pool} in the population after filters; ${ranked} ranked; ${missing} in the population with no value for this measure`,
     `rows in this file: ${displayed.length} — exactly the rows shown on screen when it was downloaded, in the order shown`,
     'ties: competition ranking — equal values share a rank and the next rank is skipped. tied_with counts the others sharing that value.',
@@ -631,7 +643,7 @@ export function buildCsv({ displayed, cols, description, state, metric, snapshot
 }
 
 export const csvFilename = (state, metric) =>
-  ['txschools', 'rankings', slugify(metric.key), state.level === 'campus' ? 'campuses' : 'districts', slugify(state.scope), state.order]
+  ['txschools', 'rankings', state.sector, slugify(metric.key), state.level === 'campus' ? 'campuses' : 'districts', slugify(state.scope), state.order]
     .join('-') + '.csv'
 
 /* --------------------------------------------------------------- url state -- */
@@ -646,6 +658,9 @@ export const csvFilename = (state, metric) =>
  * changed keep working.
  */
 const SCOPE_RE = /^(state|r\.\d{2}|c\.\d{3})$/
+
+/** Charter rankings are statewide: TEA county/region fields are administrative. */
+export const scopeForSector = (scope, sector) => sector === 'charter' ? 'state' : scope
 
 /**
  * `defaults` is what the HOST PAGE already shows. On /rankings that is the
@@ -669,6 +684,7 @@ export function readState(search, metrics, defaults = DEFAULTS) {
     metric: known(metric) ? metric : known(defaults.metric) ? defaults.metric : DEFAULTS.metric,
     level: pick('level', ['district', 'campus']),
     scope: SCOPE_RE.test(defaults.scope ?? '') ? defaults.scope : DEFAULTS.scope,
+    sector: pick('sector', ['traditional', 'charter', 'all']),
     aea: pick('aea', ['exclude', 'include']),
     order: pick('order', ['top', 'bottom']),
     n: pick('n', SIZES),
@@ -677,6 +693,7 @@ export function readState(search, metrics, defaults = DEFAULTS) {
   }
   const scope = (q.get('scope') ?? '').replace(':', '.')
   if (SCOPE_RE.test(scope)) state.scope = scope
+  state.scope = scopeForSector(state.scope, state.sector)
   return state
 }
 
@@ -686,12 +703,15 @@ export function readState(search, metrics, defaults = DEFAULTS) {
  */
 export function writeQuery(state, defaults = DEFAULTS) {
   const q = new URLSearchParams()
-  for (const key of ['metric', 'level', 'scope', 'aea', 'order', 'n']) {
-    if (state[key] !== (defaults[key] ?? DEFAULTS[key])) q.set(key, state[key])
+  const safe = { ...state, scope: scopeForSector(state.scope, state.sector) }
+  const defaultScope = scopeForSector(defaults.scope ?? DEFAULTS.scope, defaults.sector ?? DEFAULTS.sector)
+  for (const key of ['metric', 'level', 'scope', 'sector', 'aea', 'order', 'n']) {
+    const fallback = key === 'scope' ? defaultScope : (defaults[key] ?? DEFAULTS[key])
+    if (safe[key] !== fallback) q.set(key, safe[key])
   }
-  if (state.sort && state.sort !== 'rank') {
-    q.set('sort', state.sort)
-    if (state.dir) q.set('dir', state.dir)
+  if (safe.sort && safe.sort !== 'rank') {
+    q.set('sort', safe.sort)
+    if (safe.dir) q.set('dir', safe.dir)
   }
   const s = q.toString()
   return s ? `?${s}` : ''
@@ -700,7 +720,7 @@ export function writeQuery(state, defaults = DEFAULTS) {
 /** True when the URL already asks for something, i.e. this is a shared link. */
 export const isSharedLink = (search) => {
   const q = new URLSearchParams(search)
-  return ['metric', 'level', 'scope', 'aea', 'order', 'n', 'sort'].some((k) => q.has(k))
+  return ['metric', 'level', 'scope', 'sector', 'aea', 'order', 'n', 'sort'].some((k) => q.has(k))
 }
 
 /* ------------------------------------------------------------------- boot -- */
@@ -784,6 +804,9 @@ function init(root) {
   form.addEventListener('submit', (e) => e.preventDefault()) // there is no endpoint; Enter just re-applies
 
   const scopeOptions = (level) => {
+    if (state.sector === 'charter') {
+      return option('state', 'Texas — statewide', true)
+    }
     const regions = Object.keys(names.regions).sort()
     const counties = Object.keys(names.counties).sort((a, b) =>
       (names.counties[a] ?? a).localeCompare(names.counties[b] ?? b)
@@ -791,7 +814,9 @@ function init(root) {
     // Only areas that actually contain something at this level are offered, so
     // the menu can never lead to an empty table.
     const present = data
-      ? new Set(data.rows.filter((r) => r.level === level).flatMap((r) => [`r.${r.regionId}`, `c.${r.countyId}`]))
+      ? new Set(data.rows.filter((r) => r.level === level &&
+          (state.sector === 'all' || (state.sector === 'charter') === r.isCharter))
+        .flatMap((r) => [`r.${r.regionId}`, `c.${r.countyId}`]))
       : null
     const keep = (v) => !present || present.has(v)
     return (
@@ -835,7 +860,15 @@ function init(root) {
       `<div class="rk-grid">` +
       field('rk-metric', 'Rank by', `<select id="rk-metric" name="metric">${metricOptions()}</select>`) +
       field('rk-level', 'Level', `<select id="rk-level" name="level">${option('district', 'Districts', state.level === 'district')}${option('campus', 'Campuses', state.level === 'campus')}</select>`) +
-      field('rk-scope', 'Population', `<select id="rk-scope" name="scope">${scopeOptions(state.level)}</select>`) +
+      field(
+        'rk-scope',
+        'Population',
+        `<select id="rk-scope" name="scope"${state.sector === 'charter' ? ' disabled aria-describedby="rk-scope-hint"' : ''}>${scopeOptions(state.level)}</select>`,
+        state.sector === 'charter'
+          ? 'Charter rankings are statewide. TEA county and service-region fields are administrative, not attendance geography.'
+          : null
+      ) +
+      field('rk-sector', 'School sector', `<select id="rk-sector" name="sector">${option('traditional', 'Traditional public schools', state.sector === 'traditional')}${option('charter', 'Open-enrollment charter schools', state.sector === 'charter')}${option('all', 'Traditional and charter schools', state.sector === 'all')}</select>`) +
       field('rk-order', 'Order', `<select id="rk-order" name="order">${orderOptions()}</select>`) +
       field('rk-n', 'Show', `<select id="rk-n" name="n">${SIZES.map((s) => option(s, s === 'all' ? 'All rows' : `Top ${s}`, state.n === s)).join('')}</select>`) +
       `</div>` +
@@ -861,15 +894,21 @@ function init(root) {
    * empty table with no way to see why.
    */
   function normalizeScope() {
+    if (state.sector === 'charter') {
+      state.scope = 'state'
+      return
+    }
     if (state.scope === 'state') return
     const [kind, id] = splitScope(state.scope)
-    const has = data.rows.some((r) => r.level === state.level && (kind === 'r' ? r.regionId === id : r.countyId === id))
+    const has = data.rows.some((r) => r.level === state.level &&
+      (state.sector === 'all' || (state.sector === 'charter') === r.isCharter) &&
+      (kind === 'r' ? r.regionId === id : r.countyId === id))
     if (!has) state.scope = 'state'
   }
 
   function render({ announce = true, repaint = false, refocus = null } = {}) {
     const metric = currentMetric()
-    const { total, inScope, pool, aeaRemoved } = selectPool(data.rows, state)
+    const { total, inScope, pool, sectorRemoved, aeaRemoved } = selectPool(data.rows, state)
     const { ranked, missing, tiedRows, distinct } = rankPool(pool, metric, state.order)
 
     const limit = state.n === 'all' ? ranked.length : Math.min(Number(state.n), ranked.length)
@@ -895,7 +934,7 @@ function init(root) {
           })
 
     const description = describe({
-      state, metric, names, total, inScope, pool: pool.length, aeaRemoved,
+      state, metric, names, total, inScope, pool: pool.length, sectorRemoved, aeaRemoved,
       ranked: ranked.length, missing, tiedRows, distinct, shown: shown.length,
     })
 
@@ -947,6 +986,7 @@ function init(root) {
     // Both of these change what the other controls can say, so the panel is
     // rebuilt and the reader is put back where they were.
     if (el.name === 'level') return apply({ level: el.value, sort: null, dir: null }, { repaint: true, refocus: '#rk-level' })
+    if (el.name === 'sector') return apply({ sector: el.value, sort: null, dir: null }, { repaint: true, refocus: '#rk-sector' })
     if (el.name === 'metric') return apply({ metric: el.value, sort: null, dir: null }, { repaint: true, refocus: '#rk-metric' })
     apply({ [el.name]: el.value })
   })

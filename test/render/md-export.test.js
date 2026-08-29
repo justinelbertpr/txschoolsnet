@@ -128,7 +128,12 @@ describe('the Markdown export', () => {
     expect(md).toContain('https://txschools.net/district/dallas-isd-057905')
     // The disclaimer is the reason this header exists: handed figures with no
     // publisher, a model will name one.
-    expect(md).toContain('**not** operated by, endorsed by, or connected to')
+    expect(md).toContain('**not** operated by, endorsed by, or affiliated with')
+    expect(md).toContain('Texas Education Agency Reports and Data Portal')
+    expect(md).toContain('[TXschools.gov](https://txschools.gov)')
+    expect(md).toContain('open-enrollment charter school systems')
+    expect(md).toContain('does not grant permission to reuse third-party source material')
+    expect(md).not.toMatch(/free to use|personal use only/i)
     expect(head).not.toMatch(/\| ---/) // no table has begun yet
   })
 

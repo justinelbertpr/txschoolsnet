@@ -8,18 +8,19 @@
   function normalize(s) { return String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() }
 
   function decode(raw) {
-    var counties = raw.counties || []
+    var counties = raw.counties || [], cities = raw.cities || []
     var d = raw.districts || {}, c = raw.campuses || {}
     var dn = d.name || [], cn = c.name || []
     var out = [], i
-    for (i = 0; i < dn.length; i++) out.push(rec(dn[i], d.id[i], 'district', null, counties[d.county[i]]))
-    for (i = 0; i < cn.length; i++) out.push(rec(cn[i], c.id[i], 'campus', dn[c.district[i]], counties[c.county[i]]))
+    for (i = 0; i < dn.length; i++) out.push(rec(dn[i], d.id[i], 'district', null, counties[d.county[i]], cities[(d.city || [])[i]], (d.charter || [])[i], (d.online || [])[i]))
+    for (i = 0; i < cn.length; i++) out.push(rec(cn[i], c.id[i], 'campus', dn[c.district[i]], counties[c.county[i]], cities[(c.city || [])[i]], (c.charter || [])[i], (c.online || [])[i]))
     return out
   }
 
-  function rec(name, id, level, district, county) {
+  function rec(name, id, level, district, county, city, charter, online) {
     return {
       name: name, level: level, district: district || null, county: county || null,
+      city: city || null, isCharter: !!charter, isOnline: !!online,
       href: '/' + level + '/' + slugify(name) + '-' + id,
       key: normalize(name), dkey: normalize(district || '')
     }
@@ -113,9 +114,13 @@
   }
 
   function meta(r) {
-    var bits = [r.level === 'campus' ? 'Campus' : 'District']
+    var bits = [r.isCharter
+      ? (r.level === 'campus' ? 'Open-enrollment charter campus' : 'Charter school system')
+      : (r.level === 'campus' ? 'Traditional public school campus' : 'Geographic public school district')]
+    if (r.isOnline) bits.push('Online school')
     if (r.level === 'campus' && r.district) bits.push(r.district)
-    if (r.county) bits.push(r.county.replace(/ County$/i, '') + ' County')
+    if (r.isCharter && !r.isOnline && r.city) bits.push(r.city)
+    if (!r.isCharter && r.county) bits.push(r.county.replace(/ County$/i, '') + ' County')
     return bits.join(' \u00b7 ')
   }
 

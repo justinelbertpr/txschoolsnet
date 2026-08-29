@@ -23,6 +23,8 @@ import {
   OG_IMAGE,
   THEME_INIT_SCRIPT,
   TRUSTED_TYPES_INIT_SCRIPT,
+  TEA_REPORTS_DATA_PORTAL,
+  TXSCHOOLS_REPORTS,
   cmp,
   shell,
   table,
@@ -283,6 +285,15 @@ describe('shell layout', () => {
     expect(html.indexOf('class="skip"')).toBeLessThan(html.indexOf('<aside class="rail"'))
   })
 
+  it('keeps coverage, provenance and non-affiliation truthful in the shared chrome', () => {
+    const html = shell(args)
+    expect(html).toContain('Districts, charter school systems &amp; campuses')
+    expect(html).toContain('not operated by, endorsed by, or affiliated with the Texas Education Agency')
+    expect(html).toContain(`href="${TEA_REPORTS_DATA_PORTAL}"`)
+    expect(html).toContain(`href="${TXSCHOOLS_REPORTS}"`)
+    expect(html).not.toMatch(/traditional public schools only|personal use only/i)
+  })
+
   it('renders a rail-less page byte for byte as it did before there were rails', () => {
     expect(shell({ ...args, rail: null, sticky: null })).toBe(shell(args))
   })
@@ -461,8 +472,8 @@ describe('the primary nav cannot become unreachable', () => {
   it('uses CSS to swap the dedicated desktop nav and native mobile menu', async () => {
     const { readFileSync } = await import('node:fs')
     const css = readFileSync(new URL('../../site/style.css', import.meta.url), 'utf8')
-    expect(css).toMatch(/@media \(min-width: 48rem\)[\s\S]*\.desktop-nav \{ display: flex;[\s\S]*\.nav-menu \{ display: none; \}/)
-    expect(css).toMatch(/@media \(max-width: 47\.99rem\)[\s\S]*\.desktop-nav \{ display: none; \}[\s\S]*\.nav-menu > summary/)
+    expect(css).toMatch(/@media \(min-width: 56rem\)[\s\S]*\.desktop-nav \{ display: flex;[\s\S]*\.nav-menu \{ display: none; \}/)
+    expect(css).toMatch(/@media \(max-width: 55\.99rem\)[\s\S]*\.desktop-nav \{ display: none; \}[\s\S]*\.nav-menu > summary/)
     expect(css).not.toMatch(/nav-disclosure|initNavDisclosure/)
   })
 

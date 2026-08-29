@@ -42,6 +42,12 @@ import {
   loadDisciplineRows,
 } from './discipline.js'
 import { BOUNDARY_FILE } from './boundaries.js'
+import {
+  ACCOUNTABILITY_LANDING_URL,
+  ACCOUNTABILITY_MASKING_URL,
+  latestAccountabilityArchive,
+  loadAccountabilityContext,
+} from './accountability.js'
 
 /**
  * Picks the newest YYYY-MM directory name.
@@ -122,20 +128,6 @@ export function assertOrphanIdSet(table, actualIds, expectedIds) {
 // historical rating and profile data for these campuses but no current
 // accountability/directory record for them. Observed 2026-08.
 export const KNOWN_ORPHAN_IDS = ['221801026', '227901029', '227901054', '227901157']
-
-/**
- * This site publishes traditional public school districts and their
- * campuses only. Charter entities (entity_type === 'Charter', toEntities'
- * own isCharter flag) are excluded here, at the single point every entity
- * enters the pipeline, rather than filtered per-page downstream — the same
- * reason KNOWN_ORPHAN_IDS is dropped at the source above: one list a
- * reader could reach through a stale filter is one too many. Everything
- * that counts entities (the homepage stat grid, About's tally, the
- * sitemap, search, rankings, the download files) reads off `entities`
- * after this filter runs, so nothing downstream has to know charters were
- * ever in the source data at all.
- */
-export const excludeCharters = (entities) => entities.filter((e) => !e.isCharter)
 
 /**
  * Section B's stable, non-additive headline rows. A student can appear in more
@@ -299,7 +291,7 @@ export function summarizeDisciplineRows(sourceRows) {
 /**
  * Reconciles the separate PEIMS enrollment archive with the current entity
  * universe. Historical reports legitimately contain schools that later closed,
- * changed ids, or are outside this site's traditional-public-school scope, so
+ * changed ids, or are outside the current canonical directory snapshot, so
  * those rows are reported and dropped rather than forced through the four-id
  * orphan invariant used by txschools.gov's current exports.
  *
@@ -404,6 +396,24 @@ export async function communityForEntities(rows, entities, file = BOUNDARY_FILE)
   return out.sort((a, b) => a.id.localeCompare(b.id))
 }
 
+/** Exact id+level join: an id collision across levels is never accepted. */
+export function accountabilityForEntities(rows, entities) {
+  const entityKeys = new Set((entities ?? []).map((entity) => `${entity.level}:${entity.id}`))
+  const seen = new Set()
+  const out = []
+  for (const row of rows ?? []) {
+    const key = `${row.level}:${row.id}`
+    if (seen.has(key)) throw new Error(`accountability: duplicate ${key}`)
+    seen.add(key)
+    if (entityKeys.has(key)) out.push(row)
+  }
+  const missing = [...entityKeys].filter((key) => !seen.has(key))
+  if (missing.length) {
+    throw new Error(`accountability: missing ${missing.length} canonical entities (first: ${missing.slice(0, 5).join(', ')})`)
+  }
+  return out.sort((a, b) => a.level.localeCompare(b.level) || a.id.localeCompare(b.id))
+}
+
 export async function build() {
   const names = await readdir('data/raw')
   const hasManifest = (name) => existsSync(`data/raw/${name}/manifest.json`)
@@ -415,6 +425,7 @@ export async function build() {
   const hasEnrollmentManifest = (name) => existsSync(`${ENROLLMENT_ROOT}/${name}/manifest.json`)
   const enrollmentSnapshot = latestEnrollmentSnapshot(enrollmentNames, hasEnrollmentManifest)
   const enrollmentDir = `${ENROLLMENT_ROOT}/${enrollmentSnapshot}`
+  const accountabilityArchive = await latestAccountabilityArchive()
 
   const [
     actionArchive,
@@ -445,6 +456,7 @@ export async function build() {
     transferRaw,
     educatorRaw,
     disciplineRaw,
+    accountabilityRaw,
   ] = await Promise.all([
     readSource(dir, 'districts'),
     readSource(dir, 'schools'),
@@ -458,46 +470,24 @@ export async function build() {
     loadTransferRows(transferArchive.dir),
     loadEducatorRows(educatorArchive.dir),
     loadDisciplineRows(disciplineArchive.dir, { filter: isDisciplineSummaryRow }),
+    accountabilityArchive ? loadAccountabilityContext(accountabilityArchive.dir) : Promise.resolve([]),
   ])
 
-  const allEntities = toEntities(districts, schools)
-  let entities = excludeCharters(allEntities)
-  const charterIds = new Set(allEntities.filter((e) => e.isCharter).map((e) => e.id))
+  let entities = toEntities(districts, schools)
   const known = new Set(entities.map((e) => e.id))
-  console.log(
-    `  excluded charters  ${charterIds.size} entities (this site publishes traditional public schools only)`
-  )
 
-  // Rows for known-orphan campus ids AND for excluded charter ids are both
-  // dropped at the source (rather than crashing the build or weakening
-  // assertIntegrity below). The two are asserted differently on purpose:
-  // KNOWN_ORPHAN_IDS is a small, hand-verified list of genuine data
-  // anomalies, so its id SET is asserted exactly — see assertOrphanIdSet for
-  // why a count is the wrong invariant for a table exploded across year
-  // labels. charterIds is large and derived straight from today's snapshot
-  // (a charter can open, close, or simply lack a rating-history row for a
-  // given year), so it is filtered out of the comparison rather than
-  // asserted id-for-id — asserting it exactly would fail the build over a
-  // charter's own data coverage, not over anything this site got wrong.
+  // The canonical entity set contains both traditional and open-enrollment
+  // charter schools. Only the small, hand-verified set of current-export
+  // anomalies may fall out of the child tables below; a charter id is a
+  // first-class entity and must never be mistaken for an orphan.
   const ratingsDrop = dropOrphans(toRatings(cot), known)
-  assertOrphanIdSet(
-    'ratings',
-    ratingsDrop.droppedIds.filter((id) => !charterIds.has(id)),
-    KNOWN_ORPHAN_IDS
-  )
+  assertOrphanIdSet('ratings', ratingsDrop.droppedIds, KNOWN_ORPHAN_IDS)
 
-  // profile_tab is one row per entity (toProfile is a plain .map, no
-  // explode), so a dropped-row count and a dropped-id-set assertion carry
-  // exactly the same information here — there is no year-label multiplier
-  // to make a count fragile. A plain count is kept for that reason: it's
-  // the simpler assertion and loses nothing over asserting the set.
+  // profile_tab is one row per entity. Assert the ids here as well so four
+  // different rows cannot silently replace the four known anomalies while
+  // preserving the same count.
   const profileDrop = dropOrphans(toProfile(profileRaw), known)
-  const profileNonCharterDropped = profileDrop.droppedIds.filter((id) => !charterIds.has(id)).length
-  if (profileNonCharterDropped !== 4) {
-    throw new Error(
-      `profile: expected to drop exactly 4 non-charter orphan rows, dropped ${profileNonCharterDropped} — investigate before proceeding`
-    )
-  }
+  assertOrphanIdSet('profile', profileDrop.droppedIds, KNOWN_ORPHAN_IDS)
 
   const ratings = ratingsDrop.rows
   let profile = profileDrop.rows
@@ -536,13 +526,15 @@ export async function build() {
   })
   const disciplineBuild = summarizeDisciplineRows(disciplinePublished)
   const discipline = disciplineBuild.rows
+  const accountability = accountabilityForEntities(accountabilityRaw, entities)
   console.log(
     `  public context    ${actionFlags.length.toLocaleString('en-US')} campus notices; ` +
       `${community.length.toLocaleString('en-US')} district Census estimates; ` +
       `${postsecondary.length.toLocaleString('en-US')} postsecondary records; ` +
       `${transfers.length.toLocaleString('en-US')} district transfer summaries; ` +
       `${educators.length.toLocaleString('en-US')} educator records; ` +
-      `${discipline.length.toLocaleString('en-US')} discipline summaries`
+      `${discipline.length.toLocaleString('en-US')} discipline summaries; ` +
+      `${accountability.length.toLocaleString('en-US')} accountability context records`
   )
 
   assertIntegrity(entities, {
@@ -555,6 +547,7 @@ export async function build() {
     transfers,
     educators,
     discipline,
+    accountability,
   })
 
   await mkdir('build', { recursive: true })
@@ -569,6 +562,7 @@ export async function build() {
     transfers,
     educators,
     discipline,
+    accountability,
   }
   for (const [name, rows] of Object.entries(tables)) {
     await writeFile(`build/${name}.ndjson`, toNdjson(rows))
@@ -589,6 +583,32 @@ export async function build() {
       droppedIds: enrollmentMerge.droppedIds.length,
       currentCountsReconciled: enrollmentMerge.changed,
       currentCountsSuppressed: enrollmentMerge.maskedCurrent,
+    }, null, 2)}\n`
+  )
+  await writeFile(
+    'build/accountability-meta.json',
+    `${JSON.stringify(accountabilityArchive ? {
+      snapshot: accountabilityArchive.snapshot,
+      fetchedAt: accountabilityArchive.manifest.fetchedAt ?? null,
+      year: 2026,
+      schoolYear: '2025-26',
+      rows: accountability.length,
+      sourceRows: accountabilityRaw.length,
+      rowsOutsideCanonicalEntitySet: accountabilityRaw.length - accountability.length,
+      source: accountabilityArchive.manifest.source ?? ACCOUNTABILITY_LANDING_URL,
+      masking: accountabilityArchive.manifest.masking ?? ACCOUNTABILITY_MASKING_URL,
+      reports: Object.keys(accountabilityArchive.manifest.files ?? {}).length,
+      fieldsAreContextOnly: true,
+    } : {
+      snapshot: null,
+      fetchedAt: null,
+      rows: 0,
+      sourceRows: 0,
+      rowsOutsideCanonicalEntitySet: 0,
+      source: ACCOUNTABILITY_LANDING_URL,
+      masking: ACCOUNTABILITY_MASKING_URL,
+      reports: 0,
+      fieldsAreContextOnly: true,
     }, null, 2)}\n`
   )
   await writeFile(
@@ -656,6 +676,18 @@ export async function build() {
         pandemicCaveat: DISCIPLINE_2020_21_CAVEAT,
         headlineCategories: DISCIPLINE_HEADLINES,
       },
+      accountability: accountabilityArchive ? {
+        snapshot: accountabilityArchive.snapshot,
+        fetchedAt: accountabilityArchive.manifest.fetchedAt ?? null,
+        year: 2026,
+        schoolYear: '2025-26',
+        rows: accountability.length,
+        sourceRows: accountabilityRaw.length,
+        rowsOutsideCanonicalEntitySet: accountabilityRaw.length - accountability.length,
+        source: accountabilityArchive.manifest.source ?? ACCOUNTABILITY_LANDING_URL,
+        masking: accountabilityArchive.manifest.masking ?? ACCOUNTABILITY_MASKING_URL,
+        fieldsAreContextOnly: true,
+      } : null,
     }, null, 2)}\n`
   )
   return tables

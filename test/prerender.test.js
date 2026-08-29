@@ -33,6 +33,7 @@ import {
   RANKING_PLAN,
   recentChangeRankIndex,
   sharePng,
+  accountabilityDownloadRows,
 } from '../src/prerender.js'
 import { OG_IMAGE } from '../src/render/shell.js'
 import { rankingCatalogue } from '../src/render/rankings-page.js'
@@ -43,6 +44,38 @@ const entity = {
   id: '001902', level: 'district', name: 'Cayuga ISD', county: 'Anderson',
   regionId: '07', isCharter: false, isAlt: false, enrollment: 574, rating: 'B', score: 89,
 }
+
+describe('accountabilityDownloadRows', () => {
+  const datum = (value, status = 'reported', raw = value == null ? null : String(value)) => ({ value, status, raw })
+
+  it('losslessly flattens counts, published shares, mobility denominators, flags, and masks', () => {
+    const context = {
+      id: '001902001', level: 'campus', year: '2025-26',
+      students: {
+        all: datum(100), economicallyDisadvantaged: datum(0),
+        emergentBilingual: datum(null, 'masked', '*'), specialEducation: datum(12), grades3to12: datum(80),
+      },
+      shares: { emergentBilingualPct: datum(null, 'masked', '*'), specialEducationPct: datum(12), grades3to12Pct: datum(80) },
+      programs: {
+        earlyCollegeHighSchool: { count: datum(0), sharePct: datum(0) },
+        pathwaysInTechnologyEarlyCollegeHighSchool: { count: datum(3), sharePct: datum(3) },
+      },
+      mobility: { year: '2024-25', mobileStudents: datum(9), denominatorStudents: datum(90), ratePct: datum(10) },
+      flags: { newCampus: datum(true), charterSchool: datum(false), alternativeEducationType: datum('AEC') },
+    }
+    const rows = accountabilityDownloadRows([context], new Map([[context.id, { name: 'Test Campus' }]]))
+    const at = (metric) => rows.find((row) => row.metric === metric)
+
+    expect(at('students_economically_disadvantaged')).toMatchObject({ value: 0, status: 'reported', source_raw: '0' })
+    expect(at('emergent_bilingual_pct')).toMatchObject({ value: null, status: 'masked', source_raw: '*' })
+    expect(at('p_tech_pct')).toMatchObject({ value: 3, unit: 'percent' })
+    expect(at('mobile_students')).toMatchObject({ school_year: '2024-25', value: 9, denominator: 90, denominator_status: 'reported', denominator_source_raw: '90' })
+    expect(at('newCampus')).toMatchObject({ value: true, unit: 'boolean' })
+    expect(at('charterSchool')).toMatchObject({ value: false, unit: 'boolean' })
+    expect(at('alternativeEducationType')).toMatchObject({ value: 'AEC', unit: 'category' })
+    expect(rows.every((row) => row.name === 'Test Campus')).toBe(true)
+  })
+})
 
 /** The shape src/render/page.js consumes: buildViewModel's output, minus the
  *  sections that vanish when their data is absent. */
@@ -385,12 +418,12 @@ describe('renderEntity (src/render/page.js)', () => {
     expect(html).toContain('not affiliated with the Texas Education Agency')
   })
 
-  it('labels every entity Traditional — this site excludes charters entirely', () => {
-    expect(html).toContain('Traditional')
-    // Even a view model someone constructs with isCharter: true must not
-    // relabel the page: charters never reach this renderer once excluded at
-    // the build step, and the eyebrow no longer reads that field at all.
-    expect(renderEntity(vm({ isCharter: true }))).toContain('Traditional')
+  it('states the governance sector instead of presenting charters as geographic districts', () => {
+    expect(html).toContain('Geographic public school district')
+    const charter = renderEntity(vm({ isCharter: true }))
+    expect(charter).toContain('Charter school system')
+    expect(charter).not.toContain('href="/county/anderson"')
+    expect(charter).not.toContain('href="/region/07"')
   })
 
   it('labels alternative-education campuses so their bar is not mistaken for a comprehensive one', () => {
@@ -507,10 +540,10 @@ describe('rankingIndex', () => {
 
   it('indexes by level, then scope, then metric key, carrying the href and the title', () => {
     const idx = rankingIndex([board(), region, county])
-    expect(idx.district.state.score.top.href).toBe('/rankings/texas-districts/overall-score-highest')
-    expect(idx.district.state.score.top.title).toBe('Texas school districts with the highest overall score')
-    expect(idx.district['region:10'].score.top.href).toBe('/rankings/region-10-districts/overall-score-highest')
-    expect(idx.district['county:dallas'].score.top.href).toBe('/rankings/dallas-county-districts/overall-score-highest')
+    expect(idx.district['state:traditional'].score.top.href).toBe('/rankings/texas-districts/overall-score-highest')
+    expect(idx.district['state:traditional'].score.top.title).toBe('Texas school districts with the highest overall score')
+    expect(idx.district['region:10:traditional'].score.top.href).toBe('/rankings/region-10-districts/overall-score-highest')
+    expect(idx.district['county:dallas:traditional'].score.top.href).toBe('/rankings/dallas-county-districts/overall-score-highest')
   })
 
   // Was: "points a placement at the end of the list that starts at 1st" —
@@ -531,14 +564,14 @@ describe('rankingIndex', () => {
         title: 'Texas school districts with the lowest overall score',
       }),
     ])
-    expect(idx.district.state.score.top.href).toBe('/rankings/texas-districts/overall-score-highest')
-    expect(idx.district.state.score.bottom.href).toBe('/rankings/texas-districts/overall-score-lowest')
+    expect(idx.district['state:traditional'].score.top.href).toBe('/rankings/texas-districts/overall-score-highest')
+    expect(idx.district['state:traditional'].score.bottom.href).toBe('/rankings/texas-districts/overall-score-lowest')
   })
 
   it('keys a county on the slug its hub uses, not on the id the ranking partitions by', () => {
     // /county/dallas and the ranking of Dallas County have to agree on one
     // spelling, or every county link on every entity page silently misses.
-    expect(Object.keys(rankingIndex([county]).district)).toEqual(['county:dallas'])
+    expect(Object.keys(rankingIndex([county]).district)).toEqual(['county:dallas:traditional'])
   })
 
   it('separates the levels, so a campus never links a ranking of districts', () => {
@@ -550,8 +583,20 @@ describe('rankingIndex', () => {
         title: 'Texas campuses with the highest overall score',
       }),
     ])
-    expect(idx.campus.state.score.top.href).toBe('/rankings/texas-campuses/overall-score-highest')
-    expect(idx.district.state.score.top.href).not.toBe(idx.campus.state.score.top.href)
+    expect(idx.campus['state:traditional'].score.top.href).toBe('/rankings/texas-campuses/overall-score-highest')
+    expect(idx.district['state:traditional'].score.top.href).not.toBe(idx.campus['state:traditional'].score.top.href)
+  })
+
+  it('keeps traditional and charter rankings in separate index slots', () => {
+    const idx = rankingIndex([
+      board(),
+      board({
+        scope: { kind: 'state', sector: 'charter' },
+        href: '/rankings/charters/texas-charter-systems/overall-score-highest',
+      }),
+    ])
+    expect(idx.district['state:traditional'].score.top.href).toContain('/rankings/texas-districts')
+    expect(idx.district['state:charter'].score.top.href).toContain('/rankings/charters/')
   })
 })
 
@@ -559,9 +604,9 @@ describe('rankingLinksFor', () => {
   const end = (href, title = 'title') => ({ href, title })
   const idx = {
     district: {
-      state: { score: { top: end('/rankings/texas-districts/overall-score-highest') } },
-      'region:10': { score: { top: end('/rankings/region-10-districts/overall-score-highest') } },
-      'county:dallas': { score: { top: end('/rankings/dallas-county-districts/overall-score-highest') } },
+      'state:traditional': { score: { top: end('/rankings/texas-districts/overall-score-highest') } },
+      'region:10:traditional': { score: { top: end('/rankings/region-10-districts/overall-score-highest') } },
+      'county:dallas:traditional': { score: { top: end('/rankings/dallas-county-districts/overall-score-highest') } },
     },
   }
   const dallas = { level: 'district', regionId: '10', county: 'Dallas' }
@@ -580,7 +625,7 @@ describe('rankingLinksFor', () => {
   })
 
   it('zero-pads a region id the way the URL scheme does', () => {
-    const padded = { district: { 'region:07': { score: { top: end('/rankings/region-07-districts/overall-score-highest') } } } }
+    const padded = { district: { 'region:07:traditional': { score: { top: end('/rankings/region-07-districts/overall-score-highest') } } } }
     expect(rankingLinksFor(padded, { level: 'district', regionId: 7 }).region.score.top.href).toContain('region-07')
   })
 
@@ -595,6 +640,19 @@ describe('rankingLinksFor', () => {
     expect(rankingLinksFor(idx, { level: 'campus', regionId: '10', county: 'Dallas' })).toBeNull()
     expect(rankingLinksFor({}, dallas)).toBeNull()
     expect(rankingLinksFor(null, dallas)).toBeNull()
+  })
+
+  it('gives a charter only statewide charter boards, never geographic boards', () => {
+    const charterIdx = {
+      district: {
+        ...idx.district,
+        'state:charter': { score: { top: end('/rankings/charters/texas-charter-systems/overall-score-highest') } },
+      },
+    }
+    const links = rankingLinksFor(charterIdx, { ...dallas, isCharter: true })
+    expect(links.state.score.top.href).toContain('/rankings/charters/')
+    expect(links.region).toBeNull()
+    expect(links.county).toBeNull()
   })
 })
 

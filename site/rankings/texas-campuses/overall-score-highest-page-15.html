@@ -52,7 +52,7 @@
   </svg><span class="wordmark-copy"><strong>txschools<span>.net</span></strong><small>School data with context</small></span></a>
     <div class="desktop-nav">
       <nav class="sitenav" aria-label="Site">
-  <ul class="navlist navlist-site"><li><a href="/districts/a">Districts</a></li><li><a href="/rankings" aria-current="page">Rankings</a></li><li><a href="/map">Map</a></li><li><a href="/download">Data</a></li><li><a href="/about">How it works</a></li></ul>
+  <ul class="navlist navlist-site"><li><a href="/districts/a">Districts</a></li><li><a href="/charters">Charters</a></li><li><a href="/rankings" aria-current="page">Rankings</a></li><li><a href="/map">Map</a></li><li><a href="/download">Data</a></li><li><a href="/about">How it works</a></li></ul>
 </nav><a class="desktop-search" href="/search" aria-label="Search schools and districts" title="Search">
     <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.25" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m12.4 12.4 4.1 4.1" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
   </a>
@@ -61,15 +61,15 @@
       <summary><span>Menu</span><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M3 5.5h14M3 10h14M3 14.5h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></summary>
       <div class="nav-menu-panel">
         <nav class="sitenav" aria-label="Site">
-  <ul class="navlist navlist-site"><li><a href="/search">Find schools</a></li><li><a href="/districts/a">Districts</a></li><li><a href="/rankings" aria-current="page">Rankings</a></li><li><a href="/map">Map</a></li><li><a href="/download">Data</a></li><li><a href="/about">How it works</a></li></ul>
+  <ul class="navlist navlist-site"><li><a href="/search">Find schools</a></li><li><a href="/districts/a">Districts</a></li><li><a href="/charters">Charters</a></li><li><a href="/rankings" aria-current="page">Rankings</a></li><li><a href="/map">Map</a></li><li><a href="/download">Data</a></li><li><a href="/about">How it works</a></li></ul>
 </nav>
-        <form class="sitesearch sitesearch-header" role="search" aria-label="Find a school or district"
+        <form class="sitesearch sitesearch-header" role="search" aria-label="Find a school, district or charter system"
   method="get" action="/search" data-search data-search-index="/data/search-index.json">
-  <label class="sitesearch-label sr-only" for="header-search">Find a school or district</label>
+  <label class="sitesearch-label sr-only" for="header-search">Find a school, district or charter system</label>
   <div class="sitesearch-field">
     <div class="sitesearch-row">
       <input class="sitesearch-input" id="header-search" name="q" type="search"
-        placeholder="School or district name" aria-describedby="header-search-hint"
+        placeholder="School, district or charter name" aria-describedby="header-search-hint"
         autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
         enterkeyhint="search">
       <button class="sitesearch-go" type="submit">Search</button>
@@ -79,10 +79,10 @@
       <p class="sitesearch-more" hidden></p>
     </div>
   </div>
-  <p class="sitesearch-hint sr-only" id="header-search-hint">Type at least two letters. Every result names its district and county, because school names repeat across Texas.</p>
+  <p class="sitesearch-hint sr-only" id="header-search-hint">Type at least two letters. Every result identifies its geographic district or charter system, because school names repeat across Texas.</p>
   <p class="sr-only" data-search-status role="status" aria-live="polite"></p>
 </form>
-        <p class="nav-menu-note">Traditional public schools only &middot; Source: Texas Education Agency</p>
+        <p class="nav-menu-note">Districts, charter school systems &amp; campuses &middot; Source: Texas Education Agency</p>
       </div>
     </details>
     <button type="button" class="theme-toggle" data-theme-toggle>
@@ -162,19 +162,21 @@
   <div class="footer-grid">
     <div class="footer-about">
       <a class="footer-brand" href="/">txschools<span>.net</span></a>
-      <p>Independent, unofficial research built from public Texas Education Agency data. This site is not operated by, endorsed by, or connected to TEA.</p>
+      <p>txschools.net is independent and unofficial. It is not operated by, endorsed by, or affiliated with the Texas Education Agency. Accountability records come from TEA-published reports and data downloads.</p>
     </div>
     <nav aria-label="Explore">
       <h2>Explore</h2>
       <a href="/search">Find a school</a>
       <a href="/districts/a">Browse districts</a>
+      <a href="/charters">Browse charter systems</a>
       <a href="/rankings">Rankings</a>
     </nav>
     <nav aria-label="Research and data">
       <h2>Research &amp; data</h2>
       <a href="/download">Download data</a>
       <a href="/about">Methods &amp; caveats</a>
-      <a href="https://txschools.gov">Official TEA source</a>
+      <a href="https://tea.texas.gov/school-and-district-leaders/accountability/academic-accountability/performance-reporting/texas-education-agency-reports-and-data-portal">TEA reports &amp; data</a>
+      <a href="https://txschools.gov">Official school reports</a>
     </nav>
   </div>
   <p class="footer-fineprint">Every number can be traced to the archived source snapshot. <a href="/about">See how this site works and what it adds</a>.</p>

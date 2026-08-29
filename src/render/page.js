@@ -260,7 +260,13 @@ export function metaDescription(vm) {
 
 /** Compose the shell with whatever sections have data. Nothing else decides layout. */
 export function renderEntity(vm, { payload = payloadPath() } = {}) {
-  const crumbs = [
+  const crumbs = vm.isCharter
+    ? [
+        { href: '/', label: 'Texas schools' },
+        { href: '/charters', label: 'Charter schools' },
+        vm.level === 'campus' ? { href: `/district/${vm.districtSlug}`, label: vm.districtName } : null,
+      ].filter(Boolean)
+    : [
     { href: '/', label: 'Texas schools' },
     { href: `/region/${vm.regionId}`, label: vm.regionName },
     { href: `/county/${vm.countySlug}`, label: `${vm.county} County` },

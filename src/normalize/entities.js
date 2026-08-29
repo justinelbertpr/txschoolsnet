@@ -28,6 +28,7 @@ export const percentage = (v) => {
 }
 
 export function toEntity(rec, level) {
+  const onlineSchool = str(rec.online_school)
   return {
     id: rec.id,
     level,
@@ -41,8 +42,18 @@ export function toEntity(rec, level) {
     isCharter: str(rec.entity_type) === 'Charter',
     isAlt: str(rec.alt_standards) === 'Yes',
     campusType: str(rec.campus_type),
+    // TEA marks virtual programs explicitly. Keep the published value as well
+    // as a boolean so renderers can distinguish an online program from a
+    // campus whose latitude/longitude merely happens to be present.
+    onlineSchool,
+    isOnline: onlineSchool === 'Yes',
     enrollment: num(rec.enrollment),
     website: str(rec.website),
+    address: str(rec.address),
+    streetAddress: str(rec.street_address),
+    city: str(rec.city),
+    state: str(rec.state),
+    zip: str(rec.zip_5),
     rating: str(rec.rating),
     score: num(rec.score),
     lat: num(rec.latitude),

@@ -161,6 +161,53 @@ const vm = {
   campuses: null,
 }
 
+describe('accountability context exports', () => {
+  const datum = (value, status = 'reported', raw = value == null ? null : String(value)) => ({ value, status, raw })
+  const withContext = {
+    ...vm,
+    accountabilityContext: {
+      id: vm.id, level: vm.level, year: '2025-26',
+      students: { all: datum(100), economicallyDisadvantaged: datum(0), emergentBilingual: datum(null, 'masked', '*'), specialEducation: datum(null, 'not-reported', null), grades3to12: datum(80) },
+      shares: { emergentBilingualPct: datum(null, 'masked', '*'), specialEducationPct: datum(0), grades3to12Pct: datum(80) },
+      programs: { earlyCollegeHighSchool: { count: datum(0), sharePct: datum(0) }, pathwaysInTechnologyEarlyCollegeHighSchool: { count: datum(3), sharePct: datum(3) } },
+      mobility: null,
+      flags: { newDistrict: datum(false), earlyEducationOnly: datum(true), alternativeEducationType: datum('AEC') },
+    },
+    publicDataMeta: { ...(vm.publicDataMeta ?? {}), accountability: { source: 'https://example.test/bulk', masking: 'https://example.test/masking', fetchedAt: '29 August 2026' } },
+  }
+
+  it('preserves values and statuses in per-entity CSV and JSON provenance', () => {
+    const csv = entityCsv(withContext)
+    expect(csv).toContain('additional source: student-count and campus-mobility context')
+    expect(csv).toContain('https://example.test/masking')
+    const rows = readCsv(csv).filter((row) => row.section === 'accountability_context')
+    expect(rows.find((row) => row.metric === 'students_economically_disadvantaged')).toMatchObject({ value: '0', status: 'reported' })
+    expect(rows.find((row) => row.metric === 'students_emergent_bilingual')).toMatchObject({ value: '', status: 'masked', mask: '*' })
+    expect(rows.find((row) => row.metric === 'special_education_pct')).toMatchObject({ value: '0', unit: 'percent', status: 'reported' })
+    expect(rows.find((row) => row.metric === 'p_tech_pct')).toMatchObject({ value: '3', unit: 'percent' })
+    expect(rows.find((row) => row.metric === 'flag:newDistrict')).toMatchObject({ value: 'false', unit: 'boolean', status: 'reported' })
+    expect(rows.find((row) => row.metric === 'flag:alternativeEducationType')).toMatchObject({ value: 'AEC', unit: 'category' })
+    const json = JSON.parse(entityJson(withContext))
+    expect(json.accountabilityContext.students.specialEducation.status).toBe('not-reported')
+    expect(json._meta.sources.some((source) => source.name === 'TEA bulk accountability summary context')).toBe(true)
+  })
+
+  it('renders no accountability rows or source when the optional source is empty', () => {
+    expect(entityRows({ ...vm, accountabilityContext: null }).some((row) => row.section === 'accountability_context')).toBe(false)
+    expect(JSON.parse(entityJson({ ...vm, accountabilityContext: null })).accountabilityContext).toBeNull()
+  })
+
+  it('lists a generated accountability bulk file with its neutral description', () => {
+    const html = renderDownloadPage({
+      files: [{ href: '/data/accountability.csv', label: 'accountability.csv', format: 'csv', rows: 9, description: 'Context-only counts; masked values are not zero.' }],
+      counts: { sourceFiles: 14 },
+    })
+    expect(html).toContain('accountability.csv')
+    expect(html).toContain('Context-only counts; masked values are not zero.')
+    expect(html).toContain('TXschools.gov source files')
+  })
+})
+
 /* ------------------------------------------------------------- csvCell ----- */
 
 describe('csvCell', () => {
@@ -309,6 +356,8 @@ describe('entityCsv provenance', () => {
 
   it('names txschools.gov as the source', () => {
     expect(comments.join('\n')).toContain('https://txschools.gov')
+    expect(comments.join('\n')).toContain('Texas Education Agency Reports and Data Portal')
+    expect(comments.join('\n')).toContain('texas-education-agency-reports-and-data-portal')
   })
 
   it('records the entity id', () => {
@@ -713,8 +762,17 @@ describe('entityJson', () => {
     expect(doc._meta.entityId).toBe('057905')
     expect(doc._meta.officialSource).toBe('https://txschools.gov')
     expect(doc._meta.sourceUrl).toContain('txschools.gov')
+    expect(doc._meta.accountabilityDataPortal).toContain('texas-education-agency-reports-and-data-portal')
+    expect(doc._meta.officialEntityReport).toContain('txschools.gov/?view=district')
     expect(doc._meta.sources).toHaveLength(2)
+    expect(doc._meta.sources[0].landingUrl).toBe(doc._meta.accountabilityDataPortal)
     expect(doc._meta.sources[1]).toMatchObject({ fetched: '24 August 2026' })
+  })
+
+  it('carries a rights notice without inventing a licence', () => {
+    expect(doc._meta.rightsNotice).toMatch(/does not grant permission to reuse third-party source material/i)
+    expect(doc._meta).not.toHaveProperty('license')
+    expect(doc._meta.rightsNotice).not.toMatch(/free to use|personal use only/i)
   })
 
   it('exports enrollment history as numbers and nulls, not formatted prose', () => {
@@ -989,11 +1047,15 @@ describe('renderDownloadPage', () => {
 
   it('formats counts for reading, since a page is not a data file', () => {
     expect(html).toContain('9,029')
+    expect(html).toContain('District &amp; charter systems')
     expect(html).toContain('Rating years')
   })
 
   it('links txschools.gov as the official source', () => {
     expect(html).toContain('https://txschools.gov')
+    expect(html).toContain('texas-education-agency-reports-and-data-portal')
+    expect(html).toContain('Reports and Data Portal')
+    expect(html).toMatch(/TXschools\.gov provides official individual district/i)
     expect(html).toContain('PEIMS enrollment reports')
     expect(html).toContain('24 August 2026')
   })
@@ -1004,16 +1066,17 @@ describe('renderDownloadPage', () => {
     expect(html).not.toMatch(/official (site|data portal) of the Texas Education Agency/i)
   })
 
-  it('is honest about the licence rather than claiming rights it does not hold', () => {
-    expect(html).toMatch(/claims no rights/i)
-    expect(html).toMatch(/ask TEA/i)
+  it('states source rights without inventing a licence or personal-use restriction', () => {
+    expect(html).toMatch(/does not grant permission to\s+reuse third-party source material/i)
+    expect(html).toMatch(/consult each publisher's terms and policies/i)
+    expect(html).not.toMatch(/free to use|personal use only/i)
   })
 
   it('attributes supplemental figures to their actual public publishers', () => {
     expect(html).toMatch(/U\.S\. Census Bureau/i)
     expect(html).toMatch(/Texas Higher Education Coordinating Board/i)
     expect(html).toMatch(/each file names its actual publisher/i)
-    expect(html).toMatch(/other publisher named in the file/i)
+    expect(html).toMatch(/agencies remain the publishers of the underlying records/i)
   })
 
   it('explains that an empty cell is not a zero', () => {
@@ -1040,8 +1103,9 @@ describe('renderDownloadPage', () => {
     expect(html).toMatch(/district/i)
   })
 
-  it('says the per-entity files are districts only, and why', () => {
-    expect(html).toMatch(/per-entity files? (are|is) built for districts|districts only/i)
+  it('says the per-entity files cover district-level records including charter systems, and why', () => {
+    expect(html).toMatch(/per-entity files? (are|is) built for.*district-level records/i)
+    expect(html).toMatch(/including open-enrollment charter school systems/i)
     expect(html).toMatch(/20,000|cap/i)
     expect(html).toMatch(/campus/i)
   })
@@ -1051,7 +1115,7 @@ describe('renderDownloadPage', () => {
     expect(page).toContain('10,230')
     expect(page).toContain('20,460')
     // and still reads as a sentence when no counts were passed
-    expect(renderDownloadPage()).toMatch(/districts only/i)
+    expect(renderDownloadPage()).toMatch(/district-level records/i)
   })
 
   it('survives being called with nothing to list', () => {
