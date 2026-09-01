@@ -385,9 +385,14 @@ const comparisonStackedShares = (vm, prefix, labels, heading) => {
       ${legend(rows.map((row, i) => ({ key: String(i % 7), label: `${row.label} ${num(row.value, 1)}%` })))}
     </div>`
   }).filter(Boolean)
-  return groups.length
-    ? `<div class="comparison-composition-groups">${groups.join('')}<p class="note na" data-comparison-pin-unavailable hidden style="display:none">A precomputed composition average is not available for <span data-comparison-pin-label>this pinned entity</span>. The pin's individual numeric comparisons elsewhere on the page still update.</p></div>`
-    : ''
+  // A pin arrives after this page was generated, but its entity payload carries
+  // the same race:* / experience:* values as the server cohorts above. Publish
+  // the metric prefix and complete label list so the enhancement layer can draw
+  // the pinned entity's actual composition without guessing a category name or
+  // pretending that a missing value is zero. The old "precomputed average is
+  // unavailable" placeholder was misleading here: a pin is one entity, not an
+  // average, and its reported composition is available.
+  return `<div class="comparison-composition-groups" data-pin-composition="${esc(prefix)}" data-pin-composition-labels="${esc(JSON.stringify(labels))}">${groups.join('')}</div>`
 }
 
 /* ---------------------------------------------------------------- verdict -- */
@@ -1144,9 +1149,9 @@ export function outcomes(vm) {
     // average" is avoided as a special case rather than as the general rule.
     tickCohort
       ? tickCohort.key === 'state'
-        ? `The tick on each bar marks the ${vm.isCharter ? 'Texas charter average' : 'statewide average'}`
-        : `The tick on each bar marks the average for <strong>${esc(comparisonAverageTarget(vm, tickCohort))}</strong>`
-      : `The tick on each bar marks the average for ${comparisonUnits(vm)} serving a similar share of economically disadvantaged students`
+        ? `The selected-comparison tick on each bar marks the ${vm.isCharter ? 'Texas charter average' : 'statewide average'}`
+        : `The selected-comparison tick on each bar marks the average for <strong>${esc(comparisonAverageTarget(vm, tickCohort))}</strong>`
+      : `The selected-comparison tick on each bar marks the average for ${comparisonUnits(vm)} serving a similar share of economically disadvantaged students`
   } &mdash; a comparison TEA does not publish.</p>`
     : ''
 
@@ -1395,7 +1400,7 @@ export function enrollment(vm) {
   const rows = reported.map((report, i) => {
     const point = validByYear.get(report.year)
     if (!point) {
-      return `<tr>
+      return `<tr data-enrollment-year="${esc(report.year)}">
       <th scope="row">${esc(schoolYear(report.year))}</th>
       <td class="num enrollment-count-cell"><span class="enrollment-measure enrollment-measure-na"><span class="enrollment-na">Not reported</span></span></td>
       <td class="enrollment-change"><span class="enrollment-na">Not available</span></td>
@@ -1408,7 +1413,7 @@ export function enrollment(vm) {
       : i === 0
         ? '<span class="enrollment-na">First available year</span>'
         : '<span class="enrollment-na">No adjacent prior year</span>'
-    return `<tr>
+    return `<tr data-enrollment-year="${esc(point.year)}" data-enrollment-value="${point.enrollment}">
       <th scope="row">${esc(schoolYear(point.year))}</th>
       <td class="num enrollment-count-cell"><span class="enrollment-measure" style="--enrollment-width:${width.toFixed(2)}%"><span class="enrollment-bar" aria-hidden="true"${point.enrollment === 0 ? ' hidden' : ''}></span><span class="enrollment-value">${num(point.enrollment)}</span></span></td>
       <td class="enrollment-change">${change}</td>

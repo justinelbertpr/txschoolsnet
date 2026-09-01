@@ -926,12 +926,23 @@ td .grade-letter { font-size: 1.05rem; }
 .comparison-readout .cmp { margin-top: .25rem; }
 .comparison-cell { background: color-mix(in srgb, var(--accent-brass) 5%, transparent); }
 
-.comparison-composition-groups { margin-top: .8rem; }
+.comparison-composition-groups {
+  display: grid; gap: .65rem;
+  margin-top: .8rem;
+}
 .comparison-composition {
   padding: .85rem .9rem;
   background: var(--ground);
   border: 1px solid var(--line);
   border-radius: .6rem;
+}
+.comparison-composition-pin {
+  border-inline-start: .3rem solid hsl(var(--pin-hue, 220) 72% var(--pin-l));
+}
+@supports (color: oklch(50% .1 200)) {
+  .comparison-composition-pin {
+    border-inline-start-color: oklch(var(--pin-lo) .155 var(--pin-hue, 220));
+  }
 }
 .comparison-composition-title {
   display: flex;
@@ -943,6 +954,9 @@ td .grade-letter { font-size: 1.05rem; }
   font-size: var(--t-small);
 }
 .comparison-composition .comparison-composition-title { margin-top: 0; }
+.comparison-composition-pin .comparison-composition-title strong {
+  display: inline-flex; align-items: center; gap: .45rem;
+}
 .comparison-composition-title span { color: var(--ink-3); }
 
 /* ==========================================================================
@@ -1352,6 +1366,34 @@ html:has(.stickybar:not([hidden])) .data thead th { top: calc(var(--header-h, 0p
   border-right: 2px solid var(--brand-teal-text);
 }
 .enrollment-value { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.enrollment-pin-series {
+  display: grid; gap: .35rem;
+  margin-top: .45rem;
+}
+.enrollment-pin-row {
+  display: grid; grid-template-columns: minmax(7rem, 42%) minmax(8.5rem, 1fr);
+  align-items: center; gap: .45rem;
+  text-align: left;
+}
+.enrollment-pin-label {
+  display: inline-flex; align-items: center; gap: .35rem;
+  min-width: 0;
+  color: var(--ink-2); font-size: var(--t-micro); line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.enrollment-measure-pin { min-width: 8.5rem; min-height: 1.75rem; }
+.enrollment-measure-pin .enrollment-bar {
+  background: color-mix(in srgb,
+    hsl(var(--pin-hue, 220) 72% var(--pin-l)) 18%, var(--ground));
+  border-right-color: hsl(var(--pin-hue, 220) 72% var(--pin-l));
+}
+@supports (color: oklch(50% .1 200)) {
+  .enrollment-measure-pin .enrollment-bar {
+    background: color-mix(in srgb,
+      oklch(var(--pin-lo) .155 var(--pin-hue, 220)) 18%, var(--ground));
+    border-right-color: oklch(var(--pin-lo) .155 var(--pin-hue, 220));
+  }
+}
 .enrollment-measure-na { justify-content: flex-start; background: var(--ground); }
 .enrollment-change { color: var(--ink-2); line-height: 1.4; font-variant-numeric: tabular-nums; }
 .enrollment-na { color: var(--ink-3); font-style: italic; }

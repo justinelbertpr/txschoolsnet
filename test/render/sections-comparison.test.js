@@ -402,7 +402,9 @@ describe('supplemental sections use the page-wide selected comparison', () => {
     }))
     expect(compositionHtml).toContain('10&ndash;12 reporting, depending on category')
     expect(compositionHtml).toContain('15 in full cohort')
-    expect(compositionHtml).toContain('data-comparison-pin-unavailable')
+    expect(compositionHtml).toContain('data-pin-composition="race"')
+    expect(compositionHtml).toContain('data-pin-composition-labels=')
+    expect(compositionHtml).not.toContain('precomputed composition average is not available')
 
     const salaryHtml = teachers(page({
       profile: { avgSalary: 60_000, teachers: 80 },

@@ -608,6 +608,11 @@ function initCohorts(chart, spend = null) {
   // chip the markup ships pressed. That is the baseline rows are matched
   // against, and the state "restore" means.
   const base = cohorts[0]
+  // Runtime pins are additive chart series as well as optional page-wide
+  // comparisons. Keep that registry separate from `current`: choosing a cohort
+  // must never erase the districts a reader pinned, and adding a pin must not
+  // silently change every comparison on the page.
+  const runtimePins = new Map()
   const label = (c) => c.label ?? c.short ?? c.key
   const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s)
 
@@ -965,6 +970,7 @@ function initCohorts(chart, spend = null) {
     const section = root.closest('section') ?? root.parentElement
     const swatches = [...(section?.querySelectorAll('.legend .swatch') ?? [])]
     const activeSwatch = swatches.find((swatch) => swatch.classList.contains(`swatch-${base.key}`)) ?? null
+    const activeLegendItem = activeSwatch?.parentElement ?? null
     const fixedLegend = new Map(
       cohorts
         .filter((c) => c !== base)
@@ -1013,9 +1019,15 @@ function initCohorts(chart, spend = null) {
         const value = finite(c.metrics[row.key])
         const mark = row.active ?? (value === null ? null : ensureMark(row))
         if (mark) {
-          mark.hidden = value === null
-          mark.style.display = value === null ? 'none' : ''
-          if (value !== null) paintHbarMark(mark, c, value, unit)
+          // A runtime pin already has its own persistent mark. Selecting that
+          // same pin page-wide changes the prose and tables, but drawing a
+          // second tick on exactly the same pixel would make the chart look as
+          // though it had two agreeing sources. Hide only the replaceable
+          // selected-comparison mark; the additive pin mark stays put.
+          const representedByPin = isOne(c) && runtimePins.has(c.key)
+          mark.hidden = value === null || representedByPin
+          mark.style.display = value === null || representedByPin ? 'none' : ''
+          if (value !== null && !representedByPin) paintHbarMark(mark, c, value, unit)
         }
 
         for (const item of row.fixed) {
@@ -1034,6 +1046,8 @@ function initCohorts(chart, spend = null) {
       }
 
       if (activeSwatch) {
+        const representedByPin = isOne(c) && runtimePins.has(c.key)
+        if (activeLegendItem) activeLegendItem.style.display = representedByPin ? 'none' : ''
         for (const cls of [...activeSwatch.classList]) if (cls.startsWith('swatch-')) activeSwatch.classList.remove(cls)
         activeSwatch.classList.add(isOne(c) ? 'swatch-pin' : `swatch-${c.key}`)
         if (isOne(c)) activeSwatch.style.setProperty('--pin-hue', String(c.hue ?? 220))
@@ -1049,6 +1063,7 @@ function initCohorts(chart, spend = null) {
     return root ? hbarUpdater(root, { digits: 1, keepFixed: true }) : null
   }
 
+  let refreshPinnedStaarNote = () => {}
   const staarBars = () => {
     const root = document.querySelector('[data-bars="staar"]')
     if (!root) return null
@@ -1066,15 +1081,297 @@ function initCohorts(chart, spend = null) {
           `Percentage of tests at or above each level. Masters is a subset of Meets, which is a subset of ` +
           `Approaches. ` +
           (isOne(c)
-            ? `The tick on each bar is ${label(c)}'s own figure, not an average. This comparison is not published by TEA.`
+            ? `The selected-comparison tick on each bar is ${label(c)}'s own figure, not an average. This comparison is not published by TEA.`
             : (isState(c)
-                ? `The tick on each bar is the ${STATE_AVERAGE_KIND} ${STATE_AVERAGE_TARGET}. `
-                : `The tick on each bar is the average for ${proseLabel(c)}. `) +
+                ? `The selected-comparison tick on each bar is the ${STATE_AVERAGE_KIND} ${STATE_AVERAGE_TARGET}. `
+                : `The selected-comparison tick on each bar is the average for ${proseLabel(c)}. `) +
               `The row gives the number reporting that measure; ${num(c.n)} ${COHORT_UNITS} are in the full cohort. ` +
               `This comparison is not published by TEA.`)
       }
+      refreshPinnedStaarNote()
     }
   }
+
+  /* ---- every pinned entity on every compatible chart ------------------ */
+
+  /**
+   * A pin is additive. The page-wide switch still chooses one benchmark for
+   * sentences, tables and delta callouts, while every pinned entity remains a
+   * separately labelled series on each chart for which it reports data.
+   *
+   * The renderer publishes exact metric keys on the bar and enrollment rows,
+   * plus the complete TEA category labels on composition roots. This client
+   * code only places values from the pin's published metric map. Missing means
+   * absent: it never becomes a zero-width mark or an inferred category.
+   */
+  const pinnedMetricCharts = (() => {
+    const idOf = (c) => String(c.pinId ?? c.key ?? '').replace(/^pin:/, '')
+    const hbarRoots = [
+      { root: document.querySelector('[data-bars="domain"]'), unit: '', legendPrefix: '' },
+      { root: document.querySelector('[data-bars="staar"]'), unit: '%', legendPrefix: 'Pin: ' },
+    ].filter(({ root }) => root)
+    const compositionRoots = [...document.querySelectorAll('[data-pin-composition]')]
+    const enrollmentRows = [...document.querySelectorAll('.enrollment-table tr[data-enrollment-year]')]
+    const enrollmentHead = document.querySelector('.enrollment-table thead th:nth-child(2)')
+    const enrollmentHeadHtml = enrollmentHead?.innerHTML ?? null
+    const staarRoot = hbarRoots.find((family) => family.root.dataset.bars === 'staar')?.root ?? null
+    const staarNote = [...document.querySelectorAll('#outcomes p.note')].find((note) => /tick on each bar/i.test(note.textContent)) ?? null
+
+    refreshPinnedStaarNote = () => {
+      if (!staarNote) return
+      const old = staarNote.querySelector('[data-pin-tick-explanation]')
+      if (old?.previousSibling?.nodeType === 3 && !old.previousSibling.nodeValue.trim()) old.previousSibling.remove()
+      old?.remove()
+      if (!staarRoot?.querySelector('.hbar-mark-pin[data-pin]')) return
+      // Pages generated before this additive behavior used "the tick". Make
+      // clear that sentence names the one selected benchmark, not the extra
+      // dashed pin marks now on the same track.
+      staarNote.innerHTML = staarNote.innerHTML.replace(
+        /The tick on each bar/g,
+        'The selected-comparison tick on each bar'
+      )
+      const extra = document.createElement('span')
+      extra.dataset.pinTickExplanation = ''
+      extra.textContent = ' Additional dashed, pin-colored ticks show the schools or districts pinned by the reader.'
+      staarNote.append(extra)
+    }
+
+    const pinKind = (c) =>
+      c.level === 'school'
+        ? c.isCharter ? 'Pinned charter school' : 'Pinned school'
+        : c.isCharter ? 'Pinned charter school system' : 'Pinned district'
+    const setHue = (el, c) => el.style.setProperty('--pin-hue', String(c.hue ?? 220))
+
+    const legendAfter = (root) => {
+      if (root.nextElementSibling?.matches('.legend')) return root.nextElementSibling
+      const section = root.closest('section')
+      if (!section) return null
+      return [...section.querySelectorAll('.legend')].find((legend) => legend.compareDocumentPosition(root) & Node.DOCUMENT_POSITION_PRECEDING) ?? null
+    }
+
+    const addHbars = (c) => {
+      const id = idOf(c)
+      for (const family of hbarRoots) {
+        let drawn = 0
+        for (const row of family.root.querySelectorAll('.hbar[data-metric]')) {
+          const value = finite(c.metrics?.[row.dataset.metric])
+          const track = row.querySelector('.hbar-track')
+          if (value === null || !track) continue
+          const mark = document.createElement('span')
+          mark.className = 'hbar-mark hbar-mark-pin'
+          paintHbarMark(mark, c, value, family.unit)
+          mark.dataset.pin = id
+          // Put persistent pins before the replaceable selected-cohort mark.
+          // Besides keeping the DOM order predictable, this means a selected
+          // pin remains the first named mark while its duplicate is hidden.
+          track.insertBefore(mark, track.querySelector('.hbar-mark'))
+          // The track is decorative and aria-hidden. Keep the exact pin value
+          // in the row's accessible text as well as in the hover title.
+          const accessible = document.createElement('span')
+          accessible.className = 'sr-only hbar-pin-value'
+          accessible.dataset.pin = id
+          accessible.textContent = `Pinned ${label(c)}: ${num(value)}${family.unit}.`
+          row.append(accessible)
+          drawn += 1
+        }
+        if (!drawn) continue
+        const legend = legendAfter(family.root)
+        if (!legend) continue
+        const item = document.createElement('li')
+        item.className = 'pin-chart-legend'
+        item.dataset.pin = id
+        setHue(item, c)
+        const swatch = document.createElement('span')
+        swatch.className = 'swatch swatch-pin'
+        item.append(swatch, document.createTextNode(`${family.legendPrefix}${label(c)} (pinned)`))
+        legend.append(item)
+      }
+      refreshPinnedStaarNote()
+    }
+
+    const compositionLabels = (root) => {
+      try {
+        const labels = JSON.parse(root.dataset.pinCompositionLabels ?? '[]')
+        return Array.isArray(labels) ? labels.map(String) : []
+      } catch {
+        return []
+      }
+    }
+
+    const addCompositions = (c) => {
+      const id = idOf(c)
+      for (const root of compositionRoots) {
+        const prefix = root.dataset.pinComposition
+        const rows = compositionLabels(root)
+          .map((category, index) => ({ category, index, value: finite(c.metrics?.[`${prefix}:${index}`]) }))
+          .filter((row) => row.value !== null && row.value > 0)
+        if (!rows.length) continue
+
+        const card = document.createElement('div')
+        card.className = 'comparison-composition comparison-composition-pin'
+        card.dataset.pin = id
+        setHue(card, c)
+
+        const heading = document.createElement('p')
+        heading.className = 'comparison-composition-title'
+        const strong = document.createElement('strong')
+        const dot = document.createElement('span')
+        dot.className = 'pin-dot'
+        strong.append(dot, document.createTextNode(label(c)))
+        const meta = document.createElement('span')
+        meta.textContent = `${pinKind(c)} · reported composition`
+        heading.append(strong, meta)
+
+        const svg = document.createElementNS(SVGNS, 'svg')
+        svg.setAttribute('viewBox', '0 0 640 26')
+        svg.setAttribute('class', 'chart chart-stack')
+        svg.setAttribute('role', 'img')
+        svg.setAttribute('aria-label', `${prefix === 'race' ? 'Student demographics' : 'Teaching experience'} for ${label(c)}`)
+        // These are already percentages of the whole population. If TEA did
+        // not publish one category, leave that share visibly blank instead of
+        // stretching the reported categories to a made-up 100%. A tiny total
+        // over 100 can occur from published rounding, so only that case is
+        // scaled back to fit the viewBox.
+        const total = Math.max(100, rows.reduce((sum, row) => sum + row.value, 0))
+        let cursor = 0
+        rows.forEach((row) => {
+          const width = (row.value / total) * 640
+          const rect = document.createElementNS(SVGNS, 'rect')
+          rect.setAttribute('x', cursor.toFixed(1))
+          rect.setAttribute('y', '0')
+          rect.setAttribute('width', Math.max(0, width - 2).toFixed(1))
+          rect.setAttribute('height', '26')
+          rect.setAttribute('rx', '3')
+          rect.setAttribute('class', `seg seg-${row.index % 7}`)
+          const title = document.createElementNS(SVGNS, 'title')
+          title.textContent = `${row.category}: ${row.value}%`
+          rect.append(title)
+          svg.append(rect)
+          cursor += width
+        })
+
+        const key = document.createElement('ul')
+        key.className = 'legend'
+        rows.forEach((row) => {
+          const item = document.createElement('li')
+          const swatch = document.createElement('span')
+          swatch.className = `swatch swatch-${row.index % 7}`
+          item.append(swatch, document.createTextNode(`${row.category} ${num(row.value)}%`))
+          key.append(item)
+        })
+        card.append(heading, svg, key)
+        root.append(card)
+
+        // Compatibility with pages generated before the renderer learned that
+        // pin composition data is available. `pinUnavailable` may retain a
+        // reference to this detached node, but it can no longer contradict the
+        // real chart now on screen.
+        root.querySelector('[data-comparison-pin-unavailable]')?.remove()
+      }
+    }
+
+    const parsedEnrollment = (row) => {
+      if (row.dataset.enrollmentValue != null && row.dataset.enrollmentValue !== '') {
+        return finite(Number(row.dataset.enrollmentValue))
+      }
+      const raw = row.querySelector('.enrollment-count-cell > .enrollment-measure .enrollment-value')?.textContent ?? ''
+      const normalized = raw.replace(/[^\d.-]/g, '')
+      return normalized ? finite(Number(normalized)) : null
+    }
+
+    const drawEnrollment = () => {
+      if (!enrollmentRows.length) return
+      if (enrollmentHead && enrollmentHeadHtml != null) {
+        if (!runtimePins.size) enrollmentHead.innerHTML = enrollmentHeadHtml
+        else {
+          const scope = UNIT === 'campuses' ? 'This school' : CHARTER_PAGE ? 'This school system' : 'This district'
+          const sub = document.createElement('small')
+          sub.textContent = `${scope} and pinned comparisons`
+          enrollmentHead.textContent = 'Students enrolled'
+          enrollmentHead.append(sub)
+        }
+      }
+      const points = enrollmentRows.map((row) => ({
+        row,
+        year: row.dataset.enrollmentYear,
+        own: parsedEnrollment(row),
+        ownMeasure: row.querySelector('.enrollment-count-cell > .enrollment-measure'),
+        cell: row.querySelector('.enrollment-count-cell'),
+      }))
+      const all = points.flatMap((point) => [
+        point.own,
+        ...[...runtimePins.values()].map((c) => finite(c.metrics?.[`public:enrollment:${point.year}`])),
+      ]).filter((value) => value !== null)
+      const max = all.length ? Math.max(...all, 0) : 0
+
+      for (const point of points) {
+        point.cell?.querySelector('.enrollment-pin-series')?.remove()
+        if (point.ownMeasure && point.own !== null) {
+          point.ownMeasure.style.setProperty('--enrollment-width', `${max > 0 ? ((point.own / max) * 100).toFixed(2) : '0'}%`)
+        }
+        if (!point.cell || !runtimePins.size) continue
+
+        const series = document.createElement('div')
+        series.className = 'enrollment-pin-series'
+        for (const c of runtimePins.values()) {
+          const value = finite(c.metrics?.[`public:enrollment:${point.year}`])
+          if (value === null) continue
+          const id = idOf(c)
+          const pin = document.createElement('div')
+          pin.className = 'enrollment-pin-row'
+          pin.dataset.pin = id
+          setHue(pin, c)
+          pin.setAttribute('aria-label', `${label(c)}: ${num(value)} students`)
+
+          const pinLabel = document.createElement('span')
+          pinLabel.className = 'enrollment-pin-label'
+          const dot = document.createElement('span')
+          dot.className = 'pin-dot'
+          pinLabel.append(dot, document.createTextNode(label(c)))
+
+          const measure = document.createElement('span')
+          measure.className = 'enrollment-measure enrollment-measure-pin'
+          measure.style.setProperty('--enrollment-width', `${max > 0 ? ((value / max) * 100).toFixed(2) : '0'}%`)
+          const bar = document.createElement('span')
+          bar.className = 'enrollment-bar'
+          bar.setAttribute('aria-hidden', 'true')
+          bar.hidden = value === 0
+          const out = document.createElement('span')
+          out.className = 'enrollment-value'
+          out.textContent = num(value)
+          measure.append(bar, out)
+          pin.append(pinLabel, measure)
+          series.append(pin)
+        }
+        if (series.childElementCount) point.cell.append(series)
+      }
+    }
+
+    return {
+      add(c) {
+        if (!isOne(c) || !c.key || runtimePins.has(c.key)) return
+        runtimePins.set(c.key, c)
+        addHbars(c)
+        addCompositions(c)
+        drawEnrollment()
+      },
+      remove(key) {
+        const c = runtimePins.get(key)
+        if (!c) return
+        const id = idOf(c)
+        runtimePins.delete(key)
+        for (const family of hbarRoots) {
+          family.root.querySelectorAll(`[data-pin="${CSS.escape(id)}"]`).forEach((el) => el.remove())
+          legendAfter(family.root)?.querySelectorAll(`[data-pin="${CSS.escape(id)}"]`).forEach((el) => el.remove())
+        }
+        for (const root of compositionRoots) {
+          root.querySelectorAll(`[data-pin="${CSS.escape(id)}"]`).forEach((el) => el.remove())
+        }
+        refreshPinnedStaarNote()
+        drawEnrollment()
+      },
+    }
+  })()
 
   /* ---- the CCMR table ---- */
 
@@ -1352,12 +1649,14 @@ function initCohorts(chart, spend = null) {
       if (!c?.key || !c.metrics || cohorts.some((x) => x.key === c.key)) return false
       cohorts.push(c)
       addChips(c)
+      pinnedMetricCharts.add(c)
       return true
     },
     remove(key) {
       const i = cohorts.findIndex((c) => c.key === key)
       if (i < 0) return
       const wasActive = current.key === key
+      pinnedMetricCharts.remove(key)
       cohorts.splice(i, 1)
       for (const b of document.querySelectorAll('.chip-cohort')) if (b.dataset.cohort === key) b.remove()
       // Forced, because `apply` short-circuits when the requested cohort is
@@ -1812,10 +2111,10 @@ const pinMetricAssets = new Map()
  * with the pin, and with the chart line's accessible name.
  *
  * This is not site navigation: nothing here takes the reader anywhere. A pin
- * adds a line to the trajectory chart and registers as a comparison the rest
- * of the page can be read against, via the controller initCohorts hands back.
- * District pins can additionally join the spending chart because TEA publishes
- * that history at the district level.
+ * adds its reported data to every compatible chart and also registers as a
+ * comparison the rest of the page can be read against, via the controller
+ * initCohorts hands back. District pins can additionally join the spending
+ * chart because TEA publishes that history at the district level.
  */
 function initPins(chart, compare = null, spend = null) {
   const box = document.querySelector('.rail-pins')
@@ -1891,6 +2190,7 @@ function initPins(chart, compare = null, spend = null) {
         // because 1,279 of them share a name with another campus.
         label: district ? `${name} (${district})` : name,
         region: cols.regionId?.[i] ?? null,
+        isCharter: typeof cols.isCharter?.[i] === 'boolean' ? cols.isCharter[i] : null,
         isAlt: typeof cols.isAlt?.[i] === 'boolean' ? cols.isAlt[i] : null,
         key: name.toLowerCase(),
         row: i,
@@ -2065,11 +2365,13 @@ function initPins(chart, compare = null, spend = null) {
             }
             return compare.add({
               key: compareKey(rec.id),
+              pinId: rec.id,
               short: nameOf(rec),
               label: nameOf(rec),
               n: 1,
               single: true,
               level: levelOf(rec) === 'campus' ? 'school' : 'district',
+              isCharter: rec.isCharter === true,
               hue: rec.hue,
               metrics: comparableMetrics,
               // The same year->score map the chart line uses, so the table beside
@@ -2088,7 +2390,7 @@ function initPins(chart, compare = null, spend = null) {
   // sessionStorage is intentionally a line-restoration cache, not a second copy
   // of the published metrics. The explicit allowlist keeps future additions to
   // a live pin record from quietly bloating or exposing the stored value.
-  const storedPin = ({ id, name, label, level, hue, byYear, isAlt }) => ({ id, name, label, level, hue, byYear, isAlt })
+  const storedPin = ({ id, name, label, level, hue, byYear, isAlt, isCharter }) => ({ id, name, label, level, hue, byYear, isAlt, isCharter })
   const save = () => {
     try {
       sessionStorage.setItem(PIN_KEY, JSON.stringify([...pinned.values()].map(storedPin)))
@@ -2143,7 +2445,7 @@ function initPins(chart, compare = null, spend = null) {
           if (pinned.get(rec.id) !== rec) return
           if (ok) {
             list.querySelector(`.pin[data-id="${CSS.escape(rec.id)}"] .pin-note`)?.remove()
-            if (announce) say(`${nameOf(rec)} is now a comparison — pick it under “Compare against” to read the current figures on this page against it.`)
+            if (announce) say(`${nameOf(rec)} is now shown on every compatible chart. Pick it under “Compare against” to update the page's comparison text and tables too.`)
             return
           }
           // The trajectory line is already useful, but a failed metric request
@@ -2267,7 +2569,7 @@ function initPins(chart, compare = null, spend = null) {
 
   const pick = (it) => {
     if (pinned.size >= PIN_MAX) { say(capMessage); close(); return }
-    add([{ id: it.id, name: it.name, label: `${it.label}${it.detail ?? ''}`, level: it.level, isAlt: it.isAlt, hue: nextHue(), byYear: byYearFor(it) }])
+    add([{ id: it.id, name: it.name, label: `${it.label}${it.detail ?? ''}`, level: it.level, isAlt: it.isAlt, isCharter: it.isCharter, hue: nextHue(), byYear: byYearFor(it) }])
     input.value = ''
     close()
   }
@@ -2352,9 +2654,10 @@ function initPins(chart, compare = null, spend = null) {
         id: p.id,
         name: p.name,
          label: typeof p.label === 'string' ? p.label : p.name,
-         level: p.level === 'campus' || p.level === 'district' ? p.level : p.id.length > 6 ? 'campus' : 'district',
-         isAlt: typeof p.isAlt === 'boolean' ? p.isAlt : null,
-         hue,
+          level: p.level === 'campus' || p.level === 'district' ? p.level : p.id.length > 6 ? 'campus' : 'district',
+          isAlt: typeof p.isAlt === 'boolean' ? p.isAlt : null,
+          isCharter: typeof p.isCharter === 'boolean' ? p.isCharter : null,
+          hue,
         byYear: p.byYear,
       }
     })
