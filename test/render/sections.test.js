@@ -684,7 +684,10 @@ describe('students', () => {
     const html = students(empty({ profile, raceShare: [10, 60, 30, 0, 0, 0, 0] }))
     expect(html).toContain('Student demographics')
     expect(html).toContain('African American 10%')
-    expect(html).not.toContain('Pacific Islander')
+    // The complete category vocabulary now travels as non-visible metadata so
+    // a runtime pin can be labelled without guessing. A zero share must still
+    // produce neither a visible segment title nor a legend item.
+    expect(html).not.toMatch(/(?:<title>Pacific Islander:|>Pacific Islander \d)/)
   })
 
   it('omits the demographic chart when TEA reported nothing', () => {

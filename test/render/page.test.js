@@ -184,7 +184,7 @@ describe('railFor', () => {
     // on src/render/page.js:railPins — so the served wording says so rather
     // than making the narrower claim site/app.js used to have to correct.
     expect(html).toContain('<h2 class="rail-title">Pin to compare</h2>')
-    expect(html).toContain('Each joins the ratings chart and becomes a comparison for current measures.')
+    expect(html).toContain('Each adds its reported data to every compatible chart')
     expect(html).toContain('placeholder="Search schools, districts and charter systems"')
     expect(html).toContain('aria-label="Search schools, districts and charter systems to pin"')
     expect(html).toContain('<ul class="pin-list" aria-label="Pinned schools, districts and charter systems"></ul>')

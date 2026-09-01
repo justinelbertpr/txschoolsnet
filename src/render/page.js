@@ -135,7 +135,7 @@ const railPins = (payload) =>
     ? ''
     : `  <div class="rail-block rail-pins">
     <h2 class="rail-title">Pin to compare</h2>
-    <p class="rail-hint">Add up to five schools or districts. Each joins the ratings chart and becomes a comparison for current measures. District pins also join spending.</p>
+    <p class="rail-hint">Add up to five schools or districts. Each adds its reported data to every compatible chart and becomes an optional comparison for the page&rsquo;s text and tables.</p>
     <input class="pin-search" type="search" placeholder="Search schools, districts and charter systems" aria-label="Search schools, districts and charter systems to pin" autocomplete="off">
     <ul class="pin-results" hidden></ul>
     <ul class="pin-list" aria-label="Pinned schools, districts and charter systems"></ul>

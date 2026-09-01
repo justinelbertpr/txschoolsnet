@@ -206,7 +206,7 @@ describe('generic selected-comparison hooks', () => {
     )
 
     const staarNote = window.document.querySelector('#outcomes p.note').textContent
-    expect(staarNote).toContain('The tick on each bar is the statewide cohort average across Texas.')
+    expect(staarNote).toContain('The selected-comparison tick on each bar is the statewide cohort average across Texas.')
     expect(staarNote).toContain('This comparison is not published by TEA.')
     expect(window.document.querySelector('[data-ccmr-comparison]').textContent).toBe('the statewide cohort average across')
     expect(window.document.querySelector('[data-ccmr-cohort]').textContent).toBe('Texas')
@@ -275,7 +275,7 @@ describe('generic selected-comparison hooks', () => {
         `Texas charter average for ${scenario.units} · ${(scenario.n - 2).toLocaleString('en-US')} rated ${scenario.units} reporting`
       )
       expect(window.document.querySelector('#outcomes p.note').textContent).toContain(
-        `The tick on each bar is the Texas charter average for ${scenario.units}.`
+        `The selected-comparison tick on each bar is the Texas charter average for ${scenario.units}.`
       )
       expect(window.document.querySelector('[data-ccmr-comparison]').textContent).toBe('the Texas charter average for')
       expect(window.document.querySelector('[data-ccmr-cohort]').textContent).toBe(scenario.units)
